@@ -1,0 +1,641 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+////////////////////////////////////////////////////
+// Address
+////////////////////////////////////////////////////
+Table ADDRESS {
+  address_id int [pk, not null, note: '地址 ID']
+  district_id int [ref: > DISTRICT.district_id, note: '行政區 ID (FK)']
+    Latitude decimal(9,6) [not null, note: "CHECK (Latitude BETWEEN -90 AND 90)"]
+  Longitude decimal(9,6) [not null, note: "CHECK (Longitude BETWEEN -180 AND 180)"]
+  street string [note: '路名與門牌，例如：復興南路一段 390 號 10 樓']
+  created_at datetime [note: '建立紀錄時間']
+  updated_at datetime [note: '最後更新時間']}
+
+////////////////////////////////////////////////////
+// Board Proposal
+////////////////////////////////////////////////////
+Table BOARD_PROPOSAL {
+  proposal_id int [pk, not null, note: '提案 ID']
+  board_id int [ref: > PROPERTY_MANAGEMENT_BOARD.board_id, note: '所屬看板 ID (FK)']
+  created_at datetime [ref: > ROOM_LIST.price_per_night , note: '建立時間']
+  proposer_id int [ref: > USER.user_id, note: '提案人 ID (FK)']
+  message string [note: '提案內容，例如：調整垃圾車時段、門禁卡申請']
+  proposed_price decimal [note: '建議金額，例：清潔加價 300 元']}
+
+////////////////////////////////////////////////////
+// Booking
+////////////////////////////////////////////////////
+Table BOOKING {
+  booking_id int [pk, not null, note: '訂單 ID']
+  coupon_id int [ref: > COUPON.coupon_id, note: '優惠券 ID (FK)']
+  guest_id int [ref: > USER.user_id, note: '旅客 ID (FK, role=guest)']
+  room_id int [ref: > ROOM_LIST.room_id, note: '房源 ID (FK)']
+  order_number string
+  check_in datetime [note: '入住時間，例如：2025-02-10 15:00']
+  check_out datetime [note: '退房時間，例如：2025-02-12 11:00']
+  total_price decimal [note: '實付總額，含清潔費、服務費、折扣']
+  commission_rate_snapshot decimal
+  points_earned int
+  points_redeemed int
+  status string [note: '訂單狀態：pending / confirmed / cancelled']
+  created_at datetime [note: '建立時間']}
+
+////////////////////////////////////////////////////
+// User
+////////////////////////////////////////////////////
+Table USER {
+  user_id int [pk, not null, note: '使用者 ID']
+  username nvarchar [not null, note: '使用者登入帳號']
+  email string [not null, note: '電子郵件，例如：ming@example.com']
+  name string [not null, note: '姓名，例如：王小明']
+  auto_subscribe bool [note: '自動訂閱，true/false']
+  password_hash string [not null, note: '雜湊密碼，禁止明碼存放']
+  gender char [not null, note: '性別']
+  birth_date DATE [not null, note: '生日']
+  phone string [note: '手機號碼，例如：09xx-xxx-xxx']
+  address nvarchar [not null, note: '聯絡地址']
+  profile_imageurl nvarchar [note: '頭像路徑檔']
+  point int [note: '點數（行銷/客服補償用）']
+  isverified bit [not null, note: '是否通過Email驗證']
+  created_at datetime [note: '建立時間，建議存 UTC（台灣時區 +8）']
+  updated_at datetime [note: '最後更新時間']}
+  // role string [note: '角色：guest / host / admin']
+
+////////////////////////////////////////////////////
+// Booking Guest
+////////////////////////////////////////////////////
+Table BOOKING_GUEST {
+  booking_guest_id int [pk, not null, note: '入住人資料 ID']
+  booking_id int [ref: > BOOKING.booking_id, note: '訂單 ID (FK)']
+  guest_name string [note: '入住人姓名，例如：陳OO']
+  guest_id_number string [note: '身分證字號/居留證，例如：A123456789（可加密/遮罩）']}
+
+////////////////////////////////////////////////////
+// City
+////////////////////////////////////////////////////
+Table CITY {
+  city_id int [pk, not null, note: '城市 ID']
+  city_name string [note: '城市名稱，例如：台北市、台中市']}
+
+////////////////////////////////////////////////////
+// Coupon
+////////////////////////////////////////////////////
+Table COUPON {
+  coupon_id int [pk, not null, note: '優惠券 ID']
+  coupon_name string [note: '券名，例如：開站早鳥 9 折']
+  discount_code string
+  description string [note: '券說明，例如：限週末訂單使用']
+  discount_method string [note: '折扣型態：percentage / amount']
+  discount_quota decimal [note: '折扣數值，例如：0.9=9折；200=折200元']
+  end_at datetime [note: '截止時間']
+  low_spend decimal [note: '最低消費門檻，例如：滿2000才可用']
+  start_at datetime [note: '生效時間']}
+
+////////////////////////////////////////////////////
+// Coupon Guest
+////////////////////////////////////////////////////
+Table COUPON_GUEST {
+  coupon_guest_id int [pk, not null, note: '發放紀錄 ID']
+  coupon_id int [ref: > COUPON.coupon_id, note: '優惠券 ID (FK)']
+  guest_id int [ref: > USER.user_id, note: '旅客 ID (FK)']
+  create_at datetime
+  remove_at datetime}
+
+////////////////////////////////////////////////////
+// District
+////////////////////////////////////////////////////
+Table DISTRICT {
+  district_id int [pk, not null, note: '行政區 ID']
+  city_id int [ref: > CITY.city_id, note: '城市 ID (FK)']
+  district_name string [note: '行政區名稱，例如：大安區、信義區']}
+
+////////////////////////////////////////////////////
+// Message
+////////////////////////////////////////////////////
+Table MESSAGE {
+  message_id int [pk, not null, note: '訊息 ID']
+  board_id int [ref: > PROPERTY_MANAGEMENT_BOARD.board_id, note: '關聯管委會 (FK，可為空)']
+  booking_id int [ref: > BOOKING.booking_id, note: '關聯訂單 (FK，可為空)']
+  receiver_id int [ref: > USER.user_id, note: '收件者 ID (FK)']
+  room_id int [ref: > ROOM_LIST.room_id, note: '房源 ID (FK，可為空)']
+  sender_id int [ref: > USER.user_id, note: '寄件者 ID (FK)']
+  content string [note: '訊息內容，建議做敏感字/個資遮罩']
+  created_at datetime [note: '建立時間']}
+
+////////////////////////////////////////////////////
+// Payment
+////////////////////////////////////////////////////
+Table PAYMENT {
+  payment_id int [pk, not null, note: '付款紀錄 ID']
+  booking_id int [ref: > BOOKING.booking_id, note: '訂單 ID (FK)']
+  amount decimal [note: '交易金額，單位：TWD']
+  method string [note: '付款方式，例如：信用卡、ATM、行動支付']
+  paid_at datetime [note: '完成時間']
+  payment_ref string
+  order_number_snapshot string
+  status string [note: '付款狀態：pending / paid / refunded']
+  created_at datetime}
+
+////////////////////////////////////////////////////
+// Payment Transaction
+////////////////////////////////////////////////////
+Table PAYMENT_TRANSACTION {
+  transaction_id int [pk, not null, note: '金流交易流水號']
+  payment_id int [ref: > PAYMENT.payment_id, note: '付款紀錄 ID (FK)']
+  provider_txn_id string [note: '金流商交易編號']
+  response_code string [note: '金流回傳代碼，例如：0000=成功']
+  provider string [note: '金流商，例如：綠界、藍新']
+  response_message string [note: '金流回傳訊息']
+  txn_ref string
+  created_at datetime [note: '建立時間']}
+
+////////////////////////////////////////////////////
+// Property Management Board
+////////////////////////////////////////////////////
+Table PROPERTY_MANAGEMENT_BOARD {
+  board_id int [pk, not null, note: '看板 ID']
+  host_id int [ref: > USER.user_id, note: '發起人 ID (FK, role=host)']
+  title string [note: '主題，例如：大樓垃圾公告']
+  description string [note: '看板說明，貼文內容']
+  status string [note: '狀態：open / closed']
+  created_at datetime [note: '建立時間']}
+
+////////////////////////////////////////////////////
+// Review
+////////////////////////////////////////////////////
+Table REVIEW {
+  review_id int [pk, not null, note: '評論 ID']
+  booking_id int [ref: > BOOKING.booking_id, note: '訂單 ID (FK, 防刷評)']
+  host_id int [ref: > USER.user_id, note: '房東 ID (FK)']
+  reviewer_id int [ref: > USER.user_id, note: '評論者 ID (FK)']
+  room_id int [ref: > ROOM_LIST.room_id, note: '房源 ID (FK)']
+  comment string [note: '文字評論，可審核敏感字']
+  rating int [note: '評分，1–5']
+  created_at datetime [note: '建立時間']}
+
+////////////////////////////////////////////////////
+// Room List
+////////////////////////////////////////////////////
+Table ROOM_LIST {
+  room_id int [pk, not null, note: '房源 ID']
+  address_id int [ref: > ADDRESS.address_id, note: '地址 ID (FK)']
+  host_id int [ref: > USER.user_id, note: '房東 ID (FK, role=host)']
+  title string [note: '房源名稱，例如：捷運站 3 分鐘溫馨套房']
+  description string [note: '房源描述，可含設備、附近生活機能']
+  max_guests int [note: '最多入住人數，例如：4']
+  price_per_night decimal [note: '每晚價格，單位：TWD，例如：1280.00']
+  status string [note: '審核/上架狀態：pending / approved / rejected / active / inactive']
+  created_at datetime [note: '建立時間']
+  updated_at datetime [note: '最後更新時間']}
+
+////////////////////////////////////////////////////
+// Room Photo
+////////////////////////////////////////////////////
+Table ROOM_PHOTO {
+  photo_id int [pk, not null, note: '照片 ID']
+  room_id int [ref: > ROOM_LIST.room_id, note: '房源 ID (FK)']
+  photo_url string [note: '照片網址，可存雲端路徑']
+  sort_order int [note: '排序，數字小者優先']}
+
+/*
+////////////////////////////////////////////////////
+// Subscribe
+////////////////////////////////////////////////////
+Table SUBSCRIBE {
+  sub_host_id int [pk, not null, note: '房東訂閱紀錄 ID']
+  host_id int [ref: > USER.user_id, note: '房東 ID (FK, role=host)']
+  sub_id int [ref: > SUBSCRIBE_PLAN.sub_id, note: '方案 ID (FK)']}
+
+////////////////////////////////////////////////////
+// Subscribe Plan
+////////////////////////////////////////////////////
+Table SUBSCRIBE_PLAN {
+  sub_id int [pk, not null, note: '訂閱方案 ID']
+  plan_name string [note: '方案名稱，例如：房東 Pro 月費方案']
+  features string [note: '功能列表，例如：加速審核、優先曝光']
+  price_monthly decimal [note: '月費，單位：TWD']}
+*/
+
+////////////////////////////////////////////////////
+//廷翊
+////////////////////////////////////////////////////
+Table ROLES {
+  role_id "INT IDENTITY(1,1)" [pk]
+  role_code VARCHAR(50) [unique, not null]
+  role_name NVARCHAR(100) [not null]
+  description NVARCHAR(500)
+  created_at DATETIME2 [not null, default: `SYSDATETIME()`]
+  updated_at DATETIME2 [not null, default: `SYSDATETIME()`]}
+
+Table PERMISSIONS {
+  permission_id "INT IDENTITY(1,1)" [pk]
+  perm_code VARCHAR(100) [unique, not null]
+  perm_name NVARCHAR(200) [not null]
+  module VARCHAR(50) [not null]
+  action VARCHAR(50) [not null]
+  description NVARCHAR(500)
+  created_at DATETIME2 [not null, default: `SYSDATETIME()`]
+  updated_at DATETIME2 [not null, default: `SYSDATETIME()`]}
+
+Table ROLE_PERMISSIONS {
+  role_permission_id INT [not null]
+  role_id INT [not null, ref: > ROLES.role_id]
+  permission_id INT [not null, ref: > PERMISSIONS.permission_id]
+  granted BIT [not null, default: 1]
+  created_at DATETIME2 [not null, default: `SYSDATETIME()`]
+
+  Indexes {
+    (role_id, permission_id) [pk, name: "PK_ROLE_PERMISSIONS"]
+  }
+}
+
+Table USER_ROLES {
+  user_role_id INT [pk,not null]
+  user_id INT [ref: > USER.user_id,not null]
+  role_id INT [not null, ref: > ROLES.role_id]
+  is_primary BIT [not null, default: 1]
+  effective_from DATETIME2 [not null, default: `SYSDATETIME()`]
+  effective_to DATETIME2
+  created_at DATETIME2 [not null, default: `SYSDATETIME()`]}
+
+////////////////////////////////////////////////////
+//文志
+////////////////////////////////////////////////////
+Table HOST_PAYOUT {
+  payout_id int [pk]
+  host_id int [ref: > USER.user_id]
+  cycle_start date
+  cycle_end date
+  amount_gross decimal
+  platform_fee decimal
+  amount_net decimal
+  paid_at datetime
+  status string
+  created_at datetime}
+
+Table HOST_PAYOUT_ITEM {
+  payout_item_id int [pk]
+  payout_id int [ref: > HOST_PAYOUT.payout_id]
+  booking_id int [ref: > BOOKING.booking_id]
+  order_number_snapshot string
+  amount_gross decimal
+  commission_pct decimal
+  platform_fee decimal
+  amount_net decimal}
+
+Table SUBSCRIPTION_PLAN {
+  plan_id int [pk]
+  plan_name string
+  monthly_fee decimal
+  commission_rate decimal
+  perk_priority boolean
+  perk_analytics boolean
+  is_active boolean
+  created_at datetime}
+
+Table HOST_SUBSCRIPTION {
+  host_sub_id int [pk]
+  host_id int [ref: > USER.user_id]
+  plan_id int [ref: > SUBSCRIPTION_PLAN.plan_id]
+  start_date date
+  next_billing_date date
+  cancel_at_period_end boolean
+  status string
+  created_at datetime}
+
+Table SUBSCRIPTION_BILLING_LOG {
+  bill_id int [pk]
+  host_sub_id int [ref: > HOST_SUBSCRIPTION.host_sub_id]
+  bill_period_start date
+  bill_period_end date
+  amount decimal
+  paid_status string
+  paid_at datetime
+  created_at datetime
+  "note" string}
+
+Table POINT_RULE {
+  rule_id int [pk]
+  earn_rate_per_ntd decimal
+  max_points_per_order int
+  expiry_months int
+  redeem_rate_ntd_per_pt decimal
+  active_from date
+  active_to date
+  is_active boolean
+  created_at datetime}
+
+Table POINT_LEDGER {
+  ledger_id int [pk]
+  guest_id int [ref: > USER.user_id]
+  booking_id int [ref: > BOOKING.booking_id]
+  order_number_snapshot string
+  type string
+  points int
+  occurred_at datetime
+  expires_at datetime
+  note string}
+
+//////////////////////////////////////////////////
+// 偉翰
+//////////////////////////////////////////////////
+
+//////////////////////////////////////////////////
+// 客服FAQ
+//////////////////////////////////////////////////
+
+Table FAQ_CATEGORIES {
+  faq_categories_id bigint [pk]
+  slug varchar [unique]
+  parent_id bigint [ref: > FAQ_CATEGORIES.faq_categories_id]
+  name varchar
+  description varchar
+  sort_order int
+  is_active boolean
+  created_at datetime
+  updated_at datetime}
+
+Table FAQ_ARTICLES {
+  faq_articles_id bigint [pk]
+  slug varchar [unique]
+  category_id bigint [ref: > FAQ_CATEGORIES.faq_categories_id]
+  author_id bigint [ref: > USER.user_id]
+  title varchar
+  summary varchar
+  content text
+  is_pinned boolean
+  published_at datetime
+  view_count int
+  helpful_yes int
+  helpful_no int
+  status varchar        // draft, published, archived
+  created_at datetime
+  updated_at datetime}
+
+Table FAQ_FEEDBACK {
+  faq_feedback_id bigint [pk]
+  article_id bigint [ref: > FAQ_ARTICLES.faq_articles_id]
+  user_id bigint
+  sentiment varchar      // yes, no
+  reason varchar
+  contact_email varchar
+  escalated_to_ticket boolean
+  created_at datetime}
+
+Table FAQ_ARTICLE_REVISIONS {
+  faq_article_revisions_id bigint [pk]
+  article_id bigint [ref: > FAQ_ARTICLES.faq_articles_id]
+  editor_id bigint [ref: > USER.user_id]
+  title varchar
+  version_no int
+  summary varchar
+  content text
+  change_note varchar
+  edited_at datetime}
+
+//////////////////////////////////////////////////
+// 客服工單
+//////////////////////////////////////////////////
+
+Table SUPPORT_TICKETS {
+  support_tickets_id bigint [pk]
+  related_article_id bigint [ref: > FAQ_ARTICLES.faq_articles_id]
+  created_by_user_id bigint
+  assigned_staff_id bigint [ref: > USER.user_id]
+  subject varchar
+  content text
+  contact_email varchar
+  priority varchar     // low, normal, high, urgent
+  source varchar       // faq_form, email, phone, other
+  status varchar       // open, in_progress, resolved, closed
+  created_at datetime
+  updated_at datetime}
+
+Table TICKET_MESSAGES {
+  ticket_messages_id bigint [pk]
+  ticket_id bigint [ref: > SUPPORT_TICKETS.support_tickets_id]
+  sender_id bigint
+  sender_type varchar  // user, staff
+  message text
+  attachment_url varchar
+  created_at datetime}
+
+//// Enums ////
+Enum role {
+  landlord
+  admin
+  moderator
+}
+
+Enum user_status {
+  active
+  suspended
+}
+
+Enum post_status {
+  draft
+  submitted
+  approved
+  published
+  rejected
+  removed
+  expired
+}
+
+Enum report_reason {
+  spam
+  not_need
+  wrong_region
+  illegal
+  duplicate
+  other
+}
+
+Enum report_status {
+  open
+  reviewing
+  resolved
+  dismissed
+}
+
+Enum rule_type {
+  keyword
+  phone_blacklist
+  email_blacklist
+}
+
+Enum mod_action {
+  approve
+  reject
+  remove
+  restore
+}
+
+Table CATEGORIES {
+  categories_id int [pk, increment]
+  name varchar(50)  [not null, unique]
+  is_active boolean [default: true]
+
+  Note: '公告分類（如：高空清洗、管線維修…）'}
+
+Table POSTS {
+  posts_id bigint [pk, increment, ref: > USER.user_id]
+  user_id bigint [not null]// FK → users.id
+  category_id int [not null, ref: > CATEGORIES.categories_id] // FK → categories.id
+  region_id int [not null, ref: > DISTRICT.district_id] // FK → regions.id
+  title varchar(120) [not null]
+  contact_name varchar(100) [not null]
+  content text [not null]
+  address varchar(255) // 選填
+  contact_phone varchar(30)
+  contact_email varchar(255)
+  contact_note varchar(255)
+  publish_at datetime
+  expire_at datetime
+  views int [default: 0]
+  is_promoted boolean [default: false]
+  status post_status [not null, default: 'draft']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+  deleted_at datetime
+
+  Note: '公告主表（刊登/審核/公開/下架的核心）'
+  Indexes {
+    (status, region_id, created_at)
+    (category_id, status)
+    // 提醒：可在實作時於 MySQL 加 FULLTEXT(title, content)
+  }
+}
+
+Table POST_STATUS_HISTORY {
+  post_status_history_id bigint [pk, increment]
+  post_id bigint [not null, ref: > POSTS.posts_id] // FK → posts.id
+  acted_by bigint [ref: > USER.user_id] // FK → users.id（管理/審核）
+  to_status varchar(20) [not null]
+  from_status varchar(20)
+  reason varchar(500)
+  created_at datetime [not null]
+
+  Note: '公告狀態變更歷程（審核/下架留痕）'
+  Indexes {
+    (post_id, created_at)
+  }
+}
+
+// Table reports {
+//   id               bigint        [pk, increment]
+//   post_id          bigint        [not null]     // FK → posts.id
+//   reporter_contact varchar(255)                 // 檢舉人Email/Phone（選填）
+//   reason_code      report_reason [not null]
+//   description      text
+//   status           report_status [not null, default: 'open']
+//   created_at       datetime      [not null]
+//   updated_at       datetime      [not null]
+
+//   Note: '前台檢舉'
+//   Indexes {
+//     (post_id, status)
+//   }
+// }
+
+Table MODERATION_RULES {
+  moderation_rules_id int [pk, increment]
+  type rule_type [not null]
+  value varchar(255) [not null]
+  is_active boolean [default: true]
+
+  Note: '審核規則：敏感詞與聯絡黑名單'
+  Indexes {
+    (type, is_active)
+  }
+}
+
+Table MODERATION_ACTIONS {
+  moderation_actions_id bigint [pk, increment]
+  post_id bigint [not null, ref: > POSTS.posts_id] // FK → posts.id
+  action mod_action  [not null]
+  acted_by bigint [not null, ref: > USER.user_id] // FK → users.id
+  reason varchar(500)
+  created_at datetime [not null]
+
+  Note: '審核/處置紀錄（approve/reject/remove/restore）'
+  Indexes {
+    (post_id, action, created_at)
+  }
+}
+
+Table POST_METRICS_DAILY {
+  post_metrics_daily_id bigint [pk, increment]
+  post_id bigint [not null, ref: > POSTS.posts_id]  // FK → posts.id
+  date date [not null]
+  views int [default: 0]
+  contact_clicks int [default: 0]
+
+  Note: '公告每日瀏覽與聯絡點擊統計'}
+
+//////////////////////////////////////////////////
+//育全
+//////////////////////////////////////////////////
+
+////////////////////////////////////////////////////
+// User Favorite Report
+////////////////////////////////////////////////////
+Table USER_FAVORITE_REPORT {
+  favorite_id int [pk, not null, note: '收藏報表 ID']
+  user_id int [ref: > USER.user_id, note: '使用者 ID (FK)']
+  report_type varchar(50) [note: '報表類型，例如：OrderRevenue, RoomStats']
+  report_params text [note: '報表參數，JSON 格式存查詢條件']
+  created_at datetime [note: '建立紀錄時間']}
+
+////////////////////////////////////////////////////
+// Anomaly Rule
+////////////////////////////////////////////////////
+Table ANOMALY_RULE {
+  rule_id int [pk, not null, note: '規則 ID']
+  rule_name varchar(100) [note: '規則名稱，例如：租金高於區域平均 50%']
+  target_type varchar(50) [note: '檢測目標類型，例如：Room / Host / Booking']
+  condition_expression text [note: '檢測條件，以 JSON 定義規則邏輯']
+  threshold_value decimal(10,2) [note: '閾值，例：0.5 表示 50%']
+  is_active bool [note: '是否啟用，1=啟用, 0=停用']
+  created_at datetime [note: '建立紀錄時間']}
+
+////////////////////////////////////////////////////
+// Anomaly Detection Log
+////////////////////////////////////////////////////
+Table ANOMALY_DETECTION_LOG {
+  log_id int [pk, not null, note: '檢測紀錄 ID']
+  rule_id int [ref: > ANOMALY_RULE.rule_id, note: '套用的規則 ID (FK)']
+  target_id int [note: '檢測目標 ID，依 target_type 可對應 RoomId / user_id']
+  detected_value decimal(18,2) [note: '實際檢測數值，例如：30000 (實際租金)']
+  expected_value decimal(18,2) [note: '參考值，例如：20000 (區域平均租金)']
+  created_at datetime [note: '檢測產生時間']}
+
+////////////////////////////////////////////////////
+//兆權
+////////////////////////////////////////////////////
+
+Table RESERVATION {
+  reservation_id int [pk, increment]
+  listing_id int [not null, ref: > ROOM_LIST.room_id]
+  user_id int [not null, ref: > USER.user_id]
+  start_date date [not null]
+  end_date date [not null]
+  status varchar(20) [not null, note: "ENUM: pending|confirmed|cancelled"]
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Note: "CHECK CK_Reservation_DateOrder: StartDate < EndDate"
+
+  Indexes {
+    (listing_id, start_date, end_date, status) [name: 'IX_Reservation_List_Date']
+  }
+}
+
+////////////////////////////////////////////////////////////
+// MONGODB
+////////////////////////////////////////////////////////////
+Table MONGODB {
+  mongodb_id varchar(24) [pk]
+  ListingId int [not null, ref: > ROOM_LIST.room_id]
+  description nvarchar(max)
+  ImageUrl nvarchar(500)}

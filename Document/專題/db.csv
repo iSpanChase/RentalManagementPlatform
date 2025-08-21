@@ -1,0 +1,561 @@
+表格名稱	"中文：地址
+英文：ADDRESS"		索引鍵					
+主鍵	address_id		外來鍵	district_id → DISTRICT(district_id)				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	address_id	地址 ID	INT		NOT NULL (PK)			
+2	district_id	行政區 ID	INT		(FK) 對應 DISTRICT.district_id			
+3	Latitude	緯度	DECIMAL	9	6	NOT NULL；CHECK (Latitude BETWEEN -90 AND 90)		
+4	Longitude	經度	DECIMAL	9	6	NOT NULL；CHECK (Longitude BETWEEN -180 AND 180)		
+5	street	路名與門牌	STRING		例：復興南路一段 390 號 10 樓			
+6	created_at	建立時間	DATETIME		建立紀錄時間			
+7	updated_at	更新時間	DATETIME		最後更新時間			
+								
+表格名稱	"中文：管委會提案
+英文：BOARD_PROPOSAL"		索引鍵					
+主鍵	proposal_id		外來鍵	board_id → PROPERTY_MANAGEMENT_BOARD.board_id	 proposer_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	proposal_id	提案 ID	INT		NOT NULL (PK)			
+2	board_id	所屬看板 ID	INT		(FK) 對應 PROPERTY_MANAGEMENT_BOARD.board_id			
+3	created_at	建立時間	DATETIME		(DBML 註解似乎錯誤地引用 ROOM_LIST.price_per_night)			
+4	proposer_id	提案人 ID	INT		(FK) 對應 USER.user_id			
+5	message	提案內容	STRING		例：調整垃圾車時段、門禁卡申請			
+6	proposed_price	建議金額	DECIMAL		例：清潔加價 300 元			
+								
+表格名稱	"中文：訂單
+英文：BOOKING"		索引鍵					
+主鍵	booking_id		外來鍵	coupon_id → COUPON.coupon_id	 guest_id → USER.user_id	 room_id → ROOM_LIST.room_id		
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	booking_id	訂單 ID	INT		NOT NULL (PK)			
+2	coupon_id	優惠券 ID	INT		(FK) 對應 COUPON.coupon_id			
+3	guest_id	旅客 ID	INT		(FK) 對應 USER.user_id (role=guest)			
+4	room_id	房源 ID	INT		(FK) 對應 ROOM_LIST.room_id			
+5	order_number	訂單編號	STRING					
+6	check_in	入住時間	DATETIME		例：2025-02-10 15:00			
+7	check_out	退房時間	DATETIME		例：2025-02-12 11:00			
+8	total_price	實付總額	DECIMAL		含清潔費、服務費、折扣			
+9	commission_rate_snapshot	抽成比例快照	DECIMAL					
+10	points_earned	獲得點數	INT					
+11	points_redeemed	折抵點數	INT					
+12	status	訂單狀態	STRING		例：pending / confirmed / cancelled			
+13	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：使用者
+英文：USER"		索引鍵					
+主鍵	user_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	user_id	使用者 ID	INT		NOT NULL (PK)			
+2	email	電子郵件	STRING		例：ming@example.com			
+3	name	姓名	STRING		例：王小明			
+4	auto_subscribe	自動訂閱	BOOL		true/false			
+5	password_hash	雜湊密碼	STRING		禁止明碼存放			
+6	phone	手機號碼	STRING		例：09xx-xxx-xxx			
+7	point	點數	INT		行銷/客服補償用			
+8	role	角色	STRING		例：guest / host / admin			
+9	created_at	建立時間	DATETIME		建議存 UTC（台灣時區 +8）			
+10	updated_at	最後更新時間	DATETIME					
+								
+表格名稱	"中文：入住人資料
+英文：BOOKING_GUEST"		索引鍵					
+主鍵	booking_guest_id		外來鍵	booking_id → BOOKING.booking_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	booking_guest_id	入住人資料 ID	INT		NOT NULL (PK)			
+2	booking_id	訂單 ID	INT		(FK) 對應 BOOKING.booking_id			
+3	guest_name	入住人姓名	STRING		例：陳OO			
+4	guest_id_number	身分證字號	STRING		例：A123456789（可加密/遮罩）			
+								
+表格名稱	"中文：城市
+英文：CITY"		索引鍵					
+主鍵	city_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	city_id	城市 ID	INT		NOT NULL (PK)			
+2	city_name	城市名稱	STRING		例：台北市、台中市			
+								
+表格名稱	"中文：優惠券
+英文：COUPON"		索引鍵					
+主鍵	coupon_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	coupon_id	優惠券 ID	INT		NOT NULL (PK)			
+2	coupon_name	券名	STRING		例：開站早鳥 9 折			
+3	discount_code	折扣代碼	STRING					
+4	description	券說明	STRING		例：限週末訂單使用			
+5	discount_method	折扣型態	STRING		例：percentage / amount			
+6	discount_quota	折扣數值	DECIMAL		例：0.9=9折；200=折200元			
+7	end_at	截止時間	DATETIME					
+8	low_spend	最低消費門檻	DECIMAL		例：滿2000才可用			
+9	start_at	生效時間	DATETIME					
+								
+表格名稱	"中文：優惠券發放紀錄
+英文：COUPON_GUEST"		索引鍵					
+主鍵	coupon_guest_id		外來鍵	coupon_id → COUPON.coupon_id	 guest_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	coupon_guest_id	發放紀錄 ID	INT		NOT NULL (PK)			
+2	coupon_id	優惠券 ID	INT		(FK) 對應 COUPON.coupon_id			
+3	guest_id	旅客 ID	INT		(FK) 對應 USER.user_id			
+4	create_at	建立時間	DATETIME					
+5	remove_at	移除時間	DATETIME					
+								
+表格名稱	"中文：行政區
+英文：DISTRICT"		索引鍵					
+主鍵	district_id		外來鍵	city_id → CITY.city_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	district_id	行政區 ID	INT		NOT NULL (PK)			
+2	city_id	城市 ID	INT		(FK) 對應 CITY.city_id			
+3	district_name	行政區名稱	STRING		例：大安區、信義區			
+								
+表格名稱	"中文：訊息
+英文：MESSAGE"		索引鍵					
+主鍵	message_id		外來鍵	board_id → PROPERTY_MANAGEMENT_BOARD.board_id	 booking_id → BOOKING.booking_id	 receiver_id → USER.user_id		 sender_id → USER.user_id
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	message_id	訊息 ID	INT		NOT NULL (PK)			
+2	board_id	關聯管委會 ID	INT		(FK，可為空) 對應 PROPERTY_MANAGEMENT_BOARD.board_id			
+3	booking_id	關聯訂單 ID	INT		(FK，可為空) 對應 BOOKING.booking_id			
+4	receiver_id	收件者 ID	INT		(FK) 對應 USER.user_id			
+5	room_id	房源 ID	INT		(FK，可為空) 對應 ROOM_LIST.room_id			
+6	sender_id	寄件者 ID	INT		(FK) 對應 USER.user_id			
+7	content	訊息內容	STRING		建議做敏感字/個資遮罩			
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：付款紀錄
+英文：PAYMENT"		索引鍵					
+主鍵	payment_id		外來鍵	booking_id → BOOKING.booking_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	payment_id	付款紀錄 ID	INT		NOT NULL (PK)			
+2	booking_id	訂單 ID	INT		(FK) 對應 BOOKING.booking_id			
+3	amount	交易金額	DECIMAL		單位：TWD			
+4	method	付款方式	STRING		例：信用卡、ATM、行動支付			
+5	paid_at	完成時間	DATETIME					
+6	payment_ref	付款參考號	STRING					
+7	order_number_snapshot	訂單編號快照	STRING					
+8	status	付款狀態	STRING		例：pending / paid / refunded			
+9	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：金流交易紀錄
+英文：PAYMENT_TRANSACTION"		索引鍵					
+主鍵	transaction_id		外來鍵	payment_id → PAYMENT.payment_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	transaction_id	金流交易流水號	INT		NOT NULL (PK)			
+2	payment_id	付款紀錄 ID	INT		(FK) 對應 PAYMENT.payment_id			
+3	provider_txn_id	金流商交易編號	STRING					
+4	response_code	金流回傳代碼	STRING		例：0000=成功			
+5	provider	金流商	STRING		例：綠界、藍新			
+6	response_message	金流回傳訊息	STRING					
+7	txn_ref	交易參考編號	STRING					
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：管委會看板
+英文：PROPERTY_MANAGEMENT_BOARD"		索引鍵					
+主鍵	board_id		外來鍵	host_id → USER.user_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	board_id	看板 ID	INT		NOT NULL (PK)			
+2	host_id	發起人 ID	INT		(FK) 對應 USER.user_id (role=host)			
+3	title	主題	STRING		例：大樓垃圾公告			
+4	description	看板說明	STRING		貼文內容			
+5	status	狀態	STRING		例：open / closed			
+6	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：評論
+英文：REVIEW"		索引鍵					
+主鍵	review_id		外來鍵	booking_id → BOOKING.booking_id	 host_id → USER.user_id	 reviewer_id → USER.user_id		
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	review_id	評論 ID	INT		NOT NULL (PK)			
+2	booking_id	訂單 ID	INT		(FK) 對應 BOOKING.booking_id (防刷評)			
+3	host_id	房東 ID	INT		(FK) 對應 USER.user_id			
+4	reviewer_id	評論者 ID	INT		(FK) 對應 USER.user_id			
+5	room_id	房源 ID	INT		(FK) 對應 ROOM_LIST.room_id			
+6	comment	文字評論	STRING		可審核敏感字			
+7	rating	評分	INT		範圍 1–5			
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：房源清單
+英文：ROOM_LIST"		索引鍵					
+主鍵	room_id		外來鍵	address_id → ADDRESS.address_id	 host_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	room_id	房源 ID	INT		NOT NULL (PK)			
+2	address_id	地址 ID	INT		(FK) 對應 ADDRESS.address_id			
+3	host_id	房東 ID	INT		(FK) 對應 USER.user_id (role=host)			
+4	title	房源名稱	STRING		例：捷運站 3 分鐘溫馨套房			
+5	description	房源描述	STRING		可含設備、附近生活機能			
+6	max_guests	最多入住人數	INT		例：4			
+7	price_per_night	每晚價格	DECIMAL		單位：TWD，例如：1280.00			
+8	status	上架狀態	STRING		例：pending / approved / rejected / active / inactive			
+9	created_at	建立時間	DATETIME					
+10	updated_at	最後更新時間	DATETIME					
+								
+表格名稱	"中文：房源照片
+英文：ROOM_PHOTO"		索引鍵					
+主鍵	photo_id		外來鍵	room_id → ROOM_LIST.room_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	photo_id	照片 ID	INT		NOT NULL (PK)			
+2	room_id	房源 ID	INT		(FK) 對應 ROOM_LIST.room_id			
+3	photo_url	照片網址	STRING		可存雲端路徑			
+4	sort_order	排序	INT		數字小者優先			
+								
+表格名稱	"中文：角色
+英文：ROLES"		索引鍵					
+主鍵	role_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	role_id	角色 ID	INT		IDENTITY(1	1)		
+2	role_code	角色代碼	VARCHAR	50	唯一且 NOT NULL			
+3	role_name	角色名稱	NVARCHAR	100	NOT NULL			
+4	description	角色描述	NVARCHAR	500				
+5	created_at	建立時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+6	updated_at	更新時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+								
+表格名稱	"中文：權限
+英文：PERMISSIONS"		索引鍵					
+主鍵	permission_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	permission_id	權限 ID	INT		IDENTITY(1	1)		
+2	perm_code	權限代碼	VARCHAR	100	唯一且 NOT NULL			
+3	perm_name	權限名稱	NVARCHAR	200	NOT NULL			
+4	module	模組	VARCHAR	50	NOT NULL			
+5	action	操作	VARCHAR	50	NOT NULL			
+6	description	權限描述	NVARCHAR	500				
+7	created_at	建立時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+8	updated_at	更新時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+								
+表格名稱	"中文：角色權限
+英文：ROLE_PERMISSIONS"		索引鍵					
+主鍵	role_id + permission_id		外來鍵	role_id → ROLES.role_id	 permission_id → PERMISSIONS.permission_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	role_permission_id	角色權限 ID	INT		NOT NULL (但為索引輔助，不是PK)			
+2	role_id	角色 ID	INT		(FK) 對應 ROLES.role_id			
+3	permission_id	權限 ID	INT		(FK) 對應 PERMISSIONS.permission_id			
+4	granted	是否授權	BIT		NOT NULL，default: 1			
+5	created_at	建立時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+								
+表格名稱	"中文：使用者角色
+英文：USER_ROLES"		索引鍵					
+主鍵	user_role_id		外來鍵	user_id → USER.user_id	 role_id → ROLES.role_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	user_role_id	使用者角色 ID	INT		NOT NULL (PK)			
+2	user_id	使用者 ID	INT		(FK) 對應 USER.user_id			
+3	role_id	角色 ID	INT		(FK) 對應 ROLES.role_id			
+4	is_primary	是否為主要角色	BIT		NOT NULL，default: 1			
+5	effective_from	生效時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+6	effective_to	結束時間	DATETIME2					
+7	created_at	建立時間	DATETIME2		NOT NULL，default: SYSDATETIME()			
+								
+表格名稱	"中文：房東撥款
+英文：HOST_PAYOUT"		索引鍵					
+主鍵	payout_id		外來鍵	host_id → USER.user_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	payout_id	撥款 ID	INT		NOT NULL (PK)			
+2	host_id	房東 ID	INT		(FK) 對應 USER.user_id			
+3	cycle_start	結算週期開始	DATE					
+4	cycle_end	結算週期結束	DATE					
+5	amount_gross	總金額	DECIMAL					
+6	platform_fee	平台抽成	DECIMAL					
+7	amount_net	淨額	DECIMAL					
+8	paid_at	付款時間	DATETIME					
+9	status	狀態	STRING					
+10	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：房東撥款項目
+英文：HOST_PAYOUT_ITEM"		索引鍵					
+主鍵	payout_item_id		外來鍵	payout_id → HOST_PAYOUT.payout_id	 booking_id → BOOKING.booking_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	payout_item_id	撥款項目 ID	INT		NOT NULL (PK)			
+2	payout_id	撥款 ID	INT		(FK) 對應 HOST_PAYOUT.payout_id			
+3	booking_id	訂單 ID	INT		(FK) 對應 BOOKING.booking_id			
+4	order_number_snapshot	訂單編號快照	STRING					
+5	amount_gross	總金額	DECIMAL					
+6	commission_pct	抽成百分比	DECIMAL					
+7	platform_fee	平台抽成	DECIMAL					
+8	amount_net	淨額	DECIMAL					
+								
+表格名稱	"中文：訂閱方案
+英文：SUBSCRIPTION_PLAN"		索引鍵					
+主鍵	plan_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	plan_id	方案 ID	INT		NOT NULL (PK)			
+2	plan_name	方案名稱	STRING		例：房東 Pro 月費方案			
+3	monthly_fee	月費	DECIMAL		單位：TWD			
+4	commission_rate	抽成比例	DECIMAL					
+5	perk_priority	加速審核/優先曝光	BOOLEAN					
+6	perk_analytics	數據分析權限	BOOLEAN					
+7	is_active	是否啟用	BOOLEAN					
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：房東訂閱
+英文：HOST_SUBSCRIPTION"		索引鍵					
+主鍵	host_sub_id		外來鍵	host_id → USER.user_id	 plan_id → SUBSCRIPTION_PLAN.plan_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	host_sub_id	房東訂閱 ID	INT		NOT NULL (PK)			
+2	host_id	房東 ID	INT		(FK) 對應 USER.user_id			
+3	plan_id	方案 ID	INT		(FK) 對應 SUBSCRIPTION_PLAN.plan_id			
+4	start_date	開始日期	DATE					
+5	next_billing_date	下次扣款日	DATE					
+6	cancel_at_period_end	期末取消	BOOLEAN		到期不續訂			
+7	status	狀態	STRING		例：active / canceled / past_due			
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：訂閱扣款紀錄
+英文：SUBSCRIPTION_BILLING_LOG"		索引鍵					
+主鍵	bill_id		外來鍵	host_sub_id → HOST_SUBSCRIPTION.host_sub_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	bill_id	扣款紀錄 ID	INT		NOT NULL (PK)			
+2	host_sub_id	房東訂閱 ID	INT		(FK) 對應 HOST_SUBSCRIPTION.host_sub_id			
+3	bill_period_start	帳單期起	DATE					
+4	bill_period_end	帳單期迄	DATE					
+5	amount	金額	DECIMAL					
+6	paid_status	付款狀態	STRING		例：paid / failed / pending			
+7	paid_at	付款時間	DATETIME					
+8	created_at	建立時間	DATETIME					
+9	note	備註	STRING					
+								
+表格名稱	"中文：點數規則
+英文：POINT_RULE"		索引鍵					
+主鍵	rule_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	rule_id	規則 ID	INT		NOT NULL (PK)			
+2	earn_rate_per_ntd	每元累點比率	DECIMAL		例：1 元 = 0.05 點			
+3	max_points_per_order	單筆最高點數	INT					
+4	expiry_months	效期(月)	INT		例：24 表示 24 個月後到期			
+5	redeem_rate_ntd_per_pt	每點折抵金額	DECIMAL		例：1 點 = 1 元			
+6	active_from	生效日期	DATE					
+7	active_to	失效日期	DATE					
+8	is_active	是否啟用	BOOLEAN					
+9	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：點數明細
+英文：POINT_LEDGER"		索引鍵					
+主鍵	ledger_id		外來鍵	guest_id → USER.user_id	 booking_id → BOOKING.booking_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	ledger_id	明細 ID	INT		NOT NULL (PK)			
+2	guest_id	旅客 ID	INT		(FK) 對應 USER.user_id			
+3	booking_id	訂單 ID	INT		(FK) 對應 BOOKING.booking_id			
+4	order_number_snapshot	訂單編號快照	STRING					
+5	type	類型	STRING		例：earn / redeem / expire / adjust			
+6	points	點數	INT					
+7	occurred_at	發生時間	DATETIME					
+8	expires_at	到期時間	DATETIME					
+9	note	備註	STRING					
+								
+表格名稱	"中文：客服FAQ分類
+英文：FAQ_CATEGORIES"		索引鍵					
+主鍵	faq_categories_id		外來鍵	parent_id → FAQ_CATEGORIES.faq_categories_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	faq_categories_id	FAQ 分類 ID	BIGINT		NOT NULL (PK)			
+2	slug	分類代稱	VARCHAR		唯一值（URL 友善）			
+3	parent_id	父層分類 ID	BIGINT		(FK) 對應 FAQ_CATEGORIES.faq_categories_id			
+4	name	分類名稱	VARCHAR					
+5	description	分類說明	VARCHAR					
+6	sort_order	顯示排序	INT					
+7	is_active	是否啟用	BOOLEAN					
+8	created_at	建立時間	DATETIME					
+9	updated_at	最後更新時間	DATETIME					
+								
+表格名稱	"中文：客服FAQ文章
+英文：FAQ_ARTICLES"		索引鍵					
+主鍵	faq_articles_id		外來鍵	category_id → FAQ_CATEGORIES.faq_categories_id	 author_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	faq_articles_id	FAQ 文章 ID	BIGINT		NOT NULL (PK)			
+2	slug	文章代稱	VARCHAR		唯一值（URL 友善）			
+3	category_id	所屬分類 ID	BIGINT		(FK) 對應 FAQ_CATEGORIES.faq_categories_id			
+4	author_id	作者 ID	BIGINT		(FK) 對應 USER.user_id			
+5	title	標題	VARCHAR					
+6	summary	摘要	VARCHAR					
+7	content	內容	TEXT					
+8	is_pinned	是否置頂	BOOLEAN					
+9	published_at	發佈時間	DATETIME					
+10	view_count	瀏覽次數	INT					
+11	helpful_yes	有幫助票數	INT					
+12	helpful_no	無幫助票數	INT					
+13	status	狀態	VARCHAR		draft / published / archived			
+14	created_at	建立時間	DATETIME					
+15	updated_at	最後更新時間	DATETIME					
+								
+表格名稱	"中文：FAQ 文章回饋
+英文：FAQ_FEEDBACK"		索引鍵					
+主鍵	faq_feedback_id		外來鍵	article_id → FAQ_ARTICLES.faq_articles_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	faq_feedback_id	回饋 ID	BIGINT		NOT NULL (PK)			
+2	article_id	文章 ID	BIGINT		(FK) 對應 FAQ_ARTICLES.faq_articles_id			
+3	user_id	使用者 ID	BIGINT					
+4	sentiment	回饋傾向	VARCHAR		yes / no			
+5	reason	原因	VARCHAR					
+6	contact_email	聯絡信箱	VARCHAR					
+7	escalated_to_ticket	已升級為工單	BOOLEAN					
+8	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：FAQ 文章修訂
+英文：FAQ_ARTICLE_REVISIONS"		索引鍵					
+主鍵	faq_article_revisions_id		外來鍵	article_id → FAQ_ARTICLES.faq_articles_id	 editor_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	faq_article_revisions_id	修訂記錄 ID	BIGINT		NOT NULL (PK)			
+2	article_id	文章 ID	BIGINT		(FK) 對應 FAQ_ARTICLES.faq_articles_id			
+3	editor_id	編輯者 ID	BIGINT		(FK) 對應 USER.user_id			
+4	title	標題	VARCHAR					
+5	version_no	版本號	INT					
+6	summary	摘要	VARCHAR					
+7	content	內容	TEXT					
+8	change_note	變更說明	VARCHAR					
+9	edited_at	編輯時間	DATETIME					
+								
+表格名稱	"中文：客服工單
+英文：SUPPORT_TICKETS"		索引鍵					
+主鍵	support_tickets_id		外來鍵	related_article_id → FAQ_ARTICLES.faq_articles_id	 assigned_staff_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	support_tickets_id	工單 ID	BIGINT		NOT NULL (PK)			
+2	related_article_id	相關文章 ID	BIGINT		(FK) 對應 FAQ_ARTICLES.faq_articles_id			
+3	created_by_user_id	建立者 ID	BIGINT					
+4	assigned_staff_id	指派客服人員 ID	BIGINT		(FK) 對應 USER.user_id			
+5	subject	主題	VARCHAR					
+6	content	內容	TEXT					
+7	contact_email	聯絡信箱	VARCHAR					
+8	priority	優先權	VARCHAR		low / normal / high / urgent			
+9	source	來源	VARCHAR		faq_form / email / phone / other			
+10	status	狀態	VARCHAR		open / in_progress / resolved / closed			
+11	created_at	建立時間	DATETIME					
+12	updated_at	更新時間	DATETIME					
+								
+表格名稱	"中文：客服工單訊息
+英文：TICKET_MESSAGES"		索引鍵					
+主鍵	ticket_messages_id		外來鍵	ticket_id → SUPPORT_TICKETS.support_tickets_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	ticket_messages_id	工單訊息 ID	BIGINT		NOT NULL (PK)			
+2	ticket_id	工單 ID	BIGINT		(FK) 對應 SUPPORT_TICKETS.support_tickets_id			
+3	sender_id	發送者 ID	BIGINT					
+4	sender_type	發送者類型	VARCHAR		user / staff			
+5	message	訊息內容	TEXT					
+6	attachment_url	附件網址	VARCHAR					
+7	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：公告分類
+英文：CATEGORIES"		索引鍵					
+主鍵	categories_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	categories_id	分類 ID	INT		NOT NULL (PK	 自動遞增)		
+2	name	分類名稱	VARCHAR	50	NOT NULL，唯一			
+3	is_active	是否啟用	BOOLEAN		default: true			
+備註	公告分類（如：高空清洗、管線維修…）							
+								
+表格名稱	"中文：公告
+英文：POSTS"		索引鍵					
+主鍵	posts_id		外來鍵	user_id → USER.user_id	 category_id → CATEGORIES.categories_id	 region_id → DISTRICT.district_id		
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	posts_id	公告 ID	BIGINT		NOT NULL (PK，自動遞增)			
+2	user_id	使用者 ID	BIGINT		(FK) 對應 USER.user_id			
+3	category_id	分類 ID	INT		(FK) 對應 CATEGORIES.categories_id			
+4	region_id	行政區 ID	INT		(FK) 對應 DISTRICT.district_id			
+5	title	標題	VARCHAR	120	NOT NULL			
+6	contact_name	聯絡人姓名	VARCHAR	100	NOT NULL			
+7	content	內容	TEXT		NOT NULL			
+8	address	地址	VARCHAR	255	選填			
+9	contact_phone	聯絡電話	VARCHAR	30				
+10	contact_email	聯絡信箱	VARCHAR	255				
+11	contact_note	聯絡備註	VARCHAR	255				
+12	publish_at	刊登時間	DATETIME					
+13	expire_at	到期時間	DATETIME					
+14	views	瀏覽次數	INT		default: 0			
+15	is_promoted	是否推廣	BOOLEAN		default: false			
+16	status	狀態	post_status		NOT NULL，default: draft			
+17	created_at	建立時間	DATETIME		NOT NULL			
+18	updated_at	更新時間	DATETIME		NOT NULL			
+19	deleted_at	刪除時間	DATETIME					
+備註	公告主表（刊登/審核/公開/下架的核心）							
+								
+表格名稱	"中文：公告狀態變更歷程
+英文：POST_STATUS_HISTORY"		索引鍵					
+主鍵	post_status_history_id		外來鍵	post_id → POSTS.posts_id	 acted_by → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	post_status_history_id	歷程 ID	BIGINT		NOT NULL (PK，自動遞增)			
+2	post_id	公告 ID	BIGINT		(FK) 對應 POSTS.posts_id			
+3	acted_by	操作人 ID	BIGINT		(FK) 對應 USER.user_id（管理/審核）			
+4	to_status	變更後狀態	VARCHAR	20	NOT NULL			
+5	from_status	變更前狀態	VARCHAR	20				
+6	reason	原因	VARCHAR	500				
+7	created_at	建立時間	DATETIME		NOT NULL			
+備註	公告狀態變更留痕							
+索引	(post_id	 created_at)						
+								
+表格名稱	"中文：審核規則
+英文：MODERATION_RULES"		索引鍵					
+主鍵	moderation_rules_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	moderation_rules_id	規則 ID	INT		NOT NULL (PK，自動遞增)			
+2	type	規則類型	rule_type		NOT NULL（enum：keyword / phone_blacklist / email_blacklist）			
+3	value	規則值	VARCHAR	255	NOT NULL			
+4	is_active	是否啟用	BOOLEAN		default: true			
+備註	敏感詞/聯絡黑名單等規則							
+索引	(type	 is_active)						
+								
+表格名稱	"中文：審核與處置紀錄
+英文：MODERATION_ACTIONS"		索引鍵					
+主鍵	moderation_actions_id		外來鍵	post_id → POSTS.posts_id	 acted_by → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	moderation_actions_id	處置紀錄 ID	BIGINT		NOT NULL (PK，自動遞增)			
+2	post_id	公告 ID	BIGINT		(FK) 對應 POSTS.posts_id			
+3	action	動作	mod_action		NOT NULL（enum：approve / reject / remove / restore）			
+4	acted_by	操作人 ID	BIGINT		(FK) 對應 USER.user_id			
+5	reason	原因	VARCHAR	500				
+6	created_at	建立時間	DATETIME		NOT NULL			
+索引	(post_id	 action	 created_at)					
+								
+表格名稱	"中文：公告每日指標
+英文：POST_METRICS_DAILY"		索引鍵					
+主鍵	post_metrics_daily_id		外來鍵	post_id → POSTS.posts_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	post_metrics_daily_id	每日指標 ID	BIGINT		NOT NULL (PK，自動遞增)			
+2	post_id	公告 ID	BIGINT		(FK) 對應 POSTS.posts_id			
+3	date	日期	DATE		NOT NULL			
+4	views	瀏覽次數	INT		default: 0			
+5	contact_clicks	聯絡點擊數	INT		default: 0			
+備註	公告每日瀏覽與聯絡點擊統計							
+								
+表格名稱	"中文：使用者常用報表
+英文：USER_FAVORITE_REPORT"		索引鍵					
+主鍵	favorite_id		外來鍵	user_id → USER.user_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	favorite_id	收藏報表 ID	INT		NOT NULL (PK)			
+2	user_id	使用者 ID	INT		(FK) 對應 USER.user_id			
+3	report_type	報表類型	VARCHAR	50	例：OrderRevenue	 RoomStats		
+4	report_params	報表參數	TEXT		以 JSON 格式存查詢條件			
+5	created_at	建立時間	DATETIME		建立紀錄時間			
+								
+表格名稱	"中文：異常檢測規則
+英文：ANOMALY_RULE"		索引鍵					
+主鍵	rule_id		外來鍵					
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	rule_id	規則 ID	INT		NOT NULL (PK)			
+2	rule_name	規則名稱	VARCHAR	100	例：租金高於區域平均 50%			
+3	target_type	檢測目標類型	VARCHAR	50	例：Room / Host / Booking			
+4	condition_expression	檢測條件	TEXT		以 JSON 定義規則邏輯			
+5	threshold_value	閾值	DECIMAL	10	2	例：0.5 表示 50%		
+6	is_active	是否啟用	BOOL		1=啟用	 0=停用		
+7	created_at	建立時間	DATETIME					
+								
+表格名稱	"中文：異常檢測紀錄
+英文：ANOMALY_DETECTION_LOG"		索引鍵					
+主鍵	log_id		外來鍵	rule_id → ANOMALY_RULE.rule_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	log_id	檢測紀錄 ID	INT		NOT NULL (PK)			
+2	rule_id	套用的規則 ID	INT		(FK) 對應 ANOMALY_RULE.rule_id			
+3	target_id	檢測目標 ID	INT		依 target_type 可對應 RoomId / user_id			
+4	detected_value	實際檢測數值	DECIMAL	18	2	例：30000 (實際租金)		
+5	expected_value	參考值	DECIMAL	18	2	例：20000 (區域平均租金)		
+6	created_at	檢測產生時間	DATETIME					
+								
+表格名稱	"中文：預約
+英文：RESERVATION"		索引鍵					
+主鍵	reservation_id		外來鍵	listing_id → ROOM_LIST.room_id	 user_id → USER.user_id			
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	reservation_id	預約 ID	INT		NOT NULL (PK，自動遞增)			
+2	listing_id	房源 ID	INT		(FK) 對應 ROOM_LIST.room_id			
+3	user_id	使用者 ID	INT		(FK) 對應 USER.user_id			
+4	start_date	開始日期	DATE		NOT NULL			
+5	end_date	結束日期	DATE		NOT NULL			
+6	status	狀態	VARCHAR	20	NOT NULL，ENUM: pending | confirmed | cancelled			
+7	created_at	建立時間	DATETIME2		NOT NULL，default: SYSUTCDATETIME()			
+備註	CHECK 條件：StartDate < EndDate							
+索引	(listing_id	 start_date	 end_date	 status) 名稱: IX_Reservation_List_Date				
+								
+表格名稱	"中文：MongoDB 對應
+英文：MONGODB"		索引鍵					
+主鍵	mongodb_id		外來鍵	ListingId → ROOM_LIST.room_id				
+欄位編號	欄位名稱	欄位敘述	資料型態	欄位長度/允許值	備註			
+1	mongodb_id	Mongo 文件 ID	VARCHAR	24	NOT NULL (PK)；常見為 24 位十六進位字串			
+2	ListingId	關聯房源 ID	INT		(FK) 對應 ROOM_LIST.room_id			
+3	description	描述	NVARCHAR	MAX				
+4	ImageUrl	圖片網址	NVARCHAR	500				
