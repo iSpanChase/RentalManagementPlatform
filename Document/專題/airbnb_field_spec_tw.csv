@@ -1,0 +1,108 @@
+﻿表格(Table),欄位(Column),型別(Type),鍵(Key),允許值/枚舉(Allowed Values),在地化說明(台灣語境與例子)
+ADDRESS,address_id,int,PK,,地址 ID
+ADDRESS,created_at,datetime,,,建立時間
+ADDRESS,district_id,int,FK,,所屬行政區（對應 DISTRICT.district_id）
+ADDRESS,street,string,,,路名與門牌；例：復興南路一段 390 號 10 樓
+ADDRESS,updated_at,datetime,,,更新時間
+ADDRESS,zipcode,string,,,郵遞區號；建議 5 碼（3+2 擴充），例：10663
+BOARD_PROPOSAL,board_id,int,FK,,所屬看板（PROPERTY_MANAGEMENT_BOARD.board_id）
+BOARD_PROPOSAL,created_at,datetime,,,建立時間
+BOARD_PROPOSAL,message,string,,,提案內容；例：調整垃圾車時段、門禁卡申請
+BOARD_PROPOSAL,proposal_id,int,PK,,提案 ID
+BOARD_PROPOSAL,proposed_price,decimal,,,若為費用提案之建議金額；例：清潔加價 300 元
+BOARD_PROPOSAL,proposer_id,int,FK,,提案人（USER.user_id）
+BOOKING,booking_id,int,PK,,訂單 ID
+BOOKING,check_in,datetime,,,入住時間；例：2025-02-10 15:00
+BOOKING,check_out,datetime,,,退房時間；例：2025-02-12 11:00
+BOOKING,coupon_id,int,FK,,使用之優惠券 ID（對應 COUPON.coupon_id）
+BOOKING,created_at,datetime,,,建立時間
+BOOKING,guest_id,int,FK,,旅客使用者 ID（對應 USER.user_id 且 role=guest）
+BOOKING,room_id,int,FK,,房源 ID（對應 ROOM_LIST.room_id）
+BOOKING,status,string,,pending|confirmed|cancelled,訂單狀態：待確認/已成立/已取消
+BOOKING,total_price,decimal,,,實付總額（含清潔費、服務費、折扣後）
+BOOKING_GUEST,booking_guest_id,int,PK,,入住人資料 ID
+BOOKING_GUEST,booking_id,int,FK,,訂單 ID（對應 BOOKING.booking_id）
+BOOKING_GUEST,guest_id_number,string,,,身分證字號/居留證；例：A123456789（視法規可加密或遮罩）
+BOOKING_GUEST,guest_name,string,,,入住人姓名；例：陳OO
+CITY,city_id,int,PK,,城市 ID
+CITY,city_name,string,,,城市名稱；例：台北市、台中市
+COUPON,coupon_id,int,PK,,優惠券 ID
+COUPON,coupon_name,string,,,券名；例：開站早鳥 9 折
+COUPON,description,string,,,券說明；例：限週末訂單使用
+COUPON,discount_method,string,,percentage|amount,折扣型態：百分比或固定金額
+COUPON,discount_quota,decimal,,,折扣數值；例：0.9 代表 9 折，或 200 代表折 200 元
+COUPON,end_at,datetime,,,截止時間
+COUPON,low_spend,decimal,,,最低消費門檻；例：滿 2000 才可用
+COUPON,start_at,datetime,,,生效時間
+COUPON_GUEST,coupon_guest_id,int,PK,,發放紀錄 ID
+COUPON_GUEST,coupon_id,int,FK,,優惠券 ID
+COUPON_GUEST,guest_id,int,FK,,領券旅客 ID（USER.user_id）
+DISTRICT,city_id,int,FK,,所屬城市 ID（對應 CITY.city_id）
+DISTRICT,district_id,int,PK,,行政區 ID
+DISTRICT,district_name,string,,,行政區；例：大安區、信義區
+MESSAGE,board_id,int,FK,,關聯管委會（可為空，對應 PROPERTY_MANAGEMENT_BOARD.board_id）
+MESSAGE,booking_id,int,FK,,關聯訂單（可為空，對應 BOOKING.booking_id）
+MESSAGE,content,string,,,訊息內容；建議做敏感字與個資遮罩
+MESSAGE,created_at,datetime,,,建立時間
+MESSAGE,message_id,int,PK,,站內信/聊天訊息 ID
+MESSAGE,receiver_id,int,FK,,收件者（USER.user_id）
+MESSAGE,room_id,int,FK,,關聯房源（可為空，對應 ROOM_LIST.room_id）
+MESSAGE,sender_id,int,FK,,寄件者（USER.user_id）
+PAYMENT,amount,decimal,,,交易金額（TWD）
+PAYMENT,booking_id,int,FK,,訂單 ID（對應 BOOKING.booking_id）
+PAYMENT,method,string,,,付款方式；例：信用卡、ATM 轉帳、行動支付（LINE Pay、街口）
+PAYMENT,paid_at,datetime,,,付款完成時間
+PAYMENT,payment_id,int,PK,,付款紀錄 ID
+PAYMENT,status,string,,pending|paid|refunded,付款狀態：待付款/已付款/已退款
+PAYMENT_TRANSACTION,created_at,datetime,,,建立時間
+PAYMENT_TRANSACTION,payment_id,int,FK,,付款紀錄 ID（對應 PAYMENT.payment_id）
+PAYMENT_TRANSACTION,provider,string,,,金流商；例：綠界(ECPay)、藍新(NewebPay)
+PAYMENT_TRANSACTION,provider_txn_id,string,,,金流商交易編號
+PAYMENT_TRANSACTION,response_code,string,,,金流回傳代碼；例：0000 代表成功
+PAYMENT_TRANSACTION,response_message,string,,,金流回傳訊息
+PAYMENT_TRANSACTION,transaction_id,int,PK,,金流交易流水號
+PROPERTY_MANAGEMENT_BOARD,board_id,int,PK,,管委會/社區看板 ID
+PROPERTY_MANAGEMENT_BOARD,created_at,datetime,,,建立時間
+PROPERTY_MANAGEMENT_BOARD,description,string,,,看板說明/貼文內容
+PROPERTY_MANAGEMENT_BOARD,host_id,int,FK,,房東/發起人（USER.user_id）
+PROPERTY_MANAGEMENT_BOARD,status,string,,open|closed,開放/關閉（是否可留言/提案）
+PROPERTY_MANAGEMENT_BOARD,title,string,,,看板主題；例：大樓垃圾分類公告
+REVIEW,booking_id,int,FK,,對應訂單（可用於防刷評）
+REVIEW,comment,string,,,文字評論；可審核敏感字
+REVIEW,created_at,datetime,,,建立時間
+REVIEW,host_id,int,FK,,房東 ID（USER.user_id）
+REVIEW,rating,int,,,評分 1–5；建議加總分與子面向（整潔、交通）
+REVIEW,review_id,int,PK,,評論 ID
+REVIEW,reviewer_id,int,FK,,評論者（USER.user_id；可能是旅客或房東）
+REVIEW,room_id,int,FK,,被評論房源 ID
+ROOM_LIST,address_id,int,FK,,地址 ID（對應 ADDRESS.address_id）
+ROOM_LIST,created_at,datetime,,,建立時間
+ROOM_LIST,description,string,,,房源描述；可含設備、附近生活機能
+ROOM_LIST,host_id,int,FK,,房東使用者 ID（對應 USER.user_id 且 role=host）
+ROOM_LIST,max_guests,int,,,最多入住人數；例：4
+ROOM_LIST,price_per_night,decimal,,,每晚價格（新台幣）；例：1280.00
+ROOM_LIST,room_id,int,PK,,房源 ID
+ROOM_LIST,status,string,,pending|approved|rejected|active|inactive,審核/上架狀態：審核中/通過/退件/上架/下架
+ROOM_LIST,title,string,,,房源名稱；例：捷運站 3 分鐘溫馨套房
+ROOM_LIST,updated_at,datetime,,,更新時間
+ROOM_PHOTO,photo_id,int,PK,,房源照片 ID
+ROOM_PHOTO,photo_url,string,,,圖片網址（可存雲端位址）
+ROOM_PHOTO,room_id,int,FK,,房源 ID（對應 ROOM_LIST.room_id）
+ROOM_PHOTO,sort_order,int,,,排序；數字越小越前面
+SUBSCRIBE,host_id,int,FK,,訂閱者（USER.user_id 且 role=host）
+SUBSCRIBE,sub_host_id,int,PK,,房東訂閱紀錄 ID
+SUBSCRIBE,sub_id,int,FK,,對應方案（SUBSCRIBE_PLAN.sub_id）
+SUBSCRIBE_PLAN,features,string,,,功能列表；例：加速審核、優先曝光
+SUBSCRIBE_PLAN,plan_name,string,,,方案名稱；例：房東 Pro 月費方案
+SUBSCRIBE_PLAN,price_monthly,decimal,,,月費（TWD）；例：499.00
+SUBSCRIBE_PLAN,sub_id,int,PK,,訂閱方案 ID
+USER,auto_subscribe,bool,,true|false,是否預設自動訂閱房東方案（符合你們訂閱制的需求）
+USER,created_at,datetime,,,建立時間（台灣時區建議存 UTC+8 或統一 UTC）
+USER,email,string,,,電子郵件；例：ming@example.com
+USER,name,string,,,使用者姓名；例：王小明
+USER,password_hash,string,,,雜湊後密碼，禁止明碼存放
+USER,phone,string,,,手機號碼；例：09xx-xxx-xxx
+USER,point,int,,,點數；行銷或客服補償用
+USER,role,string,,guest|host|admin,角色：旅客/房東/管理員
+USER,updated_at,datetime,,,更新時間
+USER,user_id,int,PK,,系統流水號
