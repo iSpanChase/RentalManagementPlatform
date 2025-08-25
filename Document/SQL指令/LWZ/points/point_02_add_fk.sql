@@ -1,3 +1,0 @@
--- Add FK constraints for Point system
-ALTER TABLE POINT_LEDGER
-ADD CONSTRAINT FK_POINT_LEDGER_BOOKING FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id);

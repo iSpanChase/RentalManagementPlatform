@@ -1,5 +1,0 @@
--- Delete seed data for Point system
-SET NOCOUNT ON;
-
-DELETE FROM POINT_LEDGER;
-DELETE FROM POINT_RULE;
