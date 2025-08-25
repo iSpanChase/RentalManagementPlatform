@@ -1,0 +1,11 @@
+-- orders_drop_fk.sql
+-- 移除 BOOKING_GUEST.booking_id -> BOOKING.booking_id 的外鍵
+IF OBJECT_ID('dbo.BOOKING_GUEST','U') IS NOT NULL
+BEGIN
+    IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_BOOKING_GUEST_BOOKING')
+    BEGIN
+        ALTER TABLE dbo.BOOKING_GUEST
+        DROP CONSTRAINT FK_BOOKING_GUEST_BOOKING;
+        PRINT N'已刪除外鍵 FK_BOOKING_GUEST_BOOKING';
+    END
+END
