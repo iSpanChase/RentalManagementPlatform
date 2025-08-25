@@ -187,7 +187,6 @@ CREATE TABLE [ROLE_PERMISSIONS] (
   [role_permission_id] INT NOT NULL,
   [role_id] INT NOT NULL,
   [permission_id] INT NOT NULL,
-  [granted] BIT NOT NULL DEFAULT (1),
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
   PRIMARY KEY ([role_id], [permission_id])
 )
