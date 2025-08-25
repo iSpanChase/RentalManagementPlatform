@@ -184,16 +184,15 @@ CREATE TABLE [PERMISSIONS] (
 GO
 
 CREATE TABLE [ROLE_PERMISSIONS] (
-  [role_permission_id] INT NOT NULL,
+  [role_permission_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [role_id] INT NOT NULL,
   [permission_id] INT NOT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
-  PRIMARY KEY ([role_id], [permission_id])
 )
 GO
 
 CREATE TABLE [USER_ROLES] (
-  [user_role_id] INT PRIMARY KEY NOT NULL,
+  [user_role_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [user_id] INT NOT NULL,
   [role_id] INT NOT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME())
