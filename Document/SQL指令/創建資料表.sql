@@ -30,7 +30,7 @@ CREATE TABLE [BOOKING] (
 GO
 
 CREATE TABLE [USER] (
-  [user_id] int PRIMARY KEY NOT NULL,
+  [user_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [username] nvarchar NOT NULL,
   [email] nvarchar(512) NOT NULL,
   [name] nvarchar(512) NOT NULL,
