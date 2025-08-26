@@ -201,12 +201,12 @@ INSERT INTO POSTS (user_id,region_id,title,contact_name,content,address,contact_
 (-1, -1, N'快速到府警衛保安', N'王家榮', N'警衛保安 — 出入口巡檢、夜間巡邏、安全攝影機檢查、訪客登記與管制', N'新竹市和平路88號', '0998-112-334', 'wangjr200@example.com', N'晚上勿擾', '2025-06-30 13:40:00', '2025-06-30 13:40:00', 467, 'approved', '2025-06-30 13:40:00', '2025-06-30 13:40:00', NULL, 21200.33);
 
 INSERT INTO CATEGORIES (name, is_active) VALUES
-('清潔', 1),
-('水電', 1),
-('冷氣', 1),
-('消防', 1),
-('設備維修', 1),
-('警衛保安', 1);
+(N'清潔', 1),
+(N'水電', 1),
+(N'冷氣', 1),
+(N'消防', 1),
+(N'設備維修', 1),
+(N'警衛保安', 1);
 
 INSERT INTO POSTS_CATEGORIES (posts_id, categories_id) VALUES
 (-1, 1),(-1, 1),(-1, 2),(-1, 3),(-1, 4),(-1, 5),(-1, 6),(-1, 1),(-1, 2),(-1, 3),

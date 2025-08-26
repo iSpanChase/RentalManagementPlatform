@@ -165,7 +165,7 @@ GO
 
 CREATE TABLE [ROLES] (
   [role_id] INT IDENTITY(1,1) PRIMARY KEY,
-  [role_code] VARCHAR(50) UNIQUE NOT NULL,
+  [role_code] NVARCHAR(50) UNIQUE NOT NULL,
   [role_name] NVARCHAR(100) NOT NULL,
   [description] NVARCHAR(500),
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
@@ -175,10 +175,10 @@ GO
 
 CREATE TABLE [PERMISSIONS] (
   [permission_id] INT IDENTITY(1,1) PRIMARY KEY,
-  [perm_code] VARCHAR(100) UNIQUE NOT NULL,
+  [perm_code] NVARCHAR(100) UNIQUE NOT NULL,
   [perm_name] NVARCHAR(200) NOT NULL,
-  [module] VARCHAR(50) NOT NULL,
-  [action] VARCHAR(50) NOT NULL,
+  [module] NVARCHAR(50) NOT NULL,
+  [action] NVARCHAR(50) NOT NULL,
   [description] NVARCHAR(500),
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
   [updated_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME())
@@ -365,7 +365,7 @@ GO
 
 CREATE TABLE [CATEGORIES] (
   [categories_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] varchar(50) UNIQUE NOT NULL,
+  [name] nvarchar(50) UNIQUE NOT NULL,
   [is_active] BIT DEFAULT (0)
 )
 GO
@@ -381,13 +381,13 @@ CREATE TABLE [POSTS] (
   [posts_id] int PRIMARY KEY IDENTITY(1, 1),
   [user_id] int NOT NULL,
   [region_id] int NOT NULL,
-  [title] varchar(120) NOT NULL,
-  [contact_name] varchar(100) NOT NULL,
+  [title] nvarchar(120) NOT NULL,
+  [contact_name] nvarchar(100) NOT NULL,
   [content] nvarchar(512) NOT NULL,
-  [address] varchar(255),
-  [contact_phone] varchar(30),
-  [contact_email] varchar(255),
-  [contact_note] varchar(255),
+  [address] nvarchar(255),
+  [contact_phone] nvarchar(30),
+  [contact_email] nvarchar(255),
+  [contact_note] nvarchar(255),
   [publish_at] DATETIME2,
   [expire_at] DATETIME2,
   [views] int DEFAULT (0),
@@ -402,7 +402,7 @@ GO
 CREATE TABLE [USER_FAVORITE_REPORT] (
   [favorite_id] int PRIMARY KEY NOT NULL,
   [user_id] int,
-  [report_type] varchar(50),
+  [report_type] nvarchar(50),
   [report_params] nvarchar(512),
   [created_at] DATETIME2
 )
@@ -410,8 +410,8 @@ GO
 
 CREATE TABLE [ANOMALY_RULE] (
   [rule_id] int PRIMARY KEY NOT NULL,
-  [rule_name] varchar(100),
-  [target_type] varchar(50),
+  [rule_name] nvarchar(100),
+  [target_type] nvarchar(50),
   [condition_expression] nvarchar(512),
   [threshold_value] decimal(10,2),
   [is_active] BIT,
@@ -430,7 +430,7 @@ CREATE TABLE [ANOMALY_DETECTION_LOG] (
 GO
 
 CREATE TABLE [MONGODB] (
-  [mongodb_id] varchar(24) PRIMARY KEY,
+  [mongodb_id] nvarchar(24) PRIMARY KEY,
   [ListingId] int NOT NULL,
   [description] nvarchar(max),
   [ImageUrl] nvarchar(500)
