@@ -1,7 +1,7 @@
 -- 建立資料庫
 USE RentalManagementPlatformSQL;
 
-INSERT INTO POSTS (user_id,region_id,title,contact_name,content,address,contact_phone,contact_email,contact_note,publish_at,expire_at,views,status,created_at,updated_at,deleted_at,proposed_price) VALUES
+INSERT INTO POSTS (posts_id,user_id,region_id,title,contact_name,content,address,contact_phone,contact_email,contact_note,publish_at,expire_at,views,status,created_at,updated_at,deleted_at,proposed_price) VALUES
 (-1,3, -1, N'快速到府清潔', N'林俊傑', N'清潔 — 公共區域消毒、地板清潔、窗戶清洗、垃圾清運', N'台北市復興路5號', '0912-345-678', 'linjj42@example.com', N'白天聯絡', '2025-01-01 08:00:00', '2025-01-15 08:00:00', 120, 'draft', '2025-01-01 08:00:00', '2025-01-01 08:00:00', NULL, 12000.50),
 (-1,7, -1, N'快速到府水電維修', N'陳柏宇', N'水電 — 水管堵塞、馬桶漏水、插座開關更換、電線重拉、熱水器安裝/維修', N'新北市民族路89號', '0923-456-789', 'chenby87@example.com', N'白天勿擾', '2025-01-02 09:00:00', '2025-01-16 09:00:00', 200, 'published', '2025-01-02 09:00:00', '2025-01-02 09:00:00', NULL, 14500.00),
 (-1,12, -1, N'快速到府冷氣維護', N'蔡宜蓁', N'冷氣 — 冷氣檢修、濾網更換、管線清洗、室外機維護、冷媒加注', N'基隆市和平路112號', '0934-567-890', 'caiey33@example.com', N'請以簡訊聯絡', '2025-01-03 10:00:00', '2025-01-17 10:00:00', 180, 'draft', '2025-01-03 10:00:00', '2025-01-03 10:00:00', NULL, 19876.23),
