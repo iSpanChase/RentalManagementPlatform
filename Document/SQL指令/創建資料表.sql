@@ -156,8 +156,10 @@ GO
 CREATE TABLE [ROOM_PHOTO] (
   [photo_id] int PRIMARY KEY NOT NULL,
   [room_id] int,
-  [photo_url] nvarchar(512),
-  [sort_order] int
+  [sort_order] int,
+  [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
+  [object_key] NVARCHAR(512) NOT NULL,
+  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg'
 )
 GO
 
@@ -1170,8 +1172,7 @@ EXEC sp_addextendedproperty
 @name = N'Column_Description',
 @value = '照片網址，可存雲端路徑',
 @level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'ROOM_PHOTO',
-@level2type = N'Column', @level2name = 'photo_url';
+@level1type = N'Table',  @level1name = 'ROOM_PHOTO'
 GO
 
 EXEC sp_addextendedproperty
