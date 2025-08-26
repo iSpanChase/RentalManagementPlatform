@@ -31,7 +31,7 @@ GO
 
 CREATE TABLE [USER] (
   [user_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
-  [username] nvarchar NOT NULL,
+  [username] nvarchar(512) NOT NULL,
   [email] nvarchar(512) NOT NULL,
   [name] nvarchar(512) NOT NULL,
   [auto_subscribe] BIT,
@@ -39,8 +39,8 @@ CREATE TABLE [USER] (
   [gender] nvarchar(512) NOT NULL,
   [birth_date] DATETIME2 NOT NULL,
   [phone] nvarchar(512),
-  [address] nvarchar NOT NULL,
-  [profile_imageurl] nvarchar,
+  [address] nvarchar(512) NOT NULL,
+  [profile_imageurl] nvarchar(512),
   [point] int,
   [isverified] bit NOT NULL,
   [created_at] DATETIME2,
