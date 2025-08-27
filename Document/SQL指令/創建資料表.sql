@@ -291,7 +291,7 @@ CREATE TABLE [POINT_LEDGER] (
 GO
 
 CREATE TABLE [FAQ_CATEGORIES] (
-  [faq_categories_id] int PRIMARY KEY,
+  [faq_categories_id] int PRIMARY KEY IDENTITY(1,1),
   [slug] nvarchar(255) UNIQUE,
   [parent_id] int,
   [name] nvarchar(255),
@@ -304,7 +304,7 @@ CREATE TABLE [FAQ_CATEGORIES] (
 GO
 
 CREATE TABLE [FAQ_ARTICLES] (
-  [faq_articles_id] int PRIMARY KEY,
+  [faq_articles_id] int PRIMARY KEY IDENTITY(1,1),
   [slug] nvarchar(255) UNIQUE,
   [category_id] int,
   [author_id] int,
@@ -323,7 +323,7 @@ CREATE TABLE [FAQ_ARTICLES] (
 GO
 
 CREATE TABLE [FAQ_FEEDBACK] (
-  [faq_feedback_id] int PRIMARY KEY,
+  [faq_feedback_id] int PRIMARY KEY IDENTITY(1,1),
   [article_id] int,
   [user_id] int,
   [sentiment] nvarchar(255),
@@ -335,7 +335,7 @@ CREATE TABLE [FAQ_FEEDBACK] (
 GO
 
 CREATE TABLE [SUPPORT_TICKETS] (
-  [support_tickets_id] int PRIMARY KEY,
+  [support_tickets_id] int PRIMARY KEY IDENTITY(1,1),
   [related_article_id] int,
   [created_by_user_id] int,
   [assigned_staff_id] int,
@@ -351,7 +351,7 @@ CREATE TABLE [SUPPORT_TICKETS] (
 GO
 
 CREATE TABLE [MESSAGE] (
-  [message_id] int PRIMARY KEY NOT NULL,
+  [message_id] int PRIMARY KEY IDENTITY(1,1),
   [ticket_id] int,
   [booking_id] int,
   [receiver_id] int,
