@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# SQL Server Management Studio Version 21
+# Visual Studio Version 17
 VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RentalManagementPlatformMVC", "RentalManagementPlatformMVC\RentalManagementPlatformMVC.csproj", "{F6A6E5A1-4562-41C2-9B42-9A90907CE68B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFK", "AutoFK\AutoFK.csproj", "{0AC1D372-1622-49AE-AD83-2FAB676E5843}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,9 +19,12 @@ Global
 		{F6A6E5A1-4562-41C2-9B42-9A90907CE68B}.Default|Any CPU.ActiveCfg = Release|Any CPU
 		{F6A6E5A1-4562-41C2-9B42-9A90907CE68B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6A6E5A1-4562-41C2-9B42-9A90907CE68B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{09CEB56B-F880-4CFB-A9B7-C0C2C6F1985B}.Debug|Any CPU.ActiveCfg = Default
-		{09CEB56B-F880-4CFB-A9B7-C0C2C6F1985B}.Default|Any CPU.ActiveCfg = Default
-		{09CEB56B-F880-4CFB-A9B7-C0C2C6F1985B}.Release|Any CPU.ActiveCfg = Default
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Default|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Default|Any CPU.Build.0 = Release|Any CPU
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC1D372-1622-49AE-AD83-2FAB676E5843}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
