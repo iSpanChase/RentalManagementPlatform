@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RentalManagementPlatformMVC.Models;
 
-public partial class OrderDbContext : DbContext
+public partial class BookingDbContext : DbContext
 {
-    public OrderDbContext(DbContextOptions<OrderDbContext> options)
+    public BookingDbContext(DbContextOptions<BookingDbContext> options)
         : base(options)
     {
     }
