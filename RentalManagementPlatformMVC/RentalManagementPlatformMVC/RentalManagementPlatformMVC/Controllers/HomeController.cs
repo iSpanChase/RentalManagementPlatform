@@ -7,10 +7,12 @@ namespace RentalManagementPlatformMVC.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly OrderDbContext _orderDbContext;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, OrderDbContext orderDbContext)
         {
             _logger = logger;
+            _orderDbContext = orderDbContext;
         }
 
         public IActionResult Index()
@@ -23,6 +25,17 @@ namespace RentalManagementPlatformMVC.Controllers
             return View();
         }
 
+        public IActionResult TestDb()
+        {
+            if (_orderDbContext.Database.CanConnect())
+            {
+                return Content("連線成功");
+            }
+            else
+            {
+                return Content("連線失敗");
+            }
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
