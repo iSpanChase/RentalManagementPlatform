@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
 
 namespace RentalManagementPlatformMVC
 {
@@ -13,6 +14,7 @@ namespace RentalManagementPlatformMVC
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
@@ -25,7 +27,10 @@ namespace RentalManagementPlatformMVC
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             
             builder.Services.AddRazorPages();
+
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
             var app = builder.Build();
 
@@ -42,6 +47,7 @@ namespace RentalManagementPlatformMVC
             }
 
             app.UseHttpsRedirection();
+
             app.UseStaticFiles();
 
             app.UseRouting();

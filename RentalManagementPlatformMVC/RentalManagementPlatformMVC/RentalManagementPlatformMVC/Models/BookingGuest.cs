@@ -27,4 +27,7 @@ public partial class BookingGuest
     [Column("guest_id_number")]
     [StringLength(20)]
     public string GuestIdNumber { get; set; }
+
+    // 導覽屬性：這筆房客資料屬於哪一張訂單
+    public virtual Booking Booking { get; set; }
 }

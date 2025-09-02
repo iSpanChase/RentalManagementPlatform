@@ -19,7 +19,6 @@
   <ItemGroup>
     <Folder Include="Areas\Booking\Data\" />
     <Folder Include="Areas\Booking\Models\" />
-    <Folder Include="ViewModels\" />
   </ItemGroup>
 
 </Project>

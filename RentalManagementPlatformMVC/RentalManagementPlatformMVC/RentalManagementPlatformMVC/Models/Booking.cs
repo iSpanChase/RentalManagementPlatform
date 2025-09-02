@@ -53,4 +53,7 @@ public partial class Booking
 
     [Column("created_at")]
     public DateTime? CreatedAt { get; set; }
+
+    // 導覽屬性：一個訂單對應多個房客
+    public virtual ICollection<BookingGuest> BookingGuests { get; set; } = new List<BookingGuest>();
 }
