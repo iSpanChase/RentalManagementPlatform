@@ -91,7 +91,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=(localdb)\\ProjectModels;Initial Catalog=RentalManagementPlatformSQL;Integrated Security=true;Encrypt=true;TrustServerCertificate=true");
+        => optionsBuilder.UseSqlServer("Data Source=(localdb)\\ProjectModels;Initial Catalog=RentalManagementPlatformSQL;Integrated Security=true;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -884,7 +884,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.Priority)
                 .HasMaxLength(255)
                 .HasColumnName("priority");
-            entity.Property(e => e.RelatedArticleId).HasColumnName("related_article_id");
+            entity.Property(e => e.RelatedFeedbackId).HasColumnName("related_feedback_id");
             entity.Property(e => e.Source)
                 .HasMaxLength(255)
                 .HasColumnName("source");

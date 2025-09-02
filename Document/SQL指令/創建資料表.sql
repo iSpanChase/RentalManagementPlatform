@@ -336,7 +336,7 @@ GO
 
 CREATE TABLE [SUPPORT_TICKETS] (
   [support_tickets_id] int PRIMARY KEY IDENTITY(1,1),
-  [related_article_id] int,
+  [related_feedback_id] int,
   [created_by_user_id] int,
   [assigned_staff_id] int,
   [subject] nvarchar(255),
