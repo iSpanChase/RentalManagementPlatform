@@ -9,10 +9,6 @@ public partial class SubscriptionBillingLog
 
     public int? HostSubId { get; set; }
 
-    public DateTime? BillPeriodStart { get; set; }
-
-    public DateTime? BillPeriodEnd { get; set; }
-
     public decimal? Amount { get; set; }
 
     public string? PaidStatus { get; set; }

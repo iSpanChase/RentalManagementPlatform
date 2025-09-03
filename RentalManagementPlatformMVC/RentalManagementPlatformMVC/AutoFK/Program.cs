@@ -446,9 +446,11 @@ namespace AutoFK
                 Console.WriteLine("C");
                 #region 文章時間設定
                 context.SaveChanges();
+
+                var users = context.Users.ToList();
                 foreach (var x in context.Posts)
                 {
-                    x.CreatedAt = RandomTime(context.Users.Where(y => y.UserId == x.UserId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
+                    x.CreatedAt = RandomTime(users.Where(y => y.UserId == x.UserId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     if (random.Next(100) < 30)
                         x.UpdatedAt = RandomTime(x.CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     else
@@ -480,7 +482,7 @@ namespace AutoFK
                 context.SaveChanges();
                 foreach (var x in context.FaqArticles)
                 {
-                    x.CreatedAt = RandomTime(context.Users.Where(y => y.UserId == x.AuthorId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
+                    x.CreatedAt = RandomTime(users.Where(y => y.UserId == x.AuthorId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     if (random.Next(100) < 30)
                         x.UpdatedAt = RandomTime(x.CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     else
@@ -496,7 +498,7 @@ namespace AutoFK
                 context.SaveChanges();
                 foreach (var x in context.RoomLists)
                 {
-                    x.CreatedAt = RandomTime(context.Users.Where(y => y.UserId == x.HostId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
+                    x.CreatedAt = RandomTime(users.Where(y => y.UserId == x.HostId).FirstOrDefault().CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     if (random.Next(100) < 30)
                         x.UpdatedAt = RandomTime(x.CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                     else
@@ -523,7 +525,7 @@ namespace AutoFK
                     else
                         x.CreatedAt = RandomTime(roomListCreateTime, new DateTime(2025, 8, 28, 0, 0, 0));
                     x.CheckIn = x.CreatedAt.Value.Date.AddDays(random.Next(1, 150));
-                    x.CheckOut = x.CreatedAt.Value.Date.AddDays(random.Next(1, 30));
+                    x.CheckOut = x.CheckIn.Value.Date.AddDays(random.Next(1, 30));
                 }
                 context.SaveChanges();
                 foreach (var x in context.Payments.Join(context.Bookings, p => p.BookingId, b => b.BookingId, (p, b) => new { p, b }))
@@ -579,6 +581,8 @@ namespace AutoFK
                     }
                 }
                 int z = context.SaveChanges();
+                Console.WriteLine("G2");
+
                 int i = 1;
                 foreach (var x in context.HostSubscriptions)
                 {
@@ -594,19 +598,19 @@ namespace AutoFK
                     };
                     context.SubscriptionBillingLogs.Add(log);
                 }
+                context.SaveChanges();
                 #endregion
 
                 Console.WriteLine("H");
-                Console.WriteLine("I");
 
                 #region 最後再處理
                 #region 房源評論時間設定
-                context.SaveChanges();
                 foreach (var x in context.Reviews.Join(context.Bookings, r => r.BookingId, b => b.BookingId, (r, b) => new { r, b }))
                 {
                     x.r.CreatedAt = RandomTime(x.b.CheckOut, x.b.CheckOut.Value.AddDays(30));
                 }
                 #endregion
+                Console.WriteLine("I");
                 #region 客服工單時間設定
                 context.SaveChanges();
                 foreach (var x in context.SupportTickets.Join(context.FaqFeedbacks, st => st.RelatedFeedbackId, ff => ff.FaqFeedbackId, (st, ff) => new { st, ff }))
@@ -622,6 +626,7 @@ namespace AutoFK
                     }
                 }
                 #endregion
+                Console.WriteLine("J");
                 #region 訊息時間設定
                 context.SaveChanges();
                 foreach (var x in context.Messages.Join(context.Users, m => m.SenderId, s => s.UserId, (m, s) => new { m, s }).Join(context.Users, ms => ms.m.ReceiverId, r => r.UserId, (ms, r) => new { ms.m, ms.s, r }))
@@ -632,8 +637,8 @@ namespace AutoFK
                         x.m.CreatedAt = RandomTime(x.r.CreatedAt, new DateTime(2025, 8, 28, 0, 0, 0));
                 }
                 #endregion
+                Console.WriteLine("K");
                 #endregion
-                Console.WriteLine("J");
             }
         }
 

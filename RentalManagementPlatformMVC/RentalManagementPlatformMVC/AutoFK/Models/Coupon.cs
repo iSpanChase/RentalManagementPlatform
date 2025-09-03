@@ -28,6 +28,4 @@ public partial class Coupon
     public DateTime? EndAt { get; set; }
 
     public decimal? LowSpend { get; set; }
-
-    public DateTime? StartAt { get; set; }
 }
