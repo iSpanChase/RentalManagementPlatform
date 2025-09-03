@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -31,6 +32,7 @@ namespace RentalManagementPlatformMVC
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             var app = builder.Build();
 

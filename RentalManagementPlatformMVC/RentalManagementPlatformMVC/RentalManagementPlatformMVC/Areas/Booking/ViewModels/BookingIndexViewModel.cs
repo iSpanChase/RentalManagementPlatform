@@ -1,11 +1,14 @@
-﻿using RentalManagementPlatformMVC.DTOs;
+﻿using System.Collections.Generic;
+using RentalManagementPlatformMVC.DTOs;
 using RentalManagementPlatformMVC.ViewModels;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.ViewModels
 {
     public class BookingIndexViewModel
     {
-        public PagedResult<BookingIndexRowViewModel> PagedBookings { get; set; }
-        public PaginationInfo Pagination { get; set; }
-    }
+        public List<BookingIndexRowViewModel> Bookings { get; set; } = new();
+        public int PageIndex { get; set; }
+		public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+	}
 }

@@ -4,7 +4,7 @@
     {
         public string OrderNumber { get; set; }
         public string GuestName { get; set; }   // 主入住人或第一位
-        public string RoomName { get; set; }
+        //public string RoomName { get; set; }
         public DateTime? CheckIn { get; set; }
         public DateTime? CheckOut { get; set; }
         public decimal? TotalPrice { get; set; }
