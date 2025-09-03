@@ -4,11 +4,18 @@ using RentalManagementPlatformMVC.ViewModels;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.ViewModels
 {
-    public class BookingIndexViewModel
+	/// <summary>
+	/// 訂單管理頁面的 ViewModel，封裝了分頁後的訂單清單與分頁資訊，提供前端 Razor View 使用。
+	/// </summary>
+	public class BookingIndexViewModel
     {
-        public List<BookingIndexRowViewModel> Bookings { get; set; } = new();
+		/// <summary>
+		/// 目前頁面中的訂單清單，每筆訂單對應一個 <see cref="BookingIndexRowViewModel"/>。
+		/// </summary>
+		public List<BookingIndexRowViewModel> Bookings { get; set; } = new();
         public int PageIndex { get; set; }
 		public int PageSize { get; set; }
         public int TotalPages { get; set; }
+		public int TotalCount { get; set; }
 	}
 }

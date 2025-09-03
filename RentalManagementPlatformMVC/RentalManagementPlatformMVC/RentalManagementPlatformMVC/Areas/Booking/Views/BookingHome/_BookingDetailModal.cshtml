@@ -1,0 +1,108 @@
+@model RentalManagementPlatformMVC.Areas.Booking.ViewModels.BookingDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">訂單詳細資料</div>
+        <div class="text-secondary small">訂單編號：<span class="fw-semibold">@Model.OrderNumber</span></div>
+    </div>
+
+    @{
+        var status = (Model.Status ?? "").ToLower();
+        var statusClass =
+        status == "confirmed" ? "bg-success" :
+        status == "pending" ? "bg-warning text-dark" :
+        status == "canceled" ? "bg-danger" : "bg-secondary";
+        var commissionText = Model.CommissionRateSnapshot.HasValue
+        ? (Model.CommissionRateSnapshot.Value > 1
+        ? $"{Model.CommissionRateSnapshot:P0}"   // 若資料本身是 0.15
+        : $"{Model.CommissionRateSnapshot:P0}") // 與上行相同，方便之後調整
+        : "-";
+    }
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+        <!-- 左半：日期/金額/狀態 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-calendar2-week me-1"></i> 基本資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">入住日期</div>
+                    <div class="col-7 fw-medium">@(Model.CheckIn?.ToString("yyyy-MM-dd") ?? "-")</div>
+
+                    <div class="col-5 text-secondary">退房日期</div>
+                    <div class="col-7 fw-medium">@(Model.CheckOut?.ToString("yyyy-MM-dd") ?? "-")</div>
+
+                    <div class="col-5 text-secondary">總金額</div>
+                    <div class="col-7 fw-semibold text-end text-md-start">
+                        @((Model.TotalPrice?.ToString("N0")) ?? "-")
+                    </div>
+
+                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-7">
+                        <span class="badge rounded-pill @statusClass">@Model.DisplayStatus</span>
+                    </div>
+
+                    <div class="col-5 text-secondary">建立時間</div>
+                    <div class="col-7">@(Model.CreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：旅客/房間/點數 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-people me-1"></i> 旅客與訂房
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">訂房姓名</div>
+                    <div class="col-7 fw-medium">@(Model.Guests.FirstOrDefault()?.GuestName ?? "-")</div>
+
+                    <div class="col-5 text-secondary">同行旅客</div>
+                    <div class="col-7">
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (Model.Guests?.Any() == true)
+                            {
+                                foreach (var g in Model.Guests)
+                                {
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border">@g.GuestName</span>
+                                }
+                            }
+                            else
+                            {
+
+                                <span class="text-muted">-</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-5 text-secondary">房間名稱</div>
+                    <div class="col-7">@Model.RoomId</div> @* 可改 RoomName *@
+
+                    <div class="col-5 text-secondary">優惠券</div>
+                    <div class="col-7">@Model.CouponId</div> @* 可改 CouponCode / Name *@
+
+                    <div class="col-5 text-secondary">獲得點數</div>
+                    <div class="col-7 fw-medium">@(Model.PointsEarned?.ToString("N0") ?? "-")</div>
+
+                    <div class="col-5 text-secondary">使用點數</div>
+                    <div class="col-7 fw-medium">@(Model.PointsRedeemed?.ToString("N0") ?? "-")</div>
+
+                    <div class="col-5 text-secondary">房東抽成</div>
+                    <div class="col-7 fw-medium">@commissionText</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>

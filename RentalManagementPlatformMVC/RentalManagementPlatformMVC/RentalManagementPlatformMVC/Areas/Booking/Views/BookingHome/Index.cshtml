@@ -2,6 +2,14 @@
 
 @{
     ViewData["Title"] = "訂單管理";
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+
 }
 
 <div class="content-header mt-3">
@@ -22,17 +30,28 @@
             </div>
 
             <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">共 @Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">
+                            顯示第 @startRecord - @endRecord 筆
+                        </span>
+                    </div>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover table-striped mb-0 text-center">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
                         <thead class="thead-light">
                             <tr>
                                 <th>訂單編號</th>
-                                <th>訂房旅客</th>
-                                <th>入住時間</th>
-                                <th>退房時間</th>
-                                <th>總金額</th>
+                                <th>訂房姓名</th>
+                                <th>入住日期</th>
+                                <th>退房日期</th>
+                                <th>總價格</th>
                                 <th>狀態</th>
-                                <th>建立時間</th>
+                                <th>建立日期</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,22 +66,36 @@
                                         <td>@item.CheckOut?.ToString("yyyy-MM-dd")</td>
                                         <td>@item.TotalPrice?.ToString("N0")</td>
                                         <td>
-                                            <span class="badge bg-@(item.Status == "已完成" ? "success" : item.Status == "待確認" ? "warning" : "secondary")">
-                                                @item.Status
+                                            <span class="badge bg-success py-2 px-3
+                                                @(item.Status?.ToLower() == "confirmed" ? "bg-success" :
+                                                  item.Status?.ToLower() == "pending"   ? "bg-warning text-dark" :
+                                                  item.Status?.ToLower() == "cancelled"  ? "bg-danger" :
+                                                  "bg-secondary")">
+                                                @item.DisplayStatus
                                             </span>
                                         </td>
                                         <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.BookingId">詳細</button>
+                                        </td>
                                     </tr>
                                 }
                             }
                             else
                             {
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">目前沒有資料</td>
+                                    <td colspan="8" class="text-center text-muted py-4">目前沒有資料</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">
+                            第 @currentPage 頁，共 @totalPages 頁
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -78,7 +111,7 @@
                                    asp-controller="BookingHome"
                                    asp-action="Index"
                                    asp-route-pageIndex="@(Model.PageIndex - 1)"
-                                   asp-route-pageSize="@(Model.PageSize)">上一頁</a>
+                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&laquo;</span></a>
                             </li>
 
                             @for (int i = 1; i <= Model.TotalPages; i++)
@@ -99,12 +132,61 @@
                                    asp-controller="BookingHome"
                                    asp-action="Index"
                                    asp-route-pageIndex="@(Model.PageIndex + 1)"
-                                   asp-route-pageSize="@(Model.PageSize)">下一頁</a>
+                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&raquo;</span></a>
                             </li>
                         </ul>
                     </nav>
                 </div>
             }
+
         </div>
     </div>
 </section>
+
+<!-- Modal -->
+@section Modals {
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modal-detail-content">
+                <!-- AJAX 載入內容 -->
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.btn-detail');
+          if (!btn) return;
+          e.preventDefault();
+
+          const id = btn.dataset.id;
+          const content = document.getElementById('modal-detail-content');
+
+          // 顯示載入中 & 開窗
+          btn.disabled = true;
+          content.innerHTML = '<div class="modal-body text-center py-5"><div class="spinner-border" role="status"></div><div class="mt-2">載入中…</div></div>';
+          const modalEl = document.getElementById('detailModal');
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+
+          try {
+            const url = '@Url.Action("Detail", "BookingHome", new { area = "Booking" })' + '?id=' + encodeURIComponent(id);
+            const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!resp.ok) {
+              const msg = resp.status === 404 ? '找不到這筆訂單'
+                      : resp.status === 403 ? '沒有權限檢視'
+                      : `載入失敗（${resp.status}）`;
+              throw new Error(msg);
+            }
+            const html = await resp.text();
+            content.innerHTML = html; // 部分檢視含 modal-header + modal-body
+          } catch (err) {
+            content.innerHTML = `<div class="modal-body text-danger p-3">${err.message}</div>`;
+          } finally {
+            btn.disabled = false;
+          }
+        });
+    </script>
+}
