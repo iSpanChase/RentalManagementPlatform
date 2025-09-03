@@ -7,7 +7,7 @@ public partial class SupportTicket
 {
     public int SupportTicketsId { get; set; }
 
-    public int? RelatedArticleId { get; set; }
+    public int? RelatedFeedbackId { get; set; }
 
     public int? CreatedByUserId { get; set; }
 

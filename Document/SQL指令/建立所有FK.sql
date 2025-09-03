@@ -177,8 +177,8 @@ ALTER TABLE [FAQ_FEEDBACK]
 GO
 
 ALTER TABLE [SUPPORT_TICKETS] 
-    ADD CONSTRAINT FK_SUPPORT_TICKETS_related_article_id_FAQ_ARTICLES_faq_articles_id 
-    FOREIGN KEY ([related_article_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
+    ADD CONSTRAINT FK_SUPPORT_TICKETS_related_feedback_id_FAQ_ARTICLES_faq_articles_id 
+    FOREIGN KEY ([related_feedback_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
 GO
 
 ALTER TABLE [SUPPORT_TICKETS] 

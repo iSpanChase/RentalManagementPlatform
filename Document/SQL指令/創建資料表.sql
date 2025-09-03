@@ -75,7 +75,6 @@ CREATE TABLE [COUPON] (
   [discount_quota] decimal,
   [end_at] DATETIME2,
   [low_spend] decimal,
-  [start_at] DATETIME2
 )
 GO
 
@@ -254,8 +253,6 @@ GO
 CREATE TABLE [SUBSCRIPTION_BILLING_LOG] (
   [bill_id] int PRIMARY KEY,
   [host_sub_id] int,
-  [bill_period_start] DATETIME2,
-  [bill_period_end] DATETIME2,
   [amount] decimal,
   [paid_status] nvarchar(512),
   [paid_at] DATETIME2,
@@ -336,7 +333,7 @@ GO
 
 CREATE TABLE [SUPPORT_TICKETS] (
   [support_tickets_id] int PRIMARY KEY IDENTITY(1,1),
-  [related_article_id] int,
+  [related_feedback_id] int,
   [created_by_user_id] int,
   [assigned_staff_id] int,
   [subject] nvarchar(255),
@@ -822,14 +819,6 @@ EXEC sp_addextendedproperty
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'COUPON',
 @level2type = N'Column', @level2name = 'low_spend';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
-@value = '生效時間',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'COUPON',
-@level2type = N'Column', @level2name = 'start_at';
 GO
 
 EXEC sp_addextendedproperty
