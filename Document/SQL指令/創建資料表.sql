@@ -30,8 +30,8 @@ CREATE TABLE [BOOKING] (
 GO
 
 CREATE TABLE [USER] (
-  [user_id] int PRIMARY KEY NOT NULL,
-  [username] nvarchar NOT NULL,
+  [user_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+  [username] nvarchar(512) NOT NULL,
   [email] nvarchar(512) NOT NULL,
   [name] nvarchar(512) NOT NULL,
   [auto_subscribe] BIT,
@@ -39,8 +39,8 @@ CREATE TABLE [USER] (
   [gender] nvarchar(512) NOT NULL,
   [birth_date] DATETIME2 NOT NULL,
   [phone] nvarchar(512),
-  [address] nvarchar NOT NULL,
-  [profile_imageurl] nvarchar,
+  [address] nvarchar(512) NOT NULL,
+  [profile_imageurl] nvarchar(512),
   [point] int,
   [isverified] bit NOT NULL,
   [created_at] DATETIME2,
@@ -69,13 +69,12 @@ CREATE TABLE [COUPON] (
   [description] nvarchar(512),
   [min_rental_period] int,
   [max_rental_period] int,
-  [start_rental_period] int,
-  [end_rental_period] int,
+  [start_rental_period] DATETIME2,
+  [end_rental_period] DATETIME2,
   [discount_method] nvarchar(512),
   [discount_quota] decimal,
   [end_at] DATETIME2,
   [low_spend] decimal,
-  [start_at] DATETIME2
 )
 GO
 
@@ -156,14 +155,16 @@ GO
 CREATE TABLE [ROOM_PHOTO] (
   [photo_id] int PRIMARY KEY NOT NULL,
   [room_id] int,
-  [photo_url] nvarchar(512),
-  [sort_order] int
+  [sort_order] int,
+  [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
+  [object_key] NVARCHAR(512) NOT NULL,
+  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg'
 )
 GO
 
 CREATE TABLE [ROLES] (
   [role_id] INT IDENTITY(1,1) PRIMARY KEY,
-  [role_code] VARCHAR(50) UNIQUE NOT NULL,
+  [role_code] NVARCHAR(50) UNIQUE NOT NULL,
   [role_name] NVARCHAR(100) NOT NULL,
   [description] NVARCHAR(500),
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
@@ -173,10 +174,10 @@ GO
 
 CREATE TABLE [PERMISSIONS] (
   [permission_id] INT IDENTITY(1,1) PRIMARY KEY,
-  [perm_code] VARCHAR(100) UNIQUE NOT NULL,
+  [perm_code] NVARCHAR(100) UNIQUE NOT NULL,
   [perm_name] NVARCHAR(200) NOT NULL,
-  [module] VARCHAR(50) NOT NULL,
-  [action] VARCHAR(50) NOT NULL,
+  [module] NVARCHAR(50) NOT NULL,
+  [action] NVARCHAR(50) NOT NULL,
   [description] NVARCHAR(500),
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
   [updated_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME())
@@ -184,16 +185,15 @@ CREATE TABLE [PERMISSIONS] (
 GO
 
 CREATE TABLE [ROLE_PERMISSIONS] (
-  [role_permission_id] INT NOT NULL,
+  [role_permission_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [role_id] INT NOT NULL,
   [permission_id] INT NOT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME()),
-  PRIMARY KEY ([role_id], [permission_id])
 )
 GO
 
 CREATE TABLE [USER_ROLES] (
-  [user_role_id] INT PRIMARY KEY NOT NULL,
+  [user_role_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [user_id] INT NOT NULL,
   [role_id] INT NOT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME())
@@ -253,8 +253,6 @@ GO
 CREATE TABLE [SUBSCRIPTION_BILLING_LOG] (
   [bill_id] int PRIMARY KEY,
   [host_sub_id] int,
-  [bill_period_start] DATETIME2,
-  [bill_period_end] DATETIME2,
   [amount] decimal,
   [paid_status] nvarchar(512),
   [paid_at] DATETIME2,
@@ -335,7 +333,7 @@ GO
 
 CREATE TABLE [SUPPORT_TICKETS] (
   [support_tickets_id] int PRIMARY KEY IDENTITY(1,1),
-  [related_article_id] int,
+  [related_feedback_id] int,
   [created_by_user_id] int,
   [assigned_staff_id] int,
   [subject] nvarchar(255),
@@ -364,7 +362,7 @@ GO
 
 CREATE TABLE [CATEGORIES] (
   [categories_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] varchar(50) UNIQUE NOT NULL,
+  [name] nvarchar(50) UNIQUE NOT NULL,
   [is_active] BIT DEFAULT (0)
 )
 GO
@@ -380,13 +378,13 @@ CREATE TABLE [POSTS] (
   [posts_id] int PRIMARY KEY IDENTITY(1, 1),
   [user_id] int NOT NULL,
   [region_id] int NOT NULL,
-  [title] varchar(120) NOT NULL,
-  [contact_name] varchar(100) NOT NULL,
+  [title] nvarchar(120) NOT NULL,
+  [contact_name] nvarchar(100) NOT NULL,
   [content] nvarchar(512) NOT NULL,
-  [address] varchar(255),
-  [contact_phone] varchar(30),
-  [contact_email] varchar(255),
-  [contact_note] varchar(255),
+  [address] nvarchar(255),
+  [contact_phone] nvarchar(30),
+  [contact_email] nvarchar(255),
+  [contact_note] nvarchar(255),
   [publish_at] DATETIME2,
   [expire_at] DATETIME2,
   [views] int DEFAULT (0),
@@ -401,7 +399,7 @@ GO
 CREATE TABLE [USER_FAVORITE_REPORT] (
   [favorite_id] int PRIMARY KEY NOT NULL,
   [user_id] int,
-  [report_type] varchar(50),
+  [report_type] nvarchar(50),
   [report_params] nvarchar(512),
   [created_at] DATETIME2
 )
@@ -409,8 +407,8 @@ GO
 
 CREATE TABLE [ANOMALY_RULE] (
   [rule_id] int PRIMARY KEY NOT NULL,
-  [rule_name] varchar(100),
-  [target_type] varchar(50),
+  [rule_name] nvarchar(100),
+  [target_type] nvarchar(50),
   [condition_expression] nvarchar(512),
   [threshold_value] decimal(10,2),
   [is_active] BIT,
@@ -429,7 +427,7 @@ CREATE TABLE [ANOMALY_DETECTION_LOG] (
 GO
 
 CREATE TABLE [MONGODB] (
-  [mongodb_id] varchar(24) PRIMARY KEY,
+  [mongodb_id] nvarchar(24) PRIMARY KEY,
   [ListingId] int NOT NULL,
   [description] nvarchar(max),
   [ImageUrl] nvarchar(500)
@@ -825,14 +823,6 @@ GO
 
 EXEC sp_addextendedproperty
 @name = N'Column_Description',
-@value = '生效時間',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'COUPON',
-@level2type = N'Column', @level2name = 'start_at';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
 @value = '發放紀錄 ID',
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'COUPON_GUEST',
@@ -1171,8 +1161,7 @@ EXEC sp_addextendedproperty
 @name = N'Column_Description',
 @value = '照片網址，可存雲端路徑',
 @level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'ROOM_PHOTO',
-@level2type = N'Column', @level2name = 'photo_url';
+@level1type = N'Table',  @level1name = 'ROOM_PHOTO'
 GO
 
 EXEC sp_addextendedproperty

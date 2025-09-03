@@ -1,0 +1,68 @@
+
+
+networks:
+  backend: {}
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mydb
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: redis:8.2.0
+    container_name: redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - backend
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - 127.0.0.1:9000:9000
+      - 127.0.0.1:9001:9001
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    networks:
+      - backend
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.16.0
+    container_name: meilisearch
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      # 可選：MEILI_ENV=production
+    ports:
+      - 127.0.0.1:7700:7700
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+    networks:
+      - backend
+
+volumes:
+  meili_data: {}
+  minio_data: {}
+  postgres_data: {}
+  redis_data: {}

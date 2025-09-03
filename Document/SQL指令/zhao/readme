@@ -1,7 +1,0 @@
-1.
-修改room photo schema
-url->bucket,key
-新增content type欄位
-
-2. 
-200房源每間3張圖片共600張要生成太久 只顯示文字以圖片儲存

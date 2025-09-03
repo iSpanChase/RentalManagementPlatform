@@ -1,7 +1,7 @@
 -- 切換使用資料庫
 USE RentalManagementPlatformSQL;
 
-ALTER TABLE [ADDRESS] 
+ALTER TABLE [ADDRESS] --not repeatable
     ADD CONSTRAINT FK_ADDRESS_district_id_DISTRICT_district_id 
     FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);
 GO
@@ -51,7 +51,7 @@ ALTER TABLE [DISTRICT]
     FOREIGN KEY ([city_id]) REFERENCES [CITY] ([city_id]);
 GO
 
-ALTER TABLE [PAYMENT] 
+ALTER TABLE [PAYMENT] --not repeatable
     ADD CONSTRAINT FK_PAYMENT_booking_id_BOOKING_booking_id 
     FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
 GO
@@ -81,7 +81,7 @@ ALTER TABLE [REVIEW]
     FOREIGN KEY ([room_id]) REFERENCES [ROOM_LIST] ([room_id]);
 GO
 
-ALTER TABLE [ROOM_LIST] 
+ALTER TABLE [ROOM_LIST] --not repeatable
     ADD CONSTRAINT FK_ROOM_LIST_address_id_ADDRESS_address_id 
     FOREIGN KEY ([address_id]) REFERENCES [ADDRESS] ([address_id]);
 GO
@@ -126,7 +126,7 @@ ALTER TABLE [HOST_PAYOUT_ITEM]
     FOREIGN KEY ([payout_id]) REFERENCES [HOST_PAYOUT] ([payout_id]);
 GO
 
-ALTER TABLE [HOST_PAYOUT_ITEM] 
+ALTER TABLE [HOST_PAYOUT_ITEM] --not repeatable
     ADD CONSTRAINT FK_HOST_PAYOUT_ITEM_booking_id_BOOKING_booking_id 
     FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
 GO
@@ -177,8 +177,8 @@ ALTER TABLE [FAQ_FEEDBACK]
 GO
 
 ALTER TABLE [SUPPORT_TICKETS] 
-    ADD CONSTRAINT FK_SUPPORT_TICKETS_related_article_id_FAQ_ARTICLES_faq_articles_id 
-    FOREIGN KEY ([related_article_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
+    ADD CONSTRAINT FK_SUPPORT_TICKETS_related_feedback_id_FAQ_ARTICLES_faq_articles_id 
+    FOREIGN KEY ([related_feedback_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
 GO
 
 ALTER TABLE [SUPPORT_TICKETS] 
@@ -246,7 +246,7 @@ ALTER TABLE [ANOMALY_DETECTION_LOG]
     FOREIGN KEY ([rule_id]) REFERENCES [ANOMALY_RULE] ([rule_id]);
 GO
 
-ALTER TABLE [MONGODB] 
+ALTER TABLE [MONGODB] --not repeatable
     ADD CONSTRAINT FK_MONGODB_ListingId_ROOM_LIST_room_id 
     FOREIGN KEY ([ListingId]) REFERENCES [ROOM_LIST] ([room_id]);
 GO
