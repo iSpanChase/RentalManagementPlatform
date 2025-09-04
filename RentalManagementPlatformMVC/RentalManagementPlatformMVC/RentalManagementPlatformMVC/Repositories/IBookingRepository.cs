@@ -13,7 +13,7 @@ namespace RentalManagementPlatformMVC.Repositories
 		Task<BookingDetailDto> GetBookingDetailByIdAsync(int bookingId);
 
         // 條件查詢：根據篩選條件查詢訂單
-        //Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteria criteria);
+        Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteria criteria, int pageIndex, int pageSize);
 
     }
 }

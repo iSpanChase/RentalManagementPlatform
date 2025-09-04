@@ -180,7 +180,22 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.TotalPrice)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("total_price");
-        });
+
+			// 加關聯設定
+			entity.HasOne(d => d.Guest)                 // Booking 有一個 Guest
+				  .WithMany(p => p.Bookings)            // User 有很多 Bookings
+				  .HasForeignKey(d => d.GuestId)        // FK 是 Booking.GuestId
+				  .HasConstraintName("FK_BOOKING_USER"); // FK 名稱可自訂
+
+			entity.HasOne(b => b.Room)
+			      .WithMany(r => r.Bookings)
+				  .HasForeignKey(b => b.RoomId);
+
+			entity.HasOne(b => b.Coupon)             // Booking 有一個 Coupon
+		          .WithMany(c => c.Bookings)         // Coupon 可以被多個 Booking 使用
+		          .HasForeignKey(b => b.CouponId)    // 外鍵
+		          .IsRequired(false);                // 可以沒有 Coupon
+		});
 
         modelBuilder.Entity<BookingGuest>(entity =>
         {

@@ -2,6 +2,9 @@
 {
 	public partial class Booking
 	{
-		public virtual ICollection<BookingGuest> BookingGuests { get; set; } = new List<BookingGuest>();
+		public ICollection<BookingGuest> BookingGuests { get; set; } = new List<BookingGuest>();
+		public User Guest { get; set; }
+		public RoomList Room { get; set; }
+		public Coupon? Coupon { get; set; } = null;
 	}
 }

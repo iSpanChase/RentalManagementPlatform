@@ -6,15 +6,16 @@
     public class BookingDto
     {
         public int BookingId { get; set; }
-        public string OrderNumber { get; set; }
+        public string? OrderNumber { get; set; }
         public DateTime? CheckIn { get; set; }
         public DateTime? CheckOut { get; set; }
         public decimal? TotalPrice { get; set; }
-        public string Status { get; set; }
+        public string? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
 
-		// 關聯資料
-		public string GuestName { get; set; }
-		public int GuestCount { get; set; }
-	}
+        // 關聯資料
+        public string? GuestName { get; set; }
+        public int? GuestCount { get; set; }
+        public string Room { get; set; }
+    }
 }

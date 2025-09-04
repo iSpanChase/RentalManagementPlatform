@@ -63,7 +63,7 @@
 
                 <div class="row small gy-2">
                     <div class="col-5 text-secondary">訂房姓名</div>
-                    <div class="col-7 fw-medium">@(Model.Guests.FirstOrDefault()?.GuestName ?? "-")</div>
+                    <div class="col-7 fw-medium">@(Model.GuestName)</div>
 
                     <div class="col-5 text-secondary">同行旅客</div>
                     <div class="col-7">
@@ -84,10 +84,10 @@
                     </div>
 
                     <div class="col-5 text-secondary">房間名稱</div>
-                    <div class="col-7">@Model.RoomId</div> @* 可改 RoomName *@
+                    <div class="col-7">@Model.Room</div> @* 可改 RoomName *@
 
                     <div class="col-5 text-secondary">優惠券</div>
-                    <div class="col-7">@Model.CouponId</div> @* 可改 CouponCode / Name *@
+                    <div class="col-7">@Model.Coupon</div> @* 可改 CouponCode / Name *@
 
                     <div class="col-5 text-secondary">獲得點數</div>
                     <div class="col-7 fw-medium">@(Model.PointsEarned?.ToString("N0") ?? "-")</div>

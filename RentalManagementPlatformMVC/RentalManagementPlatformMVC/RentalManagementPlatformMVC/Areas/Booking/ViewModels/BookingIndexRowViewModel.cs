@@ -6,13 +6,12 @@
 	public class BookingIndexRowViewModel
 	{
 		public int BookingId { get; set; }
-		public string OrderNumber { get; set; }
-		public string GuestName { get; set; }
-		//public string RoomName { get; set; }
+		public string? OrderNumber { get; set; }
+		public string? GuestName { get; set; }
 		public DateTime? CheckIn { get; set; }
 		public DateTime? CheckOut { get; set; }
 		public decimal? TotalPrice { get; set; }
-		public string Status { get; set; }
+		public string? Status { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public string DisplayStatus =>	Status?.ToLower() switch
 		{

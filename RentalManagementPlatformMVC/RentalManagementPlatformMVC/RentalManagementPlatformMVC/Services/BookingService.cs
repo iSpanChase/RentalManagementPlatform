@@ -33,11 +33,15 @@ namespace RentalManagementPlatformMVC.Services
             return await _bookingRepository.GetBookingDetailByIdAsync(bookingId);
         }
 
-
-        //public async Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteria criteria)
-        //{
-        //    return await _bookingRepository.SearchBookingsAsync(criteria);
-        //}
+		/// <summary>
+		/// 條件查詢：根據篩選條件查詢訂單
+		/// </summary>
+		/// <param name="criteria"></param>
+		/// <returns></returns>
+		public async Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteria criteria, int pageIndex, int pageSize)
+        {
+            return await _bookingRepository.SearchBookingsAsync(criteria, pageIndex, pageSize);
+        }
 
     }
 }
