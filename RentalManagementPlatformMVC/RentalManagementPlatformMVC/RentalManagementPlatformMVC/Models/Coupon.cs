@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AutoFK.Models;
+namespace RentalManagementPlatformMVC.Models;
 
 public partial class Coupon
 {
