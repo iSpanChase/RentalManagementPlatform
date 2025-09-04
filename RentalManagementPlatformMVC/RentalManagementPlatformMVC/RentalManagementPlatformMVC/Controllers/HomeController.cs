@@ -7,9 +7,9 @@ namespace RentalManagementPlatformMVC.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly BookingDbContext _orderDbContext;
+        private readonly RentalManagementPlatformSqlContext _orderDbContext;
 
-        public HomeController(ILogger<HomeController> logger, BookingDbContext orderDbContext)
+        public HomeController(ILogger<HomeController> logger, RentalManagementPlatformSqlContext orderDbContext)
         {
             _logger = logger;
             _orderDbContext = orderDbContext;

@@ -19,8 +19,8 @@ namespace RentalManagementPlatformMVC
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            builder.Services.AddDbContext<BookingDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("OrderConnection")));
+            builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSqlConnection")));
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

@@ -6,9 +6,9 @@ namespace RentalManagementPlatformMVC.Repositories
 {
     public class BookingRepository : IBookingRepository
     {
-        private readonly BookingDbContext _context;
+        private readonly RentalManagementPlatformSqlContext _context;
 
-        public BookingRepository(BookingDbContext context)
+        public BookingRepository(RentalManagementPlatformSqlContext context)
         {
             _context = context;
         }
