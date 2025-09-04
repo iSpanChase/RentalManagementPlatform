@@ -111,7 +111,8 @@
                                    asp-controller="BookingHome"
                                    asp-action="Index"
                                    asp-route-pageIndex="@(Model.PageIndex - 1)"
-                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&laquo;</span></a>
+                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&laquo;</span>
+                               </a>
                             </li>
 
                             @for (int i = 1; i <= Model.TotalPages; i++)
@@ -122,7 +123,8 @@
                                        asp-controller="BookingHome"
                                        asp-action="Index"
                                        asp-route-pageIndex="@i"
-                                       asp-route-pageSize="@(Model.PageSize)">@i</a>
+                                       asp-route-pageSize="@(Model.PageSize)">@i
+                                    </a>
                                 </li>
                             }
 
@@ -132,7 +134,8 @@
                                    asp-controller="BookingHome"
                                    asp-action="Index"
                                    asp-route-pageIndex="@(Model.PageIndex + 1)"
-                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&raquo;</span></a>
+                                   asp-route-pageSize="@(Model.PageSize)"><span aria-hidden="true">&raquo;</span>
+                               </a>
                             </li>
                         </ul>
                     </nav>

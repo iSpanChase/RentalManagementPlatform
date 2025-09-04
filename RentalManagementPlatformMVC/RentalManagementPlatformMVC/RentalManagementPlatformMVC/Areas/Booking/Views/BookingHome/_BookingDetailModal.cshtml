@@ -9,10 +9,7 @@
 
     @{
         var status = (Model.Status ?? "").ToLower();
-        var statusClass =
-        status == "confirmed" ? "bg-success" :
-        status == "pending" ? "bg-warning text-dark" :
-        status == "canceled" ? "bg-danger" : "bg-secondary";
+        
         var commissionText = Model.CommissionRateSnapshot.HasValue
         ? (Model.CommissionRateSnapshot.Value > 1
         ? $"{Model.CommissionRateSnapshot:P0}"   // 若資料本身是 0.15
@@ -45,7 +42,10 @@
 
                     <div class="col-5 text-secondary">狀態</div>
                     <div class="col-7">
-                        <span class="badge rounded-pill @statusClass">@Model.DisplayStatus</span>
+                        <span class="badge rounded-pill @(Model.Status?.ToLower() == "confirmed" ? "bg-success" :
+                                                          Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                          Model.Status?.ToLower() == "cancelled" ? "bg-danger" :
+                                                            "bg-secondary")">@Model.DisplayStatus</span>
                     </div>
 
                     <div class="col-5 text-secondary">建立時間</div>
