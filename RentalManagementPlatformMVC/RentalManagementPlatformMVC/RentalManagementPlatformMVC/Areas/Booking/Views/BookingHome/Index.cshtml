@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "訂單管理";
+
     // 計算本頁顯示的起始與結束資料編號
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
     var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
@@ -12,24 +13,21 @@
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
 
-    // 取得目前條件（Controller 有填 ViewBag.Criteria）
-    var c = ViewBag.Criteria as BookingSearchCriteria ?? new BookingSearchCriteria();
-
-    // ✅ 將目前條件轉為 Dictionary<string,string?>，供分頁/排序連結沿用
+    // 將目前條件轉為 Dictionary<string,string?>，供分頁/排序連結沿用
     var routeBase = new Dictionary<string, string?>
     {
-        ["OrderNumber"] = c.OrderNumber,
-        ["Status"] = c.Status,
-        ["GuestName"] = c.GuestName,
-        ["Room"] = c.Room,
-        ["CheckInStartDate"] = c.CheckInStartDate?.ToString("yyyy-MM-dd"),
-        ["CheckInEndDate"] = c.CheckInEndDate?.ToString("yyyy-MM-dd"),
-        ["CheckOutStartDate"] = c.CheckOutStartDate?.ToString("yyyy-MM-dd"),
-        ["CheckOutEndDate"] = c.CheckOutEndDate?.ToString("yyyy-MM-dd"),
-        ["MinPrice"] = c.MinPrice?.ToString(),
-        ["MaxPrice"] = c.MaxPrice?.ToString(),
-        ["SortBy"] = c.SortBy,
-        ["IsDescending"] = c.IsDescending.ToString().ToLower() // "true" 或 "false"
+        ["OrderNumber"] = Model.Criteria.OrderNumber,
+        ["Status"] = Model.Criteria.Status,
+        ["GuestName"] = Model.Criteria.GuestName,
+        ["Room"] = Model.Criteria.Room,
+        ["CheckInStartDate"] = Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd"),
+        ["CheckInEndDate"] = Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd"),
+        ["CheckOutStartDate"] = Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd"),
+        ["CheckOutEndDate"] = Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd"),
+        ["MinPrice"] = Model.Criteria.MinPrice?.ToString(),
+        ["MaxPrice"] = Model.Criteria.MaxPrice?.ToString(),
+        ["SortBy"] = Model.Criteria.SortBy,
+        ["IsDescending"] = Model.Criteria.IsDescending.ToString().ToLower() // "true" 或 "false"
     };
 }
 
@@ -37,7 +35,9 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">訂單管理</h1>
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    訂單管理
+                </h1>
             </div>
         </div>
     </div>
@@ -46,16 +46,16 @@
 <section class="content">
     <div class="container-fluid">
 
-        <!-- 🔎 搜尋條件卡片 -->
+        <!--搜尋條件卡片Start-->
         <div class="card mb-3">
             <div class="card-header">
-                <h3 class="card-title">搜尋條件</h3>
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3">
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂單編號</label>
-                        <input name="OrderNumber" class="form-control" value="@(c.OrderNumber ?? "")" />
+                        <input name="OrderNumber" class="form-control" value="@(Model.Criteria.OrderNumber ?? "")" />
                     </div>
 
                     <div class="col-12 col-md-3">
@@ -63,166 +63,73 @@
                         <select name="Status" class="form-select">
                             <option value="">— 全部 —</option>
 
-                            @if (c.Status == "confirmed")
-                            {
-                                <option value="confirmed" selected>已確認</option>
-                            }
-                            else
-                            {
-                                <option value="confirmed">已確認</option>
-                            }
-
-                            @if (c.Status == "pending")
-                            {
-                                <option value="pending" selected>待確認</option>
-                            }
-                            else
-                            {
-                                <option value="pending">待確認</option>
-                            }
-
-                            @if (c.Status == "cancelled")
-                            {
-                                <option value="cancelled" selected>已取消</option>
-                            }
-                            else
-                            {
-                                <option value="cancelled">已取消</option>
-                            }
-
-                            @if (c.Status == "completed")
-                            {
-                                <option value="completed" selected>已完成</option>
-                            }
-                            else
-                            {
-                                <option value="completed">已完成</option>
-                            }
+                            <option value="confirmed" selected="@(Model.Criteria.Status == "confirmed" ? "selected" : null)">已確認</option>
+                            <option value="pending" selected="@(Model.Criteria.Status == "pending" ? "selected" : null)">待確認</option>
+                            <option value="cancelled" selected="@(Model.Criteria.Status == "cancelled" ? "selected" : null)">已取消</option>
+                            <option value="completed" selected="@(Model.Criteria.Status == "completed" ? "selected" : null)">已完成</option>
                         </select>
                     </div>
 
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂房姓名</label>
-                        <input name="GuestName" class="form-control" value="@(c.GuestName ?? "")" />
+                        <input name="GuestName" class="form-control" value="@(Model.Criteria.GuestName ?? "")" />
                     </div>
 
                     <div class="col-12 col-md-3">
                         <label class="form-label">房間</label>
-                        <input name="Room" class="form-control" placeholder="輸入房名關鍵字" value="@(c.Room ?? "")" />
+                        <input name="Room" class="form-control" placeholder="輸入房名關鍵字" value="@(Model.Criteria.Room ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">入住起</label>
                         <input type="date" name="CheckInStartDate" class="form-control"
-                               value="@(c.CheckInStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                               value="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">入住迄</label>
                         <input type="date" name="CheckInEndDate" class="form-control"
-                               value="@(c.CheckInEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                               value="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">退房起</label>
                         <input type="date" name="CheckOutStartDate" class="form-control"
-                               value="@(c.CheckOutStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                               value="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">退房迄</label>
                         <input type="date" name="CheckOutEndDate" class="form-control"
-                               value="@(c.CheckOutEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                               value="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
                         <input type="number" name="MinPrice" class="form-control" step="1"
-                               value="@(c.MinPrice?.ToString() ?? "")" />
+                               value="@(Model.Criteria.MinPrice?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
                         <input type="number" name="MaxPrice" class="form-control" step="1"
-                               value="@(c.MaxPrice?.ToString() ?? "")" />
+                               value="@(Model.Criteria.MaxPrice?.ToString() ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序欄位</label>
                         <select name="SortBy" class="form-select">
-                            @if (c.SortBy == "CreatedAt")
-                            {
-                                <option value="CreatedAt" selected>建立時間</option>
-                            }
-                            else
-                            {
-                                <option value="CreatedAt">建立時間</option>
-                            }
-
-                            @if (c.SortBy == "CheckIn")
-                            {
-                                <option value="CheckIn" selected>入住日</option>
-                            }
-                            else
-                            {
-                                <option value="CheckIn">入住日</option>
-                            }
-
-                            @if (c.SortBy == "CheckOut")
-                            {
-                                <option value="CheckOut" selected>退房日</option>
-                            }
-                            else
-                            {
-                                <option value="CheckOut">退房日</option>
-                            }
-
-                            @if (c.SortBy == "TotalPrice")
-                            {
-                                <option value="TotalPrice" selected>總金額</option>
-                            }
-                            else
-                            {
-                                <option value="TotalPrice">總金額</option>
-                            }
-
-                            @if (c.SortBy == "OrderNumber")
-                            {
-                                <option value="OrderNumber" selected>訂單編號</option>
-                            }
-                            else
-                            {
-                                <option value="OrderNumber">訂單編號</option>
-                            }
-
-                            @if (c.SortBy == "Status")
-                            {
-                                <option value="Status" selected>狀態</option>
-                            }
-                            else
-                            {
-                                <option value="Status">狀態</option>
-                            }
+                            <option value="CreatedAt" selected="@(Model.Criteria.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
+                            <option value="CheckIn" selected="@(Model.Criteria.SortBy == "CheckIn" ? "selected" : null)">入住日</option>
+                            <option value="CheckOut" selected="@(Model.Criteria.SortBy == "CheckOut" ? "selected" : null)">退房日</option>
+                            <option value="TotalPrice" selected="@(Model.Criteria.SortBy == "TotalPrice" ? "selected" : null)">總金額</option>
+                            <option value="OrderNumber" selected="@(Model.Criteria.SortBy == "OrderNumber" ? "selected" : null)">訂單編號</option>
+                            <option value="Status" selected="@(Model.Criteria.SortBy == "Status" ? "selected" : null)">狀態</option>
                         </select>
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序方式</label>
                         <select name="IsDescending" class="form-select">
-                            @if (c.IsDescending)
-                            {
-                                <option value="true" selected>降冪（新→舊 / 高→低）</option>
-                            }
-                            else
-                            {
-                                <option value="true">降冪（新→舊 / 高→低）</option>
-                            }
-
-                            @if (!c.IsDescending)
-                            {
-                                <option value="false" selected>升冪（舊→新 / 低→高）</option>
-                            }
-                            else
-                            {
-                                <option value="false">升冪（舊→新 / 低→高）</option>
-                            }
+                            <option value="true" selected="@(Model.Criteria.IsDescending ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@(!Model.Criteria.IsDescending ? "selected" : null)">升冪（舊→新 / 低→高）</option>
                         </select>
                     </div>
 
@@ -234,13 +141,13 @@
                 </form>
             </div>
         </div>
+        <!--搜尋條件卡片End-->
 
-        <!-- 📋 原本的訂單列表卡片 -->
+        <!--訂單列表卡片Start-->
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">訂單列表</h3>
+                <h3 class="card-title" style="font-weight: bold;">訂單列表</h3>
             </div>
-
             <div class="card-body p-0">
                 <div class="d-flex justify-content-between align-items-center px-3 py-2">
                     <div>
@@ -278,7 +185,7 @@
                                         <td>@item.CheckOut?.ToString("yyyy-MM-dd")</td>
                                         <td>@item.TotalPrice?.ToString("N0")</td>
                                         <td>
-                                            <span class="badge bg-success py-2 px-3
+                                            <span class="badge py-2 px-3
                                                 @(item.Status?.ToLower() == "confirmed" ? "bg-success" :
                                                   item.Status?.ToLower() == "pending"   ? "bg-warning text-dark" :
                                                   item.Status?.ToLower() == "cancelled"  ? "bg-danger" :
@@ -311,7 +218,6 @@
                 </div>
             </div>
 
-            @* 分頁器（保留查詢參數） *@
             @if (Model.TotalPages > 1)
             {
                 // 以現有的 routeBase (Dictionary<string,string?>) 為基礎，建立上一頁/下一頁參數
@@ -366,11 +272,11 @@
                 </div>
             }
         </div>
+        <!--訂單列表卡片End-->
+
     </div>
 </section>
 
-
-<!-- Modal -->
 @section Modals {
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">

@@ -13,7 +13,9 @@
 		public decimal? TotalPrice { get; set; }
 		public string? Status { get; set; }
 		public DateTime? CreatedAt { get; set; }
-		public string DisplayStatus =>	Status?.ToLower() switch
+
+		// 狀態顯示為中文
+		public string DisplayStatus => Status?.ToLower() switch
 		{
 			"confirmed" => "已確認",
 			"pending" => "待確認",

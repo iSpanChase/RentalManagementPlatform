@@ -1,6 +1,9 @@
 ﻿namespace RentalManagementPlatformMVC.DTOs
 {
-    public class BookingDetailDto
+	/// <summary>
+	/// 每筆訂單的詳細資料傳輸物件，包含訂單的完整資訊及其關聯資料。
+	/// </summary>
+	public class BookingDetailDto
     {
         public int BookingId { get; set; }
         public string? OrderNumber { get; set; }

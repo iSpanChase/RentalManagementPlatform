@@ -19,37 +19,47 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 		/// 訂單管理（有帶任一條件→搜尋；否則→初始清單）
 		/// </summary>
 		[HttpGet]
-		public async Task<IActionResult> Index([FromQuery] BookingSearchCriteria criteria, int pageIndex = 1, int pageSize = 20)
+		public async Task<IActionResult> Index([FromQuery] BookingSearchCriteriaDto criteria, int pageIndex = 1, int pageSize = 20)
 		{
-			// 判斷是否有任一條件被填寫
-			bool hasFilter = HasAnyFilter(criteria);
+			// 1) 預設排序（首次載入或沒帶時）
+			if (string.IsNullOrWhiteSpace(criteria.SortBy))
+				criteria.SortBy = "createdAt";
 
-			var pagedResult = hasFilter
+			// 若沒帶 IsDescending 這個 query key，預設為 true（desc）
+			if (!Request.Query.ContainsKey(nameof(criteria.IsDescending)))
+				criteria.IsDescending = true;
+
+			// 2) 判斷：有任一篩選「或有排序參數」就走搜尋管線
+			bool hasFilter = HasAnyFilter(criteria);
+			bool hasSort = !string.IsNullOrWhiteSpace(criteria.SortBy)
+						   || Request.Query.ContainsKey(nameof(criteria.IsDescending));
+
+			var pagedResult = (hasFilter || hasSort)
 				? await _bookingService.SearchBookingsAsync(criteria, pageIndex, pageSize)
 				: await _bookingService.GetPagedBookingsAsync(pageIndex, pageSize);
 
-			// 暫存條件到 ViewBag（之後建議改成 ViewModel.Criteria）
-			ViewBag.Criteria = criteria;
-			ViewBag.HasFilter = hasFilter;
-
+			// 3) 用 ViewModel 帶回 criteria（不要只放 ViewBag）
 			var vm = new BookingIndexViewModel
 			{
 				Bookings = pagedResult.Items.Select(b => new BookingIndexRowViewModel
 				{
 					BookingId = b.BookingId,
-					OrderNumber = b.OrderNumber ?? "-",
-					GuestName = b.GuestName ?? "-",
+					OrderNumber = b.OrderNumber,
+					GuestName = b.GuestName,
 					CheckIn = b.CheckIn,
 					CheckOut = b.CheckOut,
 					TotalPrice = b.TotalPrice,
-					Status = b.Status ?? "-",
+					Status = b.Status,
 					CreatedAt = b.CreatedAt
 				}).ToList(),
 
 				PageIndex = pagedResult.PageIndex,
 				PageSize = pagedResult.PageSize,
 				TotalPages = pagedResult.TotalPages,
-				TotalCount = pagedResult.TotalCount
+				TotalCount = pagedResult.TotalCount,
+
+				// << 關鍵：給 View 回填用
+				Criteria = criteria
 			};
 
 			return View(vm);
@@ -81,6 +91,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 				Room = dto.Room,
 				Guests = dto.Guests
 			};
+
 			return PartialView("_BookingDetailModal", vm);
 		}
 
@@ -88,7 +99,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 		public IActionResult Search() => View();
 
 		// ---- Private Helpers ----
-		private static bool HasAnyFilter(BookingSearchCriteria c)
+		private static bool HasAnyFilter(BookingSearchCriteriaDto c)
 		{
 			if (c == null) return false;
 

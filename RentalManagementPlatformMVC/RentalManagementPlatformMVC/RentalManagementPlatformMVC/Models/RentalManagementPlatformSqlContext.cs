@@ -182,19 +182,21 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("total_price");
 
 			// 加關聯設定
-			entity.HasOne(d => d.Guest)                 // Booking 有一個 Guest
-				  .WithMany(p => p.Bookings)            // User 有很多 Bookings
-				  .HasForeignKey(d => d.GuestId)        // FK 是 Booking.GuestId
-				  .HasConstraintName("FK_BOOKING_USER"); // FK 名稱可自訂
+			entity.HasOne(e => e.Guest)                      // Booking 有一個 Guest
+				  .WithMany(e => e.Bookings)                 // User 有很多 Bookings
+				  .HasForeignKey(e => e.GuestId)             // FK 是 Booking.GuestId
+				  .HasConstraintName("FK_BOOKING_USER");     // FK 名稱可自訂
 
-			entity.HasOne(b => b.Room)
-			      .WithMany(r => r.Bookings)
-				  .HasForeignKey(b => b.RoomId);
+			entity.HasOne(e => e.Room)                       // Booking 有一個 Room
+				  .WithMany(e => e.Bookings)                 // Room 可以有多個 Booking
+				  .HasForeignKey(e => e.RoomId)              // FK 是 Booking.RoomId
+				  .HasConstraintName("FK_BOOKING_ROOMLIST"); // FK 名稱可自訂
 
-			entity.HasOne(b => b.Coupon)             // Booking 有一個 Coupon
-		          .WithMany(c => c.Bookings)         // Coupon 可以被多個 Booking 使用
-		          .HasForeignKey(b => b.CouponId)    // 外鍵
-		          .IsRequired(false);                // 可以沒有 Coupon
+			entity.HasOne(e => e.Coupon)                     // Booking 有一個 Coupon
+		          .WithMany(e => e.Bookings)                 // Coupon 可以被多個 Booking 使用
+		          .HasForeignKey(e => e.CouponId)            // FK 是 Booking.CouponId
+				  .HasConstraintName("FK_BOOKING_COUPON")    // FK 名稱可自訂
+				  .IsRequired(false);                        // 可以沒有 Coupon
 		});
 
         modelBuilder.Entity<BookingGuest>(entity =>

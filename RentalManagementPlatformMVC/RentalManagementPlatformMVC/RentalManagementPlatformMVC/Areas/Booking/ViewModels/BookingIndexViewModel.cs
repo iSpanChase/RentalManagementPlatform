@@ -9,13 +9,12 @@ namespace RentalManagementPlatformMVC.Areas.Booking.ViewModels
 	/// </summary>
 	public class BookingIndexViewModel
     {
-		/// <summary>
 		/// 目前頁面中的訂單清單，每筆訂單對應一個 <see cref="BookingIndexRowViewModel"/>。
-		/// </summary>
 		public List<BookingIndexRowViewModel> Bookings { get; set; } = new();
         public int PageIndex { get; set; }
 		public int PageSize { get; set; }
         public int TotalPages { get; set; }
 		public int TotalCount { get; set; }
+		public BookingSearchCriteriaDto Criteria { get; set; } = new();
 	}
 }

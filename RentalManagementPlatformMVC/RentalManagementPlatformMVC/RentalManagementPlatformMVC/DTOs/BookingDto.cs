@@ -16,6 +16,6 @@
         // 關聯資料
         public string? GuestName { get; set; }
         public int? GuestCount { get; set; }
-        public string Room { get; set; }
+        public string? Room { get; set; }
     }
 }
