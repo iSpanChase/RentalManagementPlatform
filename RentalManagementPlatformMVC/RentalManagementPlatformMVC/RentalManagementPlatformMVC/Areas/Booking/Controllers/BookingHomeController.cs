@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Booking.ViewModels;
 using RentalManagementPlatformMVC.DTOs;
 using RentalManagementPlatformMVC.Services;
+using System.Text;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 {
@@ -118,6 +120,62 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 
 			// 排序不算篩選（只影響顯示）
 			return false;
+		}
+
+		// 匯出 Excel
+		public async Task<IActionResult> ExportExcel(BookingSearchCriteriaDto criteria)
+		{
+			var bookings = await _bookingService.SearchBookingsAsync(criteria, 1, int.MaxValue);
+
+			using var workbook = new XLWorkbook();
+			var worksheet = workbook.Worksheets.Add("訂單列表");
+
+			// 標題列
+			worksheet.Cell(1, 1).Value = "訂單編號";
+			worksheet.Cell(1, 2).Value = "訂房姓名";
+			worksheet.Cell(1, 3).Value = "入住日期";
+			worksheet.Cell(1, 4).Value = "退房日期";
+			worksheet.Cell(1, 5).Value = "總價格";
+			worksheet.Cell(1, 6).Value = "狀態";
+
+			// 資料列
+			int row = 2;
+			foreach (var b in bookings.Items)
+			{
+				worksheet.Cell(row, 1).Value = b.OrderNumber;
+				worksheet.Cell(row, 2).Value = b.GuestName;
+				worksheet.Cell(row, 3).Value = b.CheckIn?.ToString("yyyy-MM-dd");
+				worksheet.Cell(row, 4).Value = b.CheckOut?.ToString("yyyy-MM-dd");
+				worksheet.Cell(row, 5).Value = b.TotalPrice;
+				worksheet.Cell(row, 6).Value = b.Status;
+				row++;
+			}
+
+			using var stream = new MemoryStream();
+			workbook.SaveAs(stream);
+			stream.Seek(0, SeekOrigin.Begin);
+
+			return File(stream.ToArray(),
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				"訂單列表.xlsx");
+		}
+
+		// 匯出 CSV
+		public async Task<IActionResult> ExportCsv(BookingSearchCriteriaDto criteria)
+		{
+			var bookings = await _bookingService.SearchBookingsAsync(criteria, 1, int.MaxValue);
+
+			var sb = new StringBuilder();
+			sb.AppendLine("訂單編號,訂房姓名,入住日期,退房日期,總價格,狀態");
+
+			foreach (var b in bookings.Items)
+			{
+				sb.AppendLine($"{b.OrderNumber},{b.GuestName},{b.CheckIn:yyyy-MM-dd},{b.CheckOut:yyyy-MM-dd},{b.TotalPrice},{b.Status}");
+			}
+
+			return File(Encoding.UTF8.GetBytes(sb.ToString()),
+				"text/csv",
+				"訂單列表.csv");
 		}
 	}
 }

@@ -47,7 +47,7 @@
     <div class="container-fluid">
 
         <!--搜尋條件卡片Start-->
-        <div class="card mb-3">
+        <div class="card card-primary card-outline mb-3">
             <div class="card-header">
                 <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
             </div>
@@ -214,6 +214,40 @@
                         <span class="text-muted">
                             第 @currentPage 頁，共 @totalPages 頁
                         </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="Booking" asp-controller="BookingHome" asp-action="ExportExcel"
+                           asp-route-OrderNumber="@Model.Criteria.OrderNumber"
+                           asp-route-Status="@Model.Criteria.Status"
+                           asp-route-GuestName="@Model.Criteria.GuestName"
+                           asp-route-Room="@Model.Criteria.Room"
+                           asp-route-CheckInStartDate="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckInEndDate="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckOutStartDate="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckOutEndDate="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-MinPrice="@(Model.Criteria.MinPrice?.ToString())"
+                           asp-route-MaxPrice="@(Model.Criteria.MaxPrice?.ToString())"
+                           asp-route-SortBy="@Model.Criteria.SortBy"
+                           asp-route-IsDescending="@Model.Criteria.IsDescending.ToString().ToLower()">
+                            匯出 Excel
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="Booking" asp-controller="BookingHome" asp-action="ExportCsv"
+                           asp-route-OrderNumber="@Model.Criteria.OrderNumber"
+                           asp-route-Status="@Model.Criteria.Status"
+                           asp-route-GuestName="@Model.Criteria.GuestName"
+                           asp-route-Room="@Model.Criteria.Room"
+                           asp-route-CheckInStartDate="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckInEndDate="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckOutStartDate="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-CheckOutEndDate="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-MinPrice="@(Model.Criteria.MinPrice?.ToString())"
+                           asp-route-MaxPrice="@(Model.Criteria.MaxPrice?.ToString())"
+                           asp-route-SortBy="@Model.Criteria.SortBy"
+                           asp-route-IsDescending="@Model.Criteria.IsDescending.ToString().ToLower()">
+                            匯出 CSV
+                        </a>
                     </div>
                 </div>
             </div>
