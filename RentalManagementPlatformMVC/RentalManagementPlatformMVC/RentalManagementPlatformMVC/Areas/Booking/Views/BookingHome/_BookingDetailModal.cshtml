@@ -95,6 +95,9 @@
                     <div class="col-5 text-secondary">使用點數</div>
                     <div class="col-7 fw-medium">@(Model.PointsRedeemed?.ToString("N0") ?? "-")</div>
 
+                    <div class="col-5 text-secondary">房東姓名</div>
+                    <div class="col-7 fw-medium">@(Model.HostName)</div>
+
                     <div class="col-5 text-secondary">房東抽成</div>
                     <div class="col-7 fw-medium">@commissionText</div>
                 </div>

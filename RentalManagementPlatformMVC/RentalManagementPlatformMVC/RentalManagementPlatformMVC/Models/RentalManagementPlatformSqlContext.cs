@@ -798,7 +798,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("title");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-        });
+
+			// 加關聯設定
+			entity.HasOne(e => e.Host)                      // RoomList 有一個 Host
+				  .WithMany(e => e.RoomLists)                 // Host 有很多 RoomList
+				  .HasForeignKey(e => e.HostId)             // FK 是 Booking.GuestId
+				  .HasConstraintName("FK_ROOMLIST_USER");     // FK 名稱可自訂
+		});
 
         modelBuilder.Entity<RoomPhoto>(entity =>
         {

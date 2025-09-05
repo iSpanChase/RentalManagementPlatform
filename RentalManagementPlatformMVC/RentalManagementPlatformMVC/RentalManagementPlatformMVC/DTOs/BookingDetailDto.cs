@@ -20,8 +20,9 @@
         public string? GuestName { get; set; }
         public string? Coupon { get; set; }
         public string? Room { get; set; }
+        public string? HostName { get; set; }
 
-        // 同行旅客清單
-        public List<BookingGuestDto>? Guests { get; set; } = new List<BookingGuestDto>();
+		// 同行旅客清單
+		public List<BookingGuestDto>? Guests { get; set; } = new List<BookingGuestDto>();
     }
 }

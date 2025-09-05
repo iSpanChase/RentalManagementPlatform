@@ -91,6 +91,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 				GuestName = dto.GuestName,
 				Coupon = dto.Coupon,
 				Room = dto.Room,
+				HostName = dto.HostName,
 				Guests = dto.Guests
 			};
 

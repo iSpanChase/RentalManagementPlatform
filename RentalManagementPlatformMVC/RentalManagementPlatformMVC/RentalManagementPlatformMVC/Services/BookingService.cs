@@ -64,6 +64,7 @@ namespace RentalManagementPlatformMVC.Services
 				GuestName = booking.Guest?.Name,                  // 安全取值
 				Coupon = booking.Coupon?.CouponName,              // 安全取值
 				Room = booking.Room?.Title,                       // 安全取值
+				HostName = booking.Room?.Host?.Name,             // 安全取值
 				Guests = booking.BookingGuests?
 					.Select(g => new BookingGuestDto { GuestName = g.GuestName })
 					.ToList() ?? new List<BookingGuestDto>()      // 永遠給不為 null 的集合

@@ -19,7 +19,8 @@ namespace RentalManagementPlatformMVC.Areas.Booking.ViewModels
         public string? GuestName { get; set; }
         public string? Coupon { get; set; }
         public string? Room { get; set; }
-        public List<BookingGuestDto>? Guests { get; set; } = new();
+        public string? HostName { get; set; }
+		public List<BookingGuestDto>? Guests { get; set; } = new();
 		public string DisplayStatus => Status?.ToLower() switch
 		{
 			"confirmed" => "已確認",

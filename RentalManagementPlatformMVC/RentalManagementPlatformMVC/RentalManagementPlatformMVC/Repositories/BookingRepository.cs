@@ -44,6 +44,7 @@ namespace RentalManagementPlatformMVC.Repositories
 				.Include(b => b.Guest)
 				.Include(b => b.Coupon)
 				.Include(b => b.Room)
+					.ThenInclude(r => r.Host)
 				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
 		}
 
