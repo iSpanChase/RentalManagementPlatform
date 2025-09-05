@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
+using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -15,11 +18,22 @@ namespace RentalManagementPlatformMVC
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options => {
+				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
+			});
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			// Application Service
+			builder.Services.AddScoped<RentalManagementPlatformMVC.Repositories.IUserService,
+						   RentalManagementPlatformMVC.Services.UserService>();
+
+			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            builder.Services.AddControllersWithViews();
+
+			builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
 

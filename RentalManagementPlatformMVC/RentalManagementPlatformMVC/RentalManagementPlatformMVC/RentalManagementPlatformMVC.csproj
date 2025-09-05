@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.19" />
@@ -17,11 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\UserManagement\Data\" />
-    <Folder Include="Areas\UserManagement\Models\" />
-    <Folder Include="DTOs\" />
-    <Folder Include="Services\" />
-    <Folder Include="Repositories\" />
+    <Folder Include="Areas\User\Data\" />
+    <Folder Include="Areas\User\Models\" />
+    <Folder Include="Data\Configurations\" />
+    <Folder Include="ViewModels\" />
   </ItemGroup>
 
 </Project>
