@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
+using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -15,9 +18,6 @@ namespace RentalManagementPlatformMVC
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
-
-            builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSqlConnection")));
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
