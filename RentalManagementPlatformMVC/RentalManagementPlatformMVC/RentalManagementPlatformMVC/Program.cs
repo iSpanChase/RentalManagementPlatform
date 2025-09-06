@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
-using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC
 {
