@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -17,9 +19,6 @@ namespace RentalManagementPlatformMVC
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
-				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSqlConnection")));
-
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             //註冊Context類別，並給予對應資料庫的連線方式
@@ -32,7 +31,10 @@ namespace RentalManagementPlatformMVC
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            var app = builder.Build();
+			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+			builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

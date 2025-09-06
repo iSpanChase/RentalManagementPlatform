@@ -1,1 +1,167 @@
-﻿測試
+﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.PaymentIndexViewModel
+
+@{
+    ViewData["Title"] = "帳務管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">帳務管理</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">帳務列表</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">@Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">顯示第 @startRecord - @endRecord 筆</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>訂單編號</th>
+                                <th>訂單金額</th>
+                                <th>平台付款編號</th>
+                                <th>付款方式</th>
+                                <th>付款日期</th>
+                                <th>狀態</th>
+                                <th>建立日期</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Payments != null && Model.Payments.Any())
+                            {
+                                foreach(var item in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@item.OrderNumberSnapshot</td>
+                                        <td>@item.Amount</td>
+                                        <td>@item.PaymentRef</td>
+                                        <td>@item.Method</td>
+                                        <td>@item.PaidAt</td>
+                                        <td>
+                                            <span class="badge py-2 px-3
+                                                        @(item.Status?.ToLower() == "paid" ? "bg-success" :
+                                                          item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                          item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                          item.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                          "bg-secondary")">
+                                                        @item.DisplayStatus
+                                            </span>
+                                        </td>
+                                        <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail">詳細</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">目前沒有資料</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">
+                            第 @currentPage 頁，共 @totalPages 頁
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm">匯出 Excel</a>
+                        <a class="btn btn-outline-primary btn-sm">匯出 CSV</a>
+                    </div>
+                </div>
+            </div>
+
+            @* 僅在需要時顯示分頁器 *@
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            <!-- 上一頁按鈕 -->
+                            <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="PaymentsHome"
+                                   asp-action="Index"
+                                   asp-route-pageIndex="@(Model.PageIndex - 1)"
+                                   asp-route-pageSize="@(Model.PageSize)">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- 頁碼按鈕 -->
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="PaymentsHome"
+                                       asp-action="Index"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@(Model.PageSize)">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁按鈕 -->
+                            <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="PaymentsHome"
+                                   asp-action="Index"
+                                   asp-route-pageIndex="@(Model.PageIndex + 1)"
+                                   asp-route-pageSize="@(Model.PageSize)">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</section>

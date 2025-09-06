@@ -17,8 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Payments\Data\" />
-    <Folder Include="Areas\Payments\Models\" />
+    <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
   </ItemGroup>
 
 </Project>
