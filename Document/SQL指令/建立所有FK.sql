@@ -61,7 +61,7 @@ ALTER TABLE [PAYMENT_TRANSACTION]
     FOREIGN KEY ([payment_id]) REFERENCES [PAYMENT] ([payment_id]);
 GO
 
-ALTER TABLE [REVIEW] 
+ALTER TABLE [REVIEW] --not repeatable
     ADD CONSTRAINT FK_REVIEW_booking_id_BOOKING_booking_id 
     FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
 GO
