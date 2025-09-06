@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Data;
+using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
