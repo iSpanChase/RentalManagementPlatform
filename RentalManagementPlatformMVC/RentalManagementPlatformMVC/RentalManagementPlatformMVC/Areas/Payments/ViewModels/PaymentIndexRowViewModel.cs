@@ -12,6 +12,11 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		public DateTime? PaidAt { get; set; }
 		public string? Status { get; set; }
 		public DateTime? CreatedAt { get; set; }
+		public string DisplayMethod => Method?.ToLower() switch
+		{
+			"credit_card" => "信用卡",
+			_ => "其他"
+		};
 		public string DisplayStatus => Status?.ToLower() switch
 		{
 			"paid" => "已付款",

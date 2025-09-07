@@ -10,6 +10,7 @@
     // 計算當前頁數與總頁數
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
+    int range = 2; // 當前頁左右顯示的範圍
 
     <style>
         .page-title {
@@ -71,10 +72,10 @@
                                 {
                                     <tr>
                                         <td>@item.OrderNumberSnapshot</td>
-                                        <td>@item.Amount</td>
+                                        <td>NT$ @item.Amount?.ToString("N0")</td>
                                         <td>@item.PaymentRef</td>
-                                        <td>@item.Method</td>
-                                        <td>@item.PaidAt</td>
+                                        <td>@item.DisplayMethod</td>
+                                        <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
                                             <span class="badge py-2 px-3
                                                         @(item.Status?.ToLower() == "paid" ? "bg-success" :
@@ -120,42 +121,47 @@
                 <div class="card-footer clearfix">
                     <nav aria-label="Page navigation">
                         <ul class="pagination pagination-sm m-0 justify-content-center">
-                            <!-- 上一頁按鈕 -->
-                            <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="Payments"
-                                   asp-controller="PaymentsHome"
-                                   asp-action="Index"
-                                   asp-route-pageIndex="@(Model.PageIndex - 1)"
+                                   asp-route-pageIndex="@(currentPage - 1)"
                                    asp-route-pageSize="@(Model.PageSize)">
-                                    <span aria-hidden="true">&laquo;</span>
+                                    &laquo;
                                 </a>
                             </li>
 
-                            <!-- 頁碼按鈕 -->
-                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
                             {
-                                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
-                                    <a class="page-link"
-                                       asp-area="Payments"
-                                       asp-controller="PaymentsHome"
-                                       asp-action="Index"
-                                       asp-route-pageIndex="@i"
-                                       asp-route-pageSize="@(Model.PageSize)">
-                                        @i
-                                    </a>
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-pageIndex="1" asp-route-pageSize="@Model.PageSize">1</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" asp-route-pageIndex="@i" asp-route-pageSize="@Model.PageSize">@i</a>
                                 </li>
                             }
 
-                            <!-- 下一頁按鈕 -->
-                            <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-pageIndex="@totalPages" asp-route-pageSize="@Model.PageSize">@totalPages</a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="Payments"
-                                   asp-controller="PaymentsHome"
-                                   asp-action="Index"
-                                   asp-route-pageIndex="@(Model.PageIndex + 1)"
+                                   asp-route-pageIndex="@(currentPage + 1)"
                                    asp-route-pageSize="@(Model.PageSize)">
-                                    <span aria-hidden="true">&raquo;</span>
+                                    &raquo;
                                 </a>
                             </li>
                         </ul>
