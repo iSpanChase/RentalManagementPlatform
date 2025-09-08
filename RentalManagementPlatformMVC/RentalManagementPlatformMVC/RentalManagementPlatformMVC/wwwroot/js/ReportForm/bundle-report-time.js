@@ -52,7 +52,6 @@ function fillWeekSelect(year, select) {
     weeks.forEach(w => {
         select.append(new Option(w.text, w.value));
     });
-
 }
 
 
@@ -123,7 +122,6 @@ function formDataAppendTime(data) {
             start = formatDateNumber($("#startYearInput").val(), 1, 1);
             end = formatDateNumber($("#endYearInput").val(), 1, 1);
             break;
-
     }
 
     data.append("Start", start);

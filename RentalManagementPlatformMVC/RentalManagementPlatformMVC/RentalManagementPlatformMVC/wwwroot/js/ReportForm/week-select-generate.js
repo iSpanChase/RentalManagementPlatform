@@ -52,7 +52,6 @@ function fillWeekSelect(year, select) {
     weeks.forEach(w => {
         select.append(new Option(w.text, w.value));
     });
-
 }
 
 
