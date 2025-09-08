@@ -13,7 +13,10 @@ namespace RentalManagementPlatformMVC.Repositories
 			_context = context;
 		}
 
-		public async Task<(IEnumerable<Payment>, int)> GetPagedPaymentAsync(int pageIndex, int pageSize)
+		/// <summary>
+		/// 取得分頁的付款資料，依建立時間降序排列。
+		/// </summary>
+		public async Task<(IEnumerable<Payment>, int)> GetPagedPaymentsAsync(int pageIndex, int pageSize)
 		{
 			var query = _context.Payments
 				.AsNoTracking()
@@ -29,24 +32,27 @@ namespace RentalManagementPlatformMVC.Repositories
 			return (entities, totalCount);
 		}
 
-		public async Task<Payment?> GetByIdAsync(int paymentId)
+		/// <summary>
+		/// 根據付款ID取得付款詳細資訊，包含交易記錄、訂房資訊、客人資料和房間資料。
+		/// </summary>
+		public async Task<Payment?> GetPaymentDetailByIdAsync(int paymentId)
 		{
 			return await _context.Payments
 				.AsNoTracking()
-				.Include(p => p.PaymentTransaction)
-				.Include(p => p.Booking)
-					.ThenInclude(b => b.Guest)
-				.Include(p => p.Booking)
-					.ThenInclude(b => b.Room)
+				.Include(p => p.PaymentTransactions) // ✅ 詳細頁才抓交易集合
+				.Include(p => p.Booking).ThenInclude(b => b.Guest)
+				.Include(p => p.Booking).ThenInclude(b => b.Room)
 				.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 		}
 
-		public async Task<(IEnumerable<Payment>, int)> SearchAsync(PaymentSearchCriteriaDto criteria, int pageIndex, int pageSize)
+		/// <summary>
+		/// 根據搜尋條件動態查詢付款資料，支援多種篩選條件、排序和分頁。
+		/// </summary>
+		public async Task<(IEnumerable<Payment>, int)> SearchPaymentsAsync(PaymentSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
-			// 基底查詢
+			// 基底查詢（❌ 不要 Include PaymentTransactions，避免乘出）
 			var query = _context.Payments
 				.AsNoTracking()
-				.Include(p => p.PaymentTransaction)
 				.Include(p => p.Booking).ThenInclude(b => b.Guest)
 				.Include(p => p.Booking).ThenInclude(b => b.Room)
 				.AsQueryable();
@@ -65,15 +71,14 @@ namespace RentalManagementPlatformMVC.Repositories
 				query = query.Where(p => p.PaymentRef == s);
 			}
 
-			// 交易參考號
+			// 交易參考號（✅ 改用 Any）
 			if (!string.IsNullOrWhiteSpace(criteria.TransactionRef))
 			{
 				var s = criteria.TransactionRef.Trim();
-				query = query.Where(p => p.PaymentTransaction != null &&
-										 p.PaymentTransaction.TxnRef == s);
+				query = query.Where(p => p.PaymentTransactions.Any(t => t.TxnRef == s));
 			}
 
-			// 狀態（paid/pending/refunded/failed）
+			// 狀態
 			if (!string.IsNullOrWhiteSpace(criteria.Status))
 			{
 				var s = criteria.Status.Trim();
@@ -98,21 +103,21 @@ namespace RentalManagementPlatformMVC.Repositories
 										 EF.Functions.Like(p.Booking.Room.Title!, $"%{s}%"));
 			}
 
-			// 日期區間（付款時間：PaidAt；含端點）
+			// 日期區間
 			if (criteria.PaidStartDate.HasValue)
 				query = query.Where(p => p.PaidAt >= criteria.PaidStartDate.Value);
 
 			if (criteria.PaidEndDate.HasValue)
 				query = query.Where(p => p.PaidAt <= criteria.PaidEndDate.Value);
 
-			// 金額區間（Payment.Amount）
+			// 金額區間
 			if (criteria.MinAmount.HasValue)
 				query = query.Where(p => p.Amount >= criteria.MinAmount.Value);
 
 			if (criteria.MaxAmount.HasValue)
 				query = query.Where(p => p.Amount <= criteria.MaxAmount.Value);
 
-			// 排序（預設 CreatedAt）
+			// 排序
 			query = (criteria.SortBy ?? "createdat").ToLower() switch
 			{
 				"paidat" => criteria.IsDescending

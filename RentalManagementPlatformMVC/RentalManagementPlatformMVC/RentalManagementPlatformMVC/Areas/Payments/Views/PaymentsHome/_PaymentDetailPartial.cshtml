@@ -41,10 +41,10 @@
                     <div class="col-7">
                         <span class="badge py-2 px-3
                             @(Model.Status?.ToLower() == "paid" ? "bg-success" :
-                              Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                              Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                              Model.Status?.ToLower() == "failed" ? "bg-danger" :
-                              "bg-secondary")">
+                                                            Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                            Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                            Model.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                            "bg-secondary")">
                             @Model.DisplayStatus
                         </span>
                     </div>
@@ -55,40 +55,47 @@
             </div>
         </div>
 
-        <!-- 右半：交易詳細 + 訂房資訊 -->
+        <!-- 右半：交易紀錄 + 訂房資訊 -->
         <div class="col-12 col-md-6">
             <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted fw-semibold mb-2">
-                    <i class="bi bi-receipt me-1"></i> 交易資訊
+                    <i class="bi bi-receipt me-1"></i> 交易紀錄
                 </div>
 
-                @if (Model.TransactionId == 0)
+                @if (Model.Transactions == null || !Model.Transactions.Any())
                 {
                     <div class="small text-muted">尚無交易紀錄</div>
                 }
                 else
                 {
-                    <div class="row small gy-2">
-                        <div class="col-5 text-secondary">交易編號</div>
-                        <div class="col-7 fw-medium">@Model.TransactionId</div>
-
-                        <div class="col-5 text-secondary">金流商</div>
-                        <div class="col-7 fw-medium">@(Model.Provider ?? "-")</div>
-
-                        <div class="col-5 text-secondary">金流交易代碼</div>
-                        <div class="col-7 fw-medium">@(Model.ProviderTxnId ?? "-")</div>
-
-                        <div class="col-5 text-secondary">回應代碼</div>
-                        <div class="col-7">@(Model.ResponseCode ?? "-")</div>
-
-                        <div class="col-5 text-secondary">回應訊息</div>
-                        <div class="col-7">@Model.DisplayResponseMessage</div>
-
-                        <div class="col-5 text-secondary">交易參考號</div>
-                        <div class="col-7">@(Model.TxnRef ?? "-")</div>
-
-                        <div class="col-5 text-secondary">交易建立時間</div>
-                        <div class="col-7">@((Model.TransactionCreatedAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-striped text-center align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>交易ID</th>
+                                    <th>金流商</th>
+                                    <th>ProviderTxnId</th>
+                                    <th>回應代碼</th>
+                                    <th>回應訊息</th>
+                                    <th>TxnRef</th>
+                                    <th>建立時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var txn in Model.Transactions)
+                                {
+                                    <tr>
+                                        <td>@txn.TransactionId</td>
+                                        <td>@(txn.Provider ?? "-")</td>
+                                        <td>@(txn.ProviderTxnId ?? "-")</td>
+                                        <td>@(txn.ResponseCode ?? "-")</td>
+                                        <td>@(txn.ResponseMessage ?? "-")</td>
+                                        <td>@(txn.TxnRef ?? "-")</td>
+                                        <td>@(txn.TransactionCreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 }
 
@@ -114,4 +121,3 @@
 <div class="modal-footer border-0">
     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
 </div>
-

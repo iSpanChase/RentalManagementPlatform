@@ -7,15 +7,18 @@ namespace RentalManagementPlatformMVC.Services
 	public class PaymentService : IPaymentService
 	{
 		private readonly IPaymentRepository _paymentRepository;
-		
+
 		public PaymentService(IPaymentRepository paymentRepository)
 		{
 			_paymentRepository = paymentRepository;
 		}
 
+		/// <summary>
+		/// 取得分頁的付款資料清單
+		/// </summary>
 		public async Task<PagedResult<PaymentDto>> GetPagedPaymentsAsync(int pageIndex, int pageSize)
 		{
-			var (entities, totalCount) = await _paymentRepository.GetPagedPaymentAsync(pageIndex, pageSize);
+			var (entities, totalCount) = await _paymentRepository.GetPagedPaymentsAsync(pageIndex, pageSize);
 
 			var paymentDtos = entities.Select(p => new PaymentDto
 			{
@@ -27,6 +30,12 @@ namespace RentalManagementPlatformMVC.Services
 				PaidAt = p.PaidAt,
 				Status = p.Status,
 				CreatedAt = p.CreatedAt,
+
+				// 可選：顯示最新交易資訊
+				// LatestTxnRef = p.PaymentTransactions
+				//     .OrderByDescending(t => t.CreatedAt)
+				//     .Select(t => t.TxnRef)
+				//     .FirstOrDefault()
 			}).ToList();
 
 			return new PagedResult<PaymentDto>
@@ -38,13 +47,13 @@ namespace RentalManagementPlatformMVC.Services
 			};
 		}
 
+		/// <summary>
+		/// 根據付款識別碼取得付款詳細資訊
+		/// </summary>
 		public async Task<PaymentDetailDto?> GetPaymentDetailByIdAsync(int paymentId)
 		{
-			var payment = await _paymentRepository.GetByIdAsync(paymentId);
+			var payment = await _paymentRepository.GetPaymentDetailByIdAsync(paymentId);
 			if (payment == null) return null;
-
-			// 先安全取出 Transaction
-			var transaction = payment.PaymentTransaction;
 
 			return new PaymentDetailDto
 			{
@@ -58,24 +67,33 @@ namespace RentalManagementPlatformMVC.Services
 				OrderNumberSnapshot = payment.OrderNumberSnapshot,
 				Status = payment.Status,
 				PaymentCreatedAt = payment.CreatedAt,
-				GuestName = payment.Booking?.Guest?.Name, 
+				GuestName = payment.Booking?.Guest?.Name,
 				RoomTitle = payment.Booking?.Room?.Title,
 
-				// === Transaction ===
-				TransactionId = transaction?.TransactionId ?? 0,
-				Provider = transaction?.Provider,
-				ProviderTxnId = transaction?.ProviderTxnId,
-				ResponseCode = transaction?.ResponseCode,
-				ResponseMessage = transaction?.ResponseMessage,
-				TxnRef = transaction?.TxnRef,
-				TransactionCreatedAt = transaction?.CreatedAt
+				// === 所有 Transactions ===
+				Transactions = payment.PaymentTransactions
+					.OrderByDescending(t => t.CreatedAt) // 依時間排序
+					.Select(t => new PaymentTransactionDto
+					{
+						TransactionId = t.TransactionId,
+						Provider = t.Provider,
+						ProviderTxnId = t.ProviderTxnId,
+						ResponseCode = t.ResponseCode,
+						ResponseMessage = t.ResponseMessage,
+						TxnRef = t.TxnRef,
+						TransactionCreatedAt = t.CreatedAt
+					})
+					.ToList()
 			};
 		}
 
+		/// <summary>
+		/// 根據篩選條件動態查詢付款資料清單（支援分頁）
+		/// </summary>
 		public async Task<PagedResult<PaymentDto>> SearchPaymentsAsync(
-	PaymentSearchCriteriaDto criteria, int pageIndex, int pageSize)
+			PaymentSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
-			// 可選：規格修正（避免使用者傳錯）
+			// tuple swap防止輸入值顛倒
 			if (criteria.MinAmount.HasValue && criteria.MaxAmount.HasValue &&
 				criteria.MinAmount > criteria.MaxAmount)
 			{
@@ -89,10 +107,10 @@ namespace RentalManagementPlatformMVC.Services
 			}
 
 			// 呼叫 Repository 動態查詢
-			var (entities, total) = await _paymentRepository.SearchAsync(criteria, pageIndex, pageSize);
+			var (entities, total) = await _paymentRepository.SearchPaymentsAsync(criteria, pageIndex, pageSize);
 
-			// 映射成列表用 DTO（沿用現有 PaymentDto 欄位）
-			var items = entities.Select(p => new PaymentDto
+			// 映射成列表用 DTO
+			var paymentDtos = entities.Select(p => new PaymentDto
 			{
 				PaymentId = p.PaymentId,
 				OrderNumberSnapshot = p.OrderNumberSnapshot,
@@ -102,16 +120,17 @@ namespace RentalManagementPlatformMVC.Services
 				PaidAt = p.PaidAt,
 				Status = p.Status,
 				CreatedAt = p.CreatedAt,
-				// 若未來需要也可擴充（你的 DTO 若有這些欄位再打開）
-				// GuestName         = p.Booking?.Guest?.Name,
-				// RoomTitle         = p.Booking?.Room?.Title,
-				// TransactionRef    = p.PaymentTransaction?.TxnRef,
-				// ProviderTxnId     = p.PaymentTransaction?.ProviderTxnId,
+
+				// 可選：顯示最新交易資訊
+				// LatestTxnRef = p.PaymentTransactions
+				//     .OrderByDescending(t => t.CreatedAt)
+				//     .Select(t => t.TxnRef)
+				//     .FirstOrDefault()
 			}).ToList();
 
 			return new PagedResult<PaymentDto>
 			{
-				Items = items,
+				Items = paymentDtos,
 				PageIndex = pageIndex,
 				PageSize = pageSize,
 				TotalCount = total

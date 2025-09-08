@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RentalManagementPlatformMVC.DTOs;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 {
@@ -15,14 +18,8 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		public string? Status { get; set; }
 		public DateTime? PaymentCreatedAt { get; set; }
 
-		// === Transaction 詳細資訊 ===
-		public int TransactionId { get; set; }
-		public string? ProviderTxnId { get; set; }
-		public string? ResponseCode { get; set; }
-		public string? Provider { get; set; }
-		public string? ResponseMessage { get; set; }
-		public string? TxnRef { get; set; }
-		public DateTime? TransactionCreatedAt { get; set; }
+		// === Transaction 集合 ===
+		public List<PaymentTransactionDto> Transactions { get; set; } = new();
 
 		// === Booking 額外顯示用 ===
 		public string? GuestName { get; set; }
@@ -32,8 +29,9 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		public string DisplayMethod => Method?.ToLower() switch
 		{
 			"credit_card" => "信用卡",
-			_ => "其他"
+			_ => Method ?? "其他"
 		};
+
 		public string DisplayStatus => Status?.ToLower() switch
 		{
 			"paid" => "已付款",
@@ -41,17 +39,6 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 			"refunded" => "已退款",
 			"failed" => "付款失敗",
 			_ => "未知"
-		};
-
-		[Display(Name = "回應訊息")]
-		public string DisplayResponseMessage =>
-		ResponseMessage?.ToLower() switch
-		{
-		   "approved" => "付款成功",
-		   "refunded" => "已退款",
-		   "do not honor" => "拒絕交易",
-		   "processing" => "處理中",
-		   _ => "未知"
 		};
 	}
 }

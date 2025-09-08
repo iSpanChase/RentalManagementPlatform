@@ -519,36 +519,44 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			entity.Property(e => e.PaymentId)
 				.ValueGeneratedNever()
 				.HasColumnName("payment_id");
+
 			entity.Property(e => e.Amount)
 				.HasColumnType("decimal(18, 0)")
 				.HasColumnName("amount");
+
 			entity.Property(e => e.BookingId).HasColumnName("booking_id");
+
 			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
 			entity.Property(e => e.Method)
 				.HasMaxLength(512)
 				.HasColumnName("method");
+
 			entity.Property(e => e.OrderNumberSnapshot)
 				.HasMaxLength(512)
 				.HasColumnName("order_number_snapshot");
+
 			entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+
 			entity.Property(e => e.PaymentRef)
 				.HasMaxLength(512)
 				.HasColumnName("payment_ref");
+
 			entity.Property(e => e.Status)
 				.HasMaxLength(512)
 				.HasColumnName("status");
 
-			// Booking一對多關聯
+			// Booking 一對多關聯
 			entity.HasOne(e => e.Booking)
 				  .WithMany(e => e.Payments)
 				  .HasForeignKey(e => e.BookingId)
 				  .HasConstraintName("FK_PAYMENT_BOOKING")
 				  .OnDelete(DeleteBehavior.Restrict);
 
-			// PaymentTransaction一對一關聯
-			entity.HasOne(e => e.PaymentTransaction)
-				  .WithOne(t => t.Payment)
-				  .HasForeignKey<PaymentTransaction>(t => t.PaymentId)
+			// PaymentTransaction 一對多關聯
+			entity.HasMany(e => e.PaymentTransactions)
+				  .WithOne(e => e.Payment)
+				  .HasForeignKey(e => e.PaymentId)
 				  .HasConstraintName("FK_PAYMENTTRANSACTION_PAYMENT")
 				  .OnDelete(DeleteBehavior.Restrict);
 		});
@@ -563,38 +571,31 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				.ValueGeneratedNever()
 				.HasColumnName("transaction_id");
 
-			// 必填 + 欄位名
-			entity.Property(e => e.PaymentId).IsRequired().HasColumnName("payment_id");
-
-			// 唯一索引（1:1 關鍵）
-			entity.HasIndex(e => e.PaymentId)
-				  .IsUnique()
-				  .HasDatabaseName("UX_PAYMENT_TRANSACTION_payment_id");
+			entity.Property(e => e.PaymentId)
+				.IsRequired()
+				.HasColumnName("payment_id");
 
 			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-			entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+
 			entity.Property(e => e.Provider)
 				.HasMaxLength(512)
 				.HasColumnName("provider");
+
 			entity.Property(e => e.ProviderTxnId)
 				.HasMaxLength(512)
 				.HasColumnName("provider_txn_id");
+
 			entity.Property(e => e.ResponseCode)
 				.HasMaxLength(512)
 				.HasColumnName("response_code");
+
 			entity.Property(e => e.ResponseMessage)
 				.HasMaxLength(512)
 				.HasColumnName("response_message");
+
 			entity.Property(e => e.TxnRef)
 				.HasMaxLength(512)
 				.HasColumnName("txn_ref");
-
-			// Payment一對一關聯
-			entity.HasOne(e => e.Payment)
-				.WithOne(p => p.PaymentTransaction)
-				.HasForeignKey<PaymentTransaction>(e => e.PaymentId)
-				.HasConstraintName("FK_PAYMENTTRANSACTION_PAYMENT")
-				.OnDelete(DeleteBehavior.Restrict);
 		});
 
 		modelBuilder.Entity<Permission>(entity =>
