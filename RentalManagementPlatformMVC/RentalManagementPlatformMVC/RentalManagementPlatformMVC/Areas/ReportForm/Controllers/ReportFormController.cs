@@ -31,46 +31,59 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             // 額外補一個結束點
             yield return temp;
         }
+
+        List<decimal> GetTotalPrice(DateTime[] intervals)
+        {
+            using (var context = new RentalManagementPlatformSqlContext())
+            {
+                var results = new List<decimal>();
+
+                for (var i = 0; i < intervals.Length - 1; i++)
+                {
+                    var start = intervals[i];
+                    var end = intervals[i + 1];
+
+                    // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
+                    var totalPrice = context.Bookings
+                        .Where(x => x.CreatedAt != null &&
+                                    x.CreatedAt.Value >= start &&
+                                    x.CreatedAt.Value < end &&
+                                    x.TotalPrice != null)
+                        .Sum(x => (decimal?)x.TotalPrice) ?? 0m;
+
+                    results.Add(totalPrice);
+                }
+
+                return results;
+            }
+        }
+
         [HttpPost]
         public IActionResult GetChartData(string timeUnit, DateTime start, DateTime end)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
 
-            using (var context = new RentalManagementPlatformSqlContext())
+            var labels = intervals.Select(x => timeUnit switch
             {
-                // 先抓出範圍內的所有資料
-                var bookings = context.Bookings
-                    .Where(x => x.CreatedAt != null &&
-                                x.CreatedAt >= start &&
-                                x.CreatedAt <= end &&
-                                x.TotalPrice != null)
-                    .ToList();
+                "day" => x.ToString("yyyy/M/d"),
+                "week" => x.ToString("yyyy/M/d"),
+                "month" => x.ToString("yyyy/M"),
+                "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
+                "year" => x.ToString("yyyy"),
+                _ => throw new ArgumentException("Invalid timeUnit")
+            }).SkipLast(1).ToArray();
 
-                var data = intervals.Zip(intervals.Skip(1), (s, e) =>
-                    bookings.Where(x => x.CreatedAt != null && x.CreatedAt.Value >= s && x.CreatedAt.Value < e)
-                            .Sum(x => x.TotalPrice ?? 0)
-                ).ToArray();
+            var data = GetTotalPrice(intervals);
 
-                var labels = intervals.Select(x => timeUnit switch
-                {
-                    "day" => x.ToString("yyyy/M/d"),
-                    "week" => x.ToString("yyyy/M/d"),
-                    "month" => x.ToString("yyyy/M"),
-                    "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
-                    "year" => x.ToString("yyyy"),
-                    _ => throw new ArgumentException("Invalid timeUnit")
-                }).SkipLast(1).ToArray();
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
 
-                var colors = ColorPaletteHelper.GenerateColors(labels.Length);
-
-                return Json(new
-                {
-                    labels,
-                    data,
-                    colors,
-                    label = "銷售額 (NTD)"
-                });
-            }
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "銷售額 (NTD)"
+            });
         }
     }
 }
