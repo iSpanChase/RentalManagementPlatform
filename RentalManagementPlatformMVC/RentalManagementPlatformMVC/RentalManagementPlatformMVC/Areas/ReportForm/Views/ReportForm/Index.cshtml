@@ -14,10 +14,11 @@
 
     <label>單位時間跨度：</label>
     <select id="timeUnit">
-        <option value="day">一天</option>
-        <option value="month">一個月</option>
-        <option value="quarter">一季</option>
-        <option value="year">一年</option>
+        <option value="day">天</option>
+        <option value="week">周</option>
+        <option value="month">月</option>
+        <option value="quarter">季</option>
+        <option value="year">年</option>
     </select>
 
     <div id="input-day" class="time-unit-input-block">
@@ -25,6 +26,17 @@
         <input type="date" id="startDate" />
         <label>結束日期：</label>
         <input type="date" id="endDate" />
+    </div>
+
+    <div id="input-week" class="time-unit-input-block" style="display:none;">
+        <label>開始年份：</label>
+        <input type="number" id="startWeekYear" min="2024" max="2026" value="2025" />
+        <label>開始週數：</label>
+        <select id="startWeekWeek"></select>
+        <label>結束年份：</label>
+        <input type="number" id="endWeekYear" min="2024" max="2026" value="2025" />
+        <label>結束年份：</label>
+        <select id="endWeekWeek"></select>
     </div>
 
     <div id="input-month" class="time-unit-input-block" style="display:none;">
@@ -104,8 +116,10 @@
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
             crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script src="~/js/reportform/time-format.min.js"></script>
+	<script src="~/js/reportform/bundle-report-time.min.js"></script>
     <script>
+        generateWeeksSelect();
+
         let baseAddress="https://localhost:7159"
         let chart; // 全域變數，避免重複 new Chart
 
