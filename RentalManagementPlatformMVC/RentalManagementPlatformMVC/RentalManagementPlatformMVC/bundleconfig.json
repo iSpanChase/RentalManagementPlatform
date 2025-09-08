@@ -4,5 +4,18 @@
     "inputFiles": [
       "wwwroot/js/ReportForm/time-format.js"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/js/ReportForm/week-select-generate.min.js",
+    "inputFiles": [
+      "wwwroot/js/ReportForm/week-select-generate.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/ReportForm/bundle-report-time.js",
+    "inputFiles": [
+      "wwwroot/js/ReportForm/week-select-generate.js",
+      "wwwroot/js/ReportForm/time-format.js"
+    ]
   }
 ]
