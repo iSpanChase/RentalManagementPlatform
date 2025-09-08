@@ -15,7 +15,6 @@
     <label>單位時間跨度：</label>
     <select id="timeUnit">
         <option value="day">一天</option>
-        <option value="week">一週</option>
         <option value="month">一個月</option>
         <option value="quarter">一季</option>
         <option value="year">一年</option>
@@ -26,13 +25,6 @@
         <input type="date" id="startDate" />
         <label>結束日期：</label>
         <input type="date" id="endDate" />
-    </div>
-
-    <div id="input-week" class="time-unit-input-block" style="display:none;">
-        <label>開始日期：</label>
-        <input type="date" id="startWeekDate" />
-        <label>結束日期：</label>
-        <input type="date" id="endWeekDate" />
     </div>
 
     <div id="input-month" class="time-unit-input-block" style="display:none;">
@@ -112,6 +104,7 @@
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
             crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="~/js/reportform/time-format.min.js"></script>
     <script>
         let baseAddress="https://localhost:7159"
         let chart; // 全域變數，避免重複 new Chart
@@ -126,50 +119,10 @@
             fetchPostChart();
         });
 
-        function formatDateLocal(date) {
-          let y = date.getFullYear();
-          let m = String(date.getMonth() + 1).padStart(2, "0");
-          let d = String(date.getDate()).padStart(2, "0");
-          return `${y}-${m}-${d}`;
-        }
-
         //將圖表類型、時間跨度、開始時間、結束時間對server進行ajax要求產生圖表
         function fetchPostChart(){
-            let data = new FormData();
-            let type =$("#reportType").val();
-            let timeUnit = $("#timeUnit").val();
-            data.append("Type",type);
-            data.append("TimeUnit",timeUnit);
-
-            let start;
-            let end;
-            switch(timeUnit){
-                case "day":
-                    start = $("#startDate").val();
-                    end = $("#endDate").val();
-                    break;
-                case "week":
-                    start = $("#startWeekDate").val();
-                    end = $("#endWeekDate").val();
-                    alert(start);
-                    break;
-                case "month":
-                    start = formatDateLocal(new Date(parseInt($("#startMonthYear").val()), parseInt($("#startMonthMonth").val())-1,1));
-                    end = formatDateLocal(new Date(parseInt($("#endMonthYear").val()), parseInt($("#endMonthMonth").val())-1,1));
-                    break;
-                case "quarter":
-                    start = formatDateLocal(new Date(parseInt($("#startQuarterYear").val()),parseInt($("#startQuarterQuarter").val())*3-2-1,1));
-                    end = formatDateLocal(new Date(parseInt($("#endQuarterYear").val()),parseInt($("#endQuarterQuarter").val())*3-2-1,1));
-                    break;
-                case "year":
-                    start = formatDateLocal(new Date(parseInt($("#startYearInput").val()),0,1).toISOString());
-                    end = formatDateLocal(new Date(parseInt($("#endYearInput").val()),0,1).toISOString());
-                    break;
-                    
-            }
-
-            data.append("Start",start);
-            data.append("End",end);
+            let data = formDataAppendTime(new FormData());
+            let type = $("#reportType").val();
 
             fetch(`${baseAddress}/ReportForm/ReportForm/GetChartData`,{
                 method:"POST",

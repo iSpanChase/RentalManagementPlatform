@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RentalManagementPlatformMVC.Areas.ReportForm.Helpers;
 
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
@@ -11,19 +12,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetChartData(string type, string timeUnit, DateTime? start, DateTime? end)
+        public IActionResult GetChartData(string timeUnit, DateTime? start, DateTime? end)
         {
-            // 模擬假資料，實際應從 DB 篩選
-            var labels = new[] { "一月", "二月", "三月", "四月", "五月" };
-            var data = new[] { 12000, 19000, 3000, 5000, 2000 };
-            var colors = new[]
-            {
-            "rgba(255, 99, 132, 0.5)",
-            "rgba(54, 162, 235, 0.5)",
-            "rgba(255, 206, 86, 0.5)",
-            "rgba(75, 192, 192, 0.5)",
-            "rgba(153, 102, 255, 0.5)"
-        };
+            var labels = new[] { "一月", "二月", "三月", "四月", "五月" , "一月", "二月", "三月", "四月", "五月" , "一月", "二月", "三月", "四月", "五月" };
+            var data = new[] { 12000, 19000, 3000, 5000, 2000 , 12000, 19000, 3000, 5000, 2000 , 12000, 19000, 3000, 5000, 2000 };
+            var dataCount = data.Length;
+            var colors = ColorPaletteHelper.GenerateColors(dataCount);
 
             return Json(new
             {
