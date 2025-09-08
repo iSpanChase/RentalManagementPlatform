@@ -1,4 +1,6 @@
 ﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.PaymentIndexViewModel
+@using Microsoft.AspNetCore.Routing
+@using RentalManagementPlatformMVC.DTOs
 
 @{
     ViewData["Title"] = "帳務管理";
@@ -11,6 +13,23 @@
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
     int range = 2; // 當前頁左右顯示的範圍
+
+    // 將目前條件轉為 Dictionary<string,string?>，供分頁/排序連結沿用（Payment 版）
+    var routeBase = new Dictionary<string, string?>
+    {
+        ["OrderNumber"] = Model.Criteria?.OrderNumber,
+        ["PaymentRef"] = Model.Criteria?.PaymentRef,
+        ["TransactionRef"] = Model.Criteria?.TransactionRef,
+        ["Status"] = Model.Criteria?.Status,
+        ["GuestName"] = Model.Criteria?.GuestName,
+        ["RoomTitle"] = Model.Criteria?.RoomTitle,
+        ["PaidStartDate"] = Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd"),
+        ["PaidEndDate"] = Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd"),
+        ["MinAmount"] = Model.Criteria?.MinAmount?.ToString(),
+        ["MaxAmount"] = Model.Criteria?.MaxAmount?.ToString(),
+        ["SortBy"] = Model.Criteria?.SortBy,
+        ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
+    };
 
     <style>
         .page-title {
@@ -38,6 +57,103 @@
 
 <section class="content">
     <div class="container-fluid">
+
+        <!--搜尋條件卡片Start-->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">訂單編號</label>
+                        <input name="OrderNumber" class="form-control" value="@(Model.Criteria?.OrderNumber ?? "")" />
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">平台付款編號（PaymentRef）</label>
+                        <input name="PaymentRef" class="form-control" value="@(Model.Criteria?.PaymentRef ?? "")" />
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">交易參考號（TxnRef）</label>
+                        <input name="TransactionRef" class="form-control" value="@(Model.Criteria?.TransactionRef ?? "")" />
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">狀態</label>
+                        <select name="Status" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="paid" selected="@(Model.Criteria?.Status == "paid" ? "selected" : null)">已付款</option>
+                            <option value="pending" selected="@(Model.Criteria?.Status == "pending" ? "selected" : null)">付款中</option>
+                            <option value="refunded" selected="@(Model.Criteria?.Status == "refunded" ? "selected" : null)">已退款</option>
+                            <option value="failed" selected="@(Model.Criteria?.Status == "failed" ? "selected" : null)">付款失敗</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">訂房姓名</label>
+                        <input name="GuestName" class="form-control" value="@(Model.Criteria?.GuestName ?? "")" />
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">房間名稱</label>
+                        <input name="RoomTitle" class="form-control" placeholder="輸入房名關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款起</label>
+                        <input type="date" name="PaidStartDate" class="form-control"
+                               value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款迄</label>
+                        <input type="date" name="PaidEndDate" class="form-control"
+                               value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最低金額</label>
+                        <input type="number" name="MinAmount" class="form-control" step="1"
+                               value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最高金額</label>
+                        <input type="number" name="MaxAmount" class="form-control" step="1"
+                               value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序欄位</label>
+                        <select name="SortBy" class="form-select">
+                            <option value="CreatedAt" selected="@(Model.Criteria?.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
+                            <option value="PaidAt" selected="@(Model.Criteria?.SortBy == "PaidAt" ? "selected" : null)">付款時間</option>
+                            <option value="Amount" selected="@(Model.Criteria?.SortBy == "Amount" ? "selected" : null)">金額</option>
+                            <option value="OrderNumber" selected="@(Model.Criteria?.SortBy == "OrderNumber" ? "selected" : null)">訂單編號</option>
+                            <option value="PaymentRef" selected="@(Model.Criteria?.SortBy == "PaymentRef" ? "selected" : null)">平台付款編號</option>
+                            <option value="Status" selected="@(Model.Criteria?.SortBy == "Status" ? "selected" : null)">狀態</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序方式</label>
+                        <select name="IsDescending" class="form-select">
+                            <option value="true" selected="@(Model.Criteria?.IsDescending != false ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@((Model.Criteria?.IsDescending == false) ? "selected" : null)">升冪（舊→新 / 低→高）</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">搜尋</button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="Payments" asp-controller="PaymentsHome" asp-action="Index">重設</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--搜尋條件卡片End-->
+
+        <!--訂單列表卡片Start-->
         <div class="card card-primary card-outline">
             <div class="card-header">
                 <h3 class="card-title">帳務列表</h3>
@@ -88,7 +204,7 @@
                                         </td>
                                         <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
-                                            <button class="btn btn-primary btn-detail">詳細</button>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">詳細</button>
                                         </td>
                                     </tr>
                                 }
@@ -109,8 +225,39 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a class="btn btn-outline-success btn-sm">匯出 Excel</a>
-                        <a class="btn btn-outline-primary btn-sm">匯出 CSV</a>
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="Payments" asp-controller="PaymentsHome" asp-action="ExportExcel"
+                           asp-route-OrderNumber="@(Model.Criteria?.OrderNumber)"
+                           asp-route-PaymentRef="@(Model.Criteria?.PaymentRef)"
+                           asp-route-TransactionRef="@(Model.Criteria?.TransactionRef)"
+                           asp-route-Status="@(Model.Criteria?.Status)"
+                           asp-route-GuestName="@(Model.Criteria?.GuestName)"
+                           asp-route-RoomTitle="@(Model.Criteria?.RoomTitle)"
+                           asp-route-PaidStartDate="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-PaidEndDate="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-MinAmount="@(Model.Criteria?.MinAmount?.ToString())"
+                           asp-route-MaxAmount="@(Model.Criteria?.MaxAmount?.ToString())"
+                           asp-route-SortBy="@(Model.Criteria?.SortBy)"
+                           asp-route-IsDescending="@((Model.Criteria?.IsDescending ?? true).ToString().ToLower())">
+                            匯出 Excel
+                        </a>
+
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="Payments" asp-controller="PaymentsHome" asp-action="ExportCsv"
+                           asp-route-OrderNumber="@(Model.Criteria?.OrderNumber)"
+                           asp-route-PaymentRef="@(Model.Criteria?.PaymentRef)"
+                           asp-route-TransactionRef="@(Model.Criteria?.TransactionRef)"
+                           asp-route-Status="@(Model.Criteria?.Status)"
+                           asp-route-GuestName="@(Model.Criteria?.GuestName)"
+                           asp-route-RoomTitle="@(Model.Criteria?.RoomTitle)"
+                           asp-route-PaidStartDate="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-PaidEndDate="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd"))"
+                           asp-route-MinAmount="@(Model.Criteria?.MinAmount?.ToString())"
+                           asp-route-MaxAmount="@(Model.Criteria?.MaxAmount?.ToString())"
+                           asp-route-SortBy="@(Model.Criteria?.SortBy)"
+                           asp-route-IsDescending="@((Model.Criteria?.IsDescending ?? true).ToString().ToLower())">
+                            匯出 CSV
+                        </a>
                     </div>
                 </div>
             </div>
@@ -169,5 +316,73 @@
                 </div>
             }
         </div>
+        <!--訂單列表卡片Start-->
+
     </div>
 </section>
+
+@section Modals {
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-detail-content">
+                    <!-- AJAX 載入內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-detail');
+            if (!btn) return;
+
+            e.preventDefault();
+            const id = btn.dataset.id;
+            const content = document.getElementById('modal-detail-content');
+
+            // 載入中樣式 + 開窗
+            btn.disabled = true;
+            content.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status" aria-hidden="true"></div>
+                    <div class="mt-2">載入中…</div>
+                </div>
+            `;
+
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            try {
+                const url = '@Url.Action("Details", "PaymentsHome", new { area = "Payments" })' +
+                           '?id=' + encodeURIComponent(id);
+
+                const resp = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!resp.ok) {
+                    const msg = resp.status === 404 ? '找不到這筆付款'
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
+                    throw new Error(msg);
+                }
+
+                const html = await resp.text();
+                content.innerHTML = html;
+
+            } catch (err) {
+                content.innerHTML = `<div class="text-danger p-3">${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+}

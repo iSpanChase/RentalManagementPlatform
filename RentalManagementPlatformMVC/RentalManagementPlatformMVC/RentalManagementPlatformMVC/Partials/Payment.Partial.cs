@@ -1,7 +1,8 @@
-﻿namespace RentalManagementPlatformMVC.Partials
+﻿namespace RentalManagementPlatformMVC.Models
 {
 	public partial class Payment
 	{
-		public ICollection<PaymentTransaction> Transactions { get; set; } = new List<PaymentTransaction>();
+		public Booking Booking { get; set; }
+		public PaymentTransaction PaymentTransaction { get; set; }
 	}
 }

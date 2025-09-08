@@ -5,26 +5,28 @@
 		// 訂單編號
 		public string? OrderNumber { get; set; }
 
-		// 訂單狀態
+		// 付款參考號
+		public string? PaymentRef { get; set; }
+
+		// 交易參考號
+		public string? TransactionRef { get; set; }
+
+		// 狀態
 		public string? Status { get; set; }
 
 		// 訂房姓名
 		public string? GuestName { get; set; }
 
-		// 房間
-		public string? Room { get; set; }
+		// 房間名稱
+		public string? RoomTitle { get; set; }
 
-		// 日期區間 (入住日期)
-		public DateTime? CheckInStartDate { get; set; }
-		public DateTime? CheckInEndDate { get; set; }
+		// 日期區間
+		public DateTime? PaidStartDate { get; set; }
+		public DateTime? PaidEndDate { get; set; }
 
-		// 日期區間 (退房日期)  
-		public DateTime? CheckOutStartDate { get; set; }
-		public DateTime? CheckOutEndDate { get; set; }
-
-		// 價格區間
-		public decimal? MinPrice { get; set; }
-		public decimal? MaxPrice { get; set; }
+		// 金額區間
+		public decimal? MinAmount { get; set; }
+		public decimal? MaxAmount { get; set; }
 
 		// 排序
 		public string? SortBy { get; set; } = "CreatedAt";
