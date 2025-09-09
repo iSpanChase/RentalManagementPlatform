@@ -9,11 +9,9 @@ public partial class RoomPhoto
 
     public int? RoomId { get; set; }
 
+    public string? PhotoUrl { get; set; }
+
     public int? SortOrder { get; set; }
 
-    public string Bucket { get; set; } = null!;
-
-    public string ObjectKey { get; set; } = null!;
-
-    public string ContentType { get; set; } = null!;
+    public virtual RoomList? Room { get; set; }
 }

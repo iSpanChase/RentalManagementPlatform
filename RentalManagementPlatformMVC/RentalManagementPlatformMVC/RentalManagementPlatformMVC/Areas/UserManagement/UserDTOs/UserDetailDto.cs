@@ -1,4 +1,4 @@
-﻿namespace RentalManagementPlatformMVC.UserDTOs
+﻿namespace RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs
 {
 	public class UserDetailDto
 	{

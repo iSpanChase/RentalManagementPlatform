@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace RentalManagementPlatformMVC.Repositories
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
 	public interface IRepository<T> where T : class
 	{

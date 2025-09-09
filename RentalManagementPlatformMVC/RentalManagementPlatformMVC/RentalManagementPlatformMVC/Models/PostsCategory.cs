@@ -10,4 +10,8 @@ public partial class PostsCategory
     public int PostsId { get; set; }
 
     public int CategoriesId { get; set; }
+
+    public virtual Category Categories { get; set; } = null!;
+
+    public virtual Post Posts { get; set; } = null!;
 }

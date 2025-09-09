@@ -1,6 +1,6 @@
-﻿using RentalManagementPlatformMVC.UserDTOs;
+﻿using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 
-namespace RentalManagementPlatformMVC.Repositories
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
 	public interface IUserService
 	{

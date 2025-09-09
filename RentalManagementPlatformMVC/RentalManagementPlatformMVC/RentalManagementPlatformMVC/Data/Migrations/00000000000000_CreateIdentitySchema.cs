@@ -8,7 +8,7 @@ namespace RentalManagementPlatformMVC.Data.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+			migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -216,5 +216,6 @@ namespace RentalManagementPlatformMVC.Data.Migrations
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
         }
-    }
+
+	}
 }

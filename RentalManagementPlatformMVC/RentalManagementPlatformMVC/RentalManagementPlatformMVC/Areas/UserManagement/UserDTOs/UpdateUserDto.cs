@@ -1,12 +1,11 @@
-﻿namespace RentalManagementPlatformMVC.UserDTOs
+﻿namespace RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs
 {
-	public class CreateUserDto
+	public class UpdateUserDto
 	{
-		public string Username { get; set; } = null!;
+		public int UserId { get; set; }
 		public string Email { get; set; } = null!;
 		public string Name { get; set; } = null!;
 		public bool? AutoSubscribe { get; set; }
-		public string PasswordHash { get; set; } = null!;
 		public string? Gender { get; set; }
 		public DateTime? BirthDate { get; set; }
 		public string? Phone { get; set; }

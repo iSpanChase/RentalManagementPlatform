@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.UserDTOs;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using UserEntity = RentalManagementPlatformMVC.Models.User;
 
-namespace RentalManagementPlatformMVC.Services
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 {
 	public class UserService : IUserService
 	{
@@ -61,7 +62,7 @@ namespace RentalManagementPlatformMVC.Services
 			if (await _userRepo.ExistsByEmailAsync(dto.Email))
 				throw new InvalidOperationException("Email 已被使用");
 
-			var user = new User
+			var user = new UserEntity
 			{
 				Username = dto.Username,
 				Email = dto.Email,

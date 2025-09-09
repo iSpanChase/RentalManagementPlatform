@@ -10,4 +10,6 @@ public partial class Category
     public string Name { get; set; } = null!;
 
     public bool? IsActive { get; set; }
+
+    public virtual ICollection<PostsCategory> PostsCategories { get; set; } = new List<PostsCategory>();
 }

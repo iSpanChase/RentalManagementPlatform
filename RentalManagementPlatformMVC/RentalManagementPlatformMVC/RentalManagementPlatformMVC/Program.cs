@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformMVC.Repositories;
-using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -13,20 +12,32 @@ namespace RentalManagementPlatformMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+			// Add services to the container.
+			//         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+			//         builder.Services.AddDbContext<ApplicationDbContext>(options =>
+			//             options.UseSqlServer(connectionString));
 
-			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options => {
-				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
-			});
-			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+			//builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
+			//{
+			//	options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
+			//});
 
-			builder.Services.AddScoped<IUserRepository, UserRepository>();
-			// Application Service
-			builder.Services.AddScoped<RentalManagementPlatformMVC.Repositories.IUserService,
-						   RentalManagementPlatformMVC.Services.UserService>();
+			// Identity 用的 Context（連線字串用 DefaultConnection）
+			builder.Services.AddDbContext<ApplicationDbContext>(options =>
+				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
+			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
+				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSQL")));
+
+			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUnitOfWork, 
+                                       RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.UnitOfWork>();
+
+			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserRepository,
+                                       RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.UserRepository>();
+
+			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserService,
+									   RentalManagementPlatformMVC.Areas.UserManagement.UserServices.UserService>();
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

@@ -1,14 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
+using UserEntity = RentalManagementPlatformMVC.Models.User;
 
-namespace RentalManagementPlatformMVC.Repositories
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
-	public class UserRepository : EfRepository<User>, IUserRepository
+	public class UserRepository : EfRepository<UserEntity>, IUserRepository
 	{
 		public UserRepository(RentalManagementPlatformSqlContext db) : base(db) { }
 
 		// === IUserRepository 擴充方法 ===
-		public Task<User?> GetByUsernameAsync(string username)
+		public Task<UserEntity?> GetByUsernameAsync(string username)
 		{
 			return _db.Users.FirstOrDefaultAsync(u => u.Username == username);
 		}
@@ -23,7 +25,7 @@ namespace RentalManagementPlatformMVC.Repositories
 			return _db.Users.AnyAsync(u => u.Email == email);
 		}
 
-		public IQueryable<User> Query()
+		public IQueryable<UserEntity> Query()
 		{
 			// 查清單/分頁時 NoTracking 效能較好
 			return _db.Users.AsNoTracking();

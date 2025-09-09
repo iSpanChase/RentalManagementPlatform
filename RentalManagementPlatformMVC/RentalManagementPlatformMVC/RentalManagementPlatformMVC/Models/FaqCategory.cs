@@ -22,4 +22,10 @@ public partial class FaqCategory
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<FaqArticle> FaqArticles { get; set; } = new List<FaqArticle>();
+
+    public virtual ICollection<FaqCategory> InverseParent { get; set; } = new List<FaqCategory>();
+
+    public virtual FaqCategory? Parent { get; set; }
 }

@@ -1,6 +1,6 @@
 ﻿using RentalManagementPlatformMVC.Models;
 
-namespace RentalManagementPlatformMVC.Repositories
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
 	public class UnitOfWork : IUnitOfWork
 	{
