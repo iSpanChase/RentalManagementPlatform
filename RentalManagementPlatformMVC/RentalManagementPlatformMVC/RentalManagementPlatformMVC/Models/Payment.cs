@@ -22,4 +22,8 @@ public partial class Payment
     public string? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    //public virtual Booking? Booking { get; set; }
+
+    //public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 }

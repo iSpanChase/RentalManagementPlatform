@@ -20,4 +20,10 @@ public partial class HostSubscription
     public string? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual User? Host { get; set; }
+
+    public virtual SubscriptionPlan? Plan { get; set; }
+
+    public virtual ICollection<SubscriptionBillingLog> SubscriptionBillingLogs { get; set; } = new List<SubscriptionBillingLog>();
 }

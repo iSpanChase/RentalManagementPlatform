@@ -20,4 +20,6 @@ public partial class FaqFeedback
     public bool? EscalatedToTicket { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual FaqArticle? Article { get; set; }
 }

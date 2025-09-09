@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
@@ -7,67 +8,70 @@ using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
-			var builder = WebApplication.CreateBuilder(args);
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
-			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
+			// Identity 用的 Context（連線字串用 DefaultConnection）
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
-				options.UseSqlServer(connectionString));
+				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-			//註冊Context類別，並給予對應資料庫的連線方式
+			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
-			});
+				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<ApplicationDbContext>();
-			builder.Services.AddControllersWithViews();
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserService,
+									   RentalManagementPlatformMVC.Areas.UserManagement.UserServices.UserService>();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-			var app = builder.Build();
+			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
-			{
-				app.UseMigrationsEndPoint();
-			}
-			else
-			{
-				app.UseExceptionHandler("/Home/Error");
-				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-				app.UseHsts();
-			}
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
-			app.UseHttpsRedirection();
-			app.UseStaticFiles();
+			builder.Services.AddControllersWithViews();
 
-			app.UseRouting();
+            var app = builder.Build();
 
-			app.UseAuthorization();
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseMigrationsEndPoint();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
+                name: "areas",
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 			app.MapControllerRoute(
-				name: "areas",
-				pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-			);
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
 
-			app.MapControllerRoute(
-				name: "default",
-				pattern: "{controller=Home}/{action=Index}/{id?}");
-			app.MapRazorPages();
-
-			app.Run();
-		}
-	}
+            app.Run();
+        }
+    }
 }

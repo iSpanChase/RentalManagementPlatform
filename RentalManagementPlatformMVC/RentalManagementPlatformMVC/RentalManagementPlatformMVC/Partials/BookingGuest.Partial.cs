@@ -2,6 +2,6 @@
 {
 	public partial class BookingGuest
 	{
-		public Booking Bookings { get; set; }
+		public Booking? Bookings { get; set; }
 	}
 }

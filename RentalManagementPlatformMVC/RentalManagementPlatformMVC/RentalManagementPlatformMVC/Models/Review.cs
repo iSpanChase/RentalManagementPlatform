@@ -20,4 +20,12 @@ public partial class Review
     public int? Rating { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual Booking? Booking { get; set; }
+
+    public virtual User? Host { get; set; }
+
+    public virtual User? Reviewer { get; set; }
+
+    public virtual RoomList? Room { get; set; }
 }
