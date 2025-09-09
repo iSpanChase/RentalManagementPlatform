@@ -19,6 +19,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
+    <Folder Include="Areas\ReportForm\Data\" />
+    <Folder Include="Areas\ReportForm\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="bundleconfig.json" />
+  </ItemGroup>
 </Project>
