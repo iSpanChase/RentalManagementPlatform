@@ -12,8 +12,8 @@
         
         var commissionText = Model.CommissionRateSnapshot.HasValue
         ? (Model.CommissionRateSnapshot.Value > 1
-        ? $"{Model.CommissionRateSnapshot:P0}"   // 若資料本身是 0.15
-        : $"{Model.CommissionRateSnapshot:P0}") // 與上行相同，方便之後調整
+        ? $"{Model.CommissionRateSnapshot:P0}" 
+        : $"{Model.CommissionRateSnapshot:P0}") 
         : "-";
     }
 </div>
@@ -37,7 +37,7 @@
 
                     <div class="col-5 text-secondary">總金額</div>
                     <div class="col-7 fw-semibold text-end text-md-start">
-                        @((Model.TotalPrice?.ToString("N0")) ?? "-")
+                       NT$ @((Model.TotalPrice?.ToString("N0")) ?? "-")
                     </div>
 
                     <div class="col-5 text-secondary">狀態</div>

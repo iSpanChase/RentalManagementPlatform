@@ -15,9 +15,17 @@ namespace RentalManagementPlatformMVC.Repositories
 
 		/// <summary>
 		/// 初始載入：取得所有訂單資料（支援分頁）
+		/// 提供基本的訂單分頁查詢功能，包含客戶資訊，依建立時間降序排列
 		/// </summary>
+		/// <param name="pageIndex">頁面索引，從1開始。若小於等於0則自動設為1</param>
+		/// <param name="pageSize">每頁筆數，若小於等於0則自動設為20筆，最大限制100筆以確保效能</param>
+		/// <returns>回傳包含訂單清單與總筆數的元組</returns>
 		public async Task<(IEnumerable<Booking>, int)> GetPagedBookingsAsync(int pageIndex, int pageSize)
 		{
+			// 邊界值驗證
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : Math.Min(pageSize, 100); // 限制最大頁面大小為100
+
 			var query = _context.Bookings
 				.AsNoTracking()
 				.Include(b => b.Guest)
@@ -35,8 +43,15 @@ namespace RentalManagementPlatformMVC.Repositories
 
 		/// <summary>
 		/// 詳細頁面：根據訂單ID取得訂單詳細資訊
+		/// 此方法會載入訂單的完整資訊，包含關聯的房客資料、優惠券、房間及房東資訊
+		/// 使用 AsNoTracking() 提升查詢效能，適用於唯讀操作
 		/// </summary>
-		public async Task<Booking?> GetByIdAsync(int bookingId)
+		/// <param name="bookingId">訂單的唯一識別碼，用於查詢特定訂單</param>
+		/// <returns>
+		/// 回傳包含完整關聯資料的訂單物件，若找不到對應的訂單則回傳 null
+		/// 包含的關聯資料：BookingGuests(訂房房客)、Guest(主要房客)、Coupon(優惠券)、Room(房間)、Host(房東)
+		/// </returns>
+		public async Task<Booking?> GetBookingDetailByIdAsync(int bookingId)
 		{
 			return await _context.Bookings
 				.AsNoTracking()
@@ -50,8 +65,17 @@ namespace RentalManagementPlatformMVC.Repositories
 
 		/// <summary>
 		/// 動態條件查詢：根據篩選條件查詢訂單
+		/// 支援多種搜尋條件包含訂單編號、房客姓名、房間名稱、入住/退房日期區間、價格區間等
+		/// 提供彈性的排序功能，並支援分頁查詢以提升效能
 		/// </summary>
-		public async Task<(IEnumerable<Booking>, int)> SearchAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
+		/// <param name="criteria">搜尋條件物件，包含各種篩選參數如訂單編號、房客姓名、日期區間、價格區間等</param>
+		/// <param name="pageIndex">頁面索引，從1開始。若小於等於0則自動設為1</param>
+		/// <param name="pageSize">每頁筆數，若小於等於0則自動設為20筆</param>
+		/// <returns>
+		/// 回傳包含符合條件的訂單清單與總筆數的元組
+		/// 訂單清單包含關聯的房客、房間、訂房房客資訊，依指定條件排序並分頁
+		/// </returns>
+		public async Task<(IEnumerable<Booking>, int)> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
 			// 基底查詢
 			var query = _context.Bookings

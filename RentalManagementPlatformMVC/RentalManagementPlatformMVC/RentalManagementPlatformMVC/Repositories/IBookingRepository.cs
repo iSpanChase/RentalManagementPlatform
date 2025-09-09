@@ -6,13 +6,13 @@ namespace RentalManagementPlatformMVC.Repositories
 {
     public interface IBookingRepository
     {
-        // 初始載入：取得所有訂單資料（支援分頁）
+        // 初始載入：取得所有Booking資料（支援分頁）
         Task<(IEnumerable<Booking>, int)> GetPagedBookingsAsync(int pageIndex, int pageSize);
 
-		// 詳細頁面：根據訂單ID取得訂單詳細資訊
-		Task<Booking?> GetByIdAsync(int bookingId);
+		// 詳細頁面：根據Booking ID取得訂單詳細資訊
+		Task<Booking?> GetBookingDetailByIdAsync(int bookingId);
 
-		// 動態條件查詢：根據篩選條件查詢訂單
-		Task<(IEnumerable<Booking>, int)> SearchAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize);
+		// 動態條件查詢：根據篩選條件查詢Booking
+		Task<(IEnumerable<Booking>, int)> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize);
 	}
 }

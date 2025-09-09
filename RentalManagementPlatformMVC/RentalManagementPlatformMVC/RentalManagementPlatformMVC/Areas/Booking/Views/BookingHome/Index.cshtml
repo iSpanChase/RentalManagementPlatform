@@ -9,9 +9,13 @@
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
     var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
 
+    // 序號計算
+    var index = startRecord;
+
     // 計算當前頁數與總頁數
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
+    int range = 2; // 頁碼範圍
 
     // 將目前條件轉為 Dictionary<string,string?>，供分頁/排序連結沿用
     var routeBase = new Dictionary<string, string?>
@@ -27,7 +31,7 @@
         ["MinPrice"] = Model.Criteria.MinPrice?.ToString(),
         ["MaxPrice"] = Model.Criteria.MaxPrice?.ToString(),
         ["SortBy"] = Model.Criteria.SortBy,
-        ["IsDescending"] = Model.Criteria.IsDescending.ToString().ToLower() // "true" 或 "false"
+        ["IsDescending"] = Model.Criteria.IsDescending.ToString().ToLower()
     };
 }
 
@@ -53,6 +57,9 @@
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3">
+                    <input type="hidden" name="pageIndex" value="1" />
+                    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂單編號</label>
                         <input name="OrderNumber" class="form-control" value="@(Model.Criteria.OrderNumber ?? "")" />
@@ -163,14 +170,15 @@
                     <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
                         <thead class="thead-light">
                             <tr>
+                                <th>序號</th>
                                 <th>訂單編號</th>
                                 <th>訂房姓名</th>
                                 <th>入住日期</th>
                                 <th>退房日期</th>
-                                <th>總價格</th>
+                                <th>總金額</th>
                                 <th>狀態</th>
-                                <th>建立日期</th>
-                                <th>操作</th>
+                                <th>建立時間</th>
+                                <th>詳細</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -179,11 +187,12 @@
                                 foreach (var item in Model.Bookings)
                                 {
                                     <tr>
+                                        <td>@index</td>
                                         <td>@item.OrderNumber</td>
                                         <td>@item.GuestName</td>
                                         <td>@item.CheckIn?.ToString("yyyy-MM-dd")</td>
                                         <td>@item.CheckOut?.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.TotalPrice?.ToString("N0")</td>
+                                        <td>NT$ @item.TotalPrice?.ToString("N0")</td>
                                         <td>
                                             <span class="badge py-2 px-3
                                                 @(item.Status?.ToLower() == "confirmed" ? "bg-success" :
@@ -195,9 +204,10 @@
                                         </td>
                                         <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
-                                            <button class="btn btn-primary btn-detail" data-id="@item.BookingId">詳細</button>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.BookingId">查看</button>
                                         </td>
                                     </tr>
+                                    index++;
                                 }
                             }
                             else
@@ -218,87 +228,92 @@
                     <div class="d-flex gap-2">
                         <a class="btn btn-outline-success btn-sm"
                            asp-area="Booking" asp-controller="BookingHome" asp-action="ExportExcel"
-                           asp-route-OrderNumber="@Model.Criteria.OrderNumber"
-                           asp-route-Status="@Model.Criteria.Status"
-                           asp-route-GuestName="@Model.Criteria.GuestName"
-                           asp-route-Room="@Model.Criteria.Room"
-                           asp-route-CheckInStartDate="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckInEndDate="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckOutStartDate="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckOutEndDate="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-MinPrice="@(Model.Criteria.MinPrice?.ToString())"
-                           asp-route-MaxPrice="@(Model.Criteria.MaxPrice?.ToString())"
-                           asp-route-SortBy="@Model.Criteria.SortBy"
-                           asp-route-IsDescending="@Model.Criteria.IsDescending.ToString().ToLower()">
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
                             匯出 Excel
                         </a>
                         <a class="btn btn-outline-primary btn-sm"
                            asp-area="Booking" asp-controller="BookingHome" asp-action="ExportCsv"
-                           asp-route-OrderNumber="@Model.Criteria.OrderNumber"
-                           asp-route-Status="@Model.Criteria.Status"
-                           asp-route-GuestName="@Model.Criteria.GuestName"
-                           asp-route-Room="@Model.Criteria.Room"
-                           asp-route-CheckInStartDate="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckInEndDate="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckOutStartDate="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-CheckOutEndDate="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd"))"
-                           asp-route-MinPrice="@(Model.Criteria.MinPrice?.ToString())"
-                           asp-route-MaxPrice="@(Model.Criteria.MaxPrice?.ToString())"
-                           asp-route-SortBy="@Model.Criteria.SortBy"
-                           asp-route-IsDescending="@Model.Criteria.IsDescending.ToString().ToLower()">
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
                             匯出 CSV
                         </a>
                     </div>
                 </div>
             </div>
 
+            @* 僅在需要時顯示分頁器 *@
             @if (Model.TotalPages > 1)
             {
-                // 以現有的 routeBase (Dictionary<string,string?>) 為基礎，建立上一頁/下一頁參數
-                var prev = new Dictionary<string, string?>(routeBase)
-                {
-                    ["pageIndex"] = (Model.PageIndex - 1).ToString(),
-                    ["pageSize"] = Model.PageSize.ToString()
-                };
-                var next = new Dictionary<string, string?>(routeBase)
-                {
-                    ["pageIndex"] = (Model.PageIndex + 1).ToString(),
-                    ["pageSize"] = Model.PageSize.ToString()
-                };
-
                 <div class="card-footer clearfix">
                     <nav aria-label="Page navigation">
                         <ul class="pagination pagination-sm m-0 justify-content-center">
-                            <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                 <a class="page-link"
                                    asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
-                                   asp-all-route-data="prev">
-                                    <span aria-hidden="true">&laquo;</span>
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &laquo;
                                 </a>
                             </li>
 
-                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
                             {
-                                var rv = new Dictionary<string, string?>(routeBase)
-                                {
-                                    ["pageIndex"] = i.ToString(),
-                                    ["pageSize"] = Model.PageSize.ToString()
-                                };
-
-                                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <li class="page-item">
                                     <a class="page-link"
                                        asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
-                                       asp-all-route-data="rv">
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@Model.PageSize">
                                         @i
                                     </a>
                                 </li>
                             }
 
-                            <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@totalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                                 <a class="page-link"
                                    asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
-                                   asp-all-route-data="next">
-                                    <span aria-hidden="true">&raquo;</span>
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &raquo;
                                 </a>
                             </li>
                         </ul>
@@ -339,7 +354,7 @@
           modal.show();
 
           try {
-            const url = '@Url.Action("Detail", "BookingHome", new { area = "Booking" })' + '?id=' + encodeURIComponent(id);
+            const url = '@Url.Action("Detail", "BookingHome", new { area = "Booking" })' + '?bookingId=' + encodeURIComponent(id);
             const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             if (!resp.ok) {
               const msg = resp.status === 404 ? '找不到這筆訂單'

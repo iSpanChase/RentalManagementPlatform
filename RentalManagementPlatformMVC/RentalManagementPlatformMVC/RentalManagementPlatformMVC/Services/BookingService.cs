@@ -15,8 +15,11 @@ namespace RentalManagementPlatformMVC.Services
 		/// <summary>
 		/// 初始載入：取得所有訂單資料（支援分頁）
 		/// </summary>
+		/// <param name="pageIndex">頁面索引（從0開始）</param>
+		/// <param name="pageSize">每頁資料筆數</param>
+		/// <returns>包含分頁訂單資料的結果物件</returns>
 		public async Task<PagedResultDto<BookingDto>> GetPagedBookingsAsync(int pageIndex, int pageSize)
-        {
+		{
 			var (entities, totalCount) = await _bookingRepository.GetPagedBookingsAsync(pageIndex, pageSize);
 
 			var bookingDto = entities.Select(b => new BookingDto
@@ -43,9 +46,11 @@ namespace RentalManagementPlatformMVC.Services
 		/// <summary>
 		/// 詳細頁面：根據訂單ID取得訂單詳細資訊
 		/// </summary>
+		/// <param name="bookingId">訂單的唯一識別碼</param>
+		/// <returns>若找到對應訂單則回傳詳細資訊物件，否則回傳null</returns>
 		public async Task<BookingDetailDto?> GetBookingDetailByIdAsync(int bookingId)
 		{
-			var booking = await _bookingRepository.GetByIdAsync(bookingId);
+			var booking = await _bookingRepository.GetBookingDetailByIdAsync(bookingId);
 
 			if (booking is null) return null;
 
@@ -72,8 +77,12 @@ namespace RentalManagementPlatformMVC.Services
 		}
 
 		/// <summary>
-		/// 條件查詢：根據篩選條件查詢訂單
+		/// 條件查詢：根據篩選條件查詢訂單資料，支援多種搜尋條件組合及分頁功能
 		/// </summary>
+		/// <param name="criteria">包含多種篩選條件的查詢物件，如訂單編號、狀態、客人姓名、房間、日期區間、價格區間等</param>
+		/// <param name="pageIndex">頁面索引（從0開始），用於指定要取得第幾頁的資料</param>
+		/// <param name="pageSize">每頁資料筆數，用於控制單頁顯示的訂單數量</param>
+		/// <returns>包含符合條件的訂單清單、分頁資訊及總筆數的分頁結果物件</returns>
 		public async Task<PagedResultDto<BookingDto>> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
 			// 可選：簡單規格修正（避免使用者傳錯）
@@ -84,7 +93,7 @@ namespace RentalManagementPlatformMVC.Services
 				(criteria.MinPrice, criteria.MaxPrice) = (criteria.MaxPrice, criteria.MinPrice);
 			}
 
-			var (entities, total) = await _bookingRepository.SearchAsync(criteria, pageIndex, pageSize);
+			var (entities, total) = await _bookingRepository.SearchBookingsAsync(criteria, pageIndex, pageSize);
 
 			var items = entities.Select(b => new BookingDto
 			{
