@@ -25,7 +25,7 @@
                 <div class="row small gy-2">
                     <div class="col-5 text-secondary">金額</div>
                     <div class="col-7 fw-semibold text-end text-md-start">
-                        @((Model.Amount?.ToString("N0")) ?? "-")
+                       NT$ @((Model.Amount?.ToString("N0")) ?? "-")
                     </div>
 
                     <div class="col-5 text-secondary">付款方式</div>
@@ -68,17 +68,17 @@
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered table-striped text-center align-middle">
+                    <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
+                        <table class="table table-bordered table-striped text-center align-middle w-100">
                             <thead class="table-light">
                                 <tr>
-                                    <th>交易ID</th>
-                                    <th>金流商</th>
-                                    <th>ProviderTxnId</th>
-                                    <th>回應代碼</th>
-                                    <th>回應訊息</th>
-                                    <th>TxnRef</th>
-                                    <th>建立時間</th>
+                                    <th style="width:8%">交易序號</th>
+                                    <th style="width:15%">金流商</th>
+                                    <th style="width:20%">金流商交易編號</th>
+                                    <th style="width:10%">回應代碼</th>
+                                    <th style="width:20%">回應訊息</th>
+                                    <th style="width:15%">交易參考號</th>
+                                    <th style="width:12%">建立時間</th>
                                 </tr>
                             </thead>
                             <tbody>

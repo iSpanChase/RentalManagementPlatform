@@ -69,6 +69,7 @@
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3">
+
                     <!-- 確保查詢時回到第一頁 -->
                     <input type="hidden" name="pageIndex" value="1" />
                     <input type="hidden" name="pageSize" value="@Model.PageSize" />
@@ -143,7 +144,7 @@
                         </select>
                     </div>
 
-                    <!-- 按鈕區 -->
+                    <!-- 按鈕 -->
                     <div class="col-12 d-flex gap-2">
                         <button type="submit" class="btn btn-primary">搜尋</button>
                         <a class="btn btn-outline-secondary"
@@ -163,6 +164,7 @@
             </div>
 
             <div class="card-body p-0">
+
                 <!-- 資料統計 -->
                 <div class="d-flex justify-content-between align-items-center px-3 py-2">
                     <div>
@@ -183,9 +185,9 @@
                                 <th>訂單金額</th>
                                 <th>平台付款編號</th>
                                 <th>付款方式</th>
-                                <th>付款日期</th>
+                                <th>付款時間</th>
                                 <th>狀態</th>
-                                <th>建立日期</th>
+                                <th>建立時間</th>
                                 <th>詳細</th>
                             </tr>
                         </thead>
@@ -211,7 +213,7 @@
                                 </td>
                                 <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
-                                    <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">詳細</button>
+                                    <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
                                 </td>
                             </tr>
                                                         index++;
@@ -354,7 +356,7 @@
 {
     <!-- 詳細資料 Modal -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
