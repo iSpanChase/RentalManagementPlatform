@@ -1,8 +1,8 @@
 ﻿namespace RentalManagementPlatformMVC.Models
 {
-	public partial class RoomList
+	public partial class User
 	{
 		public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-		public User Host { get; set; }   // 導覽屬性
+		public ICollection<RoomList> RoomLists { get; set; } = new List<RoomList>();
 	}
 }
