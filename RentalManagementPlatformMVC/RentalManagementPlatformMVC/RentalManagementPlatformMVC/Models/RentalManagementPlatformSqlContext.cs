@@ -155,30 +155,44 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
 			entity.ToTable("BOOKING");
 
-            entity.Property(e => e.BookingId)
-                .ValueGeneratedNever()
-                .HasColumnName("booking_id");
-            entity.Property(e => e.CheckIn).HasColumnName("check_in");
-            entity.Property(e => e.CheckOut).HasColumnName("check_out");
-            entity.Property(e => e.CommissionRateSnapshot)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("commission_rate_snapshot");
-            entity.Property(e => e.CouponId).HasColumnName("coupon_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.GuestId).HasColumnName("guest_id");
-            entity.Property(e => e.OrderNumber)
-                .HasMaxLength(512)
-                .HasColumnName("order_number");
-            entity.Property(e => e.PointsEarned).HasColumnName("points_earned");
-            entity.Property(e => e.PointsRedeemed).HasColumnName("points_redeemed");
-            entity.Property(e => e.RoomId).HasColumnName("room_id");
-            entity.Property(e => e.Status)
-                .HasMaxLength(512)
-                .HasColumnName("status");
-            entity.Property(e => e.TotalPrice)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("total_price");
-        });
+			entity.Property(e => e.BookingId)
+				.ValueGeneratedNever()
+				.HasColumnName("booking_id");
+			entity.Property(e => e.CheckIn).HasColumnName("check_in");
+			entity.Property(e => e.CheckOut).HasColumnName("check_out");
+			entity.Property(e => e.CommissionRateSnapshot)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("commission_rate_snapshot");
+			entity.Property(e => e.CouponId).HasColumnName("coupon_id");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.GuestId).HasColumnName("guest_id");
+			entity.Property(e => e.OrderNumber)
+				.HasMaxLength(512)
+				.HasColumnName("order_number");
+			entity.Property(e => e.PointsEarned).HasColumnName("points_earned");
+			entity.Property(e => e.PointsRedeemed).HasColumnName("points_redeemed");
+			entity.Property(e => e.RoomId).HasColumnName("room_id");
+			entity.Property(e => e.Status)
+				.HasMaxLength(512)
+				.HasColumnName("status");
+			entity.Property(e => e.TotalPrice)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("total_price");
+
+			// User一對多關聯
+			entity.HasOne(e => e.Guest)
+				  .WithMany(e => e.Bookings)
+				  .HasForeignKey(e => e.GuestId)
+				  .HasConstraintName("FK_BOOKING_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// Room一對多關聯
+			entity.HasOne(e => e.Room)
+				  .WithMany(e => e.Bookings)
+				  .HasForeignKey(e => e.RoomId)
+				  .HasConstraintName("FK_BOOKING_ROOM")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
 
 		modelBuilder.Entity<BookingGuest>(entity =>
 		{
@@ -790,27 +804,27 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
 			entity.ToTable("ROOM_LIST");
 
-            entity.Property(e => e.RoomId)
-                .ValueGeneratedNever()
-                .HasColumnName("room_id");
-            entity.Property(e => e.AddressId).HasColumnName("address_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.Description)
-                .HasMaxLength(512)
-                .HasColumnName("description");
-            entity.Property(e => e.HostId).HasColumnName("host_id");
-            entity.Property(e => e.MaxGuests).HasColumnName("max_guests");
-            entity.Property(e => e.PricePerNight)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("price_per_night");
-            entity.Property(e => e.Status)
-                .HasMaxLength(512)
-                .HasColumnName("status");
-            entity.Property(e => e.Title)
-                .HasMaxLength(512)
-                .HasColumnName("title");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-        });
+			entity.Property(e => e.RoomId)
+				.ValueGeneratedNever()
+				.HasColumnName("room_id");
+			entity.Property(e => e.AddressId).HasColumnName("address_id");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.Description)
+				.HasMaxLength(512)
+				.HasColumnName("description");
+			entity.Property(e => e.HostId).HasColumnName("host_id");
+			entity.Property(e => e.MaxGuests).HasColumnName("max_guests");
+			entity.Property(e => e.PricePerNight)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("price_per_night");
+			entity.Property(e => e.Status)
+				.HasMaxLength(512)
+				.HasColumnName("status");
+			entity.Property(e => e.Title)
+				.HasMaxLength(512)
+				.HasColumnName("title");
+			entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+		});
 
 		modelBuilder.Entity<RoomPhoto>(entity =>
 		{
