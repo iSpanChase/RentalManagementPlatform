@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.Management.Repository;
+using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Services;
+using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
@@ -16,12 +20,22 @@ namespace RentalManagementPlatformMVC
 			// Add services to the container.
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(connectionString));
 
+			//service註冊
+			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+			builder.Services.AddScoped<CouponCommandService>();
+
+			//repository註冊
+			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
+			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
+
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			//註冊Context類別，並給予對應資料庫的連線方式
+
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 			{
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
@@ -36,6 +50,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+			builder.Services.AddControllersWithViews();
 			var app = builder.Build();
 
 			// Configure the HTTP request pipeline.
