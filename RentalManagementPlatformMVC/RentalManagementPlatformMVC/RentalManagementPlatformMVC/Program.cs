@@ -27,7 +27,10 @@ namespace RentalManagementPlatformMVC
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            var app = builder.Build();
+			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+			builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
