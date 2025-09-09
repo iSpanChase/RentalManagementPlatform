@@ -156,7 +156,6 @@
             </div>
         </div>
         <!-- 搜尋條件卡片 End -->
-
         <!-- 帳務列表卡片 Start -->
         <div class="card card-primary card-outline">
             <div class="card-header">
@@ -205,9 +204,9 @@
                                         <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
                                             <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
-                                                                                                                          item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                                                                                          item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                                                                                          item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
+                                                                                                                                                                            item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                                                                                                                            item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                                                                                                                            item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
                                         @item.DisplayStatus
                                     </span>
                                 </td>

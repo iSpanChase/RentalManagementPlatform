@@ -25,7 +25,7 @@
                 <div class="row small gy-2">
                     <div class="col-5 text-secondary">金額</div>
                     <div class="col-7 fw-semibold text-end text-md-start">
-                       NT$ @((Model.Amount?.ToString("N0")) ?? "-")
+                        NT$ @((Model.Amount?.ToString("N0")) ?? "-")
                     </div>
 
                     <div class="col-5 text-secondary">付款方式</div>
@@ -41,10 +41,10 @@
                     <div class="col-7">
                         <span class="badge py-2 px-3
                             @(Model.Status?.ToLower() == "paid" ? "bg-success" :
-                                                            Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                            Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                            Model.Status?.ToLower() == "failed" ? "bg-danger" :
-                                                            "bg-secondary")">
+                                                                                          Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                                          Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                                          Model.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                                                          "bg-secondary")">
                             @Model.DisplayStatus
                         </span>
                     </div>
