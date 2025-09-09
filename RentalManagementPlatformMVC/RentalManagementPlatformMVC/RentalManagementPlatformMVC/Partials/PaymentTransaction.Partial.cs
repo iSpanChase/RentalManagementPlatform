@@ -2,6 +2,6 @@
 {
 	public partial class PaymentTransaction
 	{
-		public Payment Payment { get; set; }
+		public Payment? Payment { get; set; }
 	}
 }

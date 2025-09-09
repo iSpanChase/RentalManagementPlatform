@@ -1,0 +1,86 @@
+﻿@model RentalManagementPlatformMVC.Areas.UserManagement.ViewModels.UserIndexVm
+@{
+    ViewData["Title"] = "會員管理";
+}
+
+<div class="container-fluid">
+    <h2 class="my-3">會員管理</h2>
+</div>
+
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success">@TempData["ok"]</div>
+}
+
+<div class="container-fluid">
+    <form class="mb-3" method="get" asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index">
+        <div class="input-group">
+            <input class="form-control" name="q" placeholder="搜尋（帳號/Email/姓名）" value="@Model.Query" />
+            <button class="btn btn-outline-secondary" type="submit">搜尋</button>
+        </div>
+    </form>
+</div>
+
+<div class="container-fluid">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>帳號</th>
+                <th>姓名</th>
+                <th>Email</th>
+                <th>建立時間</th>
+                <th style="width:160px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var x in Model.Items)
+            {
+                <tr>
+                    <td>@x.UserId</td>
+                    <td>@x.Username</td>
+                    <td>@x.Name</td>
+                    <td>@x.Email</td>
+                    <td>@x.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-secondary"
+                           asp-area="UserManagement" asp-controller="UserManagement" asp-action="Edit" asp-route-id="@x.UserId">編輯</a>
+                        <a class="btn btn-sm btn-danger"
+                           asp-area="UserManagement" asp-controller="UserManagement" asp-action="Delete" asp-route-id="@x.UserId"
+                           onclick="return confirm('確定刪除？');">刪除</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@{
+    var q = Model.Query;
+    var currentPage = Model.CurrentPage;   // 避免 Razor 把 @page 當成指令
+    var totalPages = Model.TotalPages;
+    var pageSize = Model.PageSize;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center">
+        <a class="btn btn-primary" asp-area="UserManagement" asp-controller="UserManagement" asp-action="Create">新增使用者</a>
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index"
+                       asp-route-q="@q" asp-route-page="@(currentPage - 1)" asp-route-pageSize="@pageSize">上一頁</a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">@currentPage / @totalPages</span>
+                </li>
+                <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index"
+                       asp-route-q="@q" asp-route-page="@(currentPage + 1)" asp-route-pageSize="@pageSize">下一頁</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

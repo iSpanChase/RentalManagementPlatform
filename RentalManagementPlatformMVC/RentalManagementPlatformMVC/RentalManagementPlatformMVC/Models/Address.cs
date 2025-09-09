@@ -18,4 +18,8 @@ public partial class Address
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual District? District { get; set; }
+
+    public virtual ICollection<RoomList> RoomLists { get; set; } = new List<RoomList>();
 }

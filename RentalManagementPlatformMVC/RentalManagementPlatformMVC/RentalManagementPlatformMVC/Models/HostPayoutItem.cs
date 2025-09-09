@@ -20,4 +20,8 @@ public partial class HostPayoutItem
     public decimal? PlatformFee { get; set; }
 
     public decimal? AmountNet { get; set; }
+
+    public virtual Booking? Booking { get; set; }
+
+    public virtual HostPayout? Payout { get; set; }
 }
