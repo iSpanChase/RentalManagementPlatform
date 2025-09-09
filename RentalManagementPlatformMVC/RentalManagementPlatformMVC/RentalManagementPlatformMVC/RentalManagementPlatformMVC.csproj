@@ -16,4 +16,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
+  </ItemGroup>
+
 </Project>

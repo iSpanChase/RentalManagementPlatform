@@ -178,7 +178,29 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.TotalPrice)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("total_price");
-        });
+
+			// User一對多關聯
+			entity.HasOne(e => e.Guest)                      
+				  .WithMany(e => e.Bookings)                 
+				  .HasForeignKey(e => e.GuestId)             
+				  .HasConstraintName("FK_BOOKING_USER")      
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// Room一對多關聯
+			entity.HasOne(e => e.Room)                       
+				  .WithMany(e => e.Bookings)                
+				  .HasForeignKey(e => e.RoomId)              
+				  .HasConstraintName("FK_BOOKING_ROOMLIST")  
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// Coupon一對多關聯
+			entity.HasOne(e => e.Coupon)                     
+				  .WithMany(e => e.Bookings)                 
+				  .HasForeignKey(e => e.CouponId)            
+				  .HasConstraintName("FK_BOOKING_COUPON")    
+				  .IsRequired(false)                         
+			      .OnDelete(DeleteBehavior.Restrict);
+		});
 
 		modelBuilder.Entity<BookingGuest>(entity =>
 		{
@@ -810,7 +832,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("title");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-        });
+
+			// 加關聯設定
+			entity.HasOne(e => e.Host)                      // RoomList 有一個 Host
+				  .WithMany(e => e.RoomLists)                 // Host 有很多 RoomList
+				  .HasForeignKey(e => e.HostId)             // FK 是 Booking.GuestId
+				  .HasConstraintName("FK_ROOMLIST_USER");     // FK 名稱可自訂
+		});
 
 		modelBuilder.Entity<RoomPhoto>(entity =>
 		{

@@ -31,6 +31,8 @@ namespace RentalManagementPlatformMVC
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 

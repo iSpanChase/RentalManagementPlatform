@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using RentalManagementPlatformMVC.DTOs;
-using RentalManagementPlatformMVC.ViewModels;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.ViewModels
 {

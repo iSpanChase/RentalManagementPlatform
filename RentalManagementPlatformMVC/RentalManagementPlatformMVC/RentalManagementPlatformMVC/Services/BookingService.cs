@@ -1,5 +1,6 @@
 using RentalManagementPlatformMVC.DTOs;
 using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatform.Common.Pagination;
 
 namespace RentalManagementPlatformMVC.Services
 {
@@ -18,7 +19,7 @@ namespace RentalManagementPlatformMVC.Services
 		/// <param name="pageIndex">頁面索引（從0開始）</param>
 		/// <param name="pageSize">每頁資料筆數</param>
 		/// <returns>包含分頁訂單資料的結果物件</returns>
-		public async Task<PagedResultDto<BookingDto>> GetPagedBookingsAsync(int pageIndex, int pageSize)
+		public async Task<PagedResult<BookingDto>> GetPagedBookingsAsync(int pageIndex, int pageSize)
 		{
 			var (entities, totalCount) = await _bookingRepository.GetPagedBookingsAsync(pageIndex, pageSize);
 
@@ -34,7 +35,7 @@ namespace RentalManagementPlatformMVC.Services
 				GuestName = b.Guest?.Name
 			}).ToList();
 
-			return new PagedResultDto<BookingDto>
+			return new PagedResult<BookingDto>
 			{
 				Items = bookingDto,
 				PageIndex = pageIndex,
@@ -83,7 +84,7 @@ namespace RentalManagementPlatformMVC.Services
 		/// <param name="pageIndex">頁面索引（從0開始），用於指定要取得第幾頁的資料</param>
 		/// <param name="pageSize">每頁資料筆數，用於控制單頁顯示的訂單數量</param>
 		/// <returns>包含符合條件的訂單清單、分頁資訊及總筆數的分頁結果物件</returns>
-		public async Task<PagedResultDto<BookingDto>> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
+		public async Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
 			// 可選：簡單規格修正（避免使用者傳錯）
 			if (criteria.MinPrice.HasValue && criteria.MaxPrice.HasValue &&
@@ -109,7 +110,7 @@ namespace RentalManagementPlatformMVC.Services
 				Room = b.Room?.Title
 			}).ToList();
 
-			return new PagedResultDto<BookingDto>
+			return new PagedResult<BookingDto>
 			{
 				Items = items,
 				PageIndex = pageIndex,
