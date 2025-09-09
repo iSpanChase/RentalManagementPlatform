@@ -19,7 +19,7 @@ namespace RentalManagementPlatformMVC
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             //註冊Context類別，並給予對應資料庫的連線方式
             builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
@@ -29,15 +29,12 @@ namespace RentalManagementPlatformMVC
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            
-            builder.Services.AddRazorPages();
-
             builder.Services.AddControllersWithViews();
 
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-            builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+			builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-            var app = builder.Build();
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -52,7 +49,6 @@ namespace RentalManagementPlatformMVC
             }
 
             app.UseHttpsRedirection();
-
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -64,10 +60,9 @@ namespace RentalManagementPlatformMVC
                 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
             );
 
-            app.MapControllerRoute(
+			app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            
             app.MapRazorPages();
 
             app.Run();

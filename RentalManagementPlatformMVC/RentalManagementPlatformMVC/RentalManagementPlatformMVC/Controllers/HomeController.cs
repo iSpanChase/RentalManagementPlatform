@@ -1,41 +1,28 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Models;
+using System.Diagnostics;
 
 namespace RentalManagementPlatformMVC.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly RentalManagementPlatformSqlContext _orderDbContext;
 
-        public HomeController(ILogger<HomeController> logger, RentalManagementPlatformSqlContext orderDbContext)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            _orderDbContext = orderDbContext;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+		public IActionResult Index()
+		{
+			return View();
+		}
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+		public IActionResult Privacy()
+		{
+			return View();
+		}
 
-        public IActionResult TestDb()
-        {
-            if (_orderDbContext.Database.CanConnect())
-            {
-                return Content("連線成功");
-            }
-            else
-            {
-                return Content("連線失敗");
-            }
-        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
