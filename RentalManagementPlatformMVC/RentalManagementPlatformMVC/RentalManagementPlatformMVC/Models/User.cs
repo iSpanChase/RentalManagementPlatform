@@ -13,7 +13,7 @@ public partial class User
 
     public string Name { get; set; } = null!;
 
-    public bool? AutoSubscribe { get; set; }
+    //public bool? AutoSubscribe { get; set; }
 
     public string PasswordHash { get; set; } = null!;
 

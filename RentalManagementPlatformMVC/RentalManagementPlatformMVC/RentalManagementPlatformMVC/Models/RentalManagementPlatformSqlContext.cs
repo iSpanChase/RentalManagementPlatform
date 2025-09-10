@@ -953,7 +953,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			entity.Property(e => e.Address)
 				.HasMaxLength(512)
 				.HasColumnName("address");
-			entity.Property(e => e.AutoSubscribe).HasColumnName("auto_subscribe");
+			//entity.Property(e => e.AutoSubscribe).HasColumnName("auto_subscribe");
 			entity.Property(e => e.BirthDate).HasColumnName("birth_date");
 			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
 			entity.Property(e => e.Email)

@@ -1,0 +1,114 @@
+﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.HostPayoutDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">撥款詳細資料</div>
+        <div class="text-secondary small">
+            撥款編號：<span class="fw-semibold">@Model.PayoutId</span>
+            <span class="mx-2">|</span>
+            房東名稱：<span class="fw-semibold">@Model.HostName</span>
+        </div>
+    </div>
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+        <!-- 左半：撥款基本資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-wallet2 me-1"></i> 撥款資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">總金額</div>
+                    <div class="col-7 fw-semibold text-end text-md-start">
+                        NT$ @((Model.AmountGross?.ToString("N0")) ?? "-")
+                    </div>
+
+                    <div class="col-5 text-secondary">平台手續費</div>
+                    <div class="col-7">NT$ @((Model.PlatformFee?.ToString("N0")) ?? "-")</div>
+
+                    <div class="col-5 text-secondary">實際金額</div>
+                    <div class="col-7 fw-medium">NT$ @((Model.AmountNet?.ToString("N0")) ?? "-")</div>
+
+                    <div class="col-5 text-secondary">週期</div>
+                    <div class="col-7">
+                        @((Model.CycleStart?.ToString("yyyy-MM-dd")) ?? "-")
+                        ~
+                        @((Model.CycleEnd?.ToString("yyyy-MM-dd")) ?? "-")
+                    </div>
+
+                    <div class="col-5 text-secondary">付款時間</div>
+                    <div class="col-7">@((Model.PaidAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+
+                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-7">
+                        <span class="badge py-2 px-3
+                            @(Model.Status?.ToLower() == "paid" ? "bg-success" :
+                                                            Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                            Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                            Model.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                            "bg-secondary")">
+                            @Model.DisplayStatus
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-secondary">建立時間</div>
+                    <div class="col-7">@((Model.CreatedAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：撥款項目明細 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-list-ul me-1"></i> 撥款項目 (共 @Model.ItemsCount 筆)
+                </div>
+
+                @if (Model.Items == null || !Model.Items.Any())
+                {
+                    <div class="small text-muted">尚無撥款項目</div>
+                }
+                else
+                {
+                    <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
+                        <table class="table table-bordered table-striped text-center align-middle w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:10%">明細編號</th>
+                                    <th style="width:15%">訂單編號</th>
+                                    <th style="width:15%">毛額</th>
+                                    <th style="width:10%">抽成比例</th>
+                                    <th style="width:15%">平台手續費</th>
+                                    <th style="width:15%">淨額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>@item.PayoutItemId</td>
+                                        <td>@(item.OrderNumberSnapshot ?? "-")</td>
+                                        <td>NT$ @((item.AmountGross?.ToString("N0")) ?? "-")</td>
+                                        <td>@((item.CommissionPct?.ToString("P0")) ?? "-")</td>
+                                        <td>NT$ @((item.PlatformFee?.ToString("N0")) ?? "-")</td>
+                                        <td>NT$ @((item.Amount?.ToString("N0")) ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>

@@ -1,0 +1,246 @@
+﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.HostPayoutIndexViewModel
+
+@{
+    ViewData["Title"] = "帳務管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 計算每筆資料的序號
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+    int range = 2; // 當前頁左右顯示的範圍
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<!-- 頁面標題 -->
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">帳務管理</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "guest" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="PaymentsHome"
+                   asp-action="Index">
+                    <i class="fa-regular fa-user"></i> 房客帳務
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="HostPayoutHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-house-user"></i> 房東出款
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+
+        <!-- 搜尋條件卡片 Start -->
+        <!-- 搜尋條件卡片 End -->
+
+        <!-- 帳務列表卡片 Start -->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">房東出款列表</h3>
+            </div>
+
+            <div class="card-body p-0">
+
+                <!-- 資料統計 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">@Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">顯示第 @startRecord - @endRecord 筆</span>
+                    </div>
+                </div>
+
+                <!-- 資料表格 -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>序號</th>
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().HostId)</th>
+                                @* <th>@Html.DisplayNameFor(model => model.HostPayouts.First().HostName)</th> *@
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().CycleStart)</th>
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().CycleEnd)</th>
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().PaidAt)</th>
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().Status)</th>
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().CreatedAt)</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.HostPayouts != null && Model.HostPayouts.Any())
+                            {
+                                foreach (var item in Model.HostPayouts)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@item.HostId</td>
+                                        @* <td>@item.HostName</td> *@
+                                        <td>@item.CycleStart?.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.CycleEnd?.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
+                                                                           item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                                           item.Status?.ToLower() == "cancelled" ? "bg-secondary" : "bg-light text-dark")">
+                                                                         @item.DisplayStatus
+                                            </span>
+                                        </td>
+                                        <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm btn-detail" data-id="@item.PayoutId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted py-4">目前沒有資料</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">第 @currentPage 頁，共 @totalPages 頁</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm">
+                            <i class="fa-solid fa-file-excel"></i>
+                            匯出 Excel
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm">
+                            <i class="fa-solid fa-file-csv"></i>
+                            匯出 CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁器 (僅在需要時顯示) -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="HostPayoutHome"
+                                   asp-action="Index"
+                                   asp-route-pageIndex="@(currentPage - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="HostPayoutHome"
+                                       asp-action="Index"
+                                       asp-route-pageIndex="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="HostPayoutHome"
+                                       asp-action="Index"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="HostPayoutHome"
+                                       asp-action="Index"
+                                       asp-route-pageIndex="@totalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="HostPayoutHome"
+                                   asp-action="Index"
+                                   asp-route-pageIndex="@(currentPage + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</section>
