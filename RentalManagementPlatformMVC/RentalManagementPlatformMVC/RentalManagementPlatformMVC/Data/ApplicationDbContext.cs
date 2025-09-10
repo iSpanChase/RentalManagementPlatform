@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Data
 {
@@ -9,5 +10,5 @@ namespace RentalManagementPlatformMVC.Data
             : base(options)
         {
         }
-    }
+	}
 }

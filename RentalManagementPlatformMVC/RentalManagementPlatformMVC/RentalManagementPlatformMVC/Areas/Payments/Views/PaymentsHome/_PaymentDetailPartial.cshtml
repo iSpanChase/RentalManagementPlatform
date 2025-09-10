@@ -1,0 +1,123 @@
+﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.PaymentDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">付款詳細資料</div>
+        <div class="text-secondary small">
+            付款編號：<span class="fw-semibold">@Model.PaymentId</span>
+            <span class="mx-2">|</span>
+            訂單編號：<span class="fw-semibold">@Model.OrderNumberSnapshot</span>
+        </div>
+    </div>
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+        <!-- 左半：付款基本資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-cash-coin me-1"></i> 付款資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">金額</div>
+                    <div class="col-7 fw-semibold text-end text-md-start">
+                        NT$ @((Model.Amount?.ToString("N0")) ?? "-")
+                    </div>
+
+                    <div class="col-5 text-secondary">付款方式</div>
+                    <div class="col-7 fw-medium">@Model.DisplayMethod</div>
+
+                    <div class="col-5 text-secondary">付款時間</div>
+                    <div class="col-7">@((Model.PaidAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+
+                    <div class="col-5 text-secondary">付款參考號</div>
+                    <div class="col-7">@(Model.PaymentRef ?? "-")</div>
+
+                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-7">
+                        <span class="badge py-2 px-3
+                            @(Model.Status?.ToLower() == "paid" ? "bg-success" :
+                                                                                          Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                                          Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                                          Model.Status?.ToLower() == "failed" ? "bg-danger" :
+                                                                                          "bg-secondary")">
+                            @Model.DisplayStatus
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-secondary">建立時間</div>
+                    <div class="col-7">@((Model.PaymentCreatedAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：交易紀錄 + 訂房資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-receipt me-1"></i> 交易紀錄
+                </div>
+
+                @if (Model.Transactions == null || !Model.Transactions.Any())
+                {
+                    <div class="small text-muted">尚無交易紀錄</div>
+                }
+                else
+                {
+                    <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
+                        <table class="table table-bordered table-striped text-center align-middle w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:8%">交易序號</th>
+                                    <th style="width:15%">金流商</th>
+                                    <th style="width:20%">金流商交易編號</th>
+                                    <th style="width:10%">回應代碼</th>
+                                    <th style="width:20%">回應訊息</th>
+                                    <th style="width:15%">交易參考號</th>
+                                    <th style="width:12%">建立時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var txn in Model.Transactions)
+                                {
+                                    <tr>
+                                        <td>@txn.TransactionId</td>
+                                        <td>@(txn.Provider ?? "-")</td>
+                                        <td>@(txn.ProviderTxnId ?? "-")</td>
+                                        <td>@(txn.ResponseCode ?? "-")</td>
+                                        <td>@(txn.ResponseMessage ?? "-")</td>
+                                        <td>@(txn.TxnRef ?? "-")</td>
+                                        <td>@(txn.TransactionCreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <hr class="my-3" />
+
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-people me-1"></i> 訂房資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">訂房姓名</div>
+                    <div class="col-7 fw-medium">@(Model.GuestName ?? "-")</div>
+
+                    <div class="col-5 text-secondary">房間名稱</div>
+                    <div class="col-7">@(Model.RoomTitle ?? "-")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>

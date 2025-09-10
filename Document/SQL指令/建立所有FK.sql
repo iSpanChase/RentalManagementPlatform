@@ -1,0 +1,252 @@
+-- 切換使用資料庫
+USE RentalManagementPlatformSQL;
+
+ALTER TABLE [ADDRESS] --not repeatable
+    ADD CONSTRAINT FK_ADDRESS_district_id_DISTRICT_district_id 
+    FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);
+GO
+
+ALTER TABLE [BOOKING] 
+    ADD CONSTRAINT FK_BOOKING_coupon_id_COUPON_coupon_id 
+    FOREIGN KEY ([coupon_id]) REFERENCES [COUPON] ([coupon_id]);
+GO
+
+ALTER TABLE [BOOKING] 
+    ADD CONSTRAINT FK_BOOKING_guest_id_USER_user_id 
+    FOREIGN KEY ([guest_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [BOOKING] 
+    ADD CONSTRAINT FK_BOOKING_room_id_ROOM_LIST_room_id 
+    FOREIGN KEY ([room_id]) REFERENCES [ROOM_LIST] ([room_id]);
+GO
+
+ALTER TABLE [BOOKING_GUEST] 
+    ADD CONSTRAINT FK_BOOKING_GUEST_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [COUPON_GUEST] 
+    ADD CONSTRAINT FK_COUPON_GUEST_coupon_id_COUPON_coupon_id 
+    FOREIGN KEY ([coupon_id]) REFERENCES [COUPON] ([coupon_id]);
+GO
+
+ALTER TABLE [COUPON_GUEST] 
+    ADD CONSTRAINT FK_COUPON_GUEST_guest_id_USER_user_id 
+    FOREIGN KEY ([guest_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [COUPON_DISTRICT] 
+    ADD CONSTRAINT FK_COUPON_DISTRICT_coupon_id_COUPON_coupon_id 
+    FOREIGN KEY ([coupon_id]) REFERENCES [COUPON] ([coupon_id]);
+GO
+
+ALTER TABLE [COUPON_DISTRICT] 
+    ADD CONSTRAINT FK_COUPON_DISTRICT_district_id_DISTRICT_district_id 
+    FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);
+GO
+
+ALTER TABLE [DISTRICT] 
+    ADD CONSTRAINT FK_DISTRICT_city_id_CITY_city_id 
+    FOREIGN KEY ([city_id]) REFERENCES [CITY] ([city_id]);
+GO
+
+ALTER TABLE [PAYMENT] --not repeatable
+    ADD CONSTRAINT FK_PAYMENT_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [PAYMENT_TRANSACTION] 
+    ADD CONSTRAINT FK_PAYMENT_TRANSACTION_payment_id_PAYMENT_payment_id 
+    FOREIGN KEY ([payment_id]) REFERENCES [PAYMENT] ([payment_id]);
+GO
+
+ALTER TABLE [REVIEW] --not repeatable
+    ADD CONSTRAINT FK_REVIEW_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [REVIEW] 
+    ADD CONSTRAINT FK_REVIEW_host_id_USER_user_id 
+    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [REVIEW] 
+    ADD CONSTRAINT FK_REVIEW_reviewer_id_USER_user_id 
+    FOREIGN KEY ([reviewer_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [REVIEW] 
+    ADD CONSTRAINT FK_REVIEW_room_id_ROOM_LIST_room_id 
+    FOREIGN KEY ([room_id]) REFERENCES [ROOM_LIST] ([room_id]);
+GO
+
+ALTER TABLE [ROOM_LIST] --not repeatable
+    ADD CONSTRAINT FK_ROOM_LIST_address_id_ADDRESS_address_id 
+    FOREIGN KEY ([address_id]) REFERENCES [ADDRESS] ([address_id]);
+GO
+
+ALTER TABLE [ROOM_LIST] 
+    ADD CONSTRAINT FK_ROOM_LIST_host_id_USER_user_id 
+    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [ROOM_PHOTO] 
+    ADD CONSTRAINT FK_ROOM_PHOTO_room_id_ROOM_LIST_room_id 
+    FOREIGN KEY ([room_id]) REFERENCES [ROOM_LIST] ([room_id]);
+GO
+
+ALTER TABLE [ROLE_PERMISSIONS] 
+    ADD CONSTRAINT FK_ROLE_PERMISSIONS_role_id_ROLES_role_id 
+    FOREIGN KEY ([role_id]) REFERENCES [ROLES] ([role_id]);
+GO
+
+ALTER TABLE [ROLE_PERMISSIONS] 
+    ADD CONSTRAINT FK_ROLE_PERMISSIONS_permission_id_PERMISSIONS_permission_id 
+    FOREIGN KEY ([permission_id]) REFERENCES [PERMISSIONS] ([permission_id]);
+GO
+
+ALTER TABLE [USER_ROLES] 
+    ADD CONSTRAINT FK_USER_ROLES_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [USER_ROLES] 
+    ADD CONSTRAINT FK_USER_ROLES_role_id_ROLES_role_id 
+    FOREIGN KEY ([role_id]) REFERENCES [ROLES] ([role_id]);
+GO
+
+ALTER TABLE [HOST_PAYOUT] 
+    ADD CONSTRAINT FK_HOST_PAYOUT_host_id_USER_user_id 
+    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [HOST_PAYOUT_ITEM] 
+    ADD CONSTRAINT FK_HOST_PAYOUT_ITEM_payout_id_HOST_PAYOUT_payout_id 
+    FOREIGN KEY ([payout_id]) REFERENCES [HOST_PAYOUT] ([payout_id]);
+GO
+
+ALTER TABLE [HOST_PAYOUT_ITEM] --not repeatable
+    ADD CONSTRAINT FK_HOST_PAYOUT_ITEM_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [HOST_SUBSCRIPTION] 
+    ADD CONSTRAINT FK_HOST_SUBSCRIPTION_host_id_USER_user_id 
+    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [HOST_SUBSCRIPTION] 
+    ADD CONSTRAINT FK_HOST_SUBSCRIPTION_plan_id_SUBSCRIPTION_PLAN_plan_id 
+    FOREIGN KEY ([plan_id]) REFERENCES [SUBSCRIPTION_PLAN] ([plan_id]);
+GO
+
+ALTER TABLE [SUBSCRIPTION_BILLING_LOG] 
+    ADD CONSTRAINT FK_SUBSCRIPTION_BILLING_LOG_host_sub_id_HOST_SUBSCRIPTION_host_sub_id 
+    FOREIGN KEY ([host_sub_id]) REFERENCES [HOST_SUBSCRIPTION] ([host_sub_id]);
+GO
+
+ALTER TABLE [POINT_LEDGER] 
+    ADD CONSTRAINT FK_POINT_LEDGER_guest_id_USER_user_id 
+    FOREIGN KEY ([guest_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [POINT_LEDGER] 
+    ADD CONSTRAINT FK_POINT_LEDGER_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [FAQ_CATEGORIES] 
+    ADD CONSTRAINT FK_FAQ_CATEGORIES_parent_id_FAQ_CATEGORIES_faq_categories_id 
+    FOREIGN KEY ([parent_id]) REFERENCES [FAQ_CATEGORIES] ([faq_categories_id]);
+GO
+
+ALTER TABLE [FAQ_ARTICLES] 
+    ADD CONSTRAINT FK_FAQ_ARTICLES_category_id_FAQ_CATEGORIES_faq_categories_id 
+    FOREIGN KEY ([category_id]) REFERENCES [FAQ_CATEGORIES] ([faq_categories_id]);
+GO
+
+ALTER TABLE [FAQ_ARTICLES] 
+    ADD CONSTRAINT FK_FAQ_ARTICLES_author_id_USER_user_id 
+    FOREIGN KEY ([author_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [FAQ_FEEDBACK] 
+    ADD CONSTRAINT FK_FAQ_FEEDBACK_article_id_FAQ_ARTICLES_faq_articles_id 
+    FOREIGN KEY ([article_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
+GO
+
+ALTER TABLE [SUPPORT_TICKETS] 
+    ADD CONSTRAINT FK_SUPPORT_TICKETS_related_feedback_id_FAQ_ARTICLES_faq_articles_id 
+    FOREIGN KEY ([related_feedback_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
+GO
+
+ALTER TABLE [SUPPORT_TICKETS] 
+    ADD CONSTRAINT FK_SUPPORT_TICKETS_assigned_staff_id_USER_user_id 
+    FOREIGN KEY ([assigned_staff_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_ticket_id_SUPPORT_TICKETS_support_tickets_id 
+    FOREIGN KEY ([ticket_id]) REFERENCES [SUPPORT_TICKETS] ([support_tickets_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_booking_id_BOOKING_booking_id 
+    FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_receiver_id_USER_user_id 
+    FOREIGN KEY ([receiver_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_room_id_ROOM_LIST_room_id 
+    FOREIGN KEY ([room_id]) REFERENCES [ROOM_LIST] ([room_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_sender_id_USER_user_id 
+    FOREIGN KEY ([sender_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [MESSAGE] 
+    ADD CONSTRAINT FK_MESSAGE_faq_id_FAQ_ARTICLES_faq_articles_id 
+    FOREIGN KEY ([faq_id]) REFERENCES [FAQ_ARTICLES] ([faq_articles_id]);
+GO
+
+ALTER TABLE [POSTS_CATEGORIES] 
+    ADD CONSTRAINT FK_POSTS_CATEGORIES_posts_id_POSTS_posts_id 
+    FOREIGN KEY ([posts_id]) REFERENCES [POSTS] ([posts_id]);
+GO
+
+ALTER TABLE [POSTS_CATEGORIES] 
+    ADD CONSTRAINT FK_POSTS_CATEGORIES_categories_id_CATEGORIES_categories_id 
+    FOREIGN KEY ([categories_id]) REFERENCES [CATEGORIES] ([categories_id]);
+GO
+
+ALTER TABLE [POSTS] 
+    ADD CONSTRAINT FK_POSTS_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [POSTS] 
+    ADD CONSTRAINT FK_POSTS_region_id_DISTRICT_district_id 
+    FOREIGN KEY ([region_id]) REFERENCES [DISTRICT] ([district_id]);
+GO
+
+ALTER TABLE [USER_FAVORITE_REPORT] 
+    ADD CONSTRAINT FK_USER_FAVORITE_REPORT_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
+ALTER TABLE [ANOMALY_DETECTION_LOG] 
+    ADD CONSTRAINT FK_ANOMALY_DETECTION_LOG_rule_id_ANOMALY_RULE_rule_id 
+    FOREIGN KEY ([rule_id]) REFERENCES [ANOMALY_RULE] ([rule_id]);
+GO
+
+ALTER TABLE [MONGODB] --not repeatable
+    ADD CONSTRAINT FK_MONGODB_ListingId_ROOM_LIST_room_id 
+    FOREIGN KEY ([ListingId]) REFERENCES [ROOM_LIST] ([room_id]);
+GO
