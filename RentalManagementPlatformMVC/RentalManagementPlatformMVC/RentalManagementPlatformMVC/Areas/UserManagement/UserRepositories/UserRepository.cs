@@ -5,8 +5,14 @@ using UserEntity = RentalManagementPlatformMVC.Models.User;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
+	/// <summary>
+	/// 使用者資料實作（EF Core）。
+	/// </summary>
 	public class UserRepository : EfRepository<UserEntity>, IUserRepository
 	{
+		/// <summary>
+		/// 以 DbContext 建立資料。
+		/// </summary>
 		public UserRepository(RentalManagementPlatformSqlContext db) : base(db) { }
 
 		// === IUserRepository 擴充方法 ===

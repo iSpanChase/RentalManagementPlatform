@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using UserEntity = RentalManagementPlatformMVC.Models.User;
 
-namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {
 	public class UserService : IUserService
 	{
@@ -50,8 +49,8 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 				Point = x.Point,
 				Isverified = x.Isverified,
 				ProfileImageurl = x.ProfileImageurl,
-				CreatedAt = (DateTime)x.CreatedAt,
-				UpdatedAt = (DateTime)x.UpdatedAt
+				CreatedAt = x.CreatedAt,
+				UpdatedAt = x.UpdatedAt
 			};
 		}
 
@@ -70,11 +69,11 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 				AutoSubscribe = dto.AutoSubscribe,
 				PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordHash),
 				Gender = dto.Gender,
-				BirthDate = (DateTime)dto.BirthDate,
+				BirthDate = dto.BirthDate,
 				Phone = dto.Phone,
 				Address = dto.Address,
 				Point = dto.Point,
-				Isverified = (bool)dto.Isverified,
+				Isverified = dto.Isverified,
 				ProfileImageurl = dto.ProfileImageurl,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
@@ -94,11 +93,11 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 			user.Name = dto.Name;
 			user.AutoSubscribe = dto.AutoSubscribe;
 			user.Gender = dto.Gender;
-			user.BirthDate = (DateTime)dto.BirthDate;
+			user.BirthDate = dto.BirthDate;
 			user.Phone = dto.Phone;
 			user.Address = dto.Address;
 			user.Point = dto.Point;
-			user.Isverified = (bool)dto.Isverified;
+			user.Isverified = dto.Isverified;
 			user.ProfileImageurl = dto.ProfileImageurl;
 			user.UpdatedAt = DateTime.UtcNow;
 

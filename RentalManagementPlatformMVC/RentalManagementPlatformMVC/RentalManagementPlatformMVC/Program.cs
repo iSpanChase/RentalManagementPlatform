@@ -22,12 +22,11 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserService,
-									   RentalManagementPlatformMVC.Areas.UserManagement.UserServices.UserService>();
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+			builder.Services.AddScoped<IUserService, UserService>();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();

@@ -4,9 +4,18 @@ using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Repositories
 {
+	/// <summary>
+	/// EF Core 泛型資料基底實作。
+	/// </summary>
+	/// <typeparam name="T">實體類型。</typeparam>
 	public class EfRepository<T> : IRepository<T> where T : class
 	{
+		/// <summary>供子類使用的 DbContext。</summary>
 		protected readonly RentalManagementPlatformSqlContext _db;
+
+		/// <summary>
+		/// 以 DbContext 建立泛型資料。
+		/// </summary>
 		public EfRepository(RentalManagementPlatformSqlContext db) => _db = db;
 
 		public async Task<T?> GetByIdAsync(object id) => await _db.Set<T>().FindAsync(id);

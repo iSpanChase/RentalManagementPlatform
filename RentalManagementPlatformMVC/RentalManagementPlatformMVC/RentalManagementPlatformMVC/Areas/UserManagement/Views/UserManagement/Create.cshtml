@@ -56,13 +56,14 @@
                     <label class="form-label">點數</label>
                     <input class="form-control" asp-for="Point" type="number" />
                 </div>
+                @* <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" name="AutoSubscribe" value="true" @(Model.AutoSubscribe == true ? "checked" : "") />
+                    <input type="hidden" name="AutoSubscribe" value="false" />
+                    <label class="form-check-label">AutoSubscribe</label>
+                </div> *@
                 <div class="mb-3 form-check">
-                    <input class="form-check-input" asp-for="AutoSubscribe" />
-                    <label class="form-check-label" asp-for="AutoSubscribe">自動訂閱</label>
-                </div>
-                <div class="mb-3 form-check">
-                    <input class="form-check-input" asp-for="Isverified" />
-                    <label class="form-check-label" asp-for="Isverified">已驗證</label>
+                    <input class="form-check-input" type="checkbox" asp-for="Isverified" />
+                    <label class="form-check-label" asp-for="Isverified"></label>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">大頭貼 URL（選填）</label>
