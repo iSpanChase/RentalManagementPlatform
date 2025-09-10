@@ -4,109 +4,12 @@
     var id = Model.InstanceId; // 同頁唯一
 }
 
-<div class="report-card" id="card-@id"
-     data-instance-id="@id"
-     data-base-address="https://localhost:7159"
-     data-endpoint="/ReportForm/ReportForm/GetChartData">
-
-    <h3>動態報表</h3>
-
-    <div class="controls">
-        <label>選擇報表樣板：</label>
-        <select class="reportType">
-            <option value="bar" selected="@(Model.ChartType==ChartType.bar)">柱狀圖</option>
-            <option value="line" selected="@(Model.ChartType==ChartType.line)">折線圖</option>
-            <option value="pie" selected="@(Model.ChartType==ChartType.pie)">圓餅圖</option>
-        </select>
-
-        <label>單位時間跨度：</label>
-        <select class="timeUnit">
-            <option value="day" selected="@(Model.TimeUnit==TimeUnit.day)">天</option>
-            <option value="week" selected="@(Model.TimeUnit==TimeUnit.week)">周</option>
-            <option value="month" selected="@(Model.TimeUnit==TimeUnit.month)">月</option>
-            <option value="quarter" selected="@(Model.TimeUnit==TimeUnit.quarter)">季</option>
-            <option value="year" selected="@(Model.TimeUnit==TimeUnit.year)">年</option>
-        </select>
-    </div>
-
-    <!-- day -->
-    <div class="time-unit-input-block input-day">
-        <label>開始日期：</label>
-        <input type="date" class="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" />
-        <label>結束日期：</label>
-        <input type="date" class="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" />
-    </div>
-
-    <!-- week -->
-    <div class="time-unit-input-block input-week" hidden>
-        <label>開始年份：</label>
-        <input type="number" class="startWeekYear" min="2024" max="2026" value="2025" />
-        <label>開始週數：</label>
-        <select class="startWeekWeek"></select>
-        <label>結束年份：</label>
-        <input type="number" class="endWeekYear" min="2024" max="2026" value="2025" />
-        <label>結束週數：</label>
-        <select class="endWeekWeek"></select>
-    </div>
-
-    <!-- month -->
-    <div class="time-unit-input-block input-month" hidden>
-        <label>開始年份：</label>
-        <input type="number" class="startMonthYear" min="2024" max="2026" value="2025" />
-        <label>開始月份：</label>
-        <select class="startMonthMonth">
-            @for (int m = 1; m <= 12; m++)
-            {
-                <option value="@m">@($"{m}月")</option>
-            }
-        </select>
-        <label>結束年份：</label>
-        <input type="number" class="endMonthYear" min="2024" max="2026" value="2025" />
-        <label>結束月份：</label>
-        <select class="endMonthMonth">
-            @for (int m = 1; m <= 12; m++)
-            {
-                <option value="@m">@($"{m}月")</option>
-            }
-        </select>
-    </div>
-
-    <!-- quarter -->
-    <div class="time-unit-input-block input-quarter" hidden>
-        <label>開始年份：</label>
-        <input type="number" class="startQuarterYear" min="2024" max="2026" value="2025" />
-        <label>開始季度：</label>
-        <select class="startQuarterQuarter">
-            <option value="1">第一季</option>
-            <option value="2">第二季</option>
-            <option value="3">第三季</option>
-            <option value="4">第四季</option>
-        </select>
-        <label>結束年份：</label>
-        <input type="number" class="endQuarterYear" min="2024" max="2026" value="2025" />
-        <label>結束季度：</label>
-        <select class="endQuarterQuarter">
-            <option value="1">第一季</option>
-            <option value="2">第二季</option>
-            <option value="3">第三季</option>
-            <option value="4">第四季</option>
-        </select>
-    </div>
-
-    <!-- year -->
-    <div class="time-unit-input-block input-year" hidden>
-        <label>開始年份：</label>
-        <input type="number" class="startYearInput" min="2024" max="2026" value="2025" />
-        <label>結束年份：</label>
-        <input type="number" class="endYearInput" min="2024" max="2026" value="2025" />
-    </div>
-
-    <div class="mt-2 d-flex gap-2">
-        <button class="btnLoad">載入報表</button>
-        <button class="btnRemove" type="button">移除</button>
-    </div>
-
-    <div class="mt-3">
-        <canvas class="chartCanvas" width="400" height="200"></canvas>
+<div class="report-card card" id="card-@id"
+        data-instance-id="@id"
+        data-base-address="https://localhost:7159"
+        data-endpoint="/ReportForm/ReportForm/GetChartData">
+    <div class="card-body">
+        <h5 class="chart-title"></h5>
+        <canvas class="chartCanvas"></canvas>
     </div>
 </div>

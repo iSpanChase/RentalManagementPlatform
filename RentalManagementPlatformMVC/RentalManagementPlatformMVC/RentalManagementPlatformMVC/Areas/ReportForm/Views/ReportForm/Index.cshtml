@@ -1,21 +1,113 @@
 ﻿@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels
 
 @{
+    var startDate = DateTime.Today.AddDays(-7).ToString("yyyy-MM-dd");
+    var endDate = DateTime.Today.ToString("yyyy-MM-dd");
+}
+
+@{
     var cards = new List<ReportChartCardViewModel>
     {
-        new() { ChartType = ChartType.bar,   TimeUnit = TimeUnit.day },
-        new() { ChartType = ChartType.line,  TimeUnit = TimeUnit.week },
-        new() { ChartType = ChartType.pie,   TimeUnit = TimeUnit.month }
     };
 }
 
-<div class="row gy-3" id="cards">
-    @foreach (var vm in cards)
-    {
-        <div class="col-12 col-md-6 col-xl-4">
-            @await Html.PartialAsync("Partials/_ReportChartCard", vm)
+<div id="reportControls">
+    <label>圖表類型：</label>
+    <select id="globalReportType">
+        <option value="bar">柱狀圖</option>
+        <option value="line">折線圖</option>
+        <option value="pie">圓餅圖</option>
+    </select>
+
+    <label>時間跨度：</label>
+    <select id="globalTimeUnit">
+        <option value="day">天</option>
+        <option value="week">周</option>
+        <option value="month">月</option>
+        <option value="quarter">季</option>
+        <option value="year">年</option>
+    </select>
+
+    <!-- 時間選擇器 (只顯示一組，根據 timeUnit 切換) -->
+    <div id="timeSelectors">
+        <!-- day -->
+        <div class="time-unit-input-block input-day">
+            <label>開始日期：</label>
+            <input type="date" class="startDate" value="@startDate" />
+            <label>結束日期：</label>
+            <input type="date" class="endDate" value="@endDate" />
         </div>
-    }
+
+        <!-- week -->
+        <div class="time-unit-input-block input-week" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startWeekYear" min="2024" max="2026" value="2025" />
+            <label>開始週數：</label>
+            <select class="startWeekWeek"></select>
+            <label>結束年份：</label>
+            <input type="number" class="endWeekYear" min="2024" max="2026" value="2025" />
+            <label>結束週數：</label>
+            <select class="endWeekWeek"></select>
+        </div>
+
+        <!-- month -->
+        <div class="time-unit-input-block input-month" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startMonthYear" min="2024" max="2026" value="2025" />
+            <label>開始月份：</label>
+            <select class="startMonthMonth">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">@($"{m}月")</option>
+                }
+            </select>
+            <label>結束年份：</label>
+            <input type="number" class="endMonthYear" min="2024" max="2026" value="2025" />
+            <label>結束月份：</label>
+            <select class="endMonthMonth">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">@($"{m}月")</option>
+                }
+            </select>
+        </div>
+
+        <!-- quarter -->
+        <div class="time-unit-input-block input-quarter" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startQuarterYear" min="2024" max="2026" value="2025" />
+            <label>開始季度：</label>
+            <select class="startQuarterQuarter">
+                <option value="1">第一季</option>
+                <option value="2">第二季</option>
+                <option value="3">第三季</option>
+                <option value="4">第四季</option>
+            </select>
+            <label>結束年份：</label>
+            <input type="number" class="endQuarterYear" min="2024" max="2026" value="2025" />
+            <label>結束季度：</label>
+            <select class="endQuarterQuarter">
+                <option value="1">第一季</option>
+                <option value="2">第二季</option>
+                <option value="3">第三季</option>
+                <option value="4">第四季</option>
+            </select>
+        </div>
+
+        <!-- year -->
+        <div class="time-unit-input-block input-year" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startYearInput" min="2024" max="2026" value="2025" />
+            <label>結束年份：</label>
+            <input type="number" class="endYearInput" min="2024" max="2026" value="2025" />
+        </div>
+    </div>
+
+    <button id="btnAddCard">新增卡片</button>
+</div>
+
+<div id="reportCardsRow" class="row">
+    <!-- 動態新增卡片 -->
 </div>
 
 @section Scripts {
@@ -24,6 +116,22 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script src="~/js/reportform/time-format.js"></script>
 	<script src="~/js/reportform/week-select-generate.js"></script>
-    <!-- 新增的卡片初始化腳本（見下一節） -->
-	<script src="~/js/reportform/reportchartcard.init.js"></script>
+	<script src="~/js/reportform/report-time-selection.js"></script>
+    <script src="~/js/reportform/reportchartcard.init.js"></script>
+    <script>
+        document.querySelector("#btnAddCard").addEventListener("click", () => {
+          const type = document.querySelector("#globalReportType").value;
+
+          // ✅ 直接向外部控制區塊收集 TimeUnit/Start/End
+          const fd = ReportTime.collect();  // 會回傳 FormData（含 TimeUnit/Start/End）
+
+          ReportCard.createCard({
+            base: "/ReportForm/ReportForm/",
+            endpoint: "GetChartData",
+            title: `${document.querySelector("#globalTimeUnit").value} 的 ${type} 圖表`,
+            type,
+            formData: fd
+          });
+        });
+    </script>
 }
