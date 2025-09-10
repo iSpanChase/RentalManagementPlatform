@@ -321,7 +321,7 @@ GO
 
 CREATE TABLE [FAQ_FEEDBACK] (
   [faq_feedback_id] int PRIMARY KEY IDENTITY(1,1),
-  [article_id] int,
+  [article_id] int NOT NULL,
   [user_id] int,
   [sentiment] nvarchar(255),
   [reason] nvarchar(255),
