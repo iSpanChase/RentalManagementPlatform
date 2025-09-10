@@ -12,6 +12,4 @@ public partial class BookingGuest
     public string? GuestName { get; set; }
 
     public string? GuestIdNumber { get; set; }
-
-    //public virtual Booking? Booking { get; set; }
 }
