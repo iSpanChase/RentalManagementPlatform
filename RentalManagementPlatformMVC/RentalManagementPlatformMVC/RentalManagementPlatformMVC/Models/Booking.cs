@@ -31,21 +31,21 @@ public partial class Booking
 
     public DateTime? CreatedAt { get; set; }
 
-    //public virtual ICollection<BookingGuest> BookingGuests { get; set; } = new List<BookingGuest>();
+    public virtual ICollection<BookingGuest> BookingGuests { get; set; } = new List<BookingGuest>();
 
-    //public virtual Coupon? Coupon { get; set; }
+    public virtual Coupon? Coupon { get; set; }
 
-    //public virtual User? Guest { get; set; }
+    public virtual User? Guest { get; set; }
 
     public virtual ICollection<HostPayoutItem> HostPayoutItems { get; set; } = new List<HostPayoutItem>();
 
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
-    //public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<PointLedger> PointLedgers { get; set; } = new List<PointLedger>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    //    public virtual RoomList? Room { get; set; }
+    public virtual RoomList? Room { get; set; }
 }

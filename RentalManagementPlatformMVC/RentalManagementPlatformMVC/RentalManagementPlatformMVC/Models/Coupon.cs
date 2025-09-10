@@ -29,7 +29,7 @@ public partial class Coupon
 
     public decimal? LowSpend { get; set; }
 
-    //public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<CouponDistrict> CouponDistricts { get; set; } = new List<CouponDistrict>();
 

@@ -35,7 +35,7 @@ public partial class User
 
     public DateTime? UpdatedAt { get; set; }
 
-    //public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<CouponGuest> CouponGuests { get; set; } = new List<CouponGuest>();
 
@@ -57,7 +57,7 @@ public partial class User
 
     public virtual ICollection<Review> ReviewReviewers { get; set; } = new List<Review>();
 
-    //public virtual ICollection<RoomList> RoomLists { get; set; } = new List<RoomList>();
+    public virtual ICollection<RoomList> RoomLists { get; set; } = new List<RoomList>();
 
     public virtual ICollection<SupportTicket> SupportTickets { get; set; } = new List<SupportTicket>();
 
