@@ -15,7 +15,7 @@ public partial class HostSubscription
 
     public DateTime? NextBillingDate { get; set; }
 
-    public bool? CancelAtPeriodEnd { get; set; }
+    public bool CancelAtPeriodEnd { get; set; }
 
     public string? Status { get; set; }
 
