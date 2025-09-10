@@ -34,7 +34,6 @@ CREATE TABLE [USER] (
   [username] nvarchar(512) NOT NULL,
   [email] nvarchar(512) NOT NULL,
   [name] nvarchar(512) NOT NULL,
-  [auto_subscribe] BIT,
   [password_hash] nvarchar(512) NOT NULL,
   [gender] nvarchar(512) NOT NULL,
   [birth_date] DATETIME2 NOT NULL,
@@ -75,6 +74,7 @@ CREATE TABLE [COUPON] (
   [discount_quota] decimal,
   [end_at] DATETIME2,
   [low_spend] decimal,
+  [is_deleted] bit NOT NULL
 )
 GO
 
@@ -244,7 +244,7 @@ CREATE TABLE [HOST_SUBSCRIPTION] (
   [plan_id] int,
   [start_date] DATETIME2,
   [next_billing_date] DATETIME2,
-  [cancel_at_period_end] BIT,
+  [cancel_at_period_end] BIT NOT NULL,
   [status] nvarchar(512),
   [created_at] DATETIME2
 )
@@ -321,7 +321,7 @@ GO
 
 CREATE TABLE [FAQ_FEEDBACK] (
   [faq_feedback_id] int PRIMARY KEY IDENTITY(1,1),
-  [article_id] int,
+  [article_id] int NOT NULL,
   [user_id] int,
   [sentiment] nvarchar(255),
   [reason] nvarchar(255),
@@ -601,8 +601,7 @@ EXEC sp_addextendedproperty
 @name = N'Column_Description',
 @value = '自動訂閱，true/false',
 @level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'USER',
-@level2type = N'Column', @level2name = 'auto_subscribe';
+@level1type = N'Table',  @level1name = 'USER'
 GO
 
 EXEC sp_addextendedproperty

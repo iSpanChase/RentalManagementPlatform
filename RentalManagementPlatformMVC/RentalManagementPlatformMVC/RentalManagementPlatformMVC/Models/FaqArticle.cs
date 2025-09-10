@@ -34,14 +34,4 @@ public partial class FaqArticle
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-
-    public virtual User? Author { get; set; }
-
-    public virtual FaqCategory? Category { get; set; }
-
-    public virtual ICollection<FaqFeedback> FaqFeedbacks { get; set; } = new List<FaqFeedback>();
-
-    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
-
-    public virtual ICollection<SupportTicket> SupportTickets { get; set; } = new List<SupportTicket>();
 }

@@ -40,10 +40,4 @@ public partial class Post
     public DateTime? DeletedAt { get; set; }
 
     public decimal? ProposedPrice { get; set; }
-
-    public virtual ICollection<PostsCategory> PostsCategories { get; set; } = new List<PostsCategory>();
-
-    public virtual District Region { get; set; } = null!;
-
-    public virtual User User { get; set; } = null!;
 }

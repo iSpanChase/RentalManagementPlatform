@@ -7,7 +7,7 @@ public partial class FaqFeedback
 {
     public int FaqFeedbackId { get; set; }
 
-    public int? ArticleId { get; set; }
+    public int ArticleId { get; set; }
 
     public int? UserId { get; set; }
 
@@ -20,6 +20,4 @@ public partial class FaqFeedback
     public bool? EscalatedToTicket { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual FaqArticle? Article { get; set; }
 }

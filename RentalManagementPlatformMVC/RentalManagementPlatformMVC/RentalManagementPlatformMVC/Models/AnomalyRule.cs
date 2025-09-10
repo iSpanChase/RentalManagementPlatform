@@ -18,6 +18,4 @@ public partial class AnomalyRule
     public bool? IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual ICollection<AnomalyDetectionLog> AnomalyDetectionLogs { get; set; } = new List<AnomalyDetectionLog>();
 }
