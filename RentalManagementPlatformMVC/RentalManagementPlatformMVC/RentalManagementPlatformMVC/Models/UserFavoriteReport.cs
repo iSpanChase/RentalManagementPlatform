@@ -14,6 +14,4 @@ public partial class UserFavoriteReport
     public string? ReportParams { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual User? User { get; set; }
 }

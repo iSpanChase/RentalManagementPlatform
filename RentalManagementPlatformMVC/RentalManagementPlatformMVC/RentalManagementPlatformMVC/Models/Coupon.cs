@@ -29,9 +29,5 @@ public partial class Coupon
 
     public decimal? LowSpend { get; set; }
 
-    //public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-
-    public virtual ICollection<CouponDistrict> CouponDistricts { get; set; } = new List<CouponDistrict>();
-
-    public virtual ICollection<CouponGuest> CouponGuests { get; set; } = new List<CouponGuest>();
+    public bool IsDeleted { get; set; }
 }

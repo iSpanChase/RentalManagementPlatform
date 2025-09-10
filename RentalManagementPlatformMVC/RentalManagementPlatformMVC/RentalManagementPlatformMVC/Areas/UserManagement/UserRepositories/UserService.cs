@@ -41,7 +41,6 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 				Username = x.Username,
 				Email = x.Email,
 				Name = x.Name,
-				AutoSubscribe = x.AutoSubscribe,
 				Gender = x.Gender,
 				BirthDate = x.BirthDate,
 				Phone = x.Phone,
@@ -66,7 +65,6 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 				Username = dto.Username,
 				Email = dto.Email,
 				Name = dto.Name,
-				AutoSubscribe = dto.AutoSubscribe,
 				PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PasswordHash),
 				Gender = dto.Gender,
 				BirthDate = dto.BirthDate,
@@ -91,7 +89,6 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 			// 不允許在此修改 Username / Password
 			user.Email = dto.Email;
 			user.Name = dto.Name;
-			user.AutoSubscribe = dto.AutoSubscribe;
 			user.Gender = dto.Gender;
 			user.BirthDate = dto.BirthDate;
 			user.Phone = dto.Phone;

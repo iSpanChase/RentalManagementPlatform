@@ -12,6 +12,4 @@ public partial class Mongodb
     public string? Description { get; set; }
 
     public string? ImageUrl { get; set; }
-
-    public virtual RoomList Listing { get; set; } = null!;
 }
