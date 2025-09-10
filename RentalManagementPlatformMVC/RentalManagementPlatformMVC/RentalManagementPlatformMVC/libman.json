@@ -4,7 +4,7 @@
   "libraries": [
     {
       "library": "font-awesome@7.0.1",
-      "destination": "wwwroot/font-awesome/"
+      "destination": "wwwroot/lib/font-awesome/"
     }
   ]
 }
