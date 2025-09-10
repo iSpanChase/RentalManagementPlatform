@@ -18,6 +18,4 @@ public partial class SubscriptionBillingLog
     public DateTime? CreatedAt { get; set; }
 
     public string? Note { get; set; }
-
-    public virtual HostSubscription? HostSub { get; set; }
 }

@@ -20,6 +20,4 @@ public partial class PaymentTransaction
     public string? TxnRef { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    //public virtual Payment? Payment { get; set; }
 }
