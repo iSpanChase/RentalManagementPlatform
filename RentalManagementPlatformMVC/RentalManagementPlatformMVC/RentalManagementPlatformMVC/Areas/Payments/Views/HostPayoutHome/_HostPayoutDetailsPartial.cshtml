@@ -42,16 +42,15 @@
                     </div>
 
                     <div class="col-5 text-secondary">付款時間</div>
-                    <div class="col-7">@((Model.PaidAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                    <div class="col-7">@((Model.PaidAt?.ToString("yyyy-MM-dd HH:mm")) ?? "處理中")</div>
 
                     <div class="col-5 text-secondary">狀態</div>
                     <div class="col-7">
                         <span class="badge py-2 px-3
                             @(Model.Status?.ToLower() == "paid" ? "bg-success" :
-                                                            Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                            Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                            Model.Status?.ToLower() == "failed" ? "bg-danger" :
-                                                            "bg-secondary")">
+                              Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                              Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                              Model.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
                             @Model.DisplayStatus
                         </span>
                     </div>

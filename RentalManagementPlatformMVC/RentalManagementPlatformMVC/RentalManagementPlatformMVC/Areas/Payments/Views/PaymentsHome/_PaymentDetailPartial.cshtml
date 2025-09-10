@@ -41,10 +41,9 @@
                     <div class="col-7">
                         <span class="badge py-2 px-3
                             @(Model.Status?.ToLower() == "paid" ? "bg-success" :
-                                                                                          Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                                                          Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                                                          Model.Status?.ToLower() == "failed" ? "bg-danger" :
-                                                                                          "bg-secondary")">
+                              Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                              Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                              Model.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
                             @Model.DisplayStatus
                         </span>
                     </div>

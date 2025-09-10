@@ -41,10 +41,10 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		// 狀態顯示轉換
 		public string DisplayStatus => Status?.ToLower() switch
 		{
-			"paid" => "已付款",
-			"pending" => "待處理",
-			"failed" => "失敗",
+			"paid" => "已出款",
+			"pending" => "待出款",
 			"refunded" => "已退款",
+			"failed" => "失敗",
 			_ => "未知"
 		};
 

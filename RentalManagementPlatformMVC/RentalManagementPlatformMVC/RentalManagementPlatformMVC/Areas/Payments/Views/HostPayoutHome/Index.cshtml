@@ -1,7 +1,7 @@
 ﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.HostPayoutIndexViewModel
 
 @{
-    ViewData["Title"] = "帳務管理";
+    ViewData["Title"] =  "房東出款";
 
     // 計算本頁顯示的起始與結束資料編號
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
@@ -14,6 +14,20 @@
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
     int range = 2; // 當前頁左右顯示的範圍
+
+    var routeBase = new Dictionary<string, string?>
+    {
+        ["HostName"] = Model.Criteria?.HostName,
+        ["CycleStart"] = Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd"),
+        ["CycleEnd"] = Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd"),
+        ["PaidStartDate"] = Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd"),
+        ["PaidEndDate"] = Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd"),
+        ["Status"] = Model.Criteria?.Status,
+        ["MinAmount"] = Model.Criteria?.MinAmount?.ToString(),
+        ["MaxAmount"] = Model.Criteria?.MaxAmount?.ToString(),
+        ["SortBy"] = Model.Criteria?.SortBy,
+        ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
+    };
 
     <style>
         .page-title {
@@ -65,6 +79,92 @@
         <!-- 分頁導覽 End -->
 
         <!-- 搜尋條件卡片 Start -->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+
+                    <!-- 確保查詢時回到第一頁 -->
+                    <input type="hidden" name="pageIndex" value="1" />
+                    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
+                    <!-- 第一行 -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">房東姓名</label>
+                        <input name="HostName" class="form-control" value="@(Model.Criteria?.HostName ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">週期起始</label>
+                        <input type="date" name="CycleStart" class="form-control" value="@(Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">週期結束</label>
+                        <input type="date" name="CycleEnd" class="form-control" value="@(Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">狀態</label>
+                        <select name="Status" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="paid" selected="@(Model.Criteria?.Status == "paid" ? "selected" : null)">已付款</option>
+                            <option value="pending" selected="@(Model.Criteria?.Status == "pending" ? "selected" : null)">付款中</option>
+                            <option value="failed" selected="@(Model.Criteria?.Status == "failed" ? "selected" : null)">付款失敗</option>
+                            <option value="cancelled" selected="@(Model.Criteria?.Status == "cancelled" ? "selected" : null)">已取消</option>
+                        </select>
+                    </div>
+
+                    <!-- 第二行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款起</label>
+                        <input type="date" name="PaidStartDate" class="form-control" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款迄</label>
+                        <input type="date" name="PaidEndDate" class="form-control" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最低金額</label>
+                        <input type="number" name="MinAmount" class="form-control" step="1" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最高金額</label>
+                        <input type="number" name="MaxAmount" class="form-control" step="1" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                    </div>
+
+                    <!-- 第三行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序欄位</label>
+                        <select name="SortBy" class="form-select">
+                            <option value="CreatedAt" selected="@(Model.Criteria?.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
+                            <option value="PaidAt" selected="@(Model.Criteria?.SortBy == "PaidAt" ? "selected" : null)">付款時間</option>
+                            <option value="Amount" selected="@(Model.Criteria?.SortBy == "Amount" ? "selected" : null)">金額</option>
+                            <option value="HostName" selected="@(Model.Criteria?.SortBy == "HostName" ? "selected" : null)">房東姓名</option>
+                            <option value="CycleStart" selected="@(Model.Criteria?.SortBy == "CycleStart" ? "selected" : null)">週期起始</option>
+                            <option value="Status" selected="@(Model.Criteria?.SortBy == "Status" ? "selected" : null)">狀態</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序方式</label>
+                        <select name="IsDescending" class="form-select">
+                            <option value="true" selected="@(Model.Criteria?.IsDescending != false ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@((Model.Criteria?.IsDescending == false) ? "selected" : null)">升冪（舊→新 / 低→高）</option>
+                        </select>
+                    </div>
+
+                    <!-- 按鈕 -->
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="Payments"
+                           asp-controller="HostPayoutHome"
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right"></i>重設
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- 搜尋條件卡片 End -->
 
         <!-- 帳務列表卡片 Start -->
@@ -91,8 +191,7 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>序號</th>
-                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().HostId)</th>
-                                @* <th>@Html.DisplayNameFor(model => model.HostPayouts.First().HostName)</th> *@
+                                <th>@Html.DisplayNameFor(model => model.HostPayouts.First().HostName)</th>
                                 <th>@Html.DisplayNameFor(model => model.HostPayouts.First().CycleStart)</th>
                                 <th>@Html.DisplayNameFor(model => model.HostPayouts.First().CycleEnd)</th>
                                 <th>@Html.DisplayNameFor(model => model.HostPayouts.First().PaidAt)</th>
@@ -108,11 +207,10 @@
                                 {
                                     <tr>
                                         <td>@index</td>
-                                        <td>@item.HostId</td>
-                                        @* <td>@item.HostName</td> *@
+                                        <td>@item.HostName</td>
                                         <td>@item.CycleStart?.ToString("yyyy-MM-dd")</td>
                                         <td>@item.CycleEnd?.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@(item.PaidAt?.ToString("yyyy-MM-dd") ?? "處理中")</td>
                                         <td>
                                             <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
                                                                            item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
@@ -123,7 +221,7 @@
                                         </td>
                                         <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
-                                            <button class="btn btn-primary btn-sm btn-detail" data-id="@item.PayoutId">查看</button>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.PayoutId">查看</button>
                                         </td>
                                     </tr>
                                     index++;
@@ -145,11 +243,23 @@
                         <span class="text-muted">第 @currentPage 頁，共 @totalPages 頁</span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a class="btn btn-outline-success btn-sm">
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="Payments"
+                           asp-controller="HostPayoutHome"
+                           asp-action="ExportExcel"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
                             <i class="fa-solid fa-file-excel"></i>
                             匯出 Excel
                         </a>
-                        <a class="btn btn-outline-primary btn-sm">
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="Payments"
+                           asp-controller="HostPayoutHome"
+                           asp-action="ExportCsv"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
                             <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
@@ -169,6 +279,7 @@
                                    asp-area="Payments"
                                    asp-controller="HostPayoutHome"
                                    asp-action="Index"
+                                   asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage - 1)"
                                    asp-route-pageSize="@Model.PageSize">
                                     &laquo;
@@ -183,6 +294,7 @@
                                        asp-area="Payments"
                                        asp-controller="HostPayoutHome"
                                        asp-action="Index"
+                                       asp-all-route-data="routeBase"
                                        asp-route-pageIndex="1"
                                        asp-route-pageSize="@Model.PageSize">
                                         1
@@ -201,6 +313,7 @@
                                        asp-area="Payments"
                                        asp-controller="HostPayoutHome"
                                        asp-action="Index"
+                                       asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@i"
                                        asp-route-pageSize="@Model.PageSize">
                                         @i
@@ -219,6 +332,7 @@
                                        asp-area="Payments"
                                        asp-controller="HostPayoutHome"
                                        asp-action="Index"
+                                       asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@totalPages"
                                        asp-route-pageSize="@Model.PageSize">
                                         @totalPages
@@ -232,6 +346,7 @@
                                    asp-area="Payments"
                                    asp-controller="HostPayoutHome"
                                    asp-action="Index"
+                                   asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage + 1)"
                                    asp-route-pageSize="@Model.PageSize">
                                     &raquo;
@@ -244,3 +359,73 @@
         </div>
     </div>
 </section>
+
+@section Modals
+{
+    <!-- 詳細資料 Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-detail-content">
+                    <!-- AJAX 載入內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{
+    <script>
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-detail');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            const id = btn.dataset.id;
+            const content = document.getElementById('modal-detail-content');
+
+            // 載入中樣式 + 開窗
+            btn.disabled = true;
+            content.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status" aria-hidden="true"></div>
+                    <div class="mt-2">載入中…</div>
+                </div>
+            `;
+
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            try {
+                const url = '@Url.Action("Details", "HostPayoutHome", new { area = "Payments" })' +
+                           '?hostPayoutId=' + encodeURIComponent(id);
+
+                const resp = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!resp.ok) {
+                    const msg = resp.status === 404 ? '找不到這筆付款' :
+                               resp.status === 403 ? '沒有權限檢視' :
+                               `載入失敗（${resp.status}）`;
+                    throw new Error(msg);
+                }
+
+                const html = await resp.text();
+                content.innerHTML = html;
+
+            } catch (err) {
+                content.innerHTML = `<div class="text-danger p-3">${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+}

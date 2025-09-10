@@ -1,4 +1,5 @@
-﻿using RentalManagementPlatformMVC.Models;
+﻿using RentalManagementPlatformMVC.DTOs;
+using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Repositories
 {
@@ -11,6 +12,6 @@ namespace RentalManagementPlatformMVC.Repositories
 		Task<HostPayout?> GetHostPayoutDetailByIdAsync(int hostPayoutId);
 
 		// 動態條件查詢：根據篩選條件查詢HostPayout資料（支援分頁）
-		//Task<(IEnumerable<HostPayout>, int)> SearchHostPayoutsAsync(HostSearchCriteriaDto criteria, int pageIndex, int pageSize);
+		Task<(IEnumerable<HostPayout>, int)> SearchHostPayoutsAsync(HostSearchCriteriaDto criteria, int pageIndex, int pageSize);
 	}
 }

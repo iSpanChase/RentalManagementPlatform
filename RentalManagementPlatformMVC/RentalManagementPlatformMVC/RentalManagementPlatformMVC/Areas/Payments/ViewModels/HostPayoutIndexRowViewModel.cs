@@ -10,10 +10,10 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		[Display(Name = "房東姓名")]
 		public string? HostName { get; set; }
 
-		[Display(Name = "週期起")]
+		[Display(Name = "週期起始")]
 		public DateTime? CycleStart { get; set; }
 
-		[Display(Name = "週期迄")]
+		[Display(Name = "週期結束")]
 		public DateTime? CycleEnd { get; set; }
 
 		[Display(Name = "總額")]
@@ -28,18 +28,12 @@ namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels
 		[Display(Name = "匯款時間")]
 		public DateTime? PaidAt { get; set; }
 
-		/// <summary>
-		/// 狀態碼：pending / paid / failed / cancelled...
-		/// </summary>
 		[Display(Name = "狀態")]
 		public string? Status { get; set; } = "";
 
 		[Display(Name = "建立時間")]
 		public DateTime? CreatedAt { get; set; }
 
-		/// <summary>
-		/// 狀態的中文顯示（供表格 badge 使用）
-		/// </summary>
 		public string DisplayStatus => Status?.ToLower() switch
 		{
 			"paid" => "已匯款",

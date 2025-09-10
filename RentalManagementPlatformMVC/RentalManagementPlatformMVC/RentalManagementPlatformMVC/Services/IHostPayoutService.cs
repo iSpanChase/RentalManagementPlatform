@@ -13,6 +13,6 @@ namespace RentalManagementPlatformMVC.Services
 		Task<HostPayoutDetailDto?> GetHostPayoutByIdAsync(int hostPayoutId);
 
 		// 動態條件查詢：根據篩選條件查詢HostPayout資料（支援分頁）
-		//Task<PagedResult<HostPayoutDto>> SearchHostPayoutsAsync(HostSearchCriteriaDto criteria, int pageIndex, int pageSize);
+		Task<PagedResult<HostPayoutDto>> SearchHostPayoutsAsync(HostSearchCriteriaDto criteria, int pageIndex, int pageSize);
 	}
 }
