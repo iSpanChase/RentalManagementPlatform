@@ -16,6 +16,4 @@ public partial class AnomalyDetectionLog
     public decimal? ExpectedValue { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual AnomalyRule? Rule { get; set; }
 }

@@ -22,8 +22,4 @@ public partial class PointLedger
     public DateTime? ExpiresAt { get; set; }
 
     public string? Note { get; set; }
-
-    public virtual Booking? Booking { get; set; }
-
-    public virtual User? Guest { get; set; }
 }
