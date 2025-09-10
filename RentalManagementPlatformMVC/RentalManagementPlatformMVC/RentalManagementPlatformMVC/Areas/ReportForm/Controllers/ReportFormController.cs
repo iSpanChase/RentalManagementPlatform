@@ -59,7 +59,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetChartData(string timeUnit, DateTime start, DateTime end)
+        public IActionResult GetRevenueTrend(string timeUnit, DateTime start, DateTime end)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
 

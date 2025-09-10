@@ -12,6 +12,11 @@
 }
 
 <div id="reportControls">
+    <label>報表種類：</label>
+    <select id="globalReportId">
+        <!-- 由 JS registry 動態填入 <option> -->
+    </select>
+
     <label>圖表類型：</label>
     <select id="globalReportType">
         <option value="bar">柱狀圖</option>
@@ -103,6 +108,9 @@
         </div>
     </div>
 
+    <!-- 不同報表專屬的篩選條件動態出現在這裡 -->
+    <div id="reportFilterPanel"></div>
+
     <button id="btnAddCard">新增卡片</button>
 </div>
 
@@ -117,18 +125,49 @@
 	<script src="~/js/reportform/time-format.js"></script>
 	<script src="~/js/reportform/week-select-generate.js"></script>
 	<script src="~/js/reportform/report-time-selection.js"></script>
+	<script src="~/js/reportform/report-config.js"></script>
     <script src="~/js/reportform/reportchartcard.init.js"></script>
     <script>
-        document.querySelector("#btnAddCard").addEventListener("click", () => {
+        document.addEventListener('DOMContentLoaded', function(){
+          ReportConfig.initControls(); // 會把 #globalReportId 塞滿、並渲染 #reportFilterPanel
+        });
+
+        document.querySelector("#btnAddCard").addEventListener("click", async () => {
+          // 1) 圖表型別（可讓使用者覆寫預設）
           const type = document.querySelector("#globalReportType").value;
 
-          // ✅ 直接向外部控制區塊收集 TimeUnit/Start/End
-          const fd = ReportTime.collect();  // 會回傳 FormData（含 TimeUnit/Start/End）
+          // 2) 先收時間（TimeUnit/Start/End）：沿用你現有的週/日期邏輯
+          const timeFd = ReportTime.collect();  // 含 TimeUnit/Start/End:contentReference[oaicite:6]{index=6}
 
+          // 3) 收報表篩選
+          const filterFd = ReportConfig.collectFilters();
+
+          // 4) 合併成單一 FormData（保留 key）
+          const fd = new FormData();
+          // 時間
+          for (const [k, v] of timeFd.entries())
+            fd.append(k, v);
+          // 篩選
+          for (const [k, v] of filterFd.entries())
+            fd.append(k, v);
+
+          // 5) 取得當前選擇報表定義
+          const reportId = document.querySelector('#globalReportId').value;
+          const def = ReportConfig.get(reportId);
+          if (!def){
+              alert('未知的報表');
+              return;
+          }
+
+          // 6) 決定卡片標題（顯示用）
+          const timeUnitTxt = document.querySelector("#globalTimeUnit").value;
+          const title = `${def.title}（${timeUnitTxt}）`;
+
+          // 7) 呼叫你既有的畫卡API（createCard）
           ReportCard.createCard({
-            base: "/ReportForm/ReportForm/",
-            endpoint: "GetChartData",
-            title: `${document.querySelector("#globalTimeUnit").value} 的 ${type} 圖表`,
+            base: def.base,
+            endpoint: def.endpoint,
+            title,
             type,
             formData: fd
           });
