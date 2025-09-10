@@ -23,13 +23,19 @@
         switchTimeUnit(root);
         root.querySelector('.timeUnit').addEventListener('change', () => switchTimeUnit(root));
 
+        // 創建周資料
+        generateWeeksSelect(root);
+
         // 載入按鈕
         root.querySelector('.btnLoad').addEventListener('click', async () => {
             const type = root.querySelector('.reportType').value;
-            const fd = collectFormData(root);
-
+            const fd = collectFormData(root, new FormData());
+            console.log(`${base}${endpoint}`);
             const resp = await fetch(`${base}${endpoint}`, { method: 'POST', body: fd });
-            if (!resp.ok) { alert('載入失敗'); return; }
+            if (!resp.ok){
+                alert('載入失敗');
+                return;
+            }
             const data = await resp.json();
 
             if (chart) { chart.destroy(); }
@@ -69,5 +75,8 @@
     // 頁面載入就跑一次
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', ns.initAll);
-    } else { ns.initAll(); }
+    }
+    else {
+        ns.initAll();
+    }
 })();

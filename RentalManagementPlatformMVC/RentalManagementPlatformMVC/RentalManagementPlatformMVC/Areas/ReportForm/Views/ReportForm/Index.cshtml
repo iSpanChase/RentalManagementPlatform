@@ -13,7 +13,7 @@
     @foreach (var vm in cards)
     {
         <div class="col-12 col-md-6 col-xl-4">
-            @await Html.PartialAsync("_ReportChartCard", vm)
+            @await Html.PartialAsync("Partials/_ReportChartCard", vm)
         </div>
     }
 </div>
@@ -22,8 +22,8 @@
     <!-- 你原先就有的全域資源，放在 Layout 或這裡皆可 -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="~/js/reportform/bundle-report-time.min.js"></script>
-
+	<script src="~/js/reportform/time-format.js"></script>
+	<script src="~/js/reportform/week-select-generate.js"></script>
     <!-- 新增的卡片初始化腳本（見下一節） -->
 	<script src="~/js/reportform/reportchartcard.init.js"></script>
 }

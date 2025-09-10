@@ -40,7 +40,7 @@ function formatDate(date) {
 //data型別為FormData
 function collectFormData(root, formData) {
     let timeUnit = root.querySelector(".timeUnit").value;
-    formData.append(".timeUnit", unit);
+    formData.append("TimeUnit", timeUnit);
 
     let start;
     let end;
