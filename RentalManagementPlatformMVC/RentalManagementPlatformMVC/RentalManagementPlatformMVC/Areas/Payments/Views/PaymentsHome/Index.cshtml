@@ -33,20 +33,20 @@
         ["SortBy"] = Model.Criteria?.SortBy,
         ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
     };
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
 }
-
-<style>
-    .page-title {
-        font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        color: #34495e;
-    }
-
-    .card-title {
-        font-weight: bold;
-    }
-</style>
 
 <!-- 頁面標題 -->
 <div class="content-header mt-3">
@@ -61,6 +61,26 @@
 
 <section class="content">
     <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "guest" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="PaymentsHome"
+                   asp-action="Index">
+                    <i class="fa-regular fa-user"></i> 房客帳務
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="HostPayoutHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-house-user"></i> 房東出款
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
 
         <!-- 搜尋條件卡片 Start -->
         <div class="card card-primary card-outline mb-3">
@@ -146,20 +166,23 @@
 
                     <!-- 按鈕 -->
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">搜尋</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
                         <a class="btn btn-outline-secondary"
                            asp-area="Payments"
                            asp-controller="PaymentsHome"
-                           asp-action="Index">重設</a>
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right"></i>重設
+                       </a>
                     </div>
                 </form>
             </div>
         </div>
         <!-- 搜尋條件卡片 End -->
+
         <!-- 帳務列表卡片 Start -->
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">帳務列表</h3>
+                <h3 class="card-title">房客帳務列表</h3>
             </div>
 
             <div class="card-body p-0">
@@ -204,18 +227,17 @@
                                         <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>
                                             <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
-                                                                                                                                                                            item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                                                                                                                                            item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                                                                                                                                            item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
-                                        @item.DisplayStatus
-                                    </span>
-                                </td>
-                                <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td>
-                                    <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
-                                </td>
-                            </tr>
-                                                        index++;
+                                                                           item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                           item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">@item.DisplayStatus
+                                            </span>
+                                        </td>
+                                        <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
                                 }
                             }
                             else
@@ -241,6 +263,7 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
                             匯出 Excel
                         </a>
                         <a class="btn btn-outline-primary btn-sm"
@@ -250,6 +273,7 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
                     </div>

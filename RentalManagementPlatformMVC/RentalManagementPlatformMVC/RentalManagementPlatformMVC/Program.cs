@@ -35,6 +35,8 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IBookingService, BookingService>();
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
+			builder.Services.AddScoped<IHostPayoutRepository, HostPayoutRepository>();
+			builder.Services.AddScoped<IHostPayoutService, HostPayoutService>();
 
 			var app = builder.Build();
 

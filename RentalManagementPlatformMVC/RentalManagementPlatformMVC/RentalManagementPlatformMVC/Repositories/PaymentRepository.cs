@@ -39,7 +39,7 @@ namespace RentalManagementPlatformMVC.Repositories
 		{
 			return await _context.Payments
 				.AsNoTracking()
-				.Include(p => p.PaymentTransactions) // ✅ 詳細頁才抓交易集合
+				.Include(p => p.PaymentTransactions)  // 詳細頁才抓交易集合
 				.Include(p => p.Booking).ThenInclude(b => b.Guest)
 				.Include(p => p.Booking).ThenInclude(b => b.Room)
 				.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
@@ -50,7 +50,7 @@ namespace RentalManagementPlatformMVC.Repositories
 		/// </summary>
 		public async Task<(IEnumerable<Payment>, int)> SearchPaymentsAsync(PaymentSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
-			// 基底查詢（❌ 不要 Include PaymentTransactions，避免乘出）
+			// 基底查詢
 			var query = _context.Payments
 				.AsNoTracking()
 				.Include(p => p.Booking).ThenInclude(b => b.Guest)

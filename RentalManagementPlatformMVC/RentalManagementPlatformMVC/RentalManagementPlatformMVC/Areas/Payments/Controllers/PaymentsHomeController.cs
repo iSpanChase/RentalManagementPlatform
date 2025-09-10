@@ -65,6 +65,7 @@ namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 				Criteria = criteria
 			};
 
+			ViewData["ActiveTab"] = "guest";
 			return View(vm);
 		}
 

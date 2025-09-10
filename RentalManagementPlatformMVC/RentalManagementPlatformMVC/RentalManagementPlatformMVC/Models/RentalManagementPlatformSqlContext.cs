@@ -436,6 +436,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			entity.Property(e => e.Status)
 				.HasMaxLength(512)
 				.HasColumnName("status");
+
+			// User 一對多關聯
+			entity.HasOne(e => e.Host)
+				  .WithMany(e => e.HostPayouts)
+				  .HasForeignKey(e => e.HostId)
+				  .HasConstraintName("FK_HOSTPAYOUT_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
 		});
 
 		modelBuilder.Entity<HostPayoutItem>(entity =>
@@ -833,11 +840,12 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("title");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
 
-			// 加關聯設定
-			entity.HasOne(e => e.Host)                      // RoomList 有一個 Host
-				  .WithMany(e => e.RoomLists)                 // Host 有很多 RoomList
-				  .HasForeignKey(e => e.HostId)             // FK 是 Booking.GuestId
-				  .HasConstraintName("FK_ROOMLIST_USER");     // FK 名稱可自訂
+			// User一對多關聯
+			entity.HasOne(e => e.Host)                      
+				  .WithMany(e => e.RoomLists)                 
+				  .HasForeignKey(e => e.HostId)             
+				  .HasConstraintName("FK_ROOMLIST_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
 		});
 
 		modelBuilder.Entity<RoomPhoto>(entity =>
