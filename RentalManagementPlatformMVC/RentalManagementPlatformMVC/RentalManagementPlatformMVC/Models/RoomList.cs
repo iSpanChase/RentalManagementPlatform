@@ -27,9 +27,9 @@ public partial class RoomList
 
     public virtual Address? Address { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    //public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
-    public virtual User? Host { get; set; }
+    //public virtual User? Host { get; set; }
 
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 

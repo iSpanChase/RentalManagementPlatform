@@ -21,5 +21,5 @@ public partial class PaymentTransaction
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual Payment? Payment { get; set; }
+    //public virtual Payment? Payment { get; set; }
 }
