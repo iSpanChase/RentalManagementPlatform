@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
-using RentalManagementPlatformMVC.Areas.Management.Repository;
-using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Services;
-using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
@@ -18,26 +14,11 @@ namespace RentalManagementPlatformMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
 			// Identity 用的 Context（連線字串用 DefaultConnection）
-			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
-
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
-			//service註冊
-			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
-			builder.Services.AddScoped<CouponCommandService>();
-
-			//repository註冊
-			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
-			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
-
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
@@ -53,12 +34,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-			builder.Services.AddControllersWithViews();
-			//var app = builder.Build();
-
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
