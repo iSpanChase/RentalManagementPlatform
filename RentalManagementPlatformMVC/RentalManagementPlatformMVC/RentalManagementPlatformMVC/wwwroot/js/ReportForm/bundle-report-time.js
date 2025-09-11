@@ -1,15 +1,15 @@
-function generateWeeksSelect() {
+function generateWeeksSelect(root) {
     // 初始化
-    $("#startWeekYear").on("change", function () {
-        fillWeekSelect($(this).val(), $("#startWeekWeek"));
+    root.querySelector(".startWeekYear").addEventListener("change", function () {
+        fillWeekSelect(this.value, root.querySelector(".startWeekWeek"));
     });
-    $("#endWeekYear").on("change", function () {
-        fillWeekSelect($(this).val(), $("#endWeekWeek"));
+    root.querySelector(".endWeekYear").addEventListener("change", function () {
+        fillWeekSelect(this.value, root.querySelector(".endWeekWeek"));
     });
 
     // 預設先填當前年份
-    fillWeekSelect($("#startWeekYear").val(), $("#startWeekWeek"));
-    fillWeekSelect($("#endWeekYear").val(), $("#endWeekWeek"));
+    fillWeekSelect(root.querySelector(".startWeekYear").value, root.querySelector(".startWeekWeek"));
+    fillWeekSelect(root.querySelector(".endWeekYear").value, root.querySelector(".endWeekWeek"));
 }
 
 function generateWeeksByYear(year) {
@@ -48,9 +48,12 @@ function generateWeeksByYear(year) {
 // 填充到 select
 function fillWeekSelect(year, select) {
     let weeks = generateWeeksByYear(year);
-    select.empty();
+    select.options.length = 0;
     weeks.forEach(w => {
-        select.append(new Option(w.text, w.value));
+        let newOption = document.createElement('option');
+        newOption.value = w.value;
+        newOption.textContent = w.text;
+        select.appendChild(newOption);
     });
 }
 
@@ -94,38 +97,38 @@ function formatDate(date) {
 }
 
 //為傳入的FormData添加使用者填入的時間資訊
+// 取得一張卡的欄位值 → 封裝你的 formDataAppendTime() 邏輯
 //data型別為FormData
-function formDataAppendTime(data) {
-    let timeUnit = $("#timeUnit").val();
-    data.append("TimeUnit", timeUnit);
+function collectFormData(root, formData) {
+    let timeUnit = root.querySelector(".timeUnit").value;
+    formData.append("TimeUnit", timeUnit);
 
     let start;
     let end;
     switch (timeUnit) {
         case "day":
-            start = $("#startDate").val();
-            end = $("#endDate").val();
+            start = root.querySelector(".startDate").value;
+            end = root.querySelector(".endDate").value;
             break;
         case "week":
-            start = formatDate(firstWeekOfYear(parseInt($("#startWeekYear").val())).addDays(7 * ($("#startWeekWeek").val() - 1)));
-            end = formatDate(firstWeekOfYear(parseInt($("#endWeekYear").val())).addDays(7 * ($("#endWeekWeek").val() - 1)));
+            start = formatDate(firstWeekOfYear(parseInt(root.querySelector(".startWeekYear").value)).addDays(7 * (root.querySelector(".startWeekWeek").value - 1)));
+            end = formatDate(firstWeekOfYear(parseInt(root.querySelector(".endWeekYear").value)).addDays(7 * (root.querySelector(".endWeekWeek").value - 1)));
             break;
         case "month":
-            start = formatDateNumber($("#startMonthYear").val(), $("#startMonthMonth").val(), 1);
-            end = formatDateNumber($("#endMonthYear").val(), $("#endMonthMonth").val(), 1);
+            start = formatDateNumber(root.querySelector(".startMonthYear").value, root.querySelector(".startMonthMonth").value, 1);
+            end = formatDateNumber(root.querySelector(".endMonthYear").value, root.querySelector(".endMonthMonth").value, 1);
             break;
         case "quarter":
-            start = formatDateNumber($("#startQuarterYear").val(), $("#startQuarterQuarter").val() * 3 - 2, 1);
-            end = formatDateNumber($("#endQuarterYear").val(), $("#endQuarterQuarter").val() * 3 - 2, 1);
+            start = formatDateNumber(root.querySelector(".startQuarterYear").value, root.querySelector(".startQuarterQuarter").value * 3 - 2, 1);
+            end = formatDateNumber(root.querySelector(".endQuarterYear").value, root.querySelector(".endQuarterQuarter").value * 3 - 2, 1);
             break;
         case "year":
-            start = formatDateNumber($("#startYearInput").val(), 1, 1);
-            end = formatDateNumber($("#endYearInput").val(), 1, 1);
+            start = formatDateNumber(root.querySelector(".startYearInput").value, 1, 1);
+            end = formatDateNumber(root.querySelector(".endYearInput").value, 1, 1);
             break;
     }
+    formData.append("Start", start);
+    formData.append("End", end);
 
-    data.append("Start", start);
-    data.append("End", end);
-
-    return data;
+    return formData;
 }

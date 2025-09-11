@@ -4,18 +4,11 @@
 <div class="modal-header border-0">
     <div class="d-flex flex-column">
         <div class="fs-5 fw-semibold">訂單詳細資料</div>
-        <div class="text-secondary small">訂單編號：<span class="fw-semibold">@Model.OrderNumber</span></div>
+        <div class="text-secondary small">
+            訂單編號：<span class="fw-semibold">@Model.OrderNumber</span>
+        </div>
     </div>
-
-    @{
-        var status = (Model.Status ?? "").ToLower();
-
-        var commissionText = Model.CommissionRateSnapshot.HasValue
-        ? (Model.CommissionRateSnapshot.Value > 1
-        ? $"{Model.CommissionRateSnapshot:P0}"
-        : $"{Model.CommissionRateSnapshot:P0}")
-        : "-";
-    }
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 
 <!-- Body -->
@@ -97,9 +90,6 @@
 
                     <div class="col-5 text-secondary">房東姓名</div>
                     <div class="col-7 fw-medium">@(Model.HostName)</div>
-
-                    <div class="col-5 text-secondary">房東抽成</div>
-                    <div class="col-7 fw-medium">@commissionText</div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,113 @@
+﻿(function () {
+    const ns = (window.ReportConfig = window.ReportConfig || {});
+    const _registry = new Map();
+
+    /**
+     * 註冊一個報表
+     * @param {string} id - 唯一 ID
+     * @param {{
+     *   title: string,
+     *   defaultType?: 'bar'|'line'|'pie',
+     *   base: string,
+     *   endpoint: string,
+     *   buildFilterUI?: (container:HTMLElement)=>void,
+     *   serializeFilters?: (container:HTMLElement, fd:FormData)=>void
+     * }} def
+     */
+    ns.register = function (id, def) {
+        _registry.set(id, def);
+    };
+
+    ns.get = function (id) {
+        return _registry.get(id);
+    };
+
+    /**
+     * 將所有註冊的報表塞到下拉，並在切換時渲染對應的篩選 UI
+     */
+    ns.initControls = function ({
+        reportSelect = '#globalReportId',
+        filterPanel = '#reportFilterPanel'
+    } = {}) {
+        const sel = document.querySelector(reportSelect);
+        const panel = document.querySelector(filterPanel);
+        if (!sel || !panel) return;
+
+        // 產生 options
+        sel.innerHTML = '';
+        for (const [id, def] of _registry.entries()) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = def.title;
+            sel.appendChild(opt);
+        }
+
+        // 渲染當前選擇的篩選 UI
+        const render = () => {
+            const id = sel.value;
+            const def = _registry.get(id);
+            panel.innerHTML = '';
+            if (def?.buildFilterUI) {
+                def.buildFilterUI(panel);
+            }
+            // 若報表定義了預設圖表型別，就覆寫外部的圖表型別選擇器
+            if (def?.defaultType) {
+                const typeSel = document.querySelector('#globalReportType');
+                if (typeSel) typeSel.value = def.defaultType;
+            }
+        };
+
+        sel.addEventListener('change', render);
+        render(); // 初次渲染
+    };
+
+    /**
+     * 將目前顯示在 filterPanel 的篩選值序列化進 FormData
+     */
+    ns.collectFilters = function ({
+        filterPanel = '#reportFilterPanel'
+    } = {}) {
+        const panel = document.querySelector(filterPanel);
+        const fd = new FormData();
+        const currentId = document.querySelector('#globalReportId')?.value;
+        if (!currentId) return fd;
+
+        const def = _registry.get(currentId);
+        fd.append('ReportId', currentId);
+        if (def?.serializeFilters) {
+            def.serializeFilters(panel, fd);
+        }
+        return fd;
+    };
+
+
+    // 1) 訂單營收趨勢，可依城市過濾
+    // 小工具：安全抓 JSON + 填充 select
+    ns._fetchJSON = async function _fetchJSON(url) {
+        const resp = await fetch(url, {
+            method: 'GET'
+        });
+        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+        return await resp.json();
+    }
+
+    ns._fillSelect = function _fillSelect(select, items, {
+        includeAll = true,
+        allText = '(全部)',
+        allValue = ''
+    } = {}) {
+        select.innerHTML = '';
+        if (includeAll) {
+            const opt = document.createElement('option');
+            opt.value = allValue;
+            opt.textContent = allText;
+            select.appendChild(opt);
+        }
+        for (const it of items) {
+            const opt = document.createElement('option');
+            opt.value = it.id;      // 以 id 作為 value
+            opt.textContent = it.name;
+            select.appendChild(opt);
+        }
+    }
+})();

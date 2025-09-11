@@ -1,0 +1,83 @@
+﻿@model List<RentalManagementPlatformMVC.Areas.FAQ.ViewModels.CategoryVM>
+@{
+    ViewData["Title"] = "FAQ 一覽";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">FAQ 分類</h2>
+    <a class="btn btn-primary" asp-area="FAQ" asp-controller="FaqArticles" asp-action="Create">新增文章</a>
+</div>
+
+<div class="accordion" id="catAccordion">
+    @foreach (var cat in Model)
+    {
+        var collapseId = $"collapse-cat-{cat.CategoryId}";
+        var headingId = $"heading-cat-{cat.CategoryId}";
+        <div class="accordion-item mb-2 shadow-sm">
+            <h2 class="accordion-header" id="@headingId">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#@collapseId"
+                        aria-expanded="false"
+                        aria-controls="@collapseId"
+                        data-category-id="@cat.CategoryId">
+                    @cat.Name
+                    <span class="badge bg-secondary ms-2">@cat.ArticleCount</span>
+                </button>
+            </h2>
+            <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#catAccordion">
+                <div class="accordion-body">
+                    <div class="articles-placeholder" data-category-id="@cat.CategoryId">
+                        <div class="text-muted small">展開時載入文章…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="feedbackModalLabel">文章回饋</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="feedbackModalBody">
+                <div class="text-center text-muted py-5">載入中…</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 展開分類時，動態載入文章列表（只載一次）
+        document.getElementById('catAccordion').addEventListener('shown.bs.collapse', function (e) {
+            const pane = e.target; // .accordion-collapse
+            const holder = pane.querySelector('.articles-placeholder');
+            if (!holder || holder.dataset.loaded === "1") return;
+
+            const catId = holder.dataset.categoryId;
+            $.get('@Url.Action("ArticlesByCategory", "FaqBrowse", new { area = "FAQ" })', { id: catId })
+             .done(html => {
+                holder.innerHTML = html;
+                holder.dataset.loaded = "1";
+             })
+             .fail(() => holder.innerHTML = '<div class="text-danger">載入失敗</div>');
+        });
+
+        // 點擊「回饋」按鈕，開 Modal 讀 feedback
+        $(document).on('click', '.btn-feedback', function () {
+            const articleId = $(this).data('article-id');
+            $('#feedbackModalBody').html('<div class="text-center text-muted py-5">載入中…</div>');
+            const url = '@Url.Action("FeedbackByArticle", "FaqBrowse", new { area = "FAQ" })';
+            $.get(url, { articleId })
+              .done(html => $('#feedbackModalBody').html(html))
+              .fail(() => $('#feedbackModalBody').html('<div class="text-danger">讀取失敗</div>'));
+            const modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            modal.show();
+        });
+    </script>
+}
