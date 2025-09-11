@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Areas\Roles\Controllers\" />
-    <Folder Include="Areas\Roles\RolesRepositories\" />
     <Folder Include="Areas\Roles\RolesServices\" />
     <Folder Include="Areas\Roles\ViewModels\" />
     <Folder Include="Areas\Roles\Views\RolesManagement\" />

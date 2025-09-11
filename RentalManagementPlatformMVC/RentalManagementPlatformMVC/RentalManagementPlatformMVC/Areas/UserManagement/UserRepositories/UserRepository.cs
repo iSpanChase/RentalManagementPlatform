@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformMVC.Repositories;
 using UserEntity = RentalManagementPlatformMVC.Models.User;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories

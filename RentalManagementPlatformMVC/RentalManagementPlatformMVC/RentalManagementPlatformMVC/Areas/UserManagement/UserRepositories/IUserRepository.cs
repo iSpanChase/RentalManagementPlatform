@@ -1,4 +1,4 @@
-﻿using RentalManagementPlatformMVC.Repositories;
+﻿using RentalManagementPlatformMVC.CommonRepos;
 using UserEntity = RentalManagementPlatformMVC.Models.User;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
@@ -9,7 +9,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 	public interface IUserRepository : IRepository<UserEntity>
 	{
 		/// <summary>
-		/// 依帳號取得使用者（可能為 null）。
+		/// 依帳號取得使用者
 		/// </summary>
 		Task<UserEntity?> GetByUsernameAsync(string username);
 
