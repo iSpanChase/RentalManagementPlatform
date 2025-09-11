@@ -18,10 +18,11 @@ curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorizati
 
 curl.exe -X PUT "http://127.0.0.1:7700/indexes/rooms/settings/synonyms" -H "Authorization: Bearer 你的apikey" -H "Content-Type: application/json" --data-binary "@synonyms.json"
 
+在appsettings加入連線字串
 
-
-
-
-
+"Meilisearch": {
+    "Url": "http://127.0.0.1:7700",
+    "ApiKey": "你的apikey"
+  },
 
 
