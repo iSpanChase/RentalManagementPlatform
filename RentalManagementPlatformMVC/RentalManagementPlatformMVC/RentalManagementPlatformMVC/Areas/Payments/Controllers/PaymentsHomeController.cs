@@ -22,6 +22,10 @@ namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 		/// <summary>
 		/// 付款首頁控制器，負責處理付款相關的列表顯示、搜尋、詳細資料查看及匯出功能
 		/// </summary>
+		/// <param name="criteria">付款搜尋條件物件，包含各種篩選參數如訂單編號、付款參考號、狀態等</param>
+		/// <param name="pageIndex">目前頁面索引，預設為第1頁</param>
+		/// <param name="pageSize">每頁顯示的付款記錄數量，預設為20筆</param>
+		/// <returns>返回包含付款清單資料的檢視結果，若有篩選或排序條件則使用搜尋結果，否則使用預設分頁資料</returns>
 		[HttpGet]
 		public async Task<IActionResult> Index([FromQuery] PaymentSearchCriteriaDto criteria, int pageIndex = 1, int pageSize = 20)
 		{
@@ -65,6 +69,7 @@ namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 				Criteria = criteria
 			};
 
+			ViewData["ActiveTab"] = "guest";
 			return View(vm);
 		}
 

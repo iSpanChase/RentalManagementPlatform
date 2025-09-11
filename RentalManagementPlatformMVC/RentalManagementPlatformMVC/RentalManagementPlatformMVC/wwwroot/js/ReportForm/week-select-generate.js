@@ -1,15 +1,15 @@
-﻿function generateWeeksSelect() {
+﻿function generateWeeksSelect(root) {
     // 初始化
-    $("#startWeekYear").on("change", function () {
-        fillWeekSelect($(this).val(), $("#startWeekWeek"));
+    root.querySelector(".startWeekYear").addEventListener("change", function () {
+        fillWeekSelect(this.value, root.querySelector(".startWeekWeek"));
     });
-    $("#endWeekYear").on("change", function () {
-        fillWeekSelect($(this).val(), $("#endWeekWeek"));
+    root.querySelector(".endWeekYear").addEventListener("change", function () {
+        fillWeekSelect(this.value, root.querySelector(".endWeekWeek"));
     });
 
     // 預設先填當前年份
-    fillWeekSelect($("#startWeekYear").val(), $("#startWeekWeek"));
-    fillWeekSelect($("#endWeekYear").val(), $("#endWeekWeek"));
+    fillWeekSelect(root.querySelector(".startWeekYear").value, root.querySelector(".startWeekWeek"));
+    fillWeekSelect(root.querySelector(".endWeekYear").value, root.querySelector(".endWeekWeek"));
 }
 
 function generateWeeksByYear(year) {
@@ -48,9 +48,12 @@ function generateWeeksByYear(year) {
 // 填充到 select
 function fillWeekSelect(year, select) {
     let weeks = generateWeeksByYear(year);
-    select.empty();
+    select.options.length = 0;
     weeks.forEach(w => {
-        select.append(new Option(w.text, w.value));
+        let newOption = document.createElement('option');
+        newOption.value = w.value;
+        newOption.textContent = w.text;
+        select.appendChild(newOption);
     });
 }
 
