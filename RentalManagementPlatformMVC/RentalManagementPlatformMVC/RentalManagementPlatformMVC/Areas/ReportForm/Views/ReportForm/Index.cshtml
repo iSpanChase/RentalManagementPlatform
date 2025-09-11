@@ -1,4 +1,5 @@
 ﻿@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels
+@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Query
 
 @{
     var startDate = DateTime.Today.AddDays(-7).ToString("yyyy-MM-dd");
@@ -6,7 +7,7 @@
 }
 
 @{
-    var cards = new List<ReportChartCardViewModel>
+    var cards = new List<BookingRevenueTrendQuery>
     {
     };
 }
