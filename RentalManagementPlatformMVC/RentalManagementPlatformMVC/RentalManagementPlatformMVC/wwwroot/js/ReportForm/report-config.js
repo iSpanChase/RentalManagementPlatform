@@ -83,7 +83,7 @@
 
     // 1) 訂單營收趨勢，可依城市過濾
     // 小工具：安全抓 JSON + 填充 select
-    async function _fetchJSON(url) {
+    ns._fetchJSON = async function _fetchJSON(url) {
         const resp = await fetch(url, {
             method: 'GET'
         });
@@ -91,7 +91,7 @@
         return await resp.json();
     }
 
-    function _fillSelect(select, items, {
+    ns._fillSelect = function _fillSelect(select, items, {
         includeAll = true,
         allText = '(全部)',
         allValue = ''
@@ -110,126 +110,4 @@
             select.appendChild(opt);
         }
     }
-
-    // 1) 訂單營收趨勢（折線圖）— 縣市/鄉區連動
-    ns.register('BookingRevenueTrend', {
-        title: '訂單營收趨勢',
-        defaultType: 'line',
-        base: '/ReportForm/ReportForm/',
-        endpoint: 'BookingRevenueTrend',
-
-        buildFilterUI(container) {
-            container.innerHTML = `
-      <div class="filter-row">
-        <label>縣/市：</label>
-        <select class="f-city"></select>
-        <label>鄉/區：</label>
-        <select class="f-district" disabled></select>
-        <label>訂單狀態：</label>
-        <select class="f-status" multiple>
-          <option value="Cancelled">已取消</option>
-          <option value="Pending">待確認</option>
-          <option value="Confirmed">已確認</option>
-          <option value="Completed">已完成</option>
-        </select>
-      </div>
-    `;
-
-            const citySel = container.querySelector('.f-city');
-            const distSel = container.querySelector('.f-district');
-
-            // 初始：載入所有縣市
-            (async () => {
-                try {
-                    const cities = await _fetchJSON('/ReportForm/ReportForm/Cities');
-                    _fillSelect(citySel, cities, { includeAll: true, allText: '(全部)', allValue: '' });
-
-                    // 如果預設沒有選擇城市 => 保持鄉/區 disabled
-                    distSel.innerHTML = '';
-                    const emptyOpt = document.createElement('option');
-                    emptyOpt.value = '';
-                    emptyOpt.textContent = '(先選縣/市)';
-                    distSel.appendChild(emptyOpt);
-                    distSel.disabled = true;
-                } catch (e) {
-                    console.error(e);
-                    _fillSelect(citySel, [], { includeAll: true });
-                    distSel.innerHTML = '<option value="">(載入失敗)</option>';
-                    distSel.disabled = true;
-                }
-            })();
-
-            // 當選擇城市後，動態載入鄉區
-            citySel.addEventListener('change', async () => {
-                const cityId = citySel.value;
-                if (!cityId) {
-                    // 清空並鎖住鄉區
-                    distSel.innerHTML = '';
-                    const tip = document.createElement('option');
-                    tip.value = '';
-                    tip.textContent = '(先選縣/市)';
-                    distSel.appendChild(tip);
-                    distSel.disabled = true;
-                    return;
-                }
-
-                try {
-                    distSel.disabled = true;
-                    distSel.innerHTML = '<option value="">(載入中...)</option>';
-                    const districts = await _fetchJSON(`/ReportForm/ReportForm/Districts?cityId=${encodeURIComponent(cityId)}`);
-                    _fillSelect(distSel, districts, { includeAll: true, allText: '(全部)', allValue: '' });
-                    distSel.disabled = false;
-                } catch (e) {
-                    console.error(e);
-                    distSel.innerHTML = '<option value="">(載入失敗)</option>';
-                    distSel.disabled = true;
-                }
-            });
-        },
-
-        // 修正：送出 id，而不是 name；而且要抓對元素
-        serializeFilters(container, fd) {
-            const cityId = container.querySelector('.f-city')?.value || '';
-            const districtId = container.querySelector('.f-district')?.value || '';
-            let status = container.querySelector('.f-status')?.selectedOptions;
-            status = container.querySelector('.f-status')?.selectedOptions;
-            status = Array.from(status).map(({ value }) => value);
-            fd.append('CityId', cityId);
-            fd.append('DistrictId', districtId);
-            fd.append('Status', status);
-        }
-    });
-
-    // 2) 訂單狀態占比（圓餅圖），可選要不要含取消訂單
-    ns.register('bookingStatusPie', {
-        title: '訂單狀態占比',
-        defaultType: 'pie',
-        base: '/ReportForm/ReportForm/',
-        endpoint: 'GetBookingStatusPie',
-        buildFilterUI(container) {
-            container.innerHTML = `
-        <div class="filter-row">
-          <label>狀態（可多選）：</label>
-          <select multiple class="f-statuses">
-            <option value="confirmed">已確認</option>
-            <option value="pending">待確認</option>
-            <option value="checkedin">已入住</option>
-            <option value="checkedout">已退房</option>
-            <option value="canceled">已取消</option>
-          </select>
-
-          <label class="ml-2">
-            <input type="checkbox" class="f-includeCanceled" />
-            計入取消訂單
-          </label>
-        </div>
-      `;
-        },
-        serializeFilters(container, fd) {
-            const statuses = Array.from(container.querySelector('.f-statuses')?.selectedOptions || []).map(o => o.value);
-            fd.append('Statuses', JSON.stringify(statuses));
-            fd.append('IncludeCanceled', container.querySelector('.f-includeCanceled')?.checked ? 'true' : 'false');
-        }
-    });
-
 })();
