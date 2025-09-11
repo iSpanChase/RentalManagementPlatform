@@ -80,38 +80,123 @@
         return fd;
     };
 
-    // ========= 以下示範兩種報表 =========
 
-    // 1) 訂單營收趨勢（折線圖），可依房型與城市過濾
-    ns.register('revenueByRoom', {
-        title: '訂單營收趨勢（房型/城市）',
+    // 1) 訂單營收趨勢，可依城市過濾
+    // 小工具：安全抓 JSON + 填充 select
+    async function _fetchJSON(url) {
+        const resp = await fetch(url, {
+            method: 'GET'
+        });
+        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+        return await resp.json();
+    }
+
+    function _fillSelect(select, items, {
+        includeAll = true,
+        allText = '(全部)',
+        allValue = ''
+    } = {}) {
+        select.innerHTML = '';
+        if (includeAll) {
+            const opt = document.createElement('option');
+            opt.value = allValue;
+            opt.textContent = allText;
+            select.appendChild(opt);
+        }
+        for (const it of items) {
+            const opt = document.createElement('option');
+            opt.value = it.id;      // 以 id 作為 value
+            opt.textContent = it.name;
+            select.appendChild(opt);
+        }
+    }
+
+    // 1) 訂單營收趨勢（折線圖）— 縣市/鄉區連動
+    ns.register('BookingRevenueTrend', {
+        title: '訂單營收趨勢',
         defaultType: 'line',
         base: '/ReportForm/ReportForm/',
-        endpoint: 'GetRevenueTrend', // 你後端可對應這個 action
+        endpoint: 'BookingRevenueTrend',
+
         buildFilterUI(container) {
             container.innerHTML = `
-        <div class="filter-row">
-          <label>房型：</label>
-          <select class="f-roomType">
-            <option value="">(全部)</option>
-            <option value="single">單人房</option>
-            <option value="double">雙人房</option>
-            <option value="family">家庭房</option>
-          </select>
+      <div class="filter-row">
+        <label>縣/市：</label>
+        <select class="f-city"></select>
+        <label>鄉/區：</label>
+        <select class="f-district" disabled></select>
+        <label>訂單狀態：</label>
+        <select class="f-status" multiple>
+          <option value="Cancelled">已取消</option>
+          <option value="Pending">待確認</option>
+          <option value="Confirmed">已確認</option>
+          <option value="Completed">已完成</option>
+        </select>
+      </div>
+    `;
 
-          <label>城市：</label>
-          <select class="f-city">
-            <option value="">(全部)</option>
-            <option value="taipei">台北</option>
-            <option value="taoyuan">桃園</option>
-            <option value="hsinchu">新竹</option>
-          </select>
-        </div>
-      `;
+            const citySel = container.querySelector('.f-city');
+            const distSel = container.querySelector('.f-district');
+
+            // 初始：載入所有縣市
+            (async () => {
+                try {
+                    const cities = await _fetchJSON('/ReportForm/ReportForm/Cities');
+                    _fillSelect(citySel, cities, { includeAll: true, allText: '(全部)', allValue: '' });
+
+                    // 如果預設沒有選擇城市 => 保持鄉/區 disabled
+                    distSel.innerHTML = '';
+                    const emptyOpt = document.createElement('option');
+                    emptyOpt.value = '';
+                    emptyOpt.textContent = '(先選縣/市)';
+                    distSel.appendChild(emptyOpt);
+                    distSel.disabled = true;
+                } catch (e) {
+                    console.error(e);
+                    _fillSelect(citySel, [], { includeAll: true });
+                    distSel.innerHTML = '<option value="">(載入失敗)</option>';
+                    distSel.disabled = true;
+                }
+            })();
+
+            // 當選擇城市後，動態載入鄉區
+            citySel.addEventListener('change', async () => {
+                const cityId = citySel.value;
+                if (!cityId) {
+                    // 清空並鎖住鄉區
+                    distSel.innerHTML = '';
+                    const tip = document.createElement('option');
+                    tip.value = '';
+                    tip.textContent = '(先選縣/市)';
+                    distSel.appendChild(tip);
+                    distSel.disabled = true;
+                    return;
+                }
+
+                try {
+                    distSel.disabled = true;
+                    distSel.innerHTML = '<option value="">(載入中...)</option>';
+                    const districts = await _fetchJSON(`/ReportForm/ReportForm/Districts?cityId=${encodeURIComponent(cityId)}`);
+                    _fillSelect(distSel, districts, { includeAll: true, allText: '(全部)', allValue: '' });
+                    distSel.disabled = false;
+                } catch (e) {
+                    console.error(e);
+                    distSel.innerHTML = '<option value="">(載入失敗)</option>';
+                    distSel.disabled = true;
+                }
+            });
         },
+
+        // 修正：送出 id，而不是 name；而且要抓對元素
         serializeFilters(container, fd) {
-            fd.append('RoomType', container.querySelector('.f-roomType')?.value || '');
-            fd.append('City', container.querySelector('.f-city')?.value || '');
+            const cityId = container.querySelector('.f-city')?.value || '';
+            const districtId = container.querySelector('.f-district')?.value || '';
+            let status = container.querySelector('.f-status')?.selectedOptions;
+            status = container.querySelector('.f-status')?.selectedOptions;
+            status = Array.from(status).map(({ value }) => value);
+            fd.append('CityId', cityId);
+            fd.append('DistrictId', districtId);
+            fd.append('Status', status);
         }
     });
 
