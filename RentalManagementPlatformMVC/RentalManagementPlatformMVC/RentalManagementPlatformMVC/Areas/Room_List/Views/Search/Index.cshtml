@@ -1,0 +1,56 @@
+@using RentalManagementPlatformMVC.Areas.Room_List.Models
+@model IEnumerable<RoomListSearchDto>
+
+@{
+    ViewData["Title"] = "Search Rooms";
+    var currentQuery = ViewData["CurrentQuery"] as string;
+}
+
+<h1>Search Rooms</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-area="Room_List" asp-controller="Search" asp-action="Index" method="get">
+            <div class="input-group mb-3">
+                <input type="search" name="query" class="form-control" placeholder="Enter keywords..." value="@currentQuery" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+@if (!string.IsNullOrWhiteSpace(currentQuery))
+{
+    <h3>Results for "@currentQuery"</h3>
+
+    @if (Model.Any())
+    {
+        <div class="list-group">
+            @foreach (var room in Model)
+            {
+                <div class="list-group-item mb-3">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">@room.Title</h5>
+                        <div>
+                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Details" asp-route-id="@room.RoomId" class="btn btn-outline-info btn-sm">Details</a>
+                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Edit" asp-route-id="@room.RoomId" class="btn btn-outline-primary btn-sm">Edit</a>
+                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Delete" asp-route-id="@room.RoomId" class="btn btn-outline-danger btn-sm">Delete</a>
+                        </div>
+                    </div>
+                    <p class="mb-1">@room.Description</p>
+                    <small><strong>City:</strong> @room.CityName | <strong>District:</strong> @room.DistrictName</small><br/>
+                    <small><strong>Price:</strong> @(room.PricePerNight?.ToString("C") ?? "") / night</small><br/>
+                    <small class="text-muted"><strong>Room ID:</strong> @room.RoomId | <strong>Host:</strong> @room.HostName</small>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No results found.</p>
+    }
+}

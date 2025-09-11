@@ -25,17 +25,17 @@ namespace RentalManagementPlatformMVC.Controllers
 			return View();
 		}
 
-        public IActionResult TestDb()
+        /*public IActionResult TestDb()
         {
             if (_context.Database.CanConnect())
             {
-                return Content("³s½u¦¨¥\!");
+                return Content("ï¿½sï¿½uï¿½ï¿½ï¿½\!");
             }
             else
             {
-                return Content("³s½u¥¢±Ñ!");
+                return Content("ï¿½sï¿½uï¿½ï¿½ï¿½ï¿½!");
 			}
-		}
+		}*/
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
