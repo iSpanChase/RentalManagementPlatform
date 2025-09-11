@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
+namespace RentalManagementPlatformMVC.Repositories
 {
 	/// <summary>
 	/// 泛型資料介面。提供最基本的新增/更新/刪除與查詢能力。

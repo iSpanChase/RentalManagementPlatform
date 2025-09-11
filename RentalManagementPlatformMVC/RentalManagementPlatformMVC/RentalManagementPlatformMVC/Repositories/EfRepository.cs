@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Repositories

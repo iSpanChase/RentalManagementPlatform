@@ -1,4 +1,5 @@
-﻿using UserEntity = RentalManagementPlatformMVC.Models.User;
+﻿using RentalManagementPlatformMVC.Repositories;
+using UserEntity = RentalManagementPlatformMVC.Models.User;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 {

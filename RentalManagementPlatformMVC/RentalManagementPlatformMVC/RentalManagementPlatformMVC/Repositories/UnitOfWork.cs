@@ -1,6 +1,6 @@
 ﻿using RentalManagementPlatformMVC.Models;
 
-namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
+namespace RentalManagementPlatformMVC.Repositories
 {
 	/// <summary>
 	/// EF Core 工作單元實作。

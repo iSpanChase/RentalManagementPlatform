@@ -1,4 +1,4 @@
-﻿namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
+﻿namespace RentalManagementPlatformMVC.Repositories
 {
 	/// <summary>
 	/// 工作單元，負責提交資料變更的交易界線。

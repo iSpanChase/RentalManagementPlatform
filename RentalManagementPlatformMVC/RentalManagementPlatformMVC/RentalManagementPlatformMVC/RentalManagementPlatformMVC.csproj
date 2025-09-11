@@ -21,9 +21,10 @@
 
   <ItemGroup>
     <Folder Include="Areas\Roles\Controllers\" />
-    <Folder Include="Areas\Roles\Data\" />
-    <Folder Include="Areas\Roles\Models\" />
-    <Folder Include="Areas\Roles\Views\" />
+    <Folder Include="Areas\Roles\RolesRepositories\" />
+    <Folder Include="Areas\Roles\RolesServices\" />
+    <Folder Include="Areas\Roles\ViewModels\" />
+    <Folder Include="Areas\Roles\Views\RolesManagement\" />
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
 
     <Folder Include="Areas\Management\Data\" />

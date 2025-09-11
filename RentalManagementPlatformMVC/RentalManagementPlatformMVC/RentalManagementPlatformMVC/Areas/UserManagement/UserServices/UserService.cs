@@ -3,6 +3,7 @@ using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformMVC.Repositories;
 using UserEntity = RentalManagementPlatformMVC.Models.User;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
