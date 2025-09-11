@@ -19,5 +19,8 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.ViewModels
 		public int Total { get; set; }
 		/// <summary>總頁數（依總筆數動態計算）。</summary>
 		public int TotalPages => Total <= 0 ? 1 : (int)Math.Ceiling(Total / (double)PageSize);
+		public string? SortBy { get; set; } = "CreatedAt"; // id/username/name/email/createdAt
+		public string? SortDir { get; set; } = "desc";     // asc/desc
+		public UserFilterVm Filter { get; set; } = new();
 	}
 }

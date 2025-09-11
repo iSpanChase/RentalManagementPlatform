@@ -3,79 +3,89 @@
     ViewData["Title"] = "新增使用者";
 }
 
-<div class="container-fluid">
-    <h2 class="my-3">新增使用者</h2>
-</div>
-
-<div class="container-fluid">
-    <form asp-area="UserManagement" asp-controller="UserManagement" asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">帳號</label>
-                    <input class="form-control" asp-for="Username" />
-                    <span class="text-danger" asp-validation-for="Username"></span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">姓名</label>
-                    <input class="form-control" asp-for="Name" />
-                    <span class="text-danger" asp-validation-for="Name"></span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input class="form-control" asp-for="Email" />
-                    <span class="text-danger" asp-validation-for="Email"></span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">密碼</label>
-                    <input type="password" class="form-control" asp-for="PasswordHash" />
-                    <span class="text-danger" asp-validation-for="PasswordHash"></span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">性別</label>
-                    <select asp-for="Gender" asp-items="ViewBag.Genders" class="form-select"></select>
-                    <span asp-validation-for="Gender" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">生日</label>
-                    <input type="date" class="form-control" asp-for="BirthDate" />
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">電話</label>
-                    <input class="form-control" asp-for="Phone" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">地址</label>
-                    <input class="form-control" asp-for="Address" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">點數</label>
-                    <input class="form-control" asp-for="Point" type="number" />
-                </div>
-                @* <div class="mb-3 form-check">
-                    <input class="form-check-input" type="checkbox" name="AutoSubscribe" value="true" @(Model.AutoSubscribe == true ? "checked" : "") />
-                    <input type="hidden" name="AutoSubscribe" value="false" />
-                    <label class="form-check-label">AutoSubscribe</label>
-                </div> *@
-                <div class="mb-3 form-check">
-                    <input class="form-check-input" type="checkbox" asp-for="Isverified" />
-                    <label class="form-check-label" asp-for="Isverified"></label>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">大頭貼 URL（選填）</label>
-                    <input class="form-control" asp-for="ProfileImageurl" />
-                </div>
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    新增使用者
+                </h1>
             </div>
         </div>
-
-        <button class="btn btn-primary" type="submit">建立</button>
-        <a class="btn btn-secondary" asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index">返回</a>
-    </form>
+    </div>
 </div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-body">
+            <form asp-area="UserManagement" asp-controller="UserManagement" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">帳號</label>
+                            <input class="form-control" asp-for="Username" />
+                            <span class="text-danger" asp-validation-for="Username"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">姓名</label>
+                            <input class="form-control" asp-for="Name" />
+                            <span class="text-danger" asp-validation-for="Name"></span>
+                        </div>
+                        <div class="mb-3">
+                                <label class="form-label">電子信箱</label>
+                            <input class="form-control" asp-for="Email" />
+                            <span class="text-danger" asp-validation-for="Email"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密碼</label>
+                            <input type="password" class="form-control" asp-for="PasswordHash" />
+                            <span class="text-danger" asp-validation-for="PasswordHash"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">性別</label>
+                            <select asp-for="Gender" asp-items="ViewBag.Genders" class="form-select"></select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">生日</label>
+                            <input type="date" class="form-control" asp-for="BirthDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">電話</label>
+                            <input class="form-control" asp-for="Phone" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">地址</label>
+                            <input class="form-control" asp-for="Address" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">點數</label>
+                            <input class="form-control" asp-for="Point" type="number" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">大頭貼 URL（選填）</label>
+                            <input class="form-control" asp-for="ProfileImageurl" />
+                        </div>
+                    </div>
+                </div>
+                    <div class="mt-3 text-end">
+                        <input class="form-check-input" type="checkbox" asp-for="Isverified" />
+                        <label class="form-check-label" asp-for="Isverified">帳號驗證</label>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-primary" type="submit">建立</button>
+                        <a class="btn btn-secondary" asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index">返回</a>
+                    </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

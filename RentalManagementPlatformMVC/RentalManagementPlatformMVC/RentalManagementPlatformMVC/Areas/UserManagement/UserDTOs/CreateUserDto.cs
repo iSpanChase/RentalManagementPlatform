@@ -5,7 +5,6 @@
 		public string Username { get; set; } = null!;
 		public string Email { get; set; } = null!;
 		public string Name { get; set; } = null!;
-		public bool? AutoSubscribe { get; set; }
 		public string PasswordHash { get; set; } = null!;
 		public string Gender { get; set; }
 		public DateTime BirthDate { get; set; }

@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
+using RentalManagementPlatformMVC.Models;
 using UserEntity = RentalManagementPlatformMVC.Models.User;
 
-namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
+namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 {
 	public class UserService : IUserService
 	{
@@ -13,22 +15,57 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories
 		public UserService(IUserRepository userRepo, IUnitOfWork uow)
 			=> (_userRepo, _uow) = (userRepo, uow);
 
-		public async Task<(IReadOnlyList<UserListItemDto> Items, int Total)> ListAsync(string? keyword, int page, int pageSize)
+		public async Task<(IReadOnlyList<UserListItemDto> Items, int Total)> ListAsync(UserFilterVm f)
 		{
-			page = page <= 0 ? 1 : page;
-			pageSize = pageSize <= 0 ? 10 : pageSize;
+			var page = f.Page <= 0 ? 1 : f.Page;
+			var pageSize = f.PageSize <= 0 ? 10 : f.PageSize;
 
-			var q = _userRepo.Query();
+			var q = _userRepo.Query(); // 建議 Query() 內部就用 AsNoTracking()
 
-			if (!string.IsNullOrWhiteSpace(keyword))
-				q = q.Where(x => x.Username.Contains(keyword) || x.Email.Contains(keyword) || x.Name.Contains(keyword));
+			// 關鍵字（帳號/Email/姓名）
+			if (!string.IsNullOrWhiteSpace(f.Keyword))
+				q = q.Where(x => x.Username.Contains(f.Keyword) ||
+								 x.Email.Contains(f.Keyword) ||
+								 x.Name.Contains(f.Keyword));
+
+			// 性別
+			if (!string.IsNullOrWhiteSpace(f.Gender))
+				q = q.Where(x => x.Gender == f.Gender);
+
+			// 是否驗證
+			if (f.Isverified.HasValue)
+				q = q.Where(x => x.Isverified == f.Isverified.Value);
+
+			// 建立時間區間（右界 +1 天，含當日）
+			if (f.CreatedFrom.HasValue)
+				q = q.Where(x => x.CreatedAt >= f.CreatedFrom.Value);
+			if (f.CreatedTo.HasValue)
+			{
+				var end = f.CreatedTo.Value.Date.AddDays(1);
+				q = q.Where(x => x.CreatedAt < end);
+			}
+
+			// 排序
+			var sortBy = (f.SortBy ?? "createdAt").ToLowerInvariant();
+			var desc = string.Equals(f.SortDir, "desc", StringComparison.OrdinalIgnoreCase);
+			q = sortBy switch
+			{
+				"id" => desc ? q.OrderByDescending(x => x.UserId) : q.OrderBy(x => x.UserId),
+				"username" => desc ? q.OrderByDescending(x => x.Username) : q.OrderBy(x => x.Username),
+				"name" => desc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name),
+				"email" => desc ? q.OrderByDescending(x => x.Email) : q.OrderBy(x => x.Email),
+				_ => desc ? q.OrderByDescending(x => x.CreatedAt) : q.OrderBy(x => x.CreatedAt),
+			};
 
 			var total = await q.CountAsync();
-			var items = await q.OrderByDescending(x => x.CreatedAt)
-							   .Skip((page - 1) * pageSize)
+
+			var items = await q.Skip((page - 1) * pageSize)
 							   .Take(pageSize)
-							   .Select(x => new UserListItemDto(x.UserId, x.Username, x.Email, x.Name, (DateTime)x.CreatedAt))
+							   .Select(x => new UserListItemDto(
+								   x.UserId, x.Username, x.Email, x.Name,
+								   x.CreatedAt ?? DateTime.MinValue))
 							   .ToListAsync();
+
 			return (items, total);
 		}
 

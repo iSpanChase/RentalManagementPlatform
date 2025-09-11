@@ -9,6 +9,7 @@ using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
 using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 
 namespace RentalManagementPlatformMVC
 {
