@@ -1,9 +1,9 @@
 {
   "searchableAttributes": [
     "title",
-    "description",
     "city_name",
     "district_name",
+    "description",
     "address_line",
     "amenities",
     "host_name"
