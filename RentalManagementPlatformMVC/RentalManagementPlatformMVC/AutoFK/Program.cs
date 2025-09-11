@@ -15,6 +15,7 @@ namespace AutoFK
             CorrectionTime();
             RandomRoomListStateRemove();
             SetBookingStauts();
+            SetBookingPrice();
             GenerateHostPayouts(new DateTime(2025, 8, 28, 0, 0, 0));
 
             //未實裝
@@ -571,7 +572,7 @@ namespace AutoFK
                     }
                 }
                 context.SaveChanges();
-            
+
                 for (int j = 0; j < hostIdList.Count; j++)
                 {
                     var entity = context.HostSubscriptions.Find(hostIdList[j]);
@@ -650,22 +651,36 @@ namespace AutoFK
                 foreach (var x in context.Bookings)
                 {
                     if (random.Next(100) < 15)
-                        x.Status = "cancelled";
+                        x.Status = "Cancelled";
                     else if (x.CheckIn.Value > new DateTime(2025, 8, 28, 0, 0, 0))
                         if (random.Next(100) < 35)
-                            x.Status = "pending";
+                            x.Status = "Pending";
                         else
-                            x.Status = "confirmed";
+                            x.Status = "Confirmed";
                     else if (x.CheckOut < new DateTime(2025, 8, 28, 0, 0, 0))
-                        x.Status = "completed";
+                        x.Status = "Completed";
                     else
-                        x.Status = "cancelled";
+                        x.Status = "Cancelled";
                 }
+                context.SaveChanges();
+
+            }
+        }
+
+        static void SetBookingPrice()
+        {
+            using (var context = new RentalManagementPlatformSqlContext())
+            {
+                foreach (var x in context.Bookings.Join(context.RoomLists, b => b.RoomId, rl => rl.RoomId, (b, rl) => new { b, rl }))
+                {
+                    x.b.TotalPrice = x.rl.PricePerNight * (x.b.CheckOut.Value - x.b.CheckIn.Value).Days;
+                }
+                context.SaveChanges();
             }
         }
 
         /// <summary>
-        /// 根據訂單自動生成HOST_SUBSCRIPTION、SUBSCRIPTION_BILLING_LOG
+        /// 根據訂單自動生成HOST_PAYOUT、HOST_PAYOUT_ITEM
         /// </summary>
         /// <param name="cutoffDate"></param>
         static void GenerateHostPayouts(DateTime cutoffDate)
@@ -674,7 +689,7 @@ namespace AutoFK
             {
                 // Step 1: 篩選需要生成 PayoutItem 的訂單
                 var completedBookings = context.Bookings
-                    .Where(b => b.Status == "completed" && b.CheckOut < cutoffDate)
+                    .Where(b => b.Status == "Completed" && b.CheckOut < cutoffDate)
                     .Join(context.RoomLists,
                         b => b.RoomId,
                         rl => rl.RoomId,
@@ -691,6 +706,7 @@ namespace AutoFK
                     });
 
                 context.SaveChanges();
+                int i = 1, j = 1;
                 foreach (var group in groupedByHostMonth)
                 {
                     int hostId = group.Key.HostId ?? 0;
@@ -708,6 +724,7 @@ namespace AutoFK
                     {
                         payout = new HostPayout
                         {
+                            PayoutId = i++,
                             HostId = hostId,
                             CycleStart = cycleStart,
                             CycleEnd = cycleEnd,
@@ -715,13 +732,13 @@ namespace AutoFK
                             PlatformFee = 0,
                             AmountNet = 0,
                             Status = "pending",
-                            CreatedAt = DateTime.Now
+                            CreatedAt = cycleEnd
                         };
                         context.HostPayouts.Add(payout);
                     }
 
                     // Step 4: 建立 HostPayoutItem
-                context.SaveChanges();
+                    context.SaveChanges();
                     foreach (var item in group)
                     {
                         // 判斷 checkOut 時是否有訂閱
@@ -738,6 +755,7 @@ namespace AutoFK
 
                         var payoutItem = new HostPayoutItem
                         {
+                            PayoutItemId = j++,
                             PayoutId = payout.PayoutId,  // EF 會自動填充（因為 payout 已經 Add）
                             BookingId = item.b.BookingId,
                             OrderNumberSnapshot = item.b.OrderNumber,

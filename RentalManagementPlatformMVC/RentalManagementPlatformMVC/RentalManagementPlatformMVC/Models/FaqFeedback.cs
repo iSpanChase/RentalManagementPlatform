@@ -7,7 +7,7 @@ public partial class FaqFeedback
 {
     public int FaqFeedbackId { get; set; }
 
-    public int? ArticleId { get; set; }
+    public int ArticleId { get; set; }
 
     public int? UserId { get; set; }
 

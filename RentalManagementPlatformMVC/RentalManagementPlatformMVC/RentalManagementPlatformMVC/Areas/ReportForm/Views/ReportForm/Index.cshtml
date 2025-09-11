@@ -1,19 +1,32 @@
-﻿@{
-    ViewData["Title"] = "動態報表";
+﻿@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels
+@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Query
+
+@{
+    var startDate = DateTime.Today.AddDays(-7).ToString("yyyy-MM-dd");
+    var endDate = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
-<h2>@ViewData["Title"]</h2>
+@{
+    var cards = new List<BookingRevenueTrendQuery>
+    {
+    };
+}
 
-<div>
-    <label>選擇報表樣板：</label>
-    <select id="reportType">
+<div id="reportControls">
+    <label>報表種類：</label>
+    <select id="globalReportId">
+        <!-- 由 JS registry 動態填入 <option> -->
+    </select>
+
+    <label>圖表類型：</label>
+    <select id="globalReportType">
         <option value="bar">柱狀圖</option>
         <option value="line">折線圖</option>
         <option value="pie">圓餅圖</option>
     </select>
 
-    <label>單位時間跨度：</label>
-    <select id="timeUnit">
+    <label>時間跨度：</label>
+    <select id="globalTimeUnit">
         <option value="day">天</option>
         <option value="week">周</option>
         <option value="month">月</option>
@@ -21,159 +34,144 @@
         <option value="year">年</option>
     </select>
 
-    <div id="input-day" class="time-unit-input-block">
-        <label>開始日期：</label>
-        <input type="date" id="startDate" />
-        <label>結束日期：</label>
-        <input type="date" id="endDate" />
+    <!-- 時間選擇器 (只顯示一組，根據 timeUnit 切換) -->
+    <div id="timeSelectors">
+        <!-- day -->
+        <div class="time-unit-input-block input-day">
+            <label>開始日期：</label>
+            <input type="date" class="startDate" value="@startDate" />
+            <label>結束日期：</label>
+            <input type="date" class="endDate" value="@endDate" />
+        </div>
+
+        <!-- week -->
+        <div class="time-unit-input-block input-week" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startWeekYear" min="2024" max="2026" value="2025" />
+            <label>開始週數：</label>
+            <select class="startWeekWeek"></select>
+            <label>結束年份：</label>
+            <input type="number" class="endWeekYear" min="2024" max="2026" value="2025" />
+            <label>結束週數：</label>
+            <select class="endWeekWeek"></select>
+        </div>
+
+        <!-- month -->
+        <div class="time-unit-input-block input-month" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startMonthYear" min="2024" max="2026" value="2025" />
+            <label>開始月份：</label>
+            <select class="startMonthMonth">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">@($"{m}月")</option>
+                }
+            </select>
+            <label>結束年份：</label>
+            <input type="number" class="endMonthYear" min="2024" max="2026" value="2025" />
+            <label>結束月份：</label>
+            <select class="endMonthMonth">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">@($"{m}月")</option>
+                }
+            </select>
+        </div>
+
+        <!-- quarter -->
+        <div class="time-unit-input-block input-quarter" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startQuarterYear" min="2024" max="2026" value="2025" />
+            <label>開始季度：</label>
+            <select class="startQuarterQuarter">
+                <option value="1">第一季</option>
+                <option value="2">第二季</option>
+                <option value="3">第三季</option>
+                <option value="4">第四季</option>
+            </select>
+            <label>結束年份：</label>
+            <input type="number" class="endQuarterYear" min="2024" max="2026" value="2025" />
+            <label>結束季度：</label>
+            <select class="endQuarterQuarter">
+                <option value="1">第一季</option>
+                <option value="2">第二季</option>
+                <option value="3">第三季</option>
+                <option value="4">第四季</option>
+            </select>
+        </div>
+
+        <!-- year -->
+        <div class="time-unit-input-block input-year" hidden>
+            <label>開始年份：</label>
+            <input type="number" class="startYearInput" min="2024" max="2026" value="2025" />
+            <label>結束年份：</label>
+            <input type="number" class="endYearInput" min="2024" max="2026" value="2025" />
+        </div>
     </div>
 
-    <div id="input-week" class="time-unit-input-block" style="display:none;">
-        <label>開始年份：</label>
-        <input type="number" id="startWeekYear" min="2024" max="2026" value="2025" />
-        <label>開始週數：</label>
-        <select id="startWeekWeek"></select>
-        <label>結束年份：</label>
-        <input type="number" id="endWeekYear" min="2024" max="2026" value="2025" />
-        <label>結束年份：</label>
-        <select id="endWeekWeek"></select>
-    </div>
+    <!-- 不同報表專屬的篩選條件動態出現在這裡 -->
+    <div id="reportFilterPanel"></div>
 
-    <div id="input-month" class="time-unit-input-block" style="display:none;">
-        <label>開始年份：</label>
-        <input type="number" id="startMonthYear" min="2024" max="2026" value="2025" />
-        <label>開始月份：</label>
-        <select id="startMonthMonth">
-            <option value="1">一月</option>
-            <option value="2">二月</option>
-            <option value="3">三月</option>
-            <option value="4">四月</option>
-            <option value="5">五月</option>
-            <option value="6">六月</option>
-            <option value="7">七月</option>
-            <option value="8">八月</option>
-            <option value="9">九月</option>
-            <option value="10">十月</option>
-            <option value="11">十一月</option>
-            <option value="12">十二月</option>
-        </select>
-        <label>結束年份：</label>
-        <input type="number" id="endMonthYear" min="2024" max="2026" value="2025" />
-        <label>結束月份：</label>
-        <select id="endMonthMonth">
-            <option value="1">一月</option>
-            <option value="2">二月</option>
-            <option value="3">三月</option>
-            <option value="4">四月</option>
-            <option value="5">五月</option>
-            <option value="6">六月</option>
-            <option value="7">七月</option>
-            <option value="8">八月</option>
-            <option value="9">九月</option>
-            <option value="10">十月</option>
-            <option value="11">十一月</option>
-            <option value="12">十二月</option>
-        </select>
-    </div>
-
-    <div id="input-quarter" class="time-unit-input-block" style="display:none;">
-        <label>開始年份：</label>
-        <input type="number" id="startQuarterYear" min="2024" max="2026" value="2025" />
-        <label>開始季度：</label>
-        <select id="startQuarterQuarter">
-            <option value="1">第一季</option>
-            <option value="2">第二季</option>
-            <option value="3">第三季</option>
-            <option value="4">第四季</option>
-        </select>
-        <label>結束年份：</label>
-        <input type="number" id="endQuarterYear" min="2024" max="2026" value="2025" />
-        <label>結束季度：</label>
-        <select id="endQuarterQuarter">
-            <option value="1">第一季</option>
-            <option value="2">第二季</option>
-            <option value="3">第三季</option>
-            <option value="4">第四季</option>
-        </select>
-    </div>
-
-    <div id="input-year" class="time-unit-input-block" style="display:none;">
-        <label>開始年份：</label>
-        <input type="number" id="startYearInput" min="2024" max="2026" value="2025" />
-        <label>結束年份：</label>
-        <input type="number" id="endYearInput" min="2024" max="2026" value="2025" />
-    </div>
-
-    <button id="btnLoad">載入報表</button>
+    <button id="btnAddCard">新增卡片</button>
 </div>
 
-<hr />
-
-<canvas id="myChart" width="400" height="200"></canvas>
+<div id="reportCardsRow" class="row">
+    <!-- 動態新增卡片 -->
+</div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-            crossorigin="anonymous"></script>
+    <!-- 你原先就有的全域資源，放在 Layout 或這裡皆可 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script src="~/js/reportform/bundle-report-time.min.js"></script>
+	<script src="~/js/reportform/time-format.js"></script>
+	<script src="~/js/reportform/week-select-generate.js"></script>
+	<script src="~/js/reportform/report-time-selection.js"></script>
+	<script src="~/js/reportform/report-config.js"></script>
+    <script src="~/js/reportform/reportchartcard.init.js"></script>
     <script>
-        generateWeeksSelect();
-
-        let baseAddress="https://localhost:7159"
-        let chart; // 全域變數，避免重複 new Chart
-
-        $("#timeUnit").on("change", function(){
-            let val = $(this).val();
-            $(".time-unit-input-block").hide(); // 先隱藏全部
-            $("#input-" + val).show(); // 顯示對應的輸入區塊
+        document.addEventListener('DOMContentLoaded', function(){
+          ReportConfig.initControls(); // 會把 #globalReportId 塞滿、並渲染 #reportFilterPanel
         });
 
-        $("#btnLoad").on("click", function (){
-            fetchPostChart();
+        document.querySelector("#btnAddCard").addEventListener("click", async () => {
+          // 1) 圖表型別（可讓使用者覆寫預設）
+          const type = document.querySelector("#globalReportType").value;
+
+          // 2) 先收時間（TimeUnit/Start/End）：沿用你現有的週/日期邏輯
+          const timeFd = ReportTime.collect();  // 含 TimeUnit/Start/End:contentReference[oaicite:6]{index=6}
+
+          // 3) 收報表篩選
+          const filterFd = ReportConfig.collectFilters();
+
+          // 4) 合併成單一 FormData（保留 key）
+          const fd = new FormData();
+          // 時間
+          for (const [k, v] of timeFd.entries())
+            fd.append(k, v);
+          // 篩選
+          for (const [k, v] of filterFd.entries())
+            fd.append(k, v);
+
+          // 5) 取得當前選擇報表定義
+          const reportId = document.querySelector('#globalReportId').value;
+          const def = ReportConfig.get(reportId);
+          if (!def){
+              alert('未知的報表');
+              return;
+          }
+
+          // 6) 決定卡片標題（顯示用）
+          const timeUnitTxt = document.querySelector("#globalTimeUnit").value;
+          const title = `${def.title}（${timeUnitTxt}）`;
+
+          // 7) 呼叫你既有的畫卡API（createCard）
+          ReportCard.createCard({
+            base: def.base,
+            endpoint: def.endpoint,
+            title,
+            type,
+            formData: fd
+          });
         });
-
-        //將圖表類型、時間跨度、開始時間、結束時間對server進行ajax要求產生圖表
-        function fetchPostChart(){
-            let data = formDataAppendTime(new FormData());
-            let type = $("#reportType").val();
-
-            fetch(`${baseAddress}/ReportForm/ReportForm/GetChartData`,{
-                method:"POST",
-                body:data,
-            }).then(function(result){
-                if(result.ok){
-                    return result.json();
-                }
-            }).then(function(data){
-                if (chart) {
-                        chart.destroy();
-                    }
-
-                    let ctx = document.getElementById('myChart');
-                    chart = new Chart(ctx, {
-                        type: type, // 使用者選的
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: data.label,
-                                data: data.data,
-                                borderWidth: 1,
-                                backgroundColor: data.colors
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-            }).catch(function(err){
-                alert(err.message);
-            });
-        }
     </script>
 }
