@@ -8,7 +8,7 @@ curl.exe -X POST "http://127.0.0.1:7700/indexes" -H "Authorization: Bearer 你�
 
 導入資料
 
-curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorization: Bearer 你的apikey" -H "Content-Type: application/json" --data-binary "@rrooms_seed.json"
+curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorization: Bearer 你的apikey" -H "Content-Type: application/json" --data-binary "@rooms_seed.json"
 
 搜尋設定
 
@@ -17,6 +17,7 @@ curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorizati
 同義字
 
 curl.exe -X PUT "http://127.0.0.1:7700/indexes/rooms/settings/synonyms" -H "Authorization: Bearer 你的apikey" -H "Content-Type: application/json" --data-binary "@synonyms.json"
+
 
 
 
