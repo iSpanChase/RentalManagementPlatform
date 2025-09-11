@@ -141,9 +141,13 @@
                     </div>
 
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">搜尋</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
                         <a class="btn btn-outline-secondary"
-                           asp-area="Booking" asp-controller="BookingHome" asp-action="Index">重設</a>
+                           asp-area="Booking"
+                           asp-controller="BookingHome"
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right"></i>重設
+                       </a>
                     </div>
                 </form>
             </div>
@@ -231,6 +235,7 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
                             匯出 Excel
                         </a>
                         <a class="btn btn-outline-primary btn-sm"
@@ -238,6 +243,7 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
                     </div>

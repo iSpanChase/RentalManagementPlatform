@@ -15,6 +15,7 @@ namespace AutoFK
             CorrectionTime();
             RandomRoomListStateRemove();
             SetBookingStauts();
+            SetBookingPrice();
             GenerateHostPayouts(new DateTime(2025, 8, 28, 0, 0, 0));
 
             //未實裝
@@ -663,6 +664,18 @@ namespace AutoFK
                 }
                 context.SaveChanges();
 
+            }
+        }
+
+        static void SetBookingPrice()
+        {
+            using (var context = new RentalManagementPlatformSqlContext())
+            {
+                foreach (var x in context.Bookings.Join(context.RoomLists, b => b.RoomId, rl => rl.RoomId, (b, rl) => new { b, rl }))
+                {
+                    x.b.TotalPrice = x.rl.PricePerNight * (x.b.CheckOut.Value - x.b.CheckIn.Value).Days;
+                }
+                context.SaveChanges();
             }
         }
 

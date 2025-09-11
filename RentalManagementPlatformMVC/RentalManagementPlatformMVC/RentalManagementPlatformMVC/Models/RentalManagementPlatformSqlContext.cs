@@ -397,27 +397,27 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("HOST_PAYOUT");
 
-            entity.Property(e => e.PayoutId)
-                .ValueGeneratedNever()
-                .HasColumnName("payout_id");
-            entity.Property(e => e.AmountGross)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("amount_gross");
-            entity.Property(e => e.AmountNet)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("amount_net");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CycleEnd).HasColumnName("cycle_end");
-            entity.Property(e => e.CycleStart).HasColumnName("cycle_start");
-            entity.Property(e => e.HostId).HasColumnName("host_id");
-            entity.Property(e => e.PaidAt).HasColumnName("paid_at");
-            entity.Property(e => e.PlatformFee)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("platform_fee");
-            entity.Property(e => e.Status)
-                .HasMaxLength(512)
-                .HasColumnName("status");
-        });
+			entity.Property(e => e.PayoutId)
+				.ValueGeneratedNever()
+				.HasColumnName("payout_id");
+			entity.Property(e => e.AmountGross)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("amount_gross");
+			entity.Property(e => e.AmountNet)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("amount_net");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.CycleEnd).HasColumnName("cycle_end");
+			entity.Property(e => e.CycleStart).HasColumnName("cycle_start");
+			entity.Property(e => e.HostId).HasColumnName("host_id");
+			entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+			entity.Property(e => e.PlatformFee)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("platform_fee");
+			entity.Property(e => e.Status)
+				.HasMaxLength(512)
+				.HasColumnName("status");
+		});
 
         modelBuilder.Entity<HostPayoutItem>(entity =>
         {
@@ -782,7 +782,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("title");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-        });
+
+			// 加關聯設定
+			entity.HasOne(e => e.Host)                      // RoomList 有一個 Host
+				  .WithMany(e => e.RoomLists)                 // Host 有很多 RoomList
+				  .HasForeignKey(e => e.HostId)             // FK 是 Booking.GuestId
+				  .HasConstraintName("FK_ROOMLIST_USER");     // FK 名稱可自訂
+		});
 
         modelBuilder.Entity<RoomPhoto>(entity =>
         {
@@ -893,37 +899,37 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("USER");
 
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Address)
-                .HasMaxLength(512)
-                .HasColumnName("address");
-            entity.Property(e => e.BirthDate).HasColumnName("birth_date");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.Email)
-                .HasMaxLength(512)
-                .HasColumnName("email");
-            entity.Property(e => e.Gender)
-                .HasMaxLength(512)
-                .HasColumnName("gender");
-            entity.Property(e => e.Isverified).HasColumnName("isverified");
-            entity.Property(e => e.Name)
-                .HasMaxLength(512)
-                .HasColumnName("name");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(512)
-                .HasColumnName("password_hash");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(512)
-                .HasColumnName("phone");
-            entity.Property(e => e.Point).HasColumnName("point");
-            entity.Property(e => e.ProfileImageurl)
-                .HasMaxLength(512)
-                .HasColumnName("profile_imageurl");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-            entity.Property(e => e.Username)
-                .HasMaxLength(512)
-                .HasColumnName("username");
-        });
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+			entity.Property(e => e.Address)
+				.HasMaxLength(512)
+				.HasColumnName("address");
+			entity.Property(e => e.BirthDate).HasColumnName("birth_date");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.Email)
+				.HasMaxLength(512)
+				.HasColumnName("email");
+			entity.Property(e => e.Gender)
+				.HasMaxLength(512)
+				.HasColumnName("gender");
+			entity.Property(e => e.Isverified).HasColumnName("isverified");
+			entity.Property(e => e.Name)
+				.HasMaxLength(512)
+				.HasColumnName("name");
+			entity.Property(e => e.PasswordHash)
+				.HasMaxLength(512)
+				.HasColumnName("password_hash");
+			entity.Property(e => e.Phone)
+				.HasMaxLength(512)
+				.HasColumnName("phone");
+			entity.Property(e => e.Point).HasColumnName("point");
+			entity.Property(e => e.ProfileImageurl)
+				.HasMaxLength(512)
+				.HasColumnName("profile_imageurl");
+			entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+			entity.Property(e => e.Username)
+				.HasMaxLength(512)
+				.HasColumnName("username");
+		});
 
         modelBuilder.Entity<UserFavoriteReport>(entity =>
         {
