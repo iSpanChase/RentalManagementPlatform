@@ -2,17 +2,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Areas.Management.Repository;
+using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.Services;
+using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
 using RentalManagementPlatformMVC.Areas.Room_List.Services;
+
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
-using RentalManagementPlatformMVC.Services;
 using RentalManagementPlatformMVC.Services.Interfaces;
+using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.CommonRepos;
 using Meilisearch;
-using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
 
 
 namespace RentalManagementPlatformMVC
@@ -50,12 +53,11 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserService,
-									   RentalManagementPlatformMVC.Areas.UserManagement.UserServices.UserService>();
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+			builder.Services.AddScoped<IUserService, UserService>();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();

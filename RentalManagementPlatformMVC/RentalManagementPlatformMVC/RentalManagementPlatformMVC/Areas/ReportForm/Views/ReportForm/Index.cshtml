@@ -1,4 +1,5 @@
 ﻿@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels
+@using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Query
 
 @{
     var startDate = DateTime.Today.AddDays(-7).ToString("yyyy-MM-dd");
@@ -6,7 +7,7 @@
 }
 
 @{
-    var cards = new List<ReportChartCardViewModel>
+    var cards = new List<BookingRevenueTrendQuery>
     {
     };
 }
@@ -126,6 +127,8 @@
 	<script src="~/js/reportform/week-select-generate.js"></script>
 	<script src="~/js/reportform/report-time-selection.js"></script>
 	<script src="~/js/reportform/report-config.js"></script>
+	<script src="~/js/reportform/report/booking-count-trend.js"></script>
+    <script src="~/js/reportform/report/booking-revenue-trend.js"></script>
     <script src="~/js/reportform/reportchartcard.init.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function(){
