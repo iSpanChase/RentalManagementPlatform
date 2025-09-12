@@ -88,21 +88,9 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         public IActionResult BookingAmountTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
-
-            var labels = intervals.Select(x => timeUnit switch
-            {
-                "day" => x.ToString("yyyy/M/d"),
-                "week" => x.ToString("yyyy/M/d"),
-                "month" => x.ToString("yyyy/M"),
-                "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
-                "year" => x.ToString("yyyy"),
-                _ => throw new ArgumentException("Invalid timeUnit")
-            }).SkipLast(1).ToArray();
-
+            string[] labels = FormatDateIntervals(timeUnit, intervals);
             var data = BookingAmount(intervals,cityId,districtId, status);
-
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
-
             return Json(new
             {
                 labels,
@@ -116,21 +104,9 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         public IActionResult BookingCountTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
-
-            var labels = intervals.Select(x => timeUnit switch
-            {
-                "day" => x.ToString("yyyy/M/d"),
-                "week" => x.ToString("yyyy/M/d"),
-                "month" => x.ToString("yyyy/M"),
-                "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
-                "year" => x.ToString("yyyy"),
-                _ => throw new ArgumentException("Invalid timeUnit")
-            }).SkipLast(1).ToArray();
-
+            string[] labels = FormatDateIntervals(timeUnit, intervals);
             var data = BookingCount(intervals, cityId, districtId, status);
-
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
-
             return Json(new
             {
                 labels,
@@ -153,6 +129,21 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             }
             return results;
         }
+        List<decimal> UserCreateCount(DateTime[] intervals, string gender, int? ageMin, int? ageMax, string roleId)
+        {
+            var results = new List<decimal>();
+            IQueryable<Models.User> UserSelected = UserSelecter(gender, ageMin, ageMax, roleId);
+            for (var i = 0; i < intervals.Length - 1; i++)
+            {
+                var count = UserSelected
+                    .Where(x => x.CreatedAt != null &&
+                        x.CreatedAt.Value >= intervals[i] &&
+                        x.CreatedAt.Value < intervals[i + 1])
+                    .Count();
+                results.Add(count);
+            }
+            return results;
+        }
         private IQueryable<Models.User> UserSelecter
             (string gender, int? ageMin, int? ageMax, string roleId)
         {
@@ -166,12 +157,42 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 .Distinct();
             return result;
         }
+
         [HttpPost]
         public IActionResult UserCountTrend(string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
+            string[] labels = FormatDateIntervals(timeUnit, intervals);
+            var data = UserExistCount(intervals,gender,ageMin,ageMax,roleId);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "使用者數"
+            });
+        }
+ 
+        [HttpPost]
+        public IActionResult UserCreateCountTrend(string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
+        {
+            var intervals = GetIntervals(timeUnit, start, end).ToArray();
+            string[] labels = FormatDateIntervals(timeUnit, intervals);
+            var data = UserCreateCount(intervals, gender, ageMin, ageMax, roleId);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "使用者創建數"
+            });
+        }
 
-            var labels = intervals.Select(x => timeUnit switch
+        string[] FormatDateIntervals(string timeUnit, DateTime[] intervals)
+        {
+            return intervals.Select(x => timeUnit switch
             {
                 "day" => x.ToString("yyyy/M/d"),
                 "week" => x.ToString("yyyy/M/d"),
@@ -180,18 +201,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 "year" => x.ToString("yyyy"),
                 _ => throw new ArgumentException("Invalid timeUnit")
             }).SkipLast(1).ToArray();
-
-            var data = UserExistCount(intervals,gender,ageMin,ageMax,roleId);
-
-            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
-
-            return Json(new
-            {
-                labels,
-                data,
-                colors,
-                label = "訂單數"
-            });
         }
 
         [HttpGet] //Get : ReportForm/ReportForm/Cities
