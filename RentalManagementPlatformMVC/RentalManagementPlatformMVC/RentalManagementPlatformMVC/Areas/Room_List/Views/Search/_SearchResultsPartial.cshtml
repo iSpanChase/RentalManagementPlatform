@@ -1,0 +1,30 @@
+@using RentalManagementPlatformMVC.Areas.Room_List.Models
+@model IEnumerable<RoomListSearchDto>
+
+@if (Model.Any())
+{
+    <h5 class="mb-3">找到 @Model.Count() 筆結果</h5>
+    <div class="list-group">
+        @foreach (var room in Model)
+        {
+            <div class="list-group-item mb-3">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">@room.Title</h5>
+                    <div>
+                        <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Details" asp-route-id="@room.RoomId" class="btn btn-outline-info btn-sm">詳細</a>
+                        <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Edit" asp-route-id="@room.RoomId" class="btn btn-outline-primary btn-sm">編輯</a>
+                        <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Delete" asp-route-id="@room.RoomId" class="btn btn-outline-danger btn-sm">刪除</a>
+                    </div>
+                </div>
+                <p class="mb-1">@room.Description</p>
+                <small><strong>City:</strong> @room.CityName | <strong>District:</strong> @room.DistrictName</small><br/>
+                <small><strong>Price:</strong> @(room.PricePerNight?.ToString("C") ?? "") / night</small><br/>
+                <small class="text-muted"><strong>Room ID:</strong> @room.RoomId | <strong>Host:</strong> @room.HostName</small>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No results found.</p>
+}
