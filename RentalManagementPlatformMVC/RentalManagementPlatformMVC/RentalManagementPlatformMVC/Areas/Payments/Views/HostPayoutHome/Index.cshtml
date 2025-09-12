@@ -152,14 +152,16 @@
                         </select>
                     </div>
 
-                    <!-- 按鈕 -->
-                    <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                    <!-- 按鈕區域 -->
+                    <div class="col-12 col-md-6 d-flex align-items-end justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>搜尋
+                        </button>
                         <a class="btn btn-outline-secondary"
                            asp-area="Payments"
                            asp-controller="HostPayoutHome"
                            asp-action="Index">
-                            <i class="fa-solid fa-rotate-right"></i>重設
+                            <i class="fa-solid fa-rotate-right me-1"></i>重設
                         </a>
                     </div>
                 </form>
@@ -263,6 +265,13 @@
                             <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -367,7 +376,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
+                    <h5 class="modal-title" id="detailModalLabel">撥款詳細資料</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="modal-detail-content">

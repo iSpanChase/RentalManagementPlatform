@@ -902,14 +902,15 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			entity.ToTable("SUBSCRIPTION_PLAN");
 
 			entity.Property(e => e.PlanId)
-				.ValueGeneratedNever()
+				.ValueGeneratedOnAdd()
 				.HasColumnName("plan_id");
 			entity.Property(e => e.CommissionRate)
-				.HasColumnType("decimal(18, 0)")
+				.HasColumnType("decimal(5, 4)")
 				.HasColumnName("commission_rate");
 			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
 			entity.Property(e => e.IsActive).HasColumnName("is_active");
 			entity.Property(e => e.MonthlyFee)
+				.IsRequired()
 				.HasColumnType("decimal(18, 0)")
 				.HasColumnName("monthly_fee");
 			entity.Property(e => e.PerkAnalytics).HasColumnName("perk_analytics");

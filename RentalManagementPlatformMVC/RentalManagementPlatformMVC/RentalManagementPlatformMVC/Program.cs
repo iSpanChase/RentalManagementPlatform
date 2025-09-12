@@ -1,9 +1,16 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using RentalManagementPlatformMVC.Data;
+using RentalManagementPlatformMVC.Mappings;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformMVC.Repositories;
-using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.Repositories.Bookings;
+using RentalManagementPlatformMVC.Repositories.Payments;
+using RentalManagementPlatformMVC.Repositories.SubscriptionPlans;
+using RentalManagementPlatformMVC.Services.Bookings;
+using RentalManagementPlatformMVC.Services.Payments;
+using RentalManagementPlatformMVC.Services.SubscriptionPlans;
+using AutoMapper;
 
 namespace RentalManagementPlatformMVC
 {
@@ -37,6 +44,9 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 			builder.Services.AddScoped<IHostPayoutRepository, HostPayoutRepository>();
 			builder.Services.AddScoped<IHostPayoutService, HostPayoutService>();
+			builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+			builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+			builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 
 			var app = builder.Build();
 

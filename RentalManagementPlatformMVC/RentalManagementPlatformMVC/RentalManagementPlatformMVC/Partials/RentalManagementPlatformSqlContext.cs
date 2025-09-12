@@ -25,4 +25,69 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			.Build();
 		optionsBuilder.UseSqlServer(config.GetConnectionString("RentalManagementPlatformSql"));
 	}
+
+	partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+	{
+		modelBuilder.Entity<Booking>(entity =>
+		{
+			// User一對多關聯
+			entity.HasOne(e => e.Guest)
+				  .WithMany(e => e.Bookings)
+				  .HasForeignKey(e => e.GuestId)
+				  .HasConstraintName("FK_BOOKING_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// Room一對多關聯
+			entity.HasOne(e => e.Room)
+				  .WithMany(e => e.Bookings)
+				  .HasForeignKey(e => e.RoomId)
+				  .HasConstraintName("FK_BOOKING_ROOMLIST")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// Coupon一對多關聯
+			entity.HasOne(e => e.Coupon)
+				  .WithMany(e => e.Bookings)
+				  .HasForeignKey(e => e.CouponId)
+				  .HasConstraintName("FK_BOOKING_COUPON")
+				  .IsRequired(false)
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<HostPayout>(entity =>
+		{
+			// User 一對多關聯
+			entity.HasOne(e => e.Host)
+				  .WithMany(e => e.HostPayouts)
+				  .HasForeignKey(e => e.HostId)
+				  .HasConstraintName("FK_HOSTPAYOUT_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<Payment>(entity =>
+		{
+			// Booking 一對多關聯
+			entity.HasOne(e => e.Booking)
+				  .WithMany(e => e.Payments)
+				  .HasForeignKey(e => e.BookingId)
+				  .HasConstraintName("FK_PAYMENT_BOOKING")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// PaymentTransaction 一對多關聯
+			entity.HasMany(e => e.PaymentTransactions)
+				  .WithOne(e => e.Payment)
+				  .HasForeignKey(e => e.PaymentId)
+				  .HasConstraintName("FK_PAYMENTTRANSACTION_PAYMENT")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<RoomList>(entity =>
+		{
+			// User一對多關聯
+			entity.HasOne(e => e.Host)
+				  .WithMany(e => e.RoomLists)
+				  .HasForeignKey(e => e.HostId)
+				  .HasConstraintName("FK_ROOMLIST_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
+	}
 }
