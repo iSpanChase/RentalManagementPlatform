@@ -47,10 +47,9 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
 
-            // Meilisearch Client and Service registration
-            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
-            builder.Services.AddScoped<MeilisearchService>();
-
+      // Meilisearch Client and Service registration
+      builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+      builder.Services.AddScoped<MeilisearchService>();
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 

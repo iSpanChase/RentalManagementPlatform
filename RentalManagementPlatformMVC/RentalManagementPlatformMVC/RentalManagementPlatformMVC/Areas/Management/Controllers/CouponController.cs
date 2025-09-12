@@ -11,11 +11,7 @@ public class CouponController : Controller
 {
 	private readonly ICouponQueryService _querySvc;
 	private readonly CouponCommandService _commandSvc;
-	//private readonly ICouponQueryService _couponQueryService;
-	//public CouponController(ICouponQueryService couponQueryService) 
-	//{
-	//	_couponQueryService = couponQueryService;
-	//}
+
 	public CouponController(ICouponQueryService querySvc, CouponCommandService commandSvc) 
 	{ 
 		_querySvc = querySvc;
@@ -41,7 +37,7 @@ public class CouponController : Controller
 			DiscountQuota = d.DiscountQuota,
 			LowSpend = d.LowSpend,
 			EndAt = d.EndAt,
-			//IsDeleted = d.IsDeleted
+			IsDeleted = d.IsDeleted
 		}).ToList();
 
 		ViewData["TotalCount"] = totalCount;
