@@ -30,7 +30,7 @@
             // 載入縣市
             (async () => {
                 try {
-                    const cities = await ns._fetchJSON('/ReportForm/ReportForm/Cities');
+                    const cities = await ns._fetchGetJSON('/ReportForm/ReportForm/Cities');
                     ns._fillSelect(citySel, cities, { includeAll: true, allText: '(全部)', allValue: '' });
                     distSel.innerHTML = '<option value="">(先選縣/市)</option>';
                     distSel.disabled = true;
@@ -52,7 +52,7 @@
                 try {
                     distSel.disabled = true;
                     distSel.innerHTML = '<option value="">(載入中...)</option>';
-                    const districts = await ns._fetchJSON(`/ReportForm/ReportForm/Districts?cityId=${encodeURIComponent(cityId)}`);
+                    const districts = await ns._fetchGetJSON(`/ReportForm/ReportForm/Districts?cityId=${encodeURIComponent(cityId)}`);
                     ns._fillSelect(distSel, districts, { includeAll: true, allText: '(全部)', allValue: '' });
                     distSel.disabled = false;
                 } catch {

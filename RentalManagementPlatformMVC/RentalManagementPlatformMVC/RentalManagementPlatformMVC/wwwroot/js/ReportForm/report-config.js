@@ -83,13 +83,25 @@
 
     // 1) 訂單營收趨勢，可依城市過濾
     // 小工具：安全抓 JSON + 填充 select
-    ns._fetchJSON = async function _fetchJSON(url) {
+    ns._fetchGetJSON = async function _fetchGetJSON(url) {
         const resp = await fetch(url, {
             method: 'GET'
         });
         if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
         return await resp.json();
     }
+
+    ns._fetchPostJSON = async function _fetchPostJSON(url, data = null) {
+        const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (data !== null) options.body = JSON.stringify(data);
+
+        const resp = await fetch(url, options);
+        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+        return await resp.json();
+    };
 
     ns._fillSelect = function _fillSelect(select, items, {
         includeAll = true,
