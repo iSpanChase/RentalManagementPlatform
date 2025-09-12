@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
@@ -5,10 +6,21 @@ using RentalManagementPlatformMVC.Areas.Management.Repository;
 using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.Services;
 using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
+using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
+using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
+using RentalManagementPlatformMVC.Repositories.Interfaces;
+using RentalManagementPlatformMVC.Services.Interfaces;
 using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
+using Meilisearch;
 
 namespace RentalManagementPlatformMVC
 {
@@ -19,21 +31,25 @@ namespace RentalManagementPlatformMVC
             var builder = WebApplication.CreateBuilder(args);
 
 
-			// Identity ¥Îªº Context¡]³s½u¦r¦ê¥Î DefaultConnection¡^
+			// Identity ç”¨çš„ Contextï¼ˆé€£ç·šå­—ä¸²ç”¨ DefaultConnectionï¼‰
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
 
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-			// ·~°È¸ê®Æªí¥Îªº Context¡]³s½u¦r¦ê¦P¼Ë«ü¦V¦P¤@Áû DB¡^
-			//serviceµù¥U
+			// æ¥­å‹™è³‡æ–™è¡¨ç”¨çš„ Contextï¼ˆé€£ç·šå­—ä¸²åŒæ¨£æŒ‡å‘åŒä¸€é¡† DBï¼‰
+			//serviceè¨»å†Š
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
 			builder.Services.AddScoped<CouponCommandService>();
 
-			//repositoryµù¥U
+			//repositoryè¨»å†Š
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
+
+            // Meilisearch Client and Service registration
+            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+            builder.Services.AddScoped<MeilisearchService>();
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -41,12 +57,12 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+			builder.Services.AddScoped<IUserService, UserService>();
 
-			builder.Services.AddScoped<RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories.IUserService,
-									   RentalManagementPlatformMVC.Areas.UserManagement.UserServices.UserService>();
+			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // ï¿½Mï¿½ï¿½ Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
+			builder.Services.AddScoped<IRolesService, RolesService>();         // ï¿½sï¿½Wï¿½ï¿½ Service
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
@@ -54,6 +70,13 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 			builder.Services.AddScoped<IHostPayoutRepository, HostPayoutRepository>();
 			builder.Services.AddScoped<IHostPayoutService, HostPayoutService>();
+
+
+			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+
+			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
 
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -67,7 +90,21 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.AddControllersWithViews();
 
-            var app = builder.Build();
+			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+	.AddCookie(o =>
+	{
+		o.LoginPath = "/Auth/Login";
+		o.LogoutPath = "/Auth/Logout";
+		o.AccessDeniedPath = "/Auth/AccessDenied";
+		o.SlidingExpiration = true;
+		o.ExpireTimeSpan = TimeSpan.FromHours(8);
+		// o.Cookie.HttpOnly = true; o.Cookie.SecurePolicy = CookieSecurePolicy.Always; // ï¿½Gï¿½p https ï¿½É«ï¿½Ä³ï¿½}
+	});
+
+
+			builder.Services.AddAuthorization(); // ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -86,7 +123,8 @@ namespace RentalManagementPlatformMVC
 
             app.UseRouting();
 
-            app.UseAuthorization();
+			app.UseAuthentication();
+			app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "areas",

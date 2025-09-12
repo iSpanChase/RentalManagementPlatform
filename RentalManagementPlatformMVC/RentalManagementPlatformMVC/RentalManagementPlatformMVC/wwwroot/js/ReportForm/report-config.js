@@ -80,71 +80,34 @@
         return fd;
     };
 
-    // ========= 以下示範兩種報表 =========
 
-    // 1) 訂單營收趨勢（折線圖），可依房型與城市過濾
-    ns.register('revenueByRoom', {
-        title: '訂單營收趨勢（房型/城市）',
-        defaultType: 'line',
-        base: '/ReportForm/ReportForm/',
-        endpoint: 'GetRevenueTrend', // 你後端可對應這個 action
-        buildFilterUI(container) {
-            container.innerHTML = `
-        <div class="filter-row">
-          <label>房型：</label>
-          <select class="f-roomType">
-            <option value="">(全部)</option>
-            <option value="single">單人房</option>
-            <option value="double">雙人房</option>
-            <option value="family">家庭房</option>
-          </select>
+    // 1) 訂單營收趨勢，可依城市過濾
+    // 小工具：安全抓 JSON + 填充 select
+    ns._fetchJSON = async function _fetchJSON(url) {
+        const resp = await fetch(url, {
+            method: 'GET'
+        });
+        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+        return await resp.json();
+    }
 
-          <label>城市：</label>
-          <select class="f-city">
-            <option value="">(全部)</option>
-            <option value="taipei">台北</option>
-            <option value="taoyuan">桃園</option>
-            <option value="hsinchu">新竹</option>
-          </select>
-        </div>
-      `;
-        },
-        serializeFilters(container, fd) {
-            fd.append('RoomType', container.querySelector('.f-roomType')?.value || '');
-            fd.append('City', container.querySelector('.f-city')?.value || '');
+    ns._fillSelect = function _fillSelect(select, items, {
+        includeAll = true,
+        allText = '(全部)',
+        allValue = ''
+    } = {}) {
+        select.innerHTML = '';
+        if (includeAll) {
+            const opt = document.createElement('option');
+            opt.value = allValue;
+            opt.textContent = allText;
+            select.appendChild(opt);
         }
-    });
-
-    // 2) 訂單狀態占比（圓餅圖），可選要不要含取消訂單
-    ns.register('bookingStatusPie', {
-        title: '訂單狀態占比',
-        defaultType: 'pie',
-        base: '/ReportForm/ReportForm/',
-        endpoint: 'GetBookingStatusPie',
-        buildFilterUI(container) {
-            container.innerHTML = `
-        <div class="filter-row">
-          <label>狀態（可多選）：</label>
-          <select multiple class="f-statuses">
-            <option value="confirmed">已確認</option>
-            <option value="pending">待確認</option>
-            <option value="checkedin">已入住</option>
-            <option value="checkedout">已退房</option>
-            <option value="canceled">已取消</option>
-          </select>
-
-          <label class="ml-2">
-            <input type="checkbox" class="f-includeCanceled" />
-            計入取消訂單
-          </label>
-        </div>
-      `;
-        },
-        serializeFilters(container, fd) {
-            const statuses = Array.from(container.querySelector('.f-statuses')?.selectedOptions || []).map(o => o.value);
-            fd.append('Statuses', JSON.stringify(statuses));
-            fd.append('IncludeCanceled', container.querySelector('.f-includeCanceled')?.checked ? 'true' : 'false');
+        for (const it of items) {
+            const opt = document.createElement('option');
+            opt.value = it.id;      // 以 id 作為 value
+            opt.textContent = it.name;
+            select.appendChild(opt);
         }
-    });
-
+    }
 })();

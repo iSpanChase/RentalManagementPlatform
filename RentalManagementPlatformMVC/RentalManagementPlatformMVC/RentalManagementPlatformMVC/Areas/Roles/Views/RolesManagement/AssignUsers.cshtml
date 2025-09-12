@@ -1,0 +1,23 @@
+﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.AssignUsersVm
+@{
+    ViewData["Title"] = "Assign Users";
+}
+<h2>指派使用者：@Model.RoleName</h2>
+
+<form asp-action="AssignUsers" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RoleId" />
+
+    <div class="mb-3">
+        <label class="form-label">選擇使用者（可多選）</label>
+        <select asp-for="SelectedUserIds"
+                asp-items="Model.AllUsers"
+                class="form-select" multiple size="12">
+        </select>
+        <div class="form-text">按住 Ctrl/⌘ 可多選；再次點擊可取消選取</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">儲存</button>
+    <a asp-action="Edit" asp-route-id="@Model.RoleId" class="btn btn-secondary">返回</a>
+</form>
+

@@ -4,9 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RentalManagementPlatformMVC.Models;
 
+/// <summary>
+/// 共享租屋平台主資料庫的 DbContext（USERS/ROLES/...）。
+/// 僅負責資料表映射，不包含商業邏輯。
+/// </summary>
 public partial class RentalManagementPlatformSqlContext : DbContext
 {
-    public RentalManagementPlatformSqlContext(DbContextOptions<RentalManagementPlatformSqlContext> options)
+	/// <summary>建立 DbContext。</summary>
+	public RentalManagementPlatformSqlContext(DbContextOptions<RentalManagementPlatformSqlContext> options)
         : base(options)
     {
     }
@@ -79,13 +84,17 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
     public virtual DbSet<SupportTicket> SupportTickets { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+	public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserFavoriteReport> UserFavoriteReports { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+	/// <summary>
+	/// 設定資料表與欄位的映射。
+	/// </summary>
+	/// <param name="mb">模型建置器。</param>
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
         {
@@ -754,7 +763,21 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
-        });
+
+			// 沒有 RolePermission.Role 導覽
+			entity.HasOne<Role>()
+			 .WithMany(r => r.RolePermissions)
+			 .HasForeignKey(x => x.RoleId)
+			 .OnDelete(DeleteBehavior.Cascade);
+
+			// 沒有 RolePermission.Permission 導覽
+			entity.HasOne<Permission>()
+			 .WithMany(p => p.RolePermissions)
+			 .HasForeignKey(x => x.PermissionId)
+			 .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasIndex(x => new { x.RoleId, x.PermissionId }).IsUnique();
+		});
 
         modelBuilder.Entity<RoomList>(entity =>
         {
@@ -962,7 +985,21 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-        });
+
+			// 沒有 UserRole.User 導覽 → 用 HasOne<User>()
+			entity.HasOne<User>()
+			 .WithMany(u => u.UserRoles)
+			 .HasForeignKey(x => x.UserId)
+			 .OnDelete(DeleteBehavior.Cascade);
+
+			// 沒有 UserRole.Role 導覽 → 用 HasOne<Role>()
+			entity.HasOne<Role>()
+			 .WithMany(r => r.UserRoles)
+			 .HasForeignKey(x => x.RoleId)
+			 .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasIndex(x => new { x.UserId, x.RoleId }).IsUnique();
+		});
 
         OnModelCreatingPartial(modelBuilder);
     }

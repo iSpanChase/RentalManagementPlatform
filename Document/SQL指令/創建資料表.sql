@@ -1,6 +1,17 @@
 -- 切換使用資料庫
 USE RentalManagementPlatformSQL;
 
+CREATE TABLE [PASSWORD_RESET_TOKENS] (
+  [token_id] int PRIMARY KEY NOT NULL,
+  [user_id] int NOT NULL,
+  [token_hash] nvarchar(128) NOT NULL,
+  [expires_at] DATETIME2 NOT NULL,
+  [used_at] DATETIME2 NULL,
+  [created_at] DATETIME2 NOT NULL
+)
+CREATE INDEX IX_RESET_user ON PASSWORD_RESET_TOKENS(user_id);
+GO
+
 CREATE TABLE [ADDRESS] (
   [address_id] int PRIMARY KEY NOT NULL,
   [district_id] int,
