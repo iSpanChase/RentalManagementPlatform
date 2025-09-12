@@ -46,7 +46,7 @@ public class CouponQueryService: ICouponQueryService
 				DiscountQuota = c.DiscountQuota,
 				LowSpend = c.LowSpend,
 				EndAt = c.EndAt,
-				//IsDeleted = c.IsDeleted
+				IsDeleted = c.IsDeleted
 			})
 			.ToListAsync();
 	}
@@ -84,7 +84,7 @@ public class CouponQueryService: ICouponQueryService
 				DiscountQuota = c.DiscountQuota,
 				LowSpend = c.LowSpend,
 				EndAt = c.EndAt,
-				//IsDeleted = c.IsDeleted
+				IsDeleted = c.IsDeleted
 			})
 			.ToListAsync();
 

@@ -9,7 +9,8 @@ using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.Management.Repository;
 
-public class CouponReadRepository : ICouponReadRepository//Coupon的Repository層,實作ICouponReadRepository介面
+public class CouponReadRepository : ICouponReadRepository
+//Coupon的Repository層,實作ICouponReadRepository介面
 {
 	private readonly RentalManagementPlatformSqlContext _db;//注入DbContext,連線到資料庫
 	public CouponReadRepository(RentalManagementPlatformSqlContext db) => _db = db;//建構子注入DbContext,方便測試維護(這裡給值後不能修改)
@@ -40,7 +41,7 @@ public class CouponWriteRepository : ICouponWriteRepository//Coupon的Repository
 		var coupon = await _db.Coupons.FirstOrDefaultAsync(c => c.CouponId == id);//從資料庫抓出要做刪除的優惠券,FirstOrDefaultAsync為非同步查詢,若找不到會回傳null
 		if (coupon != null)//假如資料存在,不是null的狀態,就做軟刪除
 		{
-			//coupon.IsDeleted = true;//該筆資料為已刪除(軟刪除)
+			coupon.IsDeleted = true;//該筆資料為已刪除(軟刪除)
 			_db.Coupons.Update(coupon);//標記為更新(Update本身為同步方法,不需要await)
 			
 		}

@@ -36,7 +36,10 @@ namespace RentalManagementPlatformMVC
 			//repositoryµù¥U
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
-
+           // builder.Services.AddScoped<ICouponDistrictReadRepository, ICouponDistrictReadRepository>();
+           // builder.Services.AddScoped<IBookingReadRepository, BookingReadRepository>();
+           // builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
+          // builder.Services.AddScoped<CouponValidationService>();
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 

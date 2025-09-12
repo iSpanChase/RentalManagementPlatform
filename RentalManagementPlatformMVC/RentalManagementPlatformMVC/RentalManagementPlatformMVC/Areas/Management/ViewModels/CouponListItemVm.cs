@@ -1,8 +1,9 @@
-﻿//ViewModel是偏向前端UI的表現,且包含了(驗證規則)和顯示格式化(屬性)。
-
+﻿//ViewModel是作為View與Controller之間的溝通橋樑
+//主要目的是為了view的呈現需求
+//可以加入格式化屬性與顯示邏輯
 namespace RentalManagementPlatformMVC.Areas.Management.ViewModels 
 {
-	public class CouponListItemVm
+	public class CouponListItemVm//提供View要呈現的需求,取得所要顯示的欄位
 	{
 		public int CouponId { get; set; }
 		public string? CouponName { get; set; }
@@ -18,9 +19,9 @@ namespace RentalManagementPlatformMVC.Areas.Management.ViewModels
 		public DateTime? EndAt { get; set; }
 		public bool IsDeleted { get; set; }
 
-		// 格式化屬性,供前端顯示使用
-		public string DiscountQuotaDisplay => DiscountQuota?.ToString("N0") ?? "-"; //"N0" 是 標準數字格式字串："N" → Number（數字格式，會自動加上千分位符號） "0" → 小數位數（這裡是 0 位小數，也就是整數）
-		public string LowSpendDisplay => LowSpend?.ToString("N0") ?? "-";
+		// 提供View格式化屬性
+		public string DiscountQuotaDisplay => DiscountQuota?.ToString("N0") ?? "-"; //"N0" 是標準數字格式字串："N" → Number（數字格式,會加千分位） "0" → 小數位數（ 0 位小數,整數）
+		public string LowSpendDisplay => LowSpend?.ToString("N0") ?? "-";//?.判斷是否為 NULL ; ??  "-" =>假如是 NULL 的畫會顯示 "-"
 		public string EndAtDisplay => EndAt?.ToString("yyyy-MM-dd") ?? "無期限";
 		public string StartRentalPeriodDisplay => StartRentalPeriod?.ToString("yyyy-MM-dd") ?? "-";
 		public string EndRentalPeriodDisplay => EndRentalPeriod?.ToString("yyyy-MM-dd") ?? "-";
