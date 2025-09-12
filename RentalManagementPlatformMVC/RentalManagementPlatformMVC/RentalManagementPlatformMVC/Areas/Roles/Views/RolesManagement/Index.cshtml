@@ -1,0 +1,155 @@
+﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.RolesIndexVm
+@{
+    ViewData["Title"] = "角色管理";
+
+    var q = Model.Query;
+    string SortLink(string col) => Url.Action("Index", "RolesManagement", new
+    {
+        area = "Roles",
+        Keyword = q.Keyword,
+        SortBy = col,
+        Desc = (q.SortBy == col ? !q.Desc : false),
+        Page = 1,
+        PageSize = q.PageSize
+    })!;
+
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    角色管理
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!--搜尋條件卡片Start-->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" asp-area="Roles" asp-controller="RolesManagement" asp-action="Index">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">關鍵字（名稱）</label>
+                            <input class="form-control" name="RoleName" value="@q.RoleName" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">關鍵字（代碼）</label>
+                            <input class="form-control" name="RoleCode" value="@q.RoleCode" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">關鍵字（描述）</label>
+                            <input class="form-control" name="Description" value="@q.Description" />
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-primary" type="submit">搜尋</button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="Roles" asp-controller="RolesManagement" asp-action="Index">重置</a>
+                    </div>
+                    <!-- 保留目前頁面狀態 -->
+                    <input type="hidden" name="SortBy" value="@q.SortBy" />
+                    <input type="hidden" name="Desc" value="@q.Desc" />
+                    <input type="hidden" name="Page" value="1" />
+                    <input type="hidden" name="PageSize" value="@q.PageSize" />
+                </form>
+            </div>
+		</div>
+        <!--搜尋條件卡片End-->
+        <!--角色列表卡片Start-->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">角色列表</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">共 @Model.Total 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">
+                            顯示第 @Model.StartRecord - @Model.EndRecord 筆
+                        </span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light">
+                            <tr>
+                              <th><a class="text-decoration-none" href="@SortLink("RoleName")">角色名稱</a></th>
+                              <th><a class="text-decoration-none" href="@SortLink("RoleCode")">代碼</a></th>
+                              <th><a class="text-decoration-none" href="@SortLink("UserCount")">使用者數量</a></th>
+                              <th><a class="text-decoration-none" href="@SortLink("PermCount")">權限數量</a></th>
+                              <th style="width:160px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                              @foreach (var r in Model.Items)
+                              {
+                                  <tr>
+                                     <td>@r.RoleName</td>
+                                     <td><code>@r.RoleCode</code></td>
+                                     <td>@r.UserCount</td>
+                                     <td>@r.PermCount</td>
+                                     <td>
+                                        <a class="btn btn-sm btn-primary"
+                                           asp-area="Roles" asp-controller="RolesManagement"
+                                           asp-action="Edit" asp-route-id="@r.RoleId">編輯</a>
+
+                                        <form class="d-inline"
+                                              asp-area="Roles" asp-controller="RolesManagement"
+                                              asp-action="Delete" asp-route-id="@r.RoleId"
+                                              method="post"
+                                              onsubmit="return confirm('確定要刪除角色「@r.RoleName」嗎？此動作無法復原。');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                                        </form>
+                                     </td>
+                                  </tr>
+                              }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">
+                            第 @Model.Page 頁，共 @Model.TotalPages 頁
+                        </span>
+                    </div>
+                    <a class="btn btn-primary" asp-area="Roles" asp-controller="RolesManagement" asp-action="Create">新增角色</a>
+                </div>
+
+                @{
+                    var p = Model.Pagination;
+                }
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            @for (int i = 1; i <= p.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == p.Page ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Roles" asp-controller="RolesManagement" asp-action="Index"
+                                       asp-route-Keyword="@q.Keyword"
+                                       asp-route-SortBy="@q.SortBy"
+                                       asp-route-Desc="@q.Desc"
+                                       asp-route-Page="@i"
+                                       asp-route-PageSize="@q.PageSize">@i</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+                <!--角色列表卡片End-->
+            </div>
+        </div>
+    </div>
+</section>

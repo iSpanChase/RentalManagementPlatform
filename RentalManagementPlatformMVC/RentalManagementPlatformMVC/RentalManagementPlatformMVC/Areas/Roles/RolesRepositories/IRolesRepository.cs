@@ -22,6 +22,8 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesRepositories
 		/// 指定描述是否已存在。
 		/// </summary>
 		Task<bool> ExistsByDescriptionAsync(string description);
+
+		Task<bool> ExistsByRoleCodeAsync(string roleCode);
 		/// <summary>
 		/// 以不追蹤模式取得查詢（用於清單/查詢）。
 		/// </summary>
