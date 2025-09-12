@@ -1,5 +1,4 @@
 @using RentalManagementPlatformMVC.Areas.Room_List.Models
-@model IEnumerable<RoomListSearchDto>
 
 @{
     ViewData["Title"] = "Search Rooms";
@@ -10,11 +9,11 @@
 
 <div class="row">
     <div class="col-md-8">
-        <form asp-area="Room_List" asp-controller="Search" asp-action="Index" method="get">
+        <form asp-area="Room_List" asp-controller="Search" asp-action="Index" method="get" id="searchForm">
             <div class="input-group mb-3">
-                <input type="search" name="query" class="form-control" placeholder="Enter keywords..." value="@currentQuery" />
+                <input type="search" name="query" class="form-control" placeholder="請輸入房型地址" value="@currentQuery" autocomplete="off" />
                 <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Search</button>
+                    <button type="submit" class="btn btn-primary" style="display: none;">搜尋</button>
                 </div>
             </div>
         </form>
@@ -23,34 +22,69 @@
 
 <hr />
 
-@if (!string.IsNullOrWhiteSpace(currentQuery))
-{
-    <h3>Results for "@currentQuery"</h3>
+<div id="searchResultsContainer">
+    <!-- AJAX results will be loaded here -->
+</div>
 
-    @if (Model.Any())
-    {
-        <div class="list-group">
-            @foreach (var room in Model)
-            {
-                <div class="list-group-item mb-3">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">@room.Title</h5>
-                        <div>
-                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Details" asp-route-id="@room.RoomId" class="btn btn-outline-info btn-sm">Details</a>
-                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Edit" asp-route-id="@room.RoomId" class="btn btn-outline-primary btn-sm">Edit</a>
-                            <a asp-area="Room_List" asp-controller="RoomLists" asp-action="Delete" asp-route-id="@room.RoomId" class="btn btn-outline-danger btn-sm">Delete</a>
-                        </div>
-                    </div>
-                    <p class="mb-1">@room.Description</p>
-                    <small><strong>City:</strong> @room.CityName | <strong>District:</strong> @room.DistrictName</small><br/>
-                    <small><strong>Price:</strong> @(room.PricePerNight?.ToString("C") ?? "") / night</small><br/>
-                    <small class="text-muted"><strong>Room ID:</strong> @room.RoomId | <strong>Host:</strong> @room.HostName</small>
-                </div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.querySelector('input[name="query"]');
+            const resultsContainer = document.getElementById('searchResultsContainer');
+            const searchForm = document.getElementById('searchForm');
+            const initialQuery = searchInput.value;
+
+            // 防止使用者快速輸入造成每個字都發請求，會 延遲 300ms 才真的送出查詢。
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
             }
-        </div>
-    }
-    else
-    {
-        <p>No results found.</p>
-    }
+
+            function performSearch(query) {
+                if (query === null || query.trim() === '') {
+                    resultsContainer.innerHTML = ''; // Clear results
+                    return;
+                }
+                
+                resultsContainer.innerHTML = '<p><em>Searching...</em></p>';
+                
+                // Build URL safely
+                const url = new URL('@Url.Action("Ajax", "Search", new { Area = "Room_List" })', window.location.origin);
+                url.searchParams.append('query', query);
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.statusText);
+                        }
+                        return response.text(); // We expect HTML, so use .text()
+                    })
+                    .then(html => {
+                        resultsContainer.innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        resultsContainer.innerHTML = '<p class="text-danger">An error occurred while fetching results.</p>';
+                    });
+            }
+
+            const debouncedSearch = debounce(performSearch, 300);
+
+            if (initialQuery) {
+                performSearch(initialQuery);
+            }
+
+            searchInput.addEventListener('input', function () {
+                debouncedSearch(this.value);
+            });
+
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault(); 
+            });
+        });
+    </script>
 }
