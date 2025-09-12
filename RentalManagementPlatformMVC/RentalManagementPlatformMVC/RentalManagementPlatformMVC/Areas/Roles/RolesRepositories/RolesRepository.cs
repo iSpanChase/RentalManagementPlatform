@@ -27,6 +27,12 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesRepositories
 		{
 			return _db.Roles.AnyAsync(r => r.Description == description);
 		}
+
+		public Task<bool> ExistsByRoleCodeAsync(string roleCode)
+		{
+			return _db.Roles.AnyAsync(r => r.RoleCode == roleCode);
+		}
+
 		public IQueryable<RolesEntity> Query()
 		{
 			// 查清單/分頁時 NoTracking 效能較好
