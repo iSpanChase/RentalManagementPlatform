@@ -39,7 +39,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             yield return temp;
         }
 
-        List<decimal> BookingRevenueSum(DateTime[] intervals, int? cityId, int? districtId, string status)
+        List<decimal> BookingAmount(DateTime[] intervals, int? cityId, int? districtId, string status)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
@@ -57,7 +57,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             for (var i = 0; i < intervals.Length - 1; i++)
             {
                 IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
-                // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
                 var count = bookingWhereAddress.Count();
                 results.Add(count);
             }
@@ -86,7 +85,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         [HttpPost]
-        public IActionResult BookingRevenueTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+        public IActionResult BookingAmountTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
         {
             var intervals = GetIntervals(timeUnit, start, end).ToArray();
 
@@ -100,7 +99,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 _ => throw new ArgumentException("Invalid timeUnit")
             }).SkipLast(1).ToArray();
 
-            var data = BookingRevenueSum(intervals,cityId,districtId, status);
+            var data = BookingAmount(intervals,cityId,districtId, status);
 
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
 

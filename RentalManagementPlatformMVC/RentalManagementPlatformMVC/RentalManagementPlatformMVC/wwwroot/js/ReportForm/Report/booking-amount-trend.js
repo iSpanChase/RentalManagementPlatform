@@ -1,11 +1,11 @@
 ﻿(function () {
     const ns = (window.ReportConfig = window.ReportConfig || {});
 
-    ns.register('BookingRevenueTrend', {
-        title: '訂單營收趨勢',
+    ns.register('BookingAmountTrend', {
+        title: '訂單金額趨勢',
         defaultType: 'line',
         base: '/ReportForm/ReportForm/',
-        endpoint: 'BookingRevenueTrend',
+        endpoint: 'BookingAmountTrend',
 
         buildFilterUI(container) {
             container.innerHTML = `
