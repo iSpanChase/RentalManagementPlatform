@@ -41,7 +41,12 @@
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true } }
+                scales: { y: { beginAtZero: true } },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
             }
         });
     };
