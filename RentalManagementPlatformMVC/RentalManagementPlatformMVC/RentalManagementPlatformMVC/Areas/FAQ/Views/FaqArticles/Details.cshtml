@@ -1,102 +1,82 @@
-﻿@model RentalManagementPlatformMVC.Models.FaqArticle
-
+﻿@model ArticleDetailsVM
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Title;
 }
 
-<h1>Details</h1>
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+            <h4 class="mb-0 me-2">@Model.Title</h4>
+            @if (Model.IsPinned == true)
+            {
+                <span class="badge bg-warning text-dark">置頂</span>
+            }
+        </div>
 
-<div>
-    <h4>FaqArticle</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Slug)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Slug)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CategoryId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CategoryId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AuthorId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AuthorId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Summary)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Summary)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Content)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Content)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsPinned)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsPinned)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PublishedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PublishedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ViewCount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ViewCount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HelpfulYes)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HelpfulYes)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HelpfulNo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HelpfulNo)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
+        <div class="text-muted small mb-2">
+            分類：@Model.CategoryName
+            <span class="mx-2">•</span>
+            發佈：@(Model.PublishedAt?.ToString("yyyy/MM/dd HH:mm"))
+            <span class="mx-2">•</span>
+            Helpful：<span class="text-success">@Model.HelpfulYes.GetValueOrDefault()</span> /
+            <span class="text-danger">@Model.HelpfulNo.GetValueOrDefault()</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Summary))
+        {
+            <p class="lead">@Model.Summary</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Content))
+        {
+            <div class="mt-3">
+                @Html.Raw(Model.Content)  <!-- 如果 Content 是純文字就改用 @Model.Content -->
+            </div>
+        }
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.FaqArticlesId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <strong>回饋</strong>
+            <span class="badge bg-secondary ms-1">@Model.FeedbackCount</span>
+        </div>
+        <!-- 需要的話可以放「新增回饋」按鈕 -->
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Feedbacks == null || !Model.Feedbacks.Any())
+        {
+            <div class="p-3 text-muted">目前沒有回饋。</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 10rem;">時間</th>
+                            <th style="width: 7rem;">情緒</th>
+                            <th>原因</th>
+                            <th style="width: 14rem;">Email</th>
+                            <th style="width: 5rem;" class="text-center">轉工單</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in Model.Feedbacks)
+                        {
+                            <tr>
+                                <td>@(f.CreatedAt?.ToString("yyyy/MM/dd HH:mm"))</td>
+                                <td>@f.Sentiment</td>
+                                <td>@f.Reason</td>
+                                <td>@f.ContactEmail</td>
+                                <td class="text-center">@(f.EscalatedToTicket == true ? "是" : "否")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 </div>

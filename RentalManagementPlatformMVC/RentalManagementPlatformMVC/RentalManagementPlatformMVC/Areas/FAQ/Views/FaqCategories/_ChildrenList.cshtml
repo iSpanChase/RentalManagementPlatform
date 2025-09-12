@@ -1,0 +1,43 @@
+﻿@model IEnumerable<RentalManagementPlatformMVC.Models.FaqCategory>
+@{
+    var parentId = (int)ViewBag.ParentId;
+}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5>子分類列表</h5>
+    <button class="btn btn-sm btn-primary"
+            onclick="$('#modalHost').load('@Url.Action("CreateChild", "FaqCategories", new { area = "FAQ", parentId = parentId })',function(){$('#_modal').modal('show');});">
+        新增子分類
+    </button>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr><th>ID</th><th>名稱</th><th></th></tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="3" class="text-muted">尚無子分類</td></tr>
+        }
+        else
+        {
+            foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.FaqCategoriesId</td>
+                    <td>@c.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary"
+                                onclick="$('#modalHost').load('@Url.Action("Edit", "FaqCategories", new { id = c.FaqCategoriesId, area = "FAQ" })',function(){$('#_modal').modal('show');});">
+                            Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                onclick="$('#modalHost').load('@Url.Action("Delete", "FaqCategories", new { id = c.FaqCategoriesId, area = "FAQ" })',function(){$('#_modal').modal('show');});">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

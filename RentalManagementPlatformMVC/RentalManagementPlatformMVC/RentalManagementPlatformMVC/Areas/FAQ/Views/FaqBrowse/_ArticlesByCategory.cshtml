@@ -1,43 +1,34 @@
-﻿@model IEnumerable<RentalManagementPlatformMVC.Areas.FAQ.ViewModels.ArticleRowVM>
+﻿@model List<ArticleRowVM>
 
-@if (!Model.Any())
+@if (Model == null || !Model.Any())
 {
-    <div class="text-muted">這個分類目前沒有文章。</div>
+    <div class="text-muted">此分類目前沒有文章。</div>
 }
 else
 {
-    <table class="table table-hover align-middle">
-        <thead>
+    <table class="table table-sm align-middle">
+        <thead class="table-light">
             <tr>
-                <th style="width:38px;">置頂</th>
+                <th class="text-center" style="width:2rem;">置頂</th>
                 <th>標題</th>
-                <th style="width:160px;">發佈時間</th>
-                <th style="width:140px;">互動</th>
-                <th style="width:220px;" class="text-end">操作</th>
+                <th style="width:10rem;">發佈</th>
+                <th class="text-end" style="width:8rem;">Helpful</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var a in Model)
             {
                 <tr>
-                    @* <td class="text-center">@(a.IsPinned ? "★" : "")</td>
-                    <td>@a.Title</td>
-                    <td>@(a.PublishedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    <td class="text-center">@(a.IsPinned == true ? "★" : "")</td>
                     <td>
-                        <span class="me-2">👀 @a.ViewCount</span>
-                        <span class="me-2">👍 @a.HelpfulYes</span>
-                        <span>👎 @a.HelpfulNo</span>
+                        <a asp-area="FAQ" asp-controller="FaqArticles" asp-action="Details"
+                           asp-route-id="@a.FaqArticlesId">@a.Title</a>
                     </td>
+                    <td>@(a.PublishedAt?.ToString("yyyy/MM/dd HH:mm"))</td>
                     <td class="text-end">
-                        <a class="btn btn-sm btn-outline-primary me-1"
-                           asp-area="FAQ" asp-controller="FaqArticles" asp-action="Edit" asp-route-id="@a.FaqArticlesId">編輯</a>
-                        <a class="btn btn-sm btn-outline-secondary me-1"
-                           asp-area="FAQ" asp-controller="FaqArticles" asp-action="Details" asp-route-id="@a.FaqArticlesId">檢視</a>
-                        <button type="button" class="btn btn-sm btn-outline-success btn-feedback"
-                                data-article-id="@a.FaqArticlesId">
-                            回饋
-                        </button>
-                    </td> *@
+                        <span class="text-success me-1">@a.HelpfulYes.GetValueOrDefault()</span> /
+                        <span class="text-danger">@a.HelpfulNo.GetValueOrDefault()</span>
+                    </td>
                 </tr>
             }
         </tbody>

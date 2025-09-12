@@ -24,11 +24,11 @@ else
             @foreach (var f in Model)
             {
                 <tr>
-                    @* <td>@f.CreatedAt.ToString("MM/dd HH:mm")</td>
+                    <td>@(f.CreatedAt?.ToString("MM/dd HH:mm"))</td>
                     <td>@f.Sentiment</td>
                     <td>@f.Reason</td>
                     <td>@f.ContactEmail</td>
-                    <td>@(f.EscalatedToTicket ? "是" : "否")</td> *@
+                    <td>@(f.EscalatedToTicket == true ? "是" : "否")</td>
                 </tr>
             }
         </tbody>

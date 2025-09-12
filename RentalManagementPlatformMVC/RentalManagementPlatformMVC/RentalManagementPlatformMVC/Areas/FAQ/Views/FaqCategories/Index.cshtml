@@ -1,0 +1,35 @@
+﻿@model IEnumerable<RentalManagementPlatformMVC.Areas.FAQ.ViewModels.CategoryListRowVM>
+@{
+    ViewData["Title"] = "分類清單";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>@ViewData["Title"]</h3>
+    <a asp-area="FAQ" asp-controller="FaqCategories" asp-action="Create" class="btn btn-primary">新增分類</a>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>分類名稱</th>
+            <th>父分類</th>
+            <th>文章數</th>
+            <th style="width:180px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.Name</td>
+                <td>@(string.IsNullOrEmpty(r.ParentName) ? "(無)" : r.ParentName)</td>
+                <td>@r.ArticleCount</td>
+                <td>
+                    <a asp-area="FAQ" asp-controller="FaqCategories" asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a asp-area="FAQ" asp-controller="FaqCategories" asp-action="Delete" asp-route-id="@r.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

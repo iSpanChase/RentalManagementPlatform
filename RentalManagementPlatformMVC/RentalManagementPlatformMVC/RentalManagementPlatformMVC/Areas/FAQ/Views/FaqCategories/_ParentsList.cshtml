@@ -1,0 +1,9 @@
+﻿@model IEnumerable<RentalManagementPlatformMVC.Models.FaqCategory>
+<div class="list-group">
+    @foreach (var p in Model)
+    {
+        <a href="javascript:;" class="list-group-item list-group-item-action parent-item" data-id="@p.FaqCategoriesId">
+            @p.Name
+        </a>
+    }
+</div>

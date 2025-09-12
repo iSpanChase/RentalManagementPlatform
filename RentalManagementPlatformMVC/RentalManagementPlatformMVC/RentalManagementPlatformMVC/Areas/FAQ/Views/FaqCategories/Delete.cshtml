@@ -1,0 +1,34 @@
+﻿@model RentalManagementPlatformMVC.Areas.FAQ.ViewModels.FaqCategoryDeleteVM
+@{
+    ViewData["Title"] = "刪除分類";
+}
+<h3>@ViewData["Title"]</h3>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning">@TempData["Error"]</div>
+}
+<div class="alert alert-danger">
+    確定要刪除分類 <strong>@Model.Name</strong>（ID: @Model.Id）嗎？
+    @if (Model.HasChildren || Model.HasArticles)
+    {
+        <div class="mt-2">
+            <ul>
+                @if (Model.HasChildren)
+                {
+                    <li>此分類仍有子分類</li>
+                }
+                @if (Model.HasArticles)
+                {
+                    <li>此分類仍有文章</li>
+                }
+            </ul>
+            <p>請先移除或轉移上列內容後再刪除。</p>
+        </div>
+    }
+</div>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger" @(Model.HasChildren || Model.HasArticles ? "disabled" : null)>確認刪除</button>
+    <a asp-area="FAQ" asp-controller="FaqCategories" asp-action="Index" class="btn btn-link">取消</a>
+</form>

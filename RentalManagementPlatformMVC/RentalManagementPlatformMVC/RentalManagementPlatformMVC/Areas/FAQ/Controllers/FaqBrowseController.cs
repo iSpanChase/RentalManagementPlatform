@@ -12,45 +12,66 @@ namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
         private readonly RentalManagementPlatformSqlContext _db;
         public FaqBrowseController(RentalManagementPlatformSqlContext db) => _db = db;
 
-        public async Task<IActionResult> Index()
+        // GET: FAQ/FaqBrowse/Index
+        public IActionResult Index()
         {
-            var categories = await _db.FaqCategories
+            var categories = _db.FaqCategories
                 .Select(c => new CategoryVM
                 {
                     CategoryId = c.FaqCategoriesId,
-                    Name = c.Name,
-                    ArticleCount = _db.FaqArticles.Count(a => a.CategoryId == c.FaqCategoriesId)
+                    Name = c.Name ?? "(未命名)",
+                    ParentId = c.ParentId
                 })
-                .OrderBy(c => c.Name)
-                .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
-            return View(categories);
-        }
+            // 建立樹狀結構
+            var dict = categories.ToDictionary(c => c.CategoryId);
+            var roots = new List<CategoryVM>();
 
-        [HttpGet]
-        public async Task<IActionResult> ArticlesByCategory(int id)
-        {
-            var rows = await _db.FaqArticles
-                .Where(a => a.CategoryId == id)
-                .OrderByDescending(a => a.IsPinned)
-                .ThenByDescending(a => a.PublishedAt)
-                .Select(a => new ArticleRowVM
+            foreach (var c in categories)
+            {
+                if (c.ParentId == null)
+                    roots.Add(c);
+                else if (dict.TryGetValue(c.ParentId.Value, out var parent))
+                    parent.Children.Add(c);
+            }
+
+            // 計算子分類文章數
+            var counts = _db.FaqArticles
+                .GroupBy(a => a.CategoryId)
+                .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+                .ToList();
+
+            foreach (var item in counts)
+            {
+                if (item.CategoryId.HasValue && dict.TryGetValue(item.CategoryId.Value, out var node))
                 {
-                    FaqArticlesId = a.FaqArticlesId,
-                    Title = a.Title ?? "(未命名)",
-                    IsPinned = a.IsPinned,
-                    PublishedAt = a.PublishedAt,
-                    ViewCount = a.ViewCount,
-                    HelpfulYes = a.HelpfulYes,
-                    HelpfulNo = a.HelpfulNo,
-                    CategoryId = a.CategoryId
-                })
-                .AsNoTracking()
-                .ToListAsync();
+                    node.ArticleCount = item.Count;
+                }
+            }
 
-            return PartialView("_ArticlesByCategory", rows);
+            return View(roots); // Index.cshtml
         }
+
+        public IActionResult ArticlesByCategory(int id)
+    {
+        var articles = _db.FaqArticles
+            .Where(a => a.CategoryId == id)
+            .OrderByDescending(a => a.IsPinned)
+            .ThenByDescending(a => a.PublishedAt)
+            .Select(a => new ArticleRowVM
+            {
+                FaqArticlesId = a.FaqArticlesId,
+                Title = a.Title ?? "(未命名)",
+                IsPinned = a.IsPinned,
+                PublishedAt = a.PublishedAt,
+                HelpfulYes = a.HelpfulYes,
+                HelpfulNo = a.HelpfulNo
+            })
+            .ToList();
+
+        return PartialView("_ArticlesByCategory", articles);
+    }
 
         [HttpGet]
         public async Task<IActionResult> FeedbackByArticle(int articleId)

@@ -20,13 +20,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
+    <Folder Include="Areas\FAQ\Models\" />
 
     <Folder Include="Areas\Management\Data\" />
     <Folder Include="Areas\Management\Models\" />
     <Folder Include="Areas\ReportForm\Data\" />
     <Folder Include="Areas\ReportForm\Models\" />
     <Folder Include="Areas\FAQ\Data\" />
-    <Folder Include="Areas\FAQ\Models\" />
 
   </ItemGroup>
 
