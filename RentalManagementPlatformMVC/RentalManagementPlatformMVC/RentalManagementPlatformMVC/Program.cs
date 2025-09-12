@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
@@ -5,8 +6,11 @@ using RentalManagementPlatformMVC.Areas.Management.Repository;
 using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.Services;
 using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
-using RentalManagementPlatformMVC.Areas.Room_List.Services;
-
+using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
+using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
@@ -15,8 +19,8 @@ using RentalManagementPlatformMVC.Services.Interfaces;
 using RentalManagementPlatformMVC.Services;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
 using Meilisearch;
-
 
 namespace RentalManagementPlatformMVC
 {
@@ -54,10 +58,11 @@ namespace RentalManagementPlatformMVC
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 			builder.Services.AddScoped<IUserService, UserService>();
+
+			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
+			builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
@@ -85,7 +90,21 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.AddControllersWithViews();
 
-            var app = builder.Build();
+			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+	.AddCookie(o =>
+	{
+		o.LoginPath = "/Auth/Login";
+		o.LogoutPath = "/Auth/Logout";
+		o.AccessDeniedPath = "/Auth/AccessDenied";
+		o.SlidingExpiration = true;
+		o.ExpireTimeSpan = TimeSpan.FromHours(8);
+		// o.Cookie.HttpOnly = true; o.Cookie.SecurePolicy = CookieSecurePolicy.Always; // �G�p https �ɫ�ĳ�}
+	});
+
+
+			builder.Services.AddAuthorization(); // �u�����v����������A��
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -104,7 +123,8 @@ namespace RentalManagementPlatformMVC
 
             app.UseRouting();
 
-            app.UseAuthorization();
+			app.UseAuthentication();
+			app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "areas",

@@ -1,6 +1,11 @@
 -- 切換使用資料庫
 USE RentalManagementPlatformSQL;
 
+ALTER TABLE [PASSWORD_RESET_TOKENS] --not repeatable
+    ADD CONSTRAINT FK_PASSWORD_RESET_TOKENS_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
 ALTER TABLE [ADDRESS] --not repeatable
     ADD CONSTRAINT FK_ADDRESS_district_id_DISTRICT_district_id 
     FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);

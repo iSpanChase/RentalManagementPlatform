@@ -1,0 +1,22 @@
+﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.AssignPermissionsVm
+@{
+    ViewData["Title"] = "Assign Permissions";
+}
+<h2>指派權限：@Model.RoleName</h2>
+
+<form asp-action="AssignPermissions" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RoleId" />
+
+    <div class="mb-3">
+        <label class="form-label">選擇權限（可多選）</label>
+        <select asp-for="SelectedPermissionIds"
+                asp-items="Model.AllPermissions"
+                class="form-select" multiple size="14">
+        </select>
+        <div class="form-text">建議以 Module:Action 方式顯示，便於搜尋</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">儲存</button>
+    <a asp-action="Edit" asp-route-id="@Model.RoleId" class="btn btn-secondary">返回</a>
+</form>
