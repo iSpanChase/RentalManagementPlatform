@@ -92,15 +92,22 @@
     }
 
     ns._fetchPostJSON = async function _fetchPostJSON(url, data = null) {
-        const options = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        };
-        if (data !== null) options.body = JSON.stringify(data);
+        try {
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            };
+            if (data !== null) options.body = JSON.stringify(data);
 
-        const resp = await fetch(url, options);
-        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
-        return await resp.json();
+            const resp = await fetch(url, options);
+            if (!resp.ok) {
+                const errorText = await resp.text();
+                throw new Error(errorText);
+            }
+            return await resp.json();
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     ns._fillSelect = function _fillSelect(select, items, {

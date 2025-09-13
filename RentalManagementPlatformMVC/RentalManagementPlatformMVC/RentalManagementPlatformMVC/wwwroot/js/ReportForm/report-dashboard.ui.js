@@ -5,6 +5,10 @@
     // === 工具：收集當前「新增/編輯」面板的狀態，組合成送 API 與重建卡片所需的結構 ===
     function collectPanelState() {
         const timeFd = ReportTime.collect("#reportControls");
+        if (new Date(timeFd.get("Start")) > new Date(timeFd.get("End"))) {
+            alert("時間資訊設定錯誤");
+            return;
+        }
         const filterFd = ReportConfig.collectFilters({ filterPanel: '#reportFilterPanel' });
 
         const title = document.querySelector('#cardTitleInput').value?.trim() || '';
@@ -23,8 +27,10 @@
 
         // 合併 FormData
         const fd = new FormData();
-        for (const [k, v] of timeFd.entries()) fd.append(k, v);
-        for (const [k, v] of filterFd.entries()) fd.append(k, v);
+        for (const [k, v] of timeFd.entries())
+            fd.append(k, v);
+        for (const [k, v] of filterFd.entries())
+            fd.append(k, v);
         // ⭐ 確保 ReportId 一定在表單裡（以便後續序列化/我的最愛）
         if (!fd.get('ReportId') && reportId) fd.append('ReportId', reportId);
 
@@ -40,6 +46,17 @@
 
     // === UI：面板顯示 / 隱藏 ===
     function showPanel({ forEdit = false, cardState = null } = {}) {
+        if (!forEdit) {
+            const snapshot = [];
+            CardBus.forEach(({ state }) => snapshot.push(state));
+
+            if (snapshot.length >= 6) {
+                alert("一個畫面最多只能有6張卡片");
+                return;
+            }
+        }
+        
+
         const panel = document.querySelector('#reportControls');
         panel.hidden = false;
         document.querySelector('#btnConfirmAdd').hidden = forEdit;
@@ -77,7 +94,7 @@
     // === 共用：建立或更新一張卡 ===
     async function createOrUpdateCard({ state, cardId = null }) {
         if (!state?.base || !state?.endpoint) {
-            alert('找不到報表設定（base/endpoint）。請確認報表定義是否已註冊。');
+            //alert('找不到報表設定（base/endpoint）。請確認報表定義是否已註冊。');
             return;
         }
         if (cardId) {
@@ -124,20 +141,36 @@
 
     // === 我 的 最 愛：儲存（把目前頁面所有卡片序列化後送出） ===
     async function saveFavorite() {
-        const name = prompt('請為「我的最愛」命名：');
-        if (!name) return;
         const snapshot = [];
         CardBus.forEach(({ state }) => snapshot.push(state));
+
+        if (snapshot.length > 6) {
+            alert("最多只能存6張卡片");
+            return;
+        }
+        if (snapshot.length <= 0) {
+            alert("最少要有1張卡片");
+            return;
+        }
+
+        const name = prompt('請為「我的最愛」命名：');
+        if (!name) {
+            alert("請提供我的最愛名稱。");
+            return;
+        } 
+        
         const ok = confirm(`將以「${name}」儲存目前頁面 ${snapshot.length} 張卡片，確認？`);
         if (!ok) return;
 
-        await ReportConfig._fetchPostJSON('/ReportForm/ReportForm/FavoritesSave', {
+        let result = await ReportConfig._fetchPostJSON('/ReportForm/ReportForm/FavoritesSave', {
             name,
             cards: snapshot
         }); // 你可在後端定義接收 DTO，將 cards[] 存 JSON。 :contentReference[oaicite:12]{index = 12}
 
-        await refreshFavorites();
-        alert('已儲存到我的最愛。');
+        if (result) {
+            await refreshFavorites();
+            alert('已儲存到我的最愛。');
+        }
     }
 
     // === 我 的 最 愛：載入（清空現有卡；用快照重建） ===
