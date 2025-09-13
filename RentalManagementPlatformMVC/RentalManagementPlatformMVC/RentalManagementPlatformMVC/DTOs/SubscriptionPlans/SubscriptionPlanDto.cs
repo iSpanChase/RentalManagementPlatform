@@ -7,7 +7,7 @@ namespace RentalManagementPlatformMVC.DTOs.SubscriptionPlan
 		public int PlanId { get; set; }
 
 		[Required]
-		[StringLength(100, MinimumLength = 1)]
+		[StringLength(10, MinimumLength = 1)]
 		public string PlanName { get; set; } = string.Empty;
 
 		[Range(0, double.MaxValue)]

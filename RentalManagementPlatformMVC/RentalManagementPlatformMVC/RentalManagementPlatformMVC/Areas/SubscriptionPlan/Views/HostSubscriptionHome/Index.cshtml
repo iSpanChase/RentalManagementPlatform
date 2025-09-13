@@ -1,0 +1,65 @@
+﻿@model RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels.HostSubscriptionIndexViewModel
+
+@{
+    ViewData["Title"] = "訂閱管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 序號計算
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+    int range = 2; // 頁碼範圍
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">訂閱管理</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "guest" ? "active" : "")"
+                   asp-area="SubscriptionPlan"
+                   asp-controller="SubscriptionPlanHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-plus-square"></i>  方案創建
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="HostPayoutHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-crown"></i> 訂閱管理
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+    </div>
+</section>

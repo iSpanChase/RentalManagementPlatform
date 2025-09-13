@@ -28,7 +28,6 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-			//註冊Context類別，並給予對應資料庫的連線方式
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 			{
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql"));
@@ -46,6 +45,8 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IHostPayoutService, HostPayoutService>();
 			builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 			builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+			builder.Services.AddScoped<IHostSubscriptionRepository, HostSubscriptionRepository>();
+			builder.Services.AddScoped<IHostSubscriptionService, HostSubscriptionService>();
 			builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 
 			var app = builder.Build();
@@ -62,7 +63,10 @@ namespace RentalManagementPlatformMVC
 				app.UseHsts();
 			}
 
-			app.UseHttpsRedirection();
+			if (!app.Environment.IsDevelopment())
+			{
+				app.UseHttpsRedirection();
+			}
 			app.UseStaticFiles();
 
 			app.UseRouting();

@@ -72,6 +72,13 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 			return true;
 		}
 
+		public async Task<SubscriptionPlan> EditPlanAsync(SubscriptionPlan plan)
+		{
+			_context.SubscriptionPlans.Update(plan);
+			await _context.SaveChangesAsync();
+			return plan;
+		}
+
 
 		// 以下是檢查驗證用的輔助方法
 		public async Task<SubscriptionPlan?> GetByNameAsync(string planName)

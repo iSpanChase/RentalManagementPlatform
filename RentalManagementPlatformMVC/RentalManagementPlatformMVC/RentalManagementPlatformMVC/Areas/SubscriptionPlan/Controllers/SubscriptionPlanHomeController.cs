@@ -39,20 +39,34 @@ namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 				TotalCount = pagedResult.TotalCount
 			};
 
+			ViewData["ActiveTab"] = "plan";
 			return View(vm);
 		}
 
 		/// <summary>
-		/// 建立新的訂閱方案。
+		/// 建立新的訂閱方案（僅支援 AJAX）。
 		/// </summary>
 		/// <param name="viewModel">包含訂閱方案資料的 ViewModel。</param>
-		/// <returns>建立結果的檢視畫面或重新導向至列表頁。</returns>
+		/// <returns>JSON 格式的建立結果。</returns>
 		[HttpPost]
+		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create(CreatePlanViewModel viewModel)
 		{
+			// 僅支援 AJAX 請求
+			if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+			{
+				return BadRequest(new { success = false, error = "只支援 AJAX 請求。" });
+			}
+
 			if (!ModelState.IsValid)
 			{
-				return View(viewModel);
+				var errors = ModelState
+					.Where(x => x.Value.Errors.Count > 0)
+					.ToDictionary(
+						kvp => kvp.Key,
+						kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+					);
+				return Json(new { success = false, errors = errors });
 			}
 
 			try
@@ -60,37 +74,36 @@ namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 				var createPlanDto = _mapper.Map<CreatePlanDto>(viewModel);
 				await _subscriptionPlanService.CreatePlanAsync(createPlanDto);
 				
-				TempData["Success"] = "方案創建成功！";
-				return RedirectToAction(nameof(Index));
+				return Json(new { success = true, message = "方案創建成功！" });
 			}
 			catch (PlanNameExistException ex)
 			{
-				ModelState.AddModelError(nameof(viewModel.PlanName), ex.Message);
-				return View(viewModel);
+				return Json(new { success = false, error = ex.Message, field = nameof(viewModel.PlanName) });
 			}
 			catch (ArgumentException ex)
 			{
-				ModelState.AddModelError("", ex.Message);
-				return View(viewModel);
+				return Json(new { success = false, error = ex.Message });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				ModelState.AddModelError("", "創建方案時發生錯誤，請稍後再試");
-				return View(viewModel);
+				return Json(new { success = false, error = "創建方案時發生錯誤，請稍後再試！" });
 			}
 		}
 
 		/// <summary>
-		///	刪除指定方案。
+		/// 刪除指定方案（僅支援 AJAX）。
 		/// </summary>
 		/// <param name="planId">指定方案的Id</param>
-		/// <returns>建立結果的檢視畫面或重新導向至列表頁。</returns>
+		/// <returns>JSON 格式的刪除結果。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Delete(int planId)
 		{
-			// 檢查是否為 AJAX 請求
-			bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+			// 僅支援 AJAX 請求
+			if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+			{
+				return BadRequest(new { success = false, error = "只支援 AJAX 請求。" });
+			}
 
 			try
 			{
@@ -98,45 +111,74 @@ namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 
 				if (success)
 				{
-					if (isAjax)
-						return Json(new { success = true, message = "方案刪除成功！" });
-					
-					TempData["Success"] = "方案刪除成功！";
+					return Json(new { success = true, message = "方案刪除成功！" });
 				}
 				else
 				{
-					if (isAjax)
-						return Json(new { success = false, error = "方案刪除失敗，請稍後再試！" });
-					
-					TempData["Error"] = "方案刪除失敗，請稍後再試！";
+					return Json(new { success = false, error = "方案刪除失敗，請稍後再試！" });
 				}
 			}
 			catch (PlanNotFoundException ex)
 			{
-				if (isAjax)
-					return Json(new { success = false, error = ex.Message });
-				TempData["Error"] = ex.Message;
+				return Json(new { success = false, error = ex.Message });
 			}
 			catch (PlanInUseException ex)
 			{
-				if (isAjax)
-					return Json(new { success = false, error = ex.Message });
-				TempData["Error"] = ex.Message;
+				return Json(new { success = false, error = ex.Message });
 			}
 			catch (InvalidOperationException ex)
 			{
-				if (isAjax)
-					return Json(new { success = false, error = ex.Message });
-				TempData["Error"] = ex.Message;
+				return Json(new { success = false, error = ex.Message });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				if (isAjax)
-					return Json(new { success = false, error = "刪除方案時發生錯誤，請稍後再試！" });
-				TempData["Error"] = "刪除方案時發生錯誤，請稍後再試！";
+				return Json(new { success = false, error = "刪除方案時發生錯誤，請稍後再試！" });
+			}
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Update(EditPlanViewModel viewModel)
+		{
+			// 僅支援 AJAX 請求
+			if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+			{
+				return BadRequest(new { success = false, error = "只支援 AJAX 請求。" });
 			}
 
-			return RedirectToAction(nameof(Index));
+			if (!ModelState.IsValid)
+			{
+				var errors = ModelState
+					.Where(x => x.Value.Errors.Count > 0)
+					.ToDictionary(
+						kvp => kvp.Key,
+						kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+					);
+				return Json(new { success = false, errors = errors });
+			}
+
+			try
+			{
+				var updateDto = _mapper.Map<EditPlanDto>(viewModel);
+				await _subscriptionPlanService.EditPlanAsync(updateDto);
+				return Json(new { success = true, message = "方案更新成功！" });
+			}
+			catch (PlanNotFoundException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (PlanNameExistException ex)
+			{
+				return Json(new { success = false, error = ex.Message, field = nameof(viewModel.PlanName) });
+			}
+			catch (ArgumentException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (Exception)
+			{
+				return Json(new { success = false, error = "更新方案時發生錯誤，請稍後再試！" });
+			}
 		}
 	}
 }

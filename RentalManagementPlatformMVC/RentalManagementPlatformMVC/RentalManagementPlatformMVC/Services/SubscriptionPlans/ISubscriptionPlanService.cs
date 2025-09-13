@@ -12,9 +12,9 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 		//Task<SubscriptionPlanDto?> GetPlanByIdAsync(int planId);
 
 		// CRUD 操作
-		Task<SubscriptionPlanDto> CreatePlanAsync(CreatePlanDto dto);
+		Task<SubscriptionPlanDto> CreatePlanAsync(CreatePlanDto planDto);
 		Task<bool> DeletePlanAsync(int planId);
-		//Task<SubscriptionPlanDto> UpdatePlanAsync(int planId, UpdatePlanDto dto);
+		Task<SubscriptionPlanDto> EditPlanAsync(EditPlanDto planDto);
 		//Task<bool> ActivatePlanAsync(int planId);
 		//Task<bool> DeactivatePlanAsync(int planId);
 

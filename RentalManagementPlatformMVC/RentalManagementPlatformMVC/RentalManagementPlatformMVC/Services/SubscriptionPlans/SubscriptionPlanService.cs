@@ -105,8 +105,35 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 			return await _subscriptionPlanRepository.DeletePlanAsync(planId);
 		}
 
+		public async Task<SubscriptionPlanDto> EditPlanAsync(EditPlanDto planDto)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planDto.PlanId);
 
+			if (plan == null)
+				throw new PlanNotFoundException("找不到指定的方案");
 
+			if (plan.IsActive)
+				throw new InvalidOperationException("無法編輯啟用中的方案");
+
+			// 檢查方案名稱是否重複
+			if (!string.Equals(plan.PlanName, planDto.PlanName, StringComparison.OrdinalIgnoreCase))
+			{
+				var existingPlan = await _subscriptionPlanRepository.GetByNameAsync(planDto.PlanName);
+				if (existingPlan != null && existingPlan.PlanId != planDto.PlanId)
+					throw new PlanNameExistException("方案名稱已存在");
+			}
+
+			// 更新欄位
+			plan.PlanName = planDto.PlanName;
+			plan.MonthlyFee = planDto.MonthlyFee;
+			plan.CreatedAt = DateTime.UtcNow;
+			plan.PerkPriority = planDto.PerkPriority;
+			plan.PerkAnalytics = planDto.PerkAnalytics;
+			plan.CommissionRate = planDto.CommissionRate;
+
+			var updatedPlan = await _subscriptionPlanRepository.EditPlanAsync(plan);
+			return _mapper.Map<SubscriptionPlanDto>(updatedPlan);
+		}
 
 		//private async Task<bool> CanEditPlanAsync(int planId)
 		//{

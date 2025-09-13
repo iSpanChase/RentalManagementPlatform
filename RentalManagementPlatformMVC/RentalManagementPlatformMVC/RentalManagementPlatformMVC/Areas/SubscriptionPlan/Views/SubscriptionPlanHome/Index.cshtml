@@ -28,7 +28,7 @@
     <div class="container-fluid">
         <div class="row mb-2 align-items-center">
             <div class="col-sm-6">
-                <h1 class="m-0">訂閱方案管理</h1>
+                <h1 class="page-title m-0">方案管理</h1>
             </div>
             <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
                 <button class="btn btn-primary d-flex align-items-center gap-2 ms-auto" 
@@ -47,6 +47,27 @@
 <!-- 方案列表卡片 -->
 <section class="content">
     <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "plan" ? "active" : "")"
+                   asp-area="SubscriptionPlan"
+                   asp-controller="SubscriptionPlanHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-plus-square"></i>  方案創建
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="SubscriptionPlan"
+                   asp-controller="HostSubscriptionHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-crown"></i> 訂閱管理
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+
         <div class="card card-primary card-outline">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title mb-0 fw-bold">現有方案列表</h3>
@@ -90,11 +111,11 @@
                                                 @if (plan.CanActivate)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-outline-success btn-sm"
+                                                            class="btn btn-success btn-sm"
                                                             title="啟用"
                                                             data-action="activate"
                                                             data-id="@plan.PlanId">
-                                                        啟用
+                                                        <i class="fas fa-play me-1"></i>啟用
                                                     </button>
                                                 }
 
@@ -102,7 +123,7 @@
                                                 @if (plan.CanEdit)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-outline-warning btn-sm"
+                                                            class="btn btn-warning btn-sm"
                                                             title="編輯"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#planModal"
@@ -113,7 +134,7 @@
                                                             data-commission-rate="@plan.CommissionRate"
                                                             data-perk-priority="@plan.PerkPriority"
                                                             data-perk-analytics="@plan.PerkAnalytics">
-                                                        編輯
+                                                        <i class="fas fa-edit me-1"></i>編輯
                                                     </button>
                                                 }
 
@@ -121,11 +142,11 @@
                                                 @if (plan.CanDeactivate)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
+                                                            class="btn btn-secondary btn-sm"
                                                             title="停用"
                                                             data-action="deactivate"
                                                             data-id="@plan.PlanId">
-                                                        停用
+                                                        <i class="fas fa-pause me-1"></i>停用
                                                     </button>
                                                 }
 
@@ -133,11 +154,11 @@
                                                 @if (plan.CanDelete)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
+                                                            class="btn btn-danger btn-sm"
                                                             title="刪除"
                                                             data-action="delete"
                                                             data-id="@plan.PlanId">
-                                                        刪除
+                                                        <i class="fas fa-trash me-1"></i>刪除
                                                     </button>
                                                 }
                                             </div>
@@ -168,7 +189,8 @@
                     <div class="d-flex gap-2">
                         <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
                                 title="重新整理資料"
-                                style="border-radius: 6px;">
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
                             <i class="fas fa-sync-alt"></i>
                             <span>重新整理</span>
                         </button>
@@ -316,9 +338,9 @@
                 // 權益勾選
                 const priorityValue = btn.getAttribute('data-perk-priority');
                 const analyticsValue = btn.getAttribute('data-perk-analytics');
-                
-                document.getElementById('perkPriority').checked = (priorityValue === 'True' || priorityValue === 'true');
-                document.getElementById('perkAnalytics').checked = (analyticsValue === 'True' || analyticsValue === 'true');
+
+                document.getElementById('perkPriority').checked = (priorityValue?.toLowerCase() === 'true');
+                document.getElementById('perkAnalytics').checked = (analyticsValue?.toLowerCase() === 'true');
             }
         });
 
@@ -326,7 +348,7 @@
         document.getElementById('btnSavePlan')?.addEventListener('click', function () {
             const payload = {
                 planId: document.getElementById('planId').value || null,
-                planName: document.getElementById('planName').value?.trim(),
+                planName: document.getElementById('planName').value.trim(),
                 monthlyFee: parseFloat(document.getElementById('monthlyFee').value || '0'),
                 commissionRate: (parseFloat(document.getElementById('commissionRate').value || '0') / 100), // 轉回 0~1
                 perkPriority: document.getElementById('perkPriority').checked,
@@ -346,6 +368,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                     },
                     body: new URLSearchParams({
@@ -356,23 +379,29 @@
                         'PerkAnalytics': payload.perkAnalytics
                     })
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
                         location.reload();
                     } else {
-                        return response.text().then(text => {
-                            // 解析錯誤訊息並顯示
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(text, 'text/html');
-                            const errors = doc.querySelectorAll('.text-danger');
-                            const errorMessages = Array.from(errors).map(e => e.textContent.trim()).filter(msg => msg);
-                            
-                            if (errorMessages.length > 0) {
-                                alert('錯誤：\n' + errorMessages.join('\n'));
-                            } else {
-                                alert('儲存失敗，請稍後再試');
+                        if (result.errors) {
+                            // 顯示驗證錯誤
+                            const errorMessages = [];
+                            for (const field in result.errors) {
+                                errorMessages.push(...result.errors[field]);
                             }
-                        });
+                            alert('錯誤：\n' + errorMessages.join('\n'));
+                        } else if (result.field) {
+                            // 特定欄位錯誤
+                            alert('錯誤：' + result.error);
+                            // 可以針對特定欄位進行標記
+                            if (result.field === 'PlanName') {
+                                document.getElementById('planName').focus();
+                            }
+                        } else {
+                            alert('錯誤：' + result.error);
+                        }
                     }
                 })
                 .catch(error => {
@@ -380,8 +409,52 @@
                     alert('發生錯誤，請稍後再試');
                 });
             } else {
-                // TODO: 編輯方案 API
-                console.log('編輯方案功能尚未實作');
+                // 編輯方案
+                fetch('@Url.Action("Update", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: new URLSearchParams({
+                        'PlanId': payload.planId,
+                        'PlanName': payload.planName,
+                        'MonthlyFee': payload.monthlyFee,
+                        'CommissionRate': payload.commissionRate,
+                        'PerkPriority': payload.perkPriority,
+                        'PerkAnalytics': payload.perkAnalytics
+                    })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        if (result.errors) {
+                            // 顯示驗證錯誤
+                            const errorMessages = [];
+                            for (const field in result.errors) {
+                                errorMessages.push(...result.errors[field]);
+                            }
+                            alert('錯誤：\n' + errorMessages.join('\n'));
+                        } else if (result.field) {
+                            // 特定欄位錯誤
+                            alert('錯誤：' + result.error);
+                            // 可以針對特定欄位進行標記
+                            if (result.field === 'PlanName') {
+                                document.getElementById('planName').focus();
+                            }
+                        } else {
+                            alert('錯誤：' + result.error);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('發生錯誤，請稍後再試');
+                });
             }
             
             planModal?.hide();
@@ -444,13 +517,6 @@
                         });
                     }
                     break;
-            }
-        });
-
-        // 重新整理按鈕事件處理
-        document.addEventListener('click', function (e) {
-            if (e.target.closest('button[title="重新整理"]')) {
-                location.reload();
             }
         });
     </script>

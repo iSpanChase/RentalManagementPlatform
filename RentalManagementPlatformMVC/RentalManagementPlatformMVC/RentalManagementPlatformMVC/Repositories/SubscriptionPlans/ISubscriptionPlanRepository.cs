@@ -11,7 +11,7 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 		Task<SubscriptionPlan> CreatePlanAsync(SubscriptionPlan plan);
 		Task<SubscriptionPlan?> GetByNameAsync(string planName);
 		Task<bool> DeletePlanAsync(int planId);
-		//Task<bool> UpdatePlanAsync(SubscriptionPlan plan);
+		Task<SubscriptionPlan> EditPlanAsync(SubscriptionPlan plan);
 		//Task<bool> DeactivatePlanAsync(int planId);
 
 

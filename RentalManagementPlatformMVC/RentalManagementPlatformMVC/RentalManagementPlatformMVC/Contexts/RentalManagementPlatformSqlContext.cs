@@ -268,7 +268,6 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("discount_quota");
             entity.Property(e => e.EndAt).HasColumnName("end_at");
             entity.Property(e => e.EndRentalPeriod).HasColumnName("end_rental_period");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.LowSpend)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("low_spend");

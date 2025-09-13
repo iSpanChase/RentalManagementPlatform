@@ -89,5 +89,29 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				  .HasConstraintName("FK_ROOMLIST_USER")
 				  .OnDelete(DeleteBehavior.Restrict);
 		});
+
+		modelBuilder.Entity<HostSubscription>(entity =>
+		{
+			// SubscriptionPlan 一對多關聯
+			entity.HasOne(e => e.Plan)
+				  .WithMany(e => e.HostSubscriptions)
+				  .HasForeignKey(e => e.PlanId)
+				  .HasConstraintName("FK_HOSTSUBSCRIPTION_SUBSCRIPTIONPLAN")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// User 一對多關聯 (單一 Host)
+			entity.HasOne(e => e.Host)
+				  .WithMany(e => e.HostSubscriptions)
+				  .HasForeignKey(e => e.HostId)
+				  .HasConstraintName("FK_HOSTSUBSCRIPTION_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+
+			// SubscriptionBillingLog 一對多關聯
+			entity.HasMany(e => e.SubscriptionBillingLogs)
+				  .WithOne(e => e.HostSubscription)
+				  .HasForeignKey(e => e.HostSubId)
+				  .HasConstraintName("FK_SUBSCRIPTIONBILLINGLOG_HOSTSUBSCRIPTION")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
 	}
 }
