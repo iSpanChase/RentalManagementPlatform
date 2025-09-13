@@ -9,36 +9,36 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
     public partial class ReportFormController : Controller
     {
         async Task<List<decimal>> BookingAverageAmount
-            (DateTime[] intervals, int? cityId, int? districtId, string status)
+            (DateTime[] intervals, int? cityId, int? districtId)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
+                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId);
                 // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
                 var totalPrice = await bookingWhereAddress.AverageAsync(x => (decimal?)x.TotalPrice) ?? 0m;
                 results.Add(totalPrice);
             }
             return results;
         }
-        async Task<List<int>> BookingCount(DateTime[] intervals, int? cityId, int? districtId, string status)
+        async Task<List<int>> BookingCount(DateTime[] intervals, int? cityId, int? districtId)
         {
             var results = new List<int>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
+                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId);
                 var count = await bookingWhereAddress.CountAsync();
                 results.Add(count);
             }
             return results;
         }
         async Task<List<decimal>> BookingTotalAmount
-            (DateTime[] intervals, int? cityId, int? districtId, string status)
+            (DateTime[] intervals, int? cityId, int? districtId)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
+                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId);
                 // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
                 var totalPrice = await bookingWhereAddress.SumAsync(x => (decimal?)x.TotalPrice) ?? 0m;
                 results.Add(totalPrice);
@@ -47,7 +47,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         IQueryable<Models.Booking> BookingSelecter
-            (DateTime[] intervals, int i, int? cityId, int? districtId, string status)
+            (DateTime[] intervals, int i, int? cityId, int? districtId)
         {
             var start = intervals[i];
             var end = intervals[i + 1];
@@ -63,18 +63,17 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 .Join(_context.Cities, brlad => brlad.d.CityId, c => c.CityId, (brlad, c) => new { brlad, c })
                 .Where(x => districtId == null || x.brlad.d.DistrictId == districtId)
                 .Where(x => cityId == null || x.c.CityId == cityId)
-                .Where(x => status == null || (!string.IsNullOrEmpty(x.brlad.brla.brl.b.Status) && status.Contains(x.brlad.brla.brl.b.Status)))
                 .Select(x => x.brlad.brla.brl.b);
             return result;
         }
 
         [HttpPost]
         public async Task<IActionResult> BookingAverageAmountTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await BookingAverageAmount(intervals.ToArray(), cityId, districtId, status);
+            var data = await BookingAverageAmount(intervals.ToArray(), cityId, districtId);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -87,11 +86,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> BookingCountTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await BookingCount(intervals.ToArray(), cityId, districtId, status);
+            var data = await BookingCount(intervals.ToArray(), cityId, districtId);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -104,11 +103,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> BookingTotalAmountTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await BookingTotalAmount(intervals.ToArray(), cityId, districtId, status);
+            var data = await BookingTotalAmount(intervals.ToArray(), cityId, districtId);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {

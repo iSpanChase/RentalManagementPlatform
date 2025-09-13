@@ -9,12 +9,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
     public partial class ReportFormController : Controller
     {
         async Task<List<decimal>> RoomListAveragePrice
-            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
                 rooms = RoomActiveSelecter(intervals, i, rooms);
                 // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
                 var averagePrice = await rooms.AverageAsync(x => (decimal?)x.PricePerNight) ?? 0m;
@@ -24,7 +24,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         async Task<List<decimal>> RoomListAverageRating
-            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
@@ -32,7 +32,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 var start = intervals[i];
                 var end = intervals[i + 1];
 
-                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
                 //rooms = RoomActiveSelecter(intervals, i, rooms);
 
                 var avg = await (
@@ -48,12 +48,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         async Task<List<int>> RoomListCount
-            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var results = new List<int>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
                 rooms = RoomActiveSelecter(intervals, i, rooms);
                 var averageRating = await rooms.CountAsync();
                 results.Add(averageRating);
@@ -62,12 +62,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         async Task<List<int>> RoomListCreateCount
-            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var results = new List<int>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
                 rooms = RoomCreateSelecter(intervals, i, rooms);
                 var averageRating = await rooms.CountAsync();
                 results.Add(averageRating);
@@ -93,7 +93,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         IQueryable<RoomList> RoomSelecter
-            (int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var result = _context.RoomLists
                 .Where(x => priceMin == null || priceMin.Value <= x.PricePerNight)
@@ -103,7 +103,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 .Join(_context.Cities, rlad => rlad.d.CityId, c => c.CityId, (rlad, c) => new { rlad, c })
                 .Where(x => districtId == null || x.rlad.d.DistrictId == districtId)
                 .Where(x => cityId == null || x.c.CityId == cityId)
-                .Where(x => status == null || (!string.IsNullOrEmpty(x.rlad.rla.rl.Status) && status.Contains(x.rlad.rla.rl.Status)))
                 .Select(x => x.rlad.rla.rl)
                 .GroupJoin(_context.Reviews, rl => rl.RoomId, rv => rv.RoomId, (rl, reviews) => new { rl, reviews })
                 .Where(x => ratingMin == null || ratingMax == null || x.reviews.Any())
@@ -116,11 +115,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> RoomListAveragePriceTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await RoomListAveragePrice(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var data = await RoomListAveragePrice(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -133,11 +132,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> RoomListAverageRatingTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await RoomListAverageRating(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var data = await RoomListAverageRating(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -150,11 +149,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> RoomListCountTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await RoomListCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var data = await RoomListCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -167,11 +166,11 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 
         [HttpPost]
         public async Task<IActionResult> RoomListCreateCountTrend
-            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax)
         {
             var intervals = GetIntervals(timeUnit, start, end);
             var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
-            var data = await RoomListCreateCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var data = await RoomListCreateCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
