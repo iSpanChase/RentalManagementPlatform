@@ -12,11 +12,28 @@
     };
 }
 
-<div id="reportControls">
+<div class="d-flex align-items-center gap-2 mb-3">
+    <button id="btnAddCard" class="btn btn-primary">新增卡片</button>
+
+    <select id="favSelect" class="form-select" style="width:auto; min-width: 220px;">
+        <option value="">（選擇我的最愛）</option>
+    </select>
+
+    <button id="btnFavSave" class="btn btn-outline-secondary">加入我的最愛</button>
+    <button id="btnFavLoad" class="btn btn-outline-secondary">載入我的最愛</button>
+    <button id="btnFavDelete" class="btn btn-outline-danger">刪除我的最愛</button>
+</div>
+
+<div id="reportControls" hidden>
     <label>報表種類：</label>
     <select id="globalReportId">
         <!-- 由 JS registry 動態填入 <option> -->
     </select>
+
+    <div class="mt-2">
+        <label class="form-label">卡片名稱</label>
+        <input id="cardTitleInput" class="form-control" placeholder="例如：近 12 週訂單金額趨勢">
+    </div>
 
     <label>圖表類型：</label>
     <select id="globalReportType">
@@ -112,10 +129,14 @@
     <!-- 不同報表專屬的篩選條件動態出現在這裡 -->
     <div id="reportFilterPanel"></div>
 
-    <button id="btnAddCard">新增卡片</button>
+    <div class="d-flex gap-2 mt-3">
+        <button id="btnConfirmAdd" class="btn btn-success">新增</button>
+        <button id="btnConfirmEdit" class="btn btn-success" hidden>確認編輯</button>
+        <button id="btnCancelPanel" class="btn btn-outline-secondary">取消</button>
+    </div>
 </div>
 
-<div id="reportCardsRow" class="row">
+<div id="reportCardsRow" class="row g-3">
     <!-- 動態新增卡片 -->
 </div>
 
@@ -132,50 +153,10 @@
     <script src="~/js/reportform/report/user-count-trend.js"></script>
 	<script src="~/js/reportform/report/user-create-count-trend.js"></script>
     <script src="~/js/reportform/reportchartcard.init.js"></script>
+	<script src="~/js/reportform/report-dashboard.ui.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function(){
           ReportConfig.initControls(); // 會把 #globalReportId 塞滿、並渲染 #reportFilterPanel
-        });
-
-        document.querySelector("#btnAddCard").addEventListener("click", async () => {
-          // 1) 圖表型別（可讓使用者覆寫預設）
-          const type = document.querySelector("#globalReportType").value;
-
-          // 2) 先收時間（TimeUnit/Start/End）：沿用你現有的週/日期邏輯
-          const timeFd = ReportTime.collect();  // 含 TimeUnit/Start/End:contentReference[oaicite:6]{index=6}
-
-          // 3) 收報表篩選
-          const filterFd = ReportConfig.collectFilters();
-
-          // 4) 合併成單一 FormData（保留 key）
-          const fd = new FormData();
-          // 時間
-          for (const [k, v] of timeFd.entries())
-            fd.append(k, v);
-          // 篩選
-          for (const [k, v] of filterFd.entries())
-            fd.append(k, v);
-
-          // 5) 取得當前選擇報表定義
-          const reportId = document.querySelector('#globalReportId').value;
-          const def = ReportConfig.get(reportId);
-          if (!def){
-              alert('未知的報表');
-              return;
-          }
-
-          // 6) 決定卡片標題（顯示用）
-          const timeUnitTxt = document.querySelector("#globalTimeUnit").value;
-          const title = `${def.title}（${timeUnitTxt}）`;
-
-          // 7) 呼叫你既有的畫卡API（createCard）
-          ReportCard.createCard({
-            base: def.base,
-            endpoint: def.endpoint,
-            title,
-            type,
-            formData: fd
-          });
         });
     </script>
 }
