@@ -45,6 +45,117 @@
 <section class="content">
     <div class="container-fluid">
 
+        <!--搜尋條件卡片Start-->
+        <div class="card card-outline">
+            <div class="card-header">
+                <h3 class="card-title">搜尋條件</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="get" asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index">
+                    <!-- 第一列：基本篩選 -->
+                    <div class="row g-3 mb-3">
+                        <!-- 房東姓名 -->
+                        <div class="col-md-3">
+                            <label for="HostName" class="form-label">房東姓名</label>
+                            <input type="text" class="form-control" id="HostName" name="Criteria.HostName"
+                                   value="@Model.Criteria.HostName" placeholder="請輸入房東姓名">
+                        </div>
+
+                        <!-- 訂閱狀態 -->
+                        <div class="col-md-3">
+                            <label for="Status" class="form-label">訂閱狀態</label>
+                            <select class="form-control" id="Status" name="Criteria.Status">
+                                <option value="">全部狀態</option>
+                                <option value="active" @(Model.Criteria.Status == "active" ? "selected" : "")>啟用中</option>
+                                <option value="canceled" @(Model.Criteria.Status == "canceled" ? "selected" : "")>已取消</option>
+                                <option value="expired" @(Model.Criteria.Status == "expired" ? "selected" : "")>已到期</option>
+                            </select>
+                        </div>
+
+                        <!-- 排序方式 -->
+                        <div class="col-md-3">
+                            <label for="SortBy" class="form-label">排序方式</label>
+                            <select class="form-control" id="SortBy" name="Criteria.SortBy">
+                                <option value="CreatedAt" @(Model.Criteria.SortBy == "CreatedAt" ? "selected" : "")>建立時間</option>
+                                <option value="StartDate" @(Model.Criteria.SortBy == "StartDate" ? "selected" : "")>開始日期</option>
+                                <option value="NextBillingDate" @(Model.Criteria.SortBy == "NextBillingDate" ? "selected" : "")>下次計費日</option>
+                                <option value="HostName" @(Model.Criteria.SortBy == "HostName" ? "selected" : "")>房東姓名</option>
+                            </select>
+                        </div>
+
+                        <!-- 排序方向 -->
+                        <div class="col-md-3">
+                            <label for="IsDescending" class="form-label">排序方向</label>
+                            <select class="form-control" id="IsDescending" name="Criteria.IsDescending">
+                                <option value="true" @(Model.Criteria.IsDescending == true ? "selected" : "")>降序</option>
+                                <option value="false" @(Model.Criteria.IsDescending == false ? "selected" : "")>升序</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 第二列：開始日期範圍 -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label for="StartDateFrom" class="form-label">開始日期(起)</label>
+                            <input type="date" class="form-control" id="StartDateFrom" name="Criteria.StartDateFrom"
+                                   value="@(Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd"))">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="StartDateTo" class="form-label">開始日期(迄)</label>
+                            <input type="date" class="form-control" id="StartDateTo" name="Criteria.StartDateTo"
+                                   value="@(Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd"))">
+                        </div>
+                    </div>
+
+                    <!-- 第三列：建立時間範圍 -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label for="CreatedAtFrom" class="form-label">建立時間(起)</label>
+                            <input type="date" class="form-control" id="CreatedAtFrom" name="Criteria.CreatedAtFrom"
+                                   value="@(Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd"))">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="CreatedAtTo" class="form-label">建立時間(迄)</label>
+                            <input type="date" class="form-control" id="CreatedAtTo" name="Criteria.CreatedAtTo"
+                                   value="@(Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd"))">
+                        </div>
+                    </div>
+
+                    <!-- 第四列：下次計費日範圍 -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label for="NextBillingDateFrom" class="form-label">下次計費日(起)</label>
+                            <input type="date" class="form-control" id="NextBillingDateFrom" name="Criteria.NextBillingDateFrom"
+                                   value="@(Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd"))">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="NextBillingDateTo" class="form-label">下次計費日(迄)</label>
+                            <input type="date" class="form-control" id="NextBillingDateTo" name="Criteria.NextBillingDateTo"
+                                   value="@(Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd"))">
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> 搜尋
+                            </button>
+                            <a href="@Url.Action("Index", "HostSubscriptionHome", new { area = "SubscriptionPlan" })"
+                               class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> 清除條件
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--搜尋條件卡片End-->
+
         <!--房東訂閱列表卡片Start-->
         <div class="card card-primary card-outline">
             <div class="card-header">
@@ -165,7 +276,17 @@
                                 <a class="page-link"
                                    asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index"
                                    asp-route-pageIndex="@(currentPage - 1)"
-                                   asp-route-pageSize="@Model.PageSize">
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-criteria.HostName="@Model.Criteria.HostName"
+                                   asp-route-criteria.Status="@Model.Criteria.Status"
+                                   asp-route-criteria.SortBy="@Model.Criteria.SortBy"
+                                   asp-route-criteria.IsDescending="@Model.Criteria.IsDescending"
+                                   asp-route-criteria.StartDateFrom="@Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.StartDateTo="@Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.CreatedAtFrom="@Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.CreatedAtTo="@Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.NextBillingDateFrom="@Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.NextBillingDateTo="@Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd")">
                                     &laquo;
                                 </a>
                             </li>
@@ -177,7 +298,18 @@
                                     <a class="page-link"
                                        asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index"
                                        asp-route-pageIndex="1"
-                                       asp-route-pageSize="@Model.PageSize">
+                                       asp-route-pageSize="@Model.PageSize"
+                                       asp-route-criteria.HostName="@Model.Criteria.HostName"
+                                       asp-route-criteria.PlanName="@Model.Criteria.PlanName"
+                                       asp-route-criteria.Status="@Model.Criteria.Status"
+                                       asp-route-criteria.SortBy="@Model.Criteria.SortBy"
+                                       asp-route-criteria.IsDescending="@Model.Criteria.IsDescending"
+                                       asp-route-criteria.StartDateFrom="@Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.StartDateTo="@Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtFrom="@Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtTo="@Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateFrom="@Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateTo="@Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd")">
                                         1
                                     </a>
                                 </li>
@@ -191,7 +323,18 @@
                                     <a class="page-link"
                                        asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index"
                                        asp-route-pageIndex="@i"
-                                       asp-route-pageSize="@Model.PageSize">
+                                       asp-route-pageSize="@Model.PageSize"
+                                       asp-route-criteria.HostName="@Model.Criteria.HostName"
+                                       asp-route-criteria.PlanName="@Model.Criteria.PlanName"
+                                       asp-route-criteria.Status="@Model.Criteria.Status"
+                                       asp-route-criteria.SortBy="@Model.Criteria.SortBy"
+                                       asp-route-criteria.IsDescending="@Model.Criteria.IsDescending"
+                                       asp-route-criteria.StartDateFrom="@Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.StartDateTo="@Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtFrom="@Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtTo="@Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateFrom="@Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateTo="@Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd")">
                                         @i
                                     </a>
                                 </li>
@@ -205,7 +348,18 @@
                                     <a class="page-link"
                                        asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index"
                                        asp-route-pageIndex="@totalPages"
-                                       asp-route-pageSize="@Model.PageSize">
+                                       asp-route-pageSize="@Model.PageSize"
+                                       asp-route-criteria.HostName="@Model.Criteria.HostName"
+                                       asp-route-criteria.PlanName="@Model.Criteria.PlanName"
+                                       asp-route-criteria.Status="@Model.Criteria.Status"
+                                       asp-route-criteria.SortBy="@Model.Criteria.SortBy"
+                                       asp-route-criteria.IsDescending="@Model.Criteria.IsDescending"
+                                       asp-route-criteria.StartDateFrom="@Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.StartDateTo="@Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtFrom="@Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.CreatedAtTo="@Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateFrom="@Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd")"
+                                       asp-route-criteria.NextBillingDateTo="@Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd")">
                                         @totalPages
                                     </a>
                                 </li>
@@ -216,7 +370,17 @@
                                 <a class="page-link"
                                    asp-area="SubscriptionPlan" asp-controller="HostSubscriptionHome" asp-action="Index"
                                    asp-route-pageIndex="@(currentPage + 1)"
-                                   asp-route-pageSize="@Model.PageSize">
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-criteria.HostName="@Model.Criteria.HostName"
+                                   asp-route-criteria.Status="@Model.Criteria.Status"
+                                   asp-route-criteria.SortBy="@Model.Criteria.SortBy"
+                                   asp-route-criteria.IsDescending="@Model.Criteria.IsDescending"
+                                   asp-route-criteria.StartDateFrom="@Model.Criteria.StartDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.StartDateTo="@Model.Criteria.StartDateTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.CreatedAtFrom="@Model.Criteria.CreatedAtFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.CreatedAtTo="@Model.Criteria.CreatedAtTo?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.NextBillingDateFrom="@Model.Criteria.NextBillingDateFrom?.ToString("yyyy-MM-dd")"
+                                   asp-route-criteria.NextBillingDateTo="@Model.Criteria.NextBillingDateTo?.ToString("yyyy-MM-dd")">
                                     &raquo;
                                 </a>
                             </li>
