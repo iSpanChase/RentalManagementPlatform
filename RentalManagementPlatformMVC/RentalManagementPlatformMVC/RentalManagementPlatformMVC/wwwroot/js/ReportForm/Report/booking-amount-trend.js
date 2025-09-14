@@ -90,6 +90,33 @@
             fd.append('CityId', cityId);
             fd.append('DistrictId', districtId);
             fd.append('Status', status);
+        },
+
+        fillFilters(container, form) {
+            const get = (k) => form?.[k] ?? '';
+            const citySel = container.querySelector('.f-city');
+            const distSel = container.querySelector('.f-district');
+
+            const statuses = new Set(String(get('Status') || '').split(',').map(s => s.trim()).filter(Boolean));
+
+            // 等城市載入
+            const waitForOptions = (sel) => new Promise(res => {
+                const tick = () => (sel && sel.options && sel.options.length) ? res() : setTimeout(tick, 50);
+                tick();
+            });
+
+            return (async () => {
+                await waitForOptions(citySel);
+                citySel.value = get('CityId') || '';
+                citySel.dispatchEvent(new Event('change')); // 觸發載入區
+
+                // 等區載入完
+                await waitForOptions(distSel);
+                distSel.value = get('DistrictId') || '';
+
+                // 狀態打勾
+                container.querySelectorAll('.f-status').forEach(cb => cb.checked = statuses.has(cb.value));
+            })();
         }
     });
 })();

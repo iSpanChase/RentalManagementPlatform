@@ -47,27 +47,70 @@
     // === UI：面板顯示 / 隱藏 ===
     function showPanel({ forEdit = false, cardState = null } = {}) {
         if (!forEdit) {
+            // 新增模式：限制數量
             const snapshot = [];
             CardBus.forEach(({ state }) => snapshot.push(state));
-
             if (snapshot.length >= 6) {
                 alert("一個畫面最多只能有6張卡片");
                 return;
             }
         }
-        
 
         const panel = document.querySelector('#reportControls');
         panel.hidden = false;
         document.querySelector('#btnConfirmAdd').hidden = forEdit;
         document.querySelector('#btnConfirmEdit').hidden = !forEdit;
 
+        const titleInput = document.querySelector('#cardTitleInput');
+        const typeSel = document.querySelector('#globalReportType'); // ⭐ 圖表型別選擇器
+        const reportSel =
+            document.querySelector('#globalReportId') ||
+            document.querySelector('#reportSelect') ||
+            document.querySelector('#reportId') ||
+            document.querySelector('[name="ReportId"]');
+
         if (forEdit && cardState) {
-            // 把「卡片名稱」帶回面板
-            document.querySelector('#cardTitleInput').value = cardState.title || '';
-            // 你的時間/篩選原本沒有「回填」API，這裡先略。若要完整回填，可在 ReportTime/ReportConfig 另外加 set()。
+            // 名稱
+            titleInput.value = cardState.title || '';
+
+            // 報表種類：選回 + 觸發重建篩選 UI
+            if (reportSel) {
+                reportSel.value = cardState.reportId || '';
+                reportSel.dispatchEvent(new Event('change'));
+            }
+
+            // ⭐ 圖表型別：回填
+            queueMicrotask(() => {
+                const typeSel = document.querySelector('#globalReportType');
+                if (typeSel) typeSel.value = cardState.chartType || 'bar';
+            });
+
+
+            // ⭐ 時間：回填
+            const pick = (k) => cardState.form?.[k] ?? '';
+            ReportTime.set({
+                TimeUnit: pick('TimeUnit'),
+                Start: pick('Start'),
+                End: pick('End')
+            }, '#reportControls'); // 會自動切換 block 並把值塞回去
+
+            // ⭐ 篩選：等篩選 UI 渲染好後回填
+            queueMicrotask(async () => {
+                await ReportConfig.setFilters({
+                    reportId: cardState.reportId,
+                    form: cardState.form,
+                    filterPanel: '#reportFilterPanel'
+                });
+            });
+        } else {
+            // 新增模式：清空所有可見欄位
+            if (titleInput) titleInput.value = '';
+            if (typeSel) typeSel.value = 'bar'; // 或你想要的預設
+            // 清空時間/篩選（不帶舊值）：維持目前 UI 所在的報表 id，不做 set() 回填
+            // 如果想要更乾淨，也可在此把 #globalReportId 切回第一個選項並重新 render()
         }
     }
+
     function hidePanel() {
         const panel = document.querySelector('#reportControls');
         panel.hidden = true;

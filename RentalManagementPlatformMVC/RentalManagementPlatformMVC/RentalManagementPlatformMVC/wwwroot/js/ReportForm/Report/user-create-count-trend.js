@@ -59,6 +59,33 @@
             fd.append('AgeMin', ageMin);
             fd.append('AgeMax', ageMax);
             fd.append('RoleId', role);
+        },
+
+        fillFilters(container, form) {
+            const get = (k) => form?.[k] ?? '';
+            container.querySelector('.f-gender').value = get('Gender') || '';
+
+            const ageMinEl = container.querySelector('.f-age-min');
+            const ageMaxEl = container.querySelector('.f-age-max');
+            if (ageMinEl) ageMinEl.value = get('AgeMin') || '';
+            if (ageMaxEl) ageMaxEl.value = get('AgeMax') || '';
+
+            // RoleId 可能是 "1,2,3" 或陣列字串
+            const pick = new Set(String(get('RoleId') || '').split(',').map(s => s.trim()).filter(Boolean));
+
+            // 等待 checkbox 渲染完成（因為它是 async 載入）
+            return new Promise((resolve) => {
+                const tryFill = () => {
+                    const boxes = container.querySelectorAll('.f-role');
+                    if (!boxes.length) {
+                        setTimeout(tryFill, 50);
+                        return;
+                    }
+                    boxes.forEach(b => { b.checked = pick.has(b.value); });
+                    resolve();
+                };
+                tryFill();
+            });
         }
     });
 })();

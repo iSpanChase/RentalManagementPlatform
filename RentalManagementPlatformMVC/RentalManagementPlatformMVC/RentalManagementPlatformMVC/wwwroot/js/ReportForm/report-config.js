@@ -81,7 +81,6 @@
     };
 
 
-    // 1) 訂單營收趨勢，可依城市過濾
     // 小工具：安全抓 JSON + 填充 select
     ns._fetchGetJSON = async function _fetchGetJSON(url) {
         const resp = await fetch(url, {
@@ -131,14 +130,26 @@
     }
 
     ns._fillCheckbox = function _fillCheckbox(filled, items, className) {
+        filled.innerHTML = ''; // 先清空，避免重複
         for (const it of items) {
-            const opt = document.createElement("div",);
+            const opt = document.createElement("div");
             opt.classList.add("form-check");
             opt.innerHTML = `
-                <input class="form-check-input ${className}" type="checkbox" value="${it.id}" id="${className}-${it.id}">
-                <label class="form-check-label" for="${className}-${it.id}">${it.name}</label>
-            `;
+      <input class="form-check-input ${className}" type="checkbox" value="${it.id}" id="${className}-${it.id}">
+      <label class="form-check-label" for="${className}-${it.id}">${it.name}</label>
+    `;
             filled.appendChild(opt);
         }
-    }
+    };
+
+    // 回填篩選
+    ns.setFilters = async function ({ reportId, form, filterPanel = '#reportFilterPanel' } = {}) {
+        const panel = document.querySelector(filterPanel);
+        if (!reportId || !panel) return;
+        const def = _registry.get(reportId);
+        if (def?.fillFilters) {
+            await def.fillFilters(panel, form); // 交給各報表自行回填（可處理非同步）
+        }
+    };
+
 })();
