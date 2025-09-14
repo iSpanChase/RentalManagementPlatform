@@ -42,33 +42,6 @@
                                 <input class="form-control f-rating-max" type="number" min="0" max="999999">
                             </div>
                         </div>
-                        <div class="col-sm-2">
-                            <label class="form-label">房源狀態</label>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Pending" id="f-status-pending">
-                                <label class="form-check-label" for="f-status-pending">待審核</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Rejected" id="f-status-rejected">
-                                <label class="form-check-label" for="f-status-rejected">已拒絕</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Approved" id="f-status-approved">
-                                <label class="form-check-label" for="f-status-approved">已通過</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Active" id="f-status-active">
-                                <label class="form-check-label" for="f-status-active">上架中</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Unlisted" id="f-status-unlisted">
-                                <label class="form-check-label" for="f-status-unlisted">已下架</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input f-status" type="checkbox" value="Deleted" id="f-status-deleted">
-                                <label class="form-check-label" for="f-status-deleted">已刪除</label>
-                            </div>
-                        </div>
                     </div>
                 `;
 
@@ -117,22 +90,18 @@
                 let priceMax = container.querySelector('.f-price-max')?.value || '';
                 let ratingMin = container.querySelector('.f-rating-min')?.value || '';
                 let ratingMax = container.querySelector('.f-rating-max')?.value || '';
-                let status = [];
-                container.querySelectorAll('.f-status').forEach(x => { if (x.checked) status.push(x.value); });
                 fd.append('CityId', cityId);
                 fd.append('DistrictId', districtId);
                 fd.append('PriceMin', priceMin);
                 fd.append('PriceMax', priceMax);
                 fd.append('RatingMin', ratingMin);
                 fd.append('RatingMax', ratingMax);
-                fd.append('Status', status);
             },
 
             fillFilters(container, form) {
                 const get = (k) => form?.[k] ?? '';
                 const citySel = container.querySelector('.f-city');
                 const distSel = container.querySelector('.f-district');
-                const statuses = new Set(String(get('Status') || '').split(',').map(s => s.trim()).filter(Boolean));
 
                 const priceMinEl = container.querySelector('.f-price-min');
                 const priceMaxEl = container.querySelector('.f-price-max');
@@ -155,8 +124,6 @@
 
                     await waitForOptions(distSel);
                     distSel.value = get('DistrictId') || '';
-
-                    container.querySelectorAll('.f-status').forEach(cb => cb.checked = statuses.has(cb.value));
                 })();
             }
         });

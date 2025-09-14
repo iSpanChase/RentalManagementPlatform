@@ -17,36 +17,17 @@
 
             buildFilterUI(container) {
                 container.innerHTML = `
-          <div class="row filter-row">
-            <div class="col-sm-4">
-              <label class="form-label">縣/市</label>
-              <select class="form-select f-city"></select>
-            </div>
-            <div class="col-sm-4">
-              <label class="form-label">鄉/區</label>
-              <select class="form-select f-district disabled"></select>
-            </div>
-            <div class="col-sm-4">
-              <label class="form-label">訂單狀態</label>
-              <div class="form-check">
-                <input class="form-check-input f-status" type="checkbox" value="Cancelled" id="f-status-cancelled">
-                <label class="form-check-label" for="f-status-cancelled">已取消</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input f-status" type="checkbox" value="Pending" id="f-status-pending">
-                <label class="form-check-label" for="f-status-pending">待確認</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input f-status" type="checkbox" value="Confirmed" id="f-status-confirmed">
-                <label class="form-check-label" for="f-status-confirmed">已確認</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input f-status" type="checkbox" value="Completed" id="f-status-completed">
-                <label class="form-check-label" for="f-status-completed">已完成</label>
-              </div>
-            </div>
-          </div>
-        `;
+                    <div class="row filter-row">
+                        <div class="col-sm-4">
+                            <label class="form-label">縣/市</label>
+                            <select class="form-select f-city"></select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">鄉/區</label>
+                            <select class="form-select f-district disabled"></select>
+                        </div>
+                    </div>
+                `;
 
                 const citySel = container.querySelector('.f-city');
                 const distSel = container.querySelector('.f-district');
@@ -89,18 +70,14 @@
             serializeFilters(container, fd) {
                 const cityId = container.querySelector('.f-city')?.value || '';
                 const districtId = container.querySelector('.f-district')?.value || '';
-                const status = [];
-                container.querySelectorAll('.f-status').forEach(x => { if (x.checked) status.push(x.value); });
                 fd.append('CityId', cityId);
                 fd.append('DistrictId', districtId);
-                fd.append('Status', status);
             },
 
             fillFilters(container, form) {
                 const get = (k) => form?.[k] ?? '';
                 const citySel = container.querySelector('.f-city');
                 const distSel = container.querySelector('.f-district');
-                const statuses = new Set(String(get('Status') || '').split(',').map(s => s.trim()).filter(Boolean));
 
                 const waitForOptions = (sel) => new Promise(res => {
                     const tick = () => (sel && sel.options && sel.options.length) ? res() : setTimeout(tick, 50);
@@ -114,8 +91,6 @@
 
                     await waitForOptions(distSel);
                     distSel.value = get('DistrictId') || '';
-
-                    container.querySelectorAll('.f-status').forEach(cb => cb.checked = statuses.has(cb.value));
                 })();
             }
         });
