@@ -11,25 +11,85 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         async Task<List<decimal>> RoomListAveragePrice
             (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
         {
-            
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                IQueryable<RoomList> bookingWhereAddress = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
-                bookingWhereAddress = RoomActiveSelecter(intervals, i, bookingWhereAddress);
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                rooms = RoomActiveSelecter(intervals, i, rooms);
                 // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
-                var averagePrice = await bookingWhereAddress.AverageAsync(x => (decimal?)x.PricePerNight) ?? 0m;
+                var averagePrice = await rooms.AverageAsync(x => (decimal?)x.PricePerNight) ?? 0m;
                 results.Add(averagePrice);
             }
             return results;
         }
 
-        private static IQueryable<RoomList> RoomActiveSelecter
-            (DateTime[] intervals, int i, IQueryable<RoomList> bookingWhereAddress)
+        async Task<List<decimal>> RoomListAverageRating
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
         {
-            bookingWhereAddress = bookingWhereAddress
-                .Where(x => x.CreatedAt != null && x.CreatedAt.Value < intervals[i + 1]);
-            return bookingWhereAddress;
+            var results = new List<decimal>();
+            for (var i = 0; i < intervals.Length - 1; i++)
+            {
+                var start = intervals[i];
+                var end = intervals[i + 1];
+
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                //rooms = RoomActiveSelecter(intervals, i, rooms);
+
+                var avg = await (
+                    from rv in _context.Reviews
+                    join rl in rooms on rv.RoomId equals rl.RoomId
+                    where rv.CreatedAt >= start && rv.CreatedAt < end
+                    select (decimal?)rv.Rating
+                ).AverageAsync();
+
+                results.Add(avg ?? 0m);
+            }
+            return results;
+        }
+
+        async Task<List<int>> RoomListCount
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+        {
+            var results = new List<int>();
+            for (var i = 0; i < intervals.Length - 1; i++)
+            {
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                rooms = RoomActiveSelecter(intervals, i, rooms);
+                var averageRating = await rooms.CountAsync();
+                results.Add(averageRating);
+            }
+            return results;
+        }
+
+        async Task<List<int>> RoomListCreateCount
+            (DateTime[] intervals, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+        {
+            var results = new List<int>();
+            for (var i = 0; i < intervals.Length - 1; i++)
+            {
+                IQueryable<RoomList> rooms = RoomSelecter(cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+                rooms = RoomCreateSelecter(intervals, i, rooms);
+                var averageRating = await rooms.CountAsync();
+                results.Add(averageRating);
+            }
+            return results;
+        }
+
+
+        private static IQueryable<RoomList> RoomActiveSelecter
+            (DateTime[] intervals, int i, IQueryable<RoomList> rooms)
+        {
+            rooms = rooms.Where(x => x.CreatedAt != null && x.CreatedAt.Value < intervals[i + 1]);
+            return rooms;
+        }
+
+        private static IQueryable<RoomList> RoomCreateSelecter
+            (DateTime[] intervals, int i, IQueryable<RoomList> rooms)
+        {
+            rooms = rooms.Where(x => x.CreatedAt != null &&
+                                                            x.CreatedAt.Value >= intervals[i] &&
+                                                            x.CreatedAt.Value < intervals[i + 1]);
+            return rooms;
         }
 
         IQueryable<RoomList> RoomSelecter
@@ -46,7 +106,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 .Where(x => status == null || (!string.IsNullOrEmpty(x.rlad.rla.rl.Status) && status.Contains(x.rlad.rla.rl.Status)))
                 .Select(x => x.rlad.rla.rl)
                 .GroupJoin(_context.Reviews, rl => rl.RoomId, rv => rv.RoomId, (rl, reviews) => new { rl, reviews })
-                .Where(x => x.reviews.Any())
+                .Where(x => ratingMin == null || ratingMax == null || x.reviews.Any())
                 .Where(x => ratingMin == null || ratingMin.Value <= x.reviews.Average(r => (double?)r.Rating))
                 .Where(x => ratingMax == null || ratingMax.Value > x.reviews.Average(r => (double?)r.Rating))
                 .Select(x => x.rl);
@@ -68,6 +128,57 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 data,
                 colors,
                 label = "房源每晚平均金額 (NTD)"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RoomListAverageRatingTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+        {
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await RoomListAverageRating(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "房源平均評分"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RoomListCountTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+        {
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await RoomListCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "房源數量"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RoomListCreateCountTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, int? priceMin, int? priceMax, int? ratingMin, int? ratingMax, string status)
+        {
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await RoomListCreateCount(intervals.ToArray(), cityId, districtId, priceMin, priceMax, ratingMin, ratingMax, status);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "房源創建數量"
             });
         }
 
