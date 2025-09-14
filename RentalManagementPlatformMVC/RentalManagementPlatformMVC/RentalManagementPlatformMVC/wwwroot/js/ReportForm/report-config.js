@@ -129,4 +129,16 @@
             select.appendChild(opt);
         }
     }
+
+    ns._fillCheckbox = function _fillCheckbox(filled, items, className) {
+        for (const it of items) {
+            const opt = document.createElement("div",);
+            opt.classList.add("form-check");
+            opt.innerHTML = `
+                <input class="form-check-input ${className}" type="checkbox" value="${it.id}" id="${className}-${it.id}">
+                <label class="form-check-label" for="${className}-${it.id}">${it.name}</label>
+            `;
+            filled.appendChild(opt);
+        }
+    }
 })();

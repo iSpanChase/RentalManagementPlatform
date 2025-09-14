@@ -9,19 +9,35 @@
 
         buildFilterUI(container) {
             container.innerHTML = `
-              <div class="filter-row">
-                <label>縣/市：</label>
-                <select class="f-city"></select>
-                <label>鄉/區：</label>
-                <select class="f-district" disabled></select>
-                <label>訂單狀態：</label>
-                <select class="f-status" multiple>
-                  <option value="Cancelled">已取消</option>
-                  <option value="Pending">待確認</option>
-                  <option value="Confirmed">已確認</option>
-                  <option value="Completed">已完成</option>
-                </select>
-              </div>
+                <div class="row filter-row">
+                    <div class="col-sm-4">
+                        <label class="form-label">縣/市</label>
+                        <select class="form-select f-city"></select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">鄉/區</label>
+                        <select class="form-select f-district disabled"></select>
+                    </div>
+                    <div class="col-sm-4">
+                    <label class="form-label">訂單狀態</label>
+                        <div class="form-check">
+                            <input class="form-check-input f-status" type="checkbox" value="Cancelled" id="f-status-cancelled">
+                            <label class="form-check-label" for="f-status-cancelled">已取消</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input f-status" type="checkbox" value="Pending" id="f-status-pending">
+                            <label class="form-check-label" for="f-status-pending">待確認</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input f-status" type="checkbox" value="Confirmed" id="f-status-confirmed">
+                            <label class="form-check-label" for="f-status-confirmed">已確認</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input f-status" type="checkbox" value="Completed" id="f-status-completed">
+                            <label class="form-check-label" for="f-status-completed">已完成</label>
+                        </div>
+                    </div>
+                  </div>
             `;
 
             const citySel = container.querySelector('.f-city');
@@ -63,9 +79,14 @@
         },
 
         serializeFilters(container, fd) {
-            const cityId = container.querySelector('.f-city')?.value || '';
-            const districtId = container.querySelector('.f-district')?.value || '';
-            const status = Array.from(container.querySelector('.f-status')?.selectedOptions || []).map(o => o.value);
+            let cityId = container.querySelector('.f-city')?.value || '';
+            let districtId = container.querySelector('.f-district')?.value || '';
+            let statusAll = container.querySelectorAll('.f-status');
+            let status = [];
+            for (let x of statusAll) {
+                if (x.checked)
+                    status.push(x.value);
+            }
             fd.append('CityId', cityId);
             fd.append('DistrictId', districtId);
             fd.append('Status', status);
