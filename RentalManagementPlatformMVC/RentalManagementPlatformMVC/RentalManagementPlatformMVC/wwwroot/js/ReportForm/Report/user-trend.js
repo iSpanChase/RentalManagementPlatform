@@ -27,12 +27,12 @@
                     </div>
                     <div class="col-sm-4">
                         <label class="form-label">年齡區間</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <input class="form-control f-age-min" type="number" min="0" max="150">
-                                <span>~</span>
-                                <input class="form-control f-age-max" type="number" min="0" max="150">
-                            </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <input class="form-control f-age-min" type="number" min="0" max="150">
+                            <span>~</span>
+                            <input class="form-control f-age-max" type="number" min="0" max="150">
                         </div>
+                    </div>
                     <div class="col-sm-5 role-filled">
                         <label class="form-label">使用者角色</label>
                     </div>
