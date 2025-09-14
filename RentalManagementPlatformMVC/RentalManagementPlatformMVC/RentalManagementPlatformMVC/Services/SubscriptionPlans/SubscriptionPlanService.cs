@@ -32,13 +32,21 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 
 			var planDtos = _mapper.Map<List<SubscriptionPlanDto>>(pagedEntities.Items);
 			
-			// 設定操作權限
+			// 設定操作權限和訂閱者數量
 			foreach (var dto in planDtos)
 			{
-				dto.CanEdit = !dto.IsActive;
-				dto.CanDelete = !dto.IsActive;
-				dto.CanActivate = !dto.IsActive;
-				dto.CanDeactivate = dto.IsActive;
+				var activeSubscriberCount = await _subscriptionPlanRepository.GetActiveSubscriberCountAsync(dto.PlanId);
+				dto.SubscriberCount = activeSubscriberCount;
+
+				// 商業邏輯：
+				// - 所有方案都可以編輯（包含已啟用有訂閱者的方案）
+				// - 只有未啟用且沒有任何使用者（包含歷史）的方案可以刪除
+				// - 只有未啟用的方案可以啟用
+				// - 所有已啟用的方案都可以停用（包含有訂閱者的方案）
+				dto.CanEdit = await CanEditPlanAsync(dto.PlanId);
+				dto.CanDelete = await CanDeletePlanAsync(dto.PlanId);
+				dto.CanActivate = await CanActivatePlanAsync(dto.PlanId);
+				dto.CanDeactivate = await CanDeactivatePlanAsync(dto.PlanId);
 			}
 
 			return new PagedResult<SubscriptionPlanDto>
@@ -112,8 +120,7 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 			if (plan == null)
 				throw new PlanNotFoundException("找不到指定的方案");
 
-			if (plan.IsActive)
-				throw new InvalidOperationException("無法編輯啟用中的方案");
+			// 允許編輯已啟用的方案
 
 			// 檢查方案名稱是否重複
 			if (!string.Equals(plan.PlanName, planDto.PlanName, StringComparison.OrdinalIgnoreCase))
@@ -135,26 +142,87 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 			return _mapper.Map<SubscriptionPlanDto>(updatedPlan);
 		}
 
-		//private async Task<bool> CanEditPlanAsync(int planId)
-		//{
-		//	var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
-		//	if (plan == null || plan.IsActive)
-		//		return false;
+		/// <summary>
+		/// 啟用指定的訂閱方案
+		/// </summary>
+		public async Task<bool> ActivatePlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			if (plan == null)
+				throw new PlanNotFoundException("找不到指定的方案");
 
-		//	// 檢查是否有房東正在使用此方案
-		//	var hasActiveSubscribers = await _subscriptionPlanRepository.HasActiveSubscribersAsync(planId);
-		//	return !hasActiveSubscribers;
-		//}
+			if (plan.IsActive)
+				throw new InvalidOperationException("方案已經是啟用狀態");
 
-		//private async Task<bool> CanDeletePlanAsync(int planId)
-		//{
-		//	var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
-		//	if (plan == null || plan.IsActive)
-		//		return false;
+			return await _subscriptionPlanRepository.UpdatePlanStatusAsync(planId, true);
+		}
 
-		//	// 檢查是否有房東正在使用此方案（包含歷史訂閱）
-		//	var hasSubscribers = await _subscriptionPlanRepository.HasSubscribersAsync(planId);
-		//	return !hasSubscribers;
-		//}
+		/// <summary>
+		/// 停用指定的訂閱方案
+		/// </summary>
+		public async Task<bool> DeactivatePlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			if (plan == null)
+				throw new PlanNotFoundException("找不到指定的方案");
+
+			if (!plan.IsActive)
+				throw new InvalidOperationException("方案已經是停用狀態");
+
+			// 允許停用有使用者的方案，但會提醒使用者
+			return await _subscriptionPlanRepository.UpdatePlanStatusAsync(planId, false);
+		}
+
+		/// <summary>
+		/// 檢查方案是否可以編輯
+		/// </summary>
+		public async Task<bool> CanEditPlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			// 所有方案都可以編輯，包含已啟用的方案
+			return plan != null;
+		}
+
+		/// <summary>
+		/// 檢查方案是否可以刪除
+		/// </summary>
+		public async Task<bool> CanDeletePlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			if (plan == null || plan.IsActive)
+				return false;
+
+			// 檢查是否有任何訂閱紀錄（包含歷史）
+			var hasSubscribers = await _subscriptionPlanRepository.HasSubscribersAsync(planId);
+			return !hasSubscribers;
+		}
+
+		/// <summary>
+		/// 檢查方案是否可以啟用
+		/// </summary>
+		public async Task<bool> CanActivatePlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			// 只有未啟用的方案可以啟用
+			return plan != null && !plan.IsActive;
+		}
+
+		/// <summary>
+		/// 檢查方案是否可以停用
+		/// </summary>
+		public async Task<bool> CanDeactivatePlanAsync(int planId)
+		{
+			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planId);
+			// 只要是已啟用的方案都可以停用，不管是否有使用者
+			return plan != null && plan.IsActive;
+		}
+
+		/// <summary>
+		/// 取得方案的啟用中訂閱者數量
+		/// </summary>
+		public async Task<int> GetPlanActiveSubscriberCountAsync(int planId)
+		{
+			return await _subscriptionPlanRepository.GetActiveSubscriberCountAsync(planId);
+		}
 	}
 }

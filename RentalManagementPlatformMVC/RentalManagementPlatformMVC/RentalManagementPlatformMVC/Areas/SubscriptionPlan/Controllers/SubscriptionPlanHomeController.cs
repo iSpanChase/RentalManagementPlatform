@@ -180,5 +180,93 @@ namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 				return Json(new { success = false, error = "更新方案時發生錯誤，請稍後再試！" });
 			}
 		}
+
+		/// <summary>
+		/// 啟用指定方案（僅支援 AJAX）。
+		/// </summary>
+		/// <param name="planId">指定方案的Id</param>
+		/// <returns>JSON 格式的啟用結果。</returns>
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Activate(int planId)
+		{
+			// 僅支援 AJAX 請求
+			if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+			{
+				return BadRequest(new { success = false, error = "只支援 AJAX 請求。" });
+			}
+
+			try
+			{
+				var success = await _subscriptionPlanService.ActivatePlanAsync(planId);
+
+				if (success)
+				{
+					return Json(new { success = true, message = "方案啟用成功！" });
+				}
+				else
+				{
+					return Json(new { success = false, error = "方案啟用失敗，請稍後再試！" });
+				}
+			}
+			catch (PlanNotFoundException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (InvalidOperationException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (Exception)
+			{
+				return Json(new { success = false, error = "啟用方案時發生錯誤，請稍後再試！" });
+			}
+		}
+
+		/// <summary>
+		/// 停用指定方案（僅支援 AJAX）。
+		/// </summary>
+		/// <param name="planId">指定方案的Id</param>
+		/// <returns>JSON 格式的停用結果。</returns>
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Deactivate(int planId)
+		{
+			// 僅支援 AJAX 請求
+			if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+			{
+				return BadRequest(new { success = false, error = "只支援 AJAX 請求。" });
+			}
+
+			try
+			{
+				var success = await _subscriptionPlanService.DeactivatePlanAsync(planId);
+
+				if (success)
+				{
+					return Json(new { success = true, message = "方案停用成功！" });
+				}
+				else
+				{
+					return Json(new { success = false, error = "方案停用失敗，請稍後再試！" });
+				}
+			}
+			catch (PlanNotFoundException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (PlanInUseException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (InvalidOperationException ex)
+			{
+				return Json(new { success = false, error = ex.Message });
+			}
+			catch (Exception)
+			{
+				return Json(new { success = false, error = "停用方案時發生錯誤，請稍後再試！" });
+			}
+		}
 	}
 }

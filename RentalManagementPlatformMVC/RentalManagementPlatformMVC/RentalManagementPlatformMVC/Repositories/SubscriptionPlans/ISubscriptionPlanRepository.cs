@@ -7,22 +7,18 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 	{
 		// 基本 CRUD
 		Task<PagedResult<SubscriptionPlan>> GetPagedPlansAsync(int pageIndex, int pageSize);
-		//Task<SubscriptionPlan?> GetPlanByIdAsync(int planId);
+		Task<SubscriptionPlan?> GetPlanByIdAsync(int planId);
 		Task<SubscriptionPlan> CreatePlanAsync(SubscriptionPlan plan);
 		Task<SubscriptionPlan?> GetByNameAsync(string planName);
 		Task<bool> DeletePlanAsync(int planId);
 		Task<SubscriptionPlan> EditPlanAsync(SubscriptionPlan plan);
-		//Task<bool> DeactivatePlanAsync(int planId);
-
-
+		Task<bool> UpdatePlanStatusAsync(int planId, bool isActive);
 
 		// 計數方法
-		//Task<int> GetActivePlanCountAsync();
-		//Task<int> GetSubscriberCountAsync(int planId);
+		Task<int> GetActiveSubscriberCountAsync(int planId);
 
 		// 檢查方法
-		//Task<bool> HasActiveSubscribersAsync(int planId);
+		Task<bool> HasActiveSubscribersAsync(int planId);
 		Task<bool> HasSubscribersAsync(int planId);
-		Task<SubscriptionPlan?> GetPlanByIdAsync(int planId);
 	}
 }

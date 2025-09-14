@@ -102,24 +102,29 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 				.AnyAsync(hs => hs.PlanId == planId);
 		}
 
-		// 取得啟用方案總數
-		//public async Task<int> GetActivePlanCountAsync()
-		//{
-		//	return await _context.SubscriptionPlans.CountAsync(p => p.IsActive);
-		//}
-
-		// 取得指定方案的訂閱者數量
-		//public async Task<int> GetSubscriberCountAsync(int planId)
-		//{
-		//	return await _context.HostSubscriptions
-		//		.CountAsync(hs => hs.PlanId == planId && hs.Status == "active");
-		//}
-
 		// 檢查指定方案是否有任何啟用中的訂閱者
-		//public async Task<bool> HasActiveSubscribersAsync(int planId)
-		//{
-		//	return await _context.HostSubscriptions
-		//		.AnyAsync(hs => hs.PlanId == planId && hs.Status == "active");
-		//}
+		public async Task<bool> HasActiveSubscribersAsync(int planId)
+		{
+			return await _context.HostSubscriptions
+				.AnyAsync(hs => hs.PlanId == planId && hs.Status == "active");
+		}
+
+		// 取得指定方案的啟用中訂閱者數量
+		public async Task<int> GetActiveSubscriberCountAsync(int planId)
+		{
+			return await _context.HostSubscriptions
+				.CountAsync(hs => hs.PlanId == planId && hs.Status == "active");
+		}
+
+		// 更新方案啟用狀態
+		public async Task<bool> UpdatePlanStatusAsync(int planId, bool isActive)
+		{
+			var plan = await _context.SubscriptionPlans.FindAsync(planId);
+			if (plan == null) return false;
+
+			plan.IsActive = isActive;
+			await _context.SaveChangesAsync();
+			return true;
+		}
 	}
 }

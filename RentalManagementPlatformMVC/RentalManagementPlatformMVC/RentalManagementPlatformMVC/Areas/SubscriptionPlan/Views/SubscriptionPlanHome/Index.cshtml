@@ -28,7 +28,7 @@
     <div class="container-fluid">
         <div class="row mb-2 align-items-center">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">方案管理</h1>
+                <h1 class="page-title m-0">訂閱方案管理</h1>
             </div>
             <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
                 <button class="btn btn-primary d-flex align-items-center gap-2 ms-auto" 
@@ -473,19 +473,59 @@
             switch (action) {
                 case 'activate':
                     if (confirm('確定要啟用此方案嗎？')) {
-                        // TODO: 呼叫啟用 API
-                        console.log('activate plan', id);
-                        alert('方案已啟用');
-                        // location.reload();
+                        fetch('@Url.Action("Activate", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                            },
+                            body: new URLSearchParams({
+                                'planId': id
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                alert(result.message);
+                                location.reload();
+                            } else {
+                                alert('錯誤：' + result.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('發生錯誤，請稍後再試');
+                        });
                     }
                     break;
 
                 case 'deactivate':
-                    if (confirm('確定要停用此方案嗎？已訂閱此方案的房東將會轉移至其他方案。')) {
-                        // TODO: 呼叫停用 API
-                        console.log('deactivate plan', id);
-                        alert('方案已停用');
-                        // location.reload();
+                    if (confirm('確定要停用此方案嗎？已訂閱此方案的使用者將無法享有方案權益，但訂閱紀錄會保留。')) {
+                        fetch('@Url.Action("Deactivate", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                            },
+                            body: new URLSearchParams({
+                                'planId': id
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                alert(result.message);
+                                location.reload();
+                            } else {
+                                alert('錯誤：' + result.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('發生錯誤，請稍後再試');
+                        });
                     }
                     break;
 

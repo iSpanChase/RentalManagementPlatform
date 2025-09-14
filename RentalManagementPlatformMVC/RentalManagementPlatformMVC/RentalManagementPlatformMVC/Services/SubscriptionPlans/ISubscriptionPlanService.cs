@@ -15,18 +15,16 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 		Task<SubscriptionPlanDto> CreatePlanAsync(CreatePlanDto planDto);
 		Task<bool> DeletePlanAsync(int planId);
 		Task<SubscriptionPlanDto> EditPlanAsync(EditPlanDto planDto);
-		//Task<bool> ActivatePlanAsync(int planId);
-		//Task<bool> DeactivatePlanAsync(int planId);
+		Task<bool> ActivatePlanAsync(int planId);
+		Task<bool> DeactivatePlanAsync(int planId);
 
 		// 商業邏輯驗證
-		//Task<bool> CanEditPlanAsync(int planId);
-		//Task<bool> CanDeletePlanAsync(int planId);
-		//Task<bool> CanActivatePlanAsync(int planId);
-		//Task<bool> CanDeactivatePlanAsync(int planId);
+		Task<bool> CanEditPlanAsync(int planId);
+		Task<bool> CanDeletePlanAsync(int planId);
+		Task<bool> CanActivatePlanAsync(int planId);
+		Task<bool> CanDeactivatePlanAsync(int planId);
 
 		// 額外實用方法
-		//Task<bool> ValidatePlanDataAsync(CreatePlanDto dto, int? excludePlanId = null);
-		//Task<IEnumerable<SubscriptionPlanDto>> GetActivePlansAsync();
-		//Task<int> GetPlanSubscriberCountAsync(int planId);
+		Task<int> GetPlanActiveSubscriberCountAsync(int planId);
 	}
 }
