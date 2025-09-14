@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.Helpers;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels;
 using RentalManagementPlatformMVC.Models;
+using System.Threading.Tasks;
 
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
@@ -14,7 +16,9 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
             return View();
         }
@@ -39,30 +43,45 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             yield return temp;
         }
 
-        List<decimal> BookingAmount(DateTime[] intervals, int? cityId, int? districtId, string status)
+        async Task<List<decimal>> BookingAverageAmount
+            (DateTime[] intervals, int? cityId, int? districtId, string status)
         {
             var results = new List<decimal>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
                 IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
                 // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
-                var totalPrice = bookingWhereAddress.Sum(x => (decimal?)x.TotalPrice) ?? 0m;
+                var totalPrice = await bookingWhereAddress.AverageAsync(x => (decimal?)x.TotalPrice) ?? 0m;
                 results.Add(totalPrice);
             }
             return results;
         }
-        List<int> BookingCount(DateTime[] intervals, int? cityId, int? districtId, string status)
+        async Task<List<int>> BookingCount(DateTime[] intervals, int? cityId, int? districtId, string status)
         {
             var results = new List<int>();
             for (var i = 0; i < intervals.Length - 1; i++)
             {
                 IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
-                var count = bookingWhereAddress.Count();
+                var count = await bookingWhereAddress.CountAsync();
                 results.Add(count);
             }
             return results;
         }
-        private IQueryable<Models.Booking> BookingSelecter
+        async Task<List<decimal>> BookingTotalAmount
+            (DateTime[] intervals, int? cityId, int? districtId, string status)
+        {
+            var results = new List<decimal>();
+            for (var i = 0; i < intervals.Length - 1; i++)
+            {
+                IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(intervals, i, cityId, districtId, status);
+                // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
+                var totalPrice = await bookingWhereAddress.SumAsync(x => (decimal?)x.TotalPrice) ?? 0m;
+                results.Add(totalPrice);
+            }
+            return results;
+        }
+
+        IQueryable<Models.Booking> BookingSelecter
             (DateTime[] intervals, int i, int? cityId, int? districtId, string status)
         {
             var start = intervals[i];
@@ -79,17 +98,18 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 .Join(_context.Cities, brlad => brlad.d.CityId, c => c.CityId, (brlad, c) => new { brlad, c })
                 .Where(x => districtId == null || x.brlad.d.DistrictId == districtId)
                 .Where(x => cityId == null || x.c.CityId == cityId)
-                .Where(x=> status==null || status.Contains(x.brlad.brla.brl.b.Status))
+                .Where(x => status == null || status.Contains(x.brlad.brla.brl.b.Status))
                 .Select(x => x.brlad.brla.brl.b);
             return result;
         }
 
         [HttpPost]
-        public IActionResult BookingAmountTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+        public async Task<IActionResult> BookingAverageAmountTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
         {
-            var intervals = GetIntervals(timeUnit, start, end).ToArray();
-            string[] labels = FormatDateIntervals(timeUnit, intervals);
-            var data = BookingAmount(intervals,cityId,districtId, status);
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await BookingAverageAmount(intervals.ToArray(), cityId, districtId, status);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -101,11 +121,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         [HttpPost]
-        public IActionResult BookingCountTrend(string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+        public async Task<IActionResult> BookingCountTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
         {
-            var intervals = GetIntervals(timeUnit, start, end).ToArray();
-            string[] labels = FormatDateIntervals(timeUnit, intervals);
-            var data = BookingCount(intervals, cityId, districtId, status);
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await BookingCount(intervals.ToArray(), cityId, districtId, status);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -116,35 +137,55 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             });
         }
 
-        List<decimal> UserExistCount(DateTime[] intervals, string gender, int? ageMin, int? ageMax, string roleId)
+        [HttpPost]
+        public async Task<IActionResult> BookingTotalAmountTrend
+            (string timeUnit, DateTime start, DateTime end, int? cityId, int? districtId, string status)
+        {
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await BookingTotalAmount(intervals.ToArray(), cityId, districtId, status);
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "銷售額 (NTD)"
+            });
+        }
+
+
+        async Task<List<decimal>> UserExistCount
+            (DateTime[] intervals, string gender, int? ageMin, int? ageMax, string roleId)
         {
             var results = new List<decimal>();
             IQueryable<Models.User> UserSelected = UserSelecter(gender, ageMin, ageMax, roleId);
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                var count = UserSelected
+                var count = await UserSelected
                     .Where(x => x.CreatedAt != null && x.CreatedAt.Value < intervals[i + 1])
-                    .Count();
+                    .CountAsync();
                 results.Add(count);
             }
             return results;
         }
-        List<decimal> UserCreateCount(DateTime[] intervals, string gender, int? ageMin, int? ageMax, string roleId)
+        async Task<List<decimal>> UserCreateCount
+            (DateTime[] intervals, string gender, int? ageMin, int? ageMax, string roleId)
         {
             var results = new List<decimal>();
             IQueryable<Models.User> UserSelected = UserSelecter(gender, ageMin, ageMax, roleId);
             for (var i = 0; i < intervals.Length - 1; i++)
             {
-                var count = UserSelected
+                var count = await UserSelected
                     .Where(x => x.CreatedAt != null &&
                         x.CreatedAt.Value >= intervals[i] &&
                         x.CreatedAt.Value < intervals[i + 1])
-                    .Count();
+                    .CountAsync();
                 results.Add(count);
             }
             return results;
         }
-        private IQueryable<Models.User> UserSelecter
+        IQueryable<Models.User> UserSelecter
             (string gender, int? ageMin, int? ageMax, string roleId)
         {
             var result = _context.Users
@@ -159,11 +200,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         [HttpPost]
-        public IActionResult UserCountTrend(string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
+        public async Task<IActionResult> UserCountTrend
+            (string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
         {
-            var intervals = GetIntervals(timeUnit, start, end).ToArray();
-            string[] labels = FormatDateIntervals(timeUnit, intervals);
-            var data = UserExistCount(intervals,gender,ageMin,ageMax,roleId);
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await UserExistCount(intervals.ToArray(), gender, ageMin, ageMax, roleId);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -173,13 +215,14 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 label = "使用者數"
             });
         }
- 
+
         [HttpPost]
-        public IActionResult UserCreateCountTrend(string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
+        public async Task<IActionResult> UserCreateCountTrend
+            (string timeUnit, DateTime start, DateTime end, string gender, int? ageMin, int? ageMax, string roleId)
         {
-            var intervals = GetIntervals(timeUnit, start, end).ToArray();
-            string[] labels = FormatDateIntervals(timeUnit, intervals);
-            var data = UserCreateCount(intervals, gender, ageMin, ageMax, roleId);
+            var intervals = GetIntervals(timeUnit, start, end);
+            var labels = FormatDateIntervals(timeUnit, intervals).ToArray();
+            var data = await UserCreateCount(intervals.ToArray(), gender, ageMin, ageMax, roleId);
             var colors = ColorPaletteHelper.GenerateColors(labels.Length);
             return Json(new
             {
@@ -190,7 +233,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             });
         }
 
-        string[] FormatDateIntervals(string timeUnit, DateTime[] intervals)
+        IEnumerable<string> FormatDateIntervals(string timeUnit, IEnumerable<DateTime> intervals)
         {
             return intervals.Select(x => timeUnit switch
             {
@@ -200,27 +243,27 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
                 "year" => x.ToString("yyyy"),
                 _ => throw new ArgumentException("Invalid timeUnit")
-            }).SkipLast(1).ToArray();
+            }).SkipLast(1);
         }
 
         [HttpGet] //Get : ReportForm/ReportForm/Cities
-        public IActionResult Cities()
+        public async Task<IActionResult> Cities()
         {
-            var citiesDataForm = _context.Cities.Select(x => new CityVM(x)).ToList();
+            var citiesDataForm = await _context.Cities.Select(x => new CityVM(x)).ToArrayAsync();
             return Json(citiesDataForm);
         }
 
         [HttpGet]
-        public IActionResult Districts(int cityId)
+        public async Task<IActionResult> Districts(int cityId)
         {
-            var DistrictsDataForm = _context.Districts.Where(x=>x.CityId ==cityId).Select(x => new DistrictVM(x)).ToList();
+            var DistrictsDataForm = await _context.Districts.Where(x => x.CityId == cityId).Select(x => new DistrictVM(x)).ToArrayAsync();
             return Json(DistrictsDataForm);
         }
 
         [HttpPost]
-        public IActionResult Roles()
+        public async Task<IActionResult> Roles()
         {
-            var RolesDataForm = _context.Roles.Select(x => new RoleVM(x)).ToList();
+            var RolesDataForm = await _context.Roles.Select(x => new RoleVM(x)).ToArrayAsync();
             return Json(RolesDataForm);
         }
     }

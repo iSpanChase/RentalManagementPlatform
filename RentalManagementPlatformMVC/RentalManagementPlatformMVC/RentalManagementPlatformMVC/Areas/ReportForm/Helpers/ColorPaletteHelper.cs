@@ -16,14 +16,12 @@
             "rgba(206,163,132,1)"
         };
 
-        public static string[] GenerateColors(int count)
+        public static IEnumerable<string> GenerateColors(int count)
         {
-            var colors = new List<string>();
             for (int i = 0; i < count; i++)
             {
-                colors.Add(ColorPalette[i % ColorPalette.Length]); // 超過長度就循環
+                yield return (ColorPalette[i % ColorPalette.Length]);
             }
-            return colors.ToArray();
         }
     }
 }
