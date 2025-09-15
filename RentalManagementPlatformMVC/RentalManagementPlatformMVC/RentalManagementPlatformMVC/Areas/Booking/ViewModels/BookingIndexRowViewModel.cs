@@ -17,6 +17,7 @@
 		// 狀態顯示為中文
 		public string DisplayStatus => Status?.ToLower() switch
 		{
+			"completed" => "已完成",
 			"confirmed" => "已確認",
 			"pending" => "待確認",
 			"cancelled" => "已取消",

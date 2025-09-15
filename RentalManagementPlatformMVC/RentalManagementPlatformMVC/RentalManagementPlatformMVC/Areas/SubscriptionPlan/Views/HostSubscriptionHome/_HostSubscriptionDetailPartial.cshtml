@@ -1,0 +1,123 @@
+﻿@model RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels.HostSubscriptionDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">訂閱詳細資料</div>
+        <div class="text-secondary small">
+            訂閱編號：<span class="fw-semibold">@Model.HostSubId</span>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+        <!-- 左半：訂閱基本資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-calendar2-week me-1"></i> 訂閱資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">開始日期</div>
+                    <div class="col-7 fw-medium">@Model.DisplayStartDate</div>
+
+                    <div class="col-5 text-secondary">下次計費日期</div>
+                    <div class="col-7 fw-medium">@Model.DisplayNextBillingDate</div>
+
+                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-7">
+                        <span class="badge rounded-pill @(Model.Status?.ToLower() == "active" ? "bg-success" :
+                                                                                        Model.Status?.ToLower() == "canceled" ? "bg-warning text-dark" :
+                                                                                        Model.Status?.ToLower() == "expired" ? "bg-danger" :
+                                                                                          "bg-secondary")">@Model.DisplayStatus</span>
+                    </div>
+
+                    <div class="col-5 text-secondary">期末取消</div>
+                    <div class="col-7 fw-medium">@Model.DisplayCancelAtPeriodEnd</div>
+
+                    <div class="col-5 text-secondary">建立時間</div>
+                    <div class="col-7">@Model.DisplayCreatedAt</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：房東與方案資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-person-badge me-1"></i> 房東與方案
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">房東姓名</div>
+                    <div class="col-7 fw-medium">@(Model.HostName ?? "-")</div>
+
+                    <div class="col-5 text-secondary">方案名稱</div>
+                    <div class="col-7 fw-medium">@(Model.PlanName ?? "-")</div>
+
+                    <div class="col-5 text-secondary">房東編號</div>
+                    <div class="col-7">@(Model.HostId?.ToString() ?? "-")</div>
+
+                    <div class="col-5 text-secondary">方案編號</div>
+                    <div class="col-7">@(Model.PlanId?.ToString() ?? "-")</div>
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-receipt me-1"></i> 帳單紀錄
+                </div>
+
+                @if (Model.Billings == null || !Model.Billings.Any())
+                {
+                    <div class="small text-muted">尚無帳單紀錄</div>
+                }
+                else
+                {
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered table-striped text-center align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width:15%">帳單編號</th>
+                                    <th style="width:20%">金額</th>
+                                    <th style="width:15%">狀態</th>
+                                    <th style="width:25%">付款時間</th>
+                                    <th style="width:25%">建立時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var billing in Model.Billings)
+                                {
+                                    <tr>
+                                        <td>@billing.BillId</td>
+                                        <td class="fw-medium">NT$ @billing.DisplayAmount</td>
+                                        <td>
+                                            <span class="badge rounded-pill @(billing.PaidStatus?.ToLower() == "paid" ? "bg-success" :
+                                                                                                              billing.PaidStatus?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                                                              billing.PaidStatus?.ToLower() == "overdue" ? "bg-danger" :
+                                                                                                              billing.PaidStatus?.ToLower() == "failed" ? "bg-danger" :
+                                                                                                                "bg-secondary")">
+                                                @billing.DisplayPaidStatus
+                                            </span>
+                                        </td>
+                                        <td>@billing.DisplayPaidAt</td>
+                                        <td>@billing.DisplayCreatedAt</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>

@@ -1,4 +1,4 @@
-﻿using RentalManagementPlatformMVC.DTOs;
+﻿using RentalManagementPlatformMVC.DTOs.Payments;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

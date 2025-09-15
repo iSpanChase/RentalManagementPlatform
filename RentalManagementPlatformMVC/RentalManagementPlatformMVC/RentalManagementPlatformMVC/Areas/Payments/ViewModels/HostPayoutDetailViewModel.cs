@@ -1,4 +1,4 @@
-﻿using RentalManagementPlatformMVC.DTOs;
+﻿using RentalManagementPlatformMVC.DTOs.Payments;
 using System.ComponentModel.DataAnnotations;
 
 namespace RentalManagementPlatformMVC.Areas.Payments.ViewModels

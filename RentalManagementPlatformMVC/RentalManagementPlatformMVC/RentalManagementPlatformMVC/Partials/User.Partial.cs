@@ -4,6 +4,8 @@
 	{
 		public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 		public ICollection<RoomList> RoomLists { get; set; } = new List<RoomList>();
-		public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+		public ICollection<HostPayout> HostPayouts { get; set; } = new List<HostPayout>();
+		public ICollection<HostSubscription> HostSubscriptions { get; set; } = new List<HostSubscription>();
+		public ICollection<PointLedger> PointLedgers { get; set; } = new List<PointLedger>();
 	}
 }

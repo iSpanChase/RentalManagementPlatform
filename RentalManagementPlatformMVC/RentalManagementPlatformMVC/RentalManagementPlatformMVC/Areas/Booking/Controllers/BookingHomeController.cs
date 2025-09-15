@@ -1,8 +1,8 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Booking.ViewModels;
-using RentalManagementPlatformMVC.DTOs;
-using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.DTOs.Bookings;
+using RentalManagementPlatformMVC.Services.Bookings;
 using System.Text;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.Controllers

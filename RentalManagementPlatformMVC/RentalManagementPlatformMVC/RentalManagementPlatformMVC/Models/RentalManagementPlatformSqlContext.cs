@@ -639,20 +639,22 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("POINT_RULE");
 
-            entity.Property(e => e.RuleId).HasColumnName("rule_id");
-            entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
-            entity.Property(e => e.ActiveTo).HasColumnName("active_to");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.EarnRatePerNtd)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("earn_rate_per_ntd");
-            entity.Property(e => e.ExpiryMonths).HasColumnName("expiry_months");
-            entity.Property(e => e.IsActive).HasColumnName("is_active");
-            entity.Property(e => e.MaxPointsPerOrder).HasColumnName("max_points_per_order");
-            entity.Property(e => e.RedeemRateNtdPerPt)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("redeem_rate_ntd_per_pt");
-        });
+			entity.Property(e => e.RuleId)
+				.ValueGeneratedNever()
+				.HasColumnName("rule_id");
+			entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
+			entity.Property(e => e.ActiveTo).HasColumnName("active_to");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.EarnRatePerNtd)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("earn_rate_per_ntd");
+			entity.Property(e => e.ExpiryMonths).HasColumnName("expiry_months");
+			entity.Property(e => e.IsActive).HasColumnName("is_active");
+			entity.Property(e => e.MaxPointsPerOrder).HasColumnName("max_points_per_order");
+			entity.Property(e => e.RedeemRateNtdPerPt)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("redeem_rate_ntd_per_pt");
+		});
 
         modelBuilder.Entity<Post>(entity =>
         {
@@ -855,21 +857,23 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("SUBSCRIPTION_PLAN");
 
-            entity.Property(e => e.PlanId).HasColumnName("plan_id");
-            entity.Property(e => e.CommissionRate)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("commission_rate");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.IsActive).HasColumnName("is_active");
-            entity.Property(e => e.MonthlyFee)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("monthly_fee");
-            entity.Property(e => e.PerkAnalytics).HasColumnName("perk_analytics");
-            entity.Property(e => e.PerkPriority).HasColumnName("perk_priority");
-            entity.Property(e => e.PlanName)
-                .HasMaxLength(512)
-                .HasColumnName("plan_name");
-        });
+			entity.Property(e => e.PlanId)
+				.ValueGeneratedNever()
+				.HasColumnName("plan_id");
+			entity.Property(e => e.CommissionRate)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("commission_rate");
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			entity.Property(e => e.IsActive).HasColumnName("is_active");
+			entity.Property(e => e.MonthlyFee)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("monthly_fee");
+			entity.Property(e => e.PerkAnalytics).HasColumnName("perk_analytics");
+			entity.Property(e => e.PerkPriority).HasColumnName("perk_priority");
+			entity.Property(e => e.PlanName)
+				.HasMaxLength(512)
+				.HasColumnName("plan_name");
+		});
 
         modelBuilder.Entity<SupportTicket>(entity =>
         {
