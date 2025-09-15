@@ -19,7 +19,7 @@ public partial class FaqArticle
 
     public string? Content { get; set; }
 
-    public bool IsPinned { get; set; }
+    public bool? IsPinned { get; set; }
 
     public DateTime? PublishedAt { get; set; }
 

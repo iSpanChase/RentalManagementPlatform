@@ -15,7 +15,7 @@ namespace RentalManagementPlatformMVC.Areas.FAQ.ViewModels
         [StringLength(512)]
         public string? Content { get; set; }
 
-        public bool IsPinned { get; set; }
+        public bool? IsPinned { get; set; }
         public int? CategoryId { get; set; }
     }
 }

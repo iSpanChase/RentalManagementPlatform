@@ -50,6 +50,10 @@
             if (def?.buildFilterUI) {
                 def.buildFilterUI(panel);
             }
+
+            const timeWrap = document.querySelector('.time-area');
+            if (timeWrap) timeWrap.hidden = (def?.timePolicy === 'none');
+
             // 若報表定義了預設圖表型別，就覆寫外部的圖表型別選擇器
             if (def?.defaultType) {
                 const typeSel = document.querySelector('#globalReportType');
@@ -81,15 +85,33 @@
     };
 
 
-    // 1) 訂單營收趨勢，可依城市過濾
     // 小工具：安全抓 JSON + 填充 select
-    ns._fetchJSON = async function _fetchJSON(url) {
+    ns._fetchGetJSON = async function _fetchGetJSON(url) {
         const resp = await fetch(url, {
             method: 'GET'
         });
         if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
         return await resp.json();
     }
+
+    ns._fetchPostJSON = async function _fetchPostJSON(url, data = null) {
+        try {
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            };
+            if (data !== null) options.body = JSON.stringify(data);
+
+            const resp = await fetch(url, options);
+            if (!resp.ok) {
+                const errorText = await resp.text();
+                throw new Error(errorText);
+            }
+            return await resp.json();
+        } catch (err) {
+            alert(err.message);
+        }
+    };
 
     ns._fillSelect = function _fillSelect(select, items, {
         includeAll = true,
@@ -110,4 +132,28 @@
             select.appendChild(opt);
         }
     }
+
+    ns._fillCheckbox = function _fillCheckbox(filled, items, className) {
+        filled.innerHTML = ''; // 先清空，避免重複
+        for (const it of items) {
+            const opt = document.createElement("div");
+            opt.classList.add("form-check");
+            opt.innerHTML = `
+      <input class="form-check-input ${className}" type="checkbox" value="${it.id}" id="${className}-${it.id}">
+      <label class="form-check-label" for="${className}-${it.id}">${it.name}</label>
+    `;
+            filled.appendChild(opt);
+        }
+    };
+
+    // 回填篩選
+    ns.setFilters = async function ({ reportId, form, filterPanel = '#reportFilterPanel' } = {}) {
+        const panel = document.querySelector(filterPanel);
+        if (!reportId || !panel) return;
+        const def = _registry.get(reportId);
+        if (def?.fillFilters) {
+            await def.fillFilters(panel, form); // 交給各報表自行回填（可處理非同步）
+        }
+    };
+
 })();

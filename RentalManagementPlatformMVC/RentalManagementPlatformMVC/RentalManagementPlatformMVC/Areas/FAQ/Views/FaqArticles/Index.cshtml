@@ -16,7 +16,7 @@
         @foreach (var x in Model)
         {
             <tr>
-                <td>@(x.IsPinned ? "★" : "")</td>
+                <td>@(x.IsPinned.Value ? "★" : "")</td>
                 <td>@x.Title</td>
                 <td>@x.Summary</td>
                 <td class="text-end">

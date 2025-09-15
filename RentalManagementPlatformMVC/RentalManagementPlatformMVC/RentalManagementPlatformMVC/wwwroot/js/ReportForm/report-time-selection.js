@@ -6,9 +6,9 @@
     function switchTimeUnit(root) {
         const unit = root.querySelector("#globalTimeUnit").value;
         // 隱藏所有
-        root.querySelectorAll("#timeSelectors .time-unit-input-block").forEach(x => x.hidden = true);
+        root.querySelectorAll("#time-selectors .time-unit-input-block").forEach(x => x.hidden = true);
         // 顯示對應
-        const block = root.querySelector(`#timeSelectors .input-${unit}`);
+        const block = root.querySelector(`#time-selectors .input-${unit}`);
         if (block) block.hidden = false;
 
         // 如果是週，且週的選單還沒填，把週數選單用你的函式補起來
@@ -115,6 +115,90 @@
         const root = document.querySelector(rootSelector);
         if (!root) return new FormData();
         return collectExternalTime(root);
+    };
+
+    // 追加到 report-time-selection.js 最後（ns.collect 下方）
+    ns.set = function setTime({ TimeUnit, Start, End }, rootSelector = "#reportControls") {
+        const root = document.querySelector(rootSelector);
+        if (!root) return;
+
+        const unitSel = root.querySelector("#globalTimeUnit");
+        unitSel.value = TimeUnit || "day";
+        // 觸發區塊切換與週數初始化
+        const switchEvt = new Event("change");
+        unitSel.dispatchEvent(switchEvt);
+
+        // yyyy-mm-dd 轉 Date
+        const toDate = (s) => {
+            if (!s) return null;
+            const [y, m, d] = s.split("-").map(Number);
+            return new Date(y, m - 1, d);
+        };
+
+        const start = toDate(Start);
+        const end = toDate(End);
+
+        switch (unitSel.value) {
+            case "day": {
+                root.querySelector(".input-day .startDate").value = Start || "";
+                root.querySelector(".input-day .endDate").value = End || "";
+                break;
+            }
+            case "week": {
+                const weekBlock = root.querySelector(".input-week");
+                if (weekBlock && !weekBlock.dataset.weeksFilled) {
+                    generateWeeksSelect(weekBlock); // 你既有的週數產生器
+                    weekBlock.dataset.weeksFilled = "1";
+                }
+                const weekIndexOf = (date, year) => {
+                    // 依你現有 firstWeekOfYear 定義反推週次
+                    const base = firstWeekOfYear(year);
+                    const diff = Math.floor((date - base) / (1000 * 60 * 60 * 24));
+                    return Math.floor(diff / 7) + 1;
+                };
+
+                const sy = start?.getFullYear() ?? new Date().getFullYear();
+                const sw = weekIndexOf(start, sy);
+
+                const ey = end?.getFullYear() ?? sy;
+                const ew = weekIndexOf(end, ey);
+
+                weekBlock.querySelector(".startWeekYear").value = String(sy);
+                fillWeekSelect(sy, weekBlock.querySelector(".startWeekWeek"));
+                weekBlock.querySelector(".startWeekWeek").value = String(sw);
+
+                weekBlock.querySelector(".endWeekYear").value = String(ey);
+                fillWeekSelect(ey, weekBlock.querySelector(".endWeekWeek"));
+                weekBlock.querySelector(".endWeekWeek").value = String(ew);
+                break;
+            }
+            case "month": {
+                const [sy, sm] = (Start || "").split("-").map(Number);
+                const [ey, em] = (End || "").split("-").map(Number);
+                if (sy) root.querySelector(".input-month .startMonthYear").value = sy;
+                if (sm) root.querySelector(".input-month .startMonthMonth").value = sm;
+                if (ey) root.querySelector(".input-month .endMonthYear").value = ey;
+                if (em) root.querySelector(".input-month .endMonthMonth").value = em;
+                break;
+            }
+            case "quarter": {
+                const qOf = (m) => Math.floor((m - 1) / 3) + 1;
+                const [sy, sm] = (Start || "").split("-").map(Number);
+                const [ey, em] = (End || "").split("-").map(Number);
+                if (sy) root.querySelector(".input-quarter .startQuarterYear").value = sy;
+                if (sm) root.querySelector(".input-quarter .startQuarterQuarter").value = qOf(sm);
+                if (ey) root.querySelector(".input-quarter .endQuarterYear").value = ey;
+                if (em) root.querySelector(".input-quarter .endQuarterQuarter").value = qOf(em);
+                break;
+            }
+            case "year": {
+                const [sy] = (Start || "").split("-").map(Number);
+                const [ey] = (End || "").split("-").map(Number);
+                if (sy) root.querySelector(".input-year .startYearInput").value = sy;
+                if (ey) root.querySelector(".input-year .endYearInput").value = ey;
+                break;
+            }
+        }
     };
 
     // 自動初始化
