@@ -11,6 +11,7 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="MeiliSearch" Version="0.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
@@ -22,13 +23,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
+    <Folder Include="Areas\FAQ\Models\" />
 
     <Folder Include="Areas\Management\Data\" />
     <Folder Include="Areas\Management\Models\" />
     <Folder Include="Areas\ReportForm\Data\" />
     <Folder Include="Areas\ReportForm\Models\" />
     <Folder Include="Areas\FAQ\Data\" />
-    <Folder Include="Areas\FAQ\Models\" />
 
   </ItemGroup>
 
