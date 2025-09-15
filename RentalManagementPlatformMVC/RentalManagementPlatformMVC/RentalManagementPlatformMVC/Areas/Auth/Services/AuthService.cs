@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.Auth.ViewModels;
 using RentalManagementPlatformMVC.Models;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace RentalManagementPlatformMVC.Services
+namespace RentalManagementPlatformMVC.Areas.Auth.Services
 {
 	public class AuthService : IAuthService
 	{
@@ -53,21 +54,24 @@ namespace RentalManagementPlatformMVC.Services
 		public Task SignOutAsync(HttpContext http)
 			=> http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-		public async Task<int> RegisterAsync(string username, string email, string name, string password)
+		public async Task<int> RegisterAsync(RegisterVm vm)
 		{
-			if (await _db.Users.AnyAsync(u => u.Username == username || u.Email == email))
+			if (await _db.Users.AnyAsync(u => u.Username == vm.Username || u.Email == vm.Email))
 				throw new InvalidOperationException("Username or email already exists.");
 
 			var entity = new Models.User
 			{
-				Username = username.Trim(),
-				Email = email.Trim(),
-				Name = name.Trim(),
-				PasswordHash = _hasher.HashPassword(null!, password),
-				Gender = "",
-				Address = "",
+				Name = vm.Name.Trim(),
+				Email = vm.Email.Trim(),
+				Username = vm.Username.Trim(),				
+				PasswordHash = _hasher.HashPassword(null!, vm.Password),
+				Gender = vm.Gender.Trim(),                    
+				BirthDate = vm.BirthDate,                     
+				Phone = vm.Phone.Trim(),                      
+				Address = vm.Address.Trim(),                  
+				ProfileImageurl = string.IsNullOrWhiteSpace(vm.ProfileImageurl)
+							? null : vm.ProfileImageurl!.Trim(), // ← 可為 null
 				Isverified = false,
-				BirthDate = DateTime.UtcNow.Date,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow
 			};

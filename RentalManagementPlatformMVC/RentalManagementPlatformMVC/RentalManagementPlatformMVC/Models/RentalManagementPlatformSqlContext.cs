@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RentalManagementPlatformMVC.Models;
 
-/// <summary>
-/// 共享租屋平台主資料庫的 DbContext（USERS/ROLES/...）。
-/// 僅負責資料表映射，不包含商業邏輯。
-/// </summary>
 public partial class RentalManagementPlatformSqlContext : DbContext
 {
-	/// <summary>建立 DbContext。</summary>
-	public RentalManagementPlatformSqlContext(DbContextOptions<RentalManagementPlatformSqlContext> options)
+    public RentalManagementPlatformSqlContext(DbContextOptions<RentalManagementPlatformSqlContext> options)
         : base(options)
     {
     }
@@ -54,6 +49,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
     public virtual DbSet<Mongodb> Mongodbs { get; set; }
 
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     public virtual DbSet<Payment> Payments { get; set; }
 
     public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
@@ -84,21 +81,17 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
     public virtual DbSet<SupportTicket> SupportTickets { get; set; }
 
-	public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserFavoriteReport> UserFavoriteReports { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-	/// <summary>
-	/// 設定資料表與欄位的映射。
-	/// </summary>
-	/// <param name="mb">模型建置器。</param>
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.AddressId).HasName("PK__ADDRESS__CAA247C8628C7235");
+            entity.HasKey(e => e.AddressId).HasName("PK__ADDRESS__CAA247C846453D33");
 
             entity.ToTable("ADDRESS");
 
@@ -117,7 +110,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<AnomalyDetectionLog>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__ANOMALY___9E2397E07CD1F281");
+            entity.HasKey(e => e.LogId).HasName("PK__ANOMALY___9E2397E0CCF4FFFC");
 
             entity.ToTable("ANOMALY_DETECTION_LOG");
 
@@ -137,7 +130,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<AnomalyRule>(entity =>
         {
-            entity.HasKey(e => e.RuleId).HasName("PK__ANOMALY___E92A9296D0745B57");
+            entity.HasKey(e => e.RuleId).HasName("PK__ANOMALY___E92A9296EBC7148A");
 
             entity.ToTable("ANOMALY_RULE");
 
@@ -162,7 +155,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Booking>(entity =>
         {
-            entity.HasKey(e => e.BookingId).HasName("PK__BOOKING__5DE3A5B179C8EF84");
+            entity.HasKey(e => e.BookingId).HasName("PK__BOOKING__5DE3A5B127261DB8");
 
             entity.ToTable("BOOKING");
 
@@ -193,7 +186,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<BookingGuest>(entity =>
         {
-            entity.HasKey(e => e.BookingGuestId).HasName("PK__BOOKING___A6D88E88153A2D71");
+            entity.HasKey(e => e.BookingGuestId).HasName("PK__BOOKING___A6D88E88FCD91D6A");
 
             entity.ToTable("BOOKING_GUEST");
 
@@ -211,11 +204,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoriesId).HasName("PK__CATEGORI__92BEE78AE532EC20");
+            entity.HasKey(e => e.CategoriesId).HasName("PK__CATEGORI__92BEE78A355CA21D");
 
             entity.ToTable("CATEGORIES");
 
-            entity.HasIndex(e => e.Name, "UQ__CATEGORI__72E12F1BF1E91034").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__CATEGORI__72E12F1B3BE22752").IsUnique();
 
             entity.Property(e => e.CategoriesId).HasColumnName("categories_id");
             entity.Property(e => e.IsActive)
@@ -228,7 +221,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<City>(entity =>
         {
-            entity.HasKey(e => e.CityId).HasName("PK__CITY__031491A8D8A39632");
+            entity.HasKey(e => e.CityId).HasName("PK__CITY__031491A8F32892F7");
 
             entity.ToTable("CITY");
 
@@ -242,7 +235,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Coupon>(entity =>
         {
-            entity.HasKey(e => e.CouponId).HasName("PK__COUPON__58CF638938B1ED5A");
+            entity.HasKey(e => e.CouponId).HasName("PK__COUPON__58CF6389CD6A008E");
 
             entity.ToTable("COUPON");
 
@@ -277,7 +270,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<CouponDistrict>(entity =>
         {
-            entity.HasKey(e => e.CouponDistrictId).HasName("PK__COUPON_D__1F5D108E9DDC08C7");
+            entity.HasKey(e => e.CouponDistrictId).HasName("PK__COUPON_D__1F5D108E59629371");
 
             entity.ToTable("COUPON_DISTRICT");
 
@@ -290,7 +283,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<CouponGuest>(entity =>
         {
-            entity.HasKey(e => e.CouponGuestId).HasName("PK__COUPON_G__538EB55DEB898CA6");
+            entity.HasKey(e => e.CouponGuestId).HasName("PK__COUPON_G__538EB55D51A07789");
 
             entity.ToTable("COUPON_GUEST");
 
@@ -305,7 +298,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<District>(entity =>
         {
-            entity.HasKey(e => e.DistrictId).HasName("PK__DISTRICT__2521322B1B58520B");
+            entity.HasKey(e => e.DistrictId).HasName("PK__DISTRICT__2521322B79726F50");
 
             entity.ToTable("DISTRICT");
 
@@ -320,11 +313,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<FaqArticle>(entity =>
         {
-            entity.HasKey(e => e.FaqArticlesId).HasName("PK__FAQ_ARTI__B0FC36A66A2D7A54");
+            entity.HasKey(e => e.FaqArticlesId).HasName("PK__FAQ_ARTI__B0FC36A6F4F88012");
 
             entity.ToTable("FAQ_ARTICLES");
 
-            entity.HasIndex(e => e.Slug, "UQ__FAQ_ARTI__32DD1E4C254CA27D").IsUnique();
+            entity.HasIndex(e => e.Slug, "UQ__FAQ_ARTI__32DD1E4C92AEF60D").IsUnique();
 
             entity.Property(e => e.FaqArticlesId).HasColumnName("faq_articles_id");
             entity.Property(e => e.AuthorId).HasColumnName("author_id");
@@ -355,11 +348,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<FaqCategory>(entity =>
         {
-            entity.HasKey(e => e.FaqCategoriesId).HasName("PK__FAQ_CATE__09E5F979749A5823");
+            entity.HasKey(e => e.FaqCategoriesId).HasName("PK__FAQ_CATE__09E5F979D5BEFEE3");
 
             entity.ToTable("FAQ_CATEGORIES");
 
-            entity.HasIndex(e => e.Slug, "UQ__FAQ_CATE__32DD1E4C1BC623F3").IsUnique();
+            entity.HasIndex(e => e.Slug, "UQ__FAQ_CATE__32DD1E4C66152D10").IsUnique();
 
             entity.Property(e => e.FaqCategoriesId).HasColumnName("faq_categories_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -380,7 +373,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<FaqFeedback>(entity =>
         {
-            entity.HasKey(e => e.FaqFeedbackId).HasName("PK__FAQ_FEED__4E34B3836900CAAC");
+            entity.HasKey(e => e.FaqFeedbackId).HasName("PK__FAQ_FEED__4E34B3830A5397F0");
 
             entity.ToTable("FAQ_FEEDBACK");
 
@@ -402,35 +395,35 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<HostPayout>(entity =>
         {
-            entity.HasKey(e => e.PayoutId).HasName("PK__HOST_PAY__3B0771EC5F8147C0");
+            entity.HasKey(e => e.PayoutId).HasName("PK__HOST_PAY__3B0771ECAC84E786");
 
             entity.ToTable("HOST_PAYOUT");
 
-			entity.Property(e => e.PayoutId)
-				.ValueGeneratedNever()
-				.HasColumnName("payout_id");
-			entity.Property(e => e.AmountGross)
-				.HasColumnType("decimal(18, 0)")
-				.HasColumnName("amount_gross");
-			entity.Property(e => e.AmountNet)
-				.HasColumnType("decimal(18, 0)")
-				.HasColumnName("amount_net");
-			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-			entity.Property(e => e.CycleEnd).HasColumnName("cycle_end");
-			entity.Property(e => e.CycleStart).HasColumnName("cycle_start");
-			entity.Property(e => e.HostId).HasColumnName("host_id");
-			entity.Property(e => e.PaidAt).HasColumnName("paid_at");
-			entity.Property(e => e.PlatformFee)
-				.HasColumnType("decimal(18, 0)")
-				.HasColumnName("platform_fee");
-			entity.Property(e => e.Status)
-				.HasMaxLength(512)
-				.HasColumnName("status");
-		});
+            entity.Property(e => e.PayoutId)
+                .ValueGeneratedNever()
+                .HasColumnName("payout_id");
+            entity.Property(e => e.AmountGross)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("amount_gross");
+            entity.Property(e => e.AmountNet)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("amount_net");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.CycleEnd).HasColumnName("cycle_end");
+            entity.Property(e => e.CycleStart).HasColumnName("cycle_start");
+            entity.Property(e => e.HostId).HasColumnName("host_id");
+            entity.Property(e => e.PaidAt).HasColumnName("paid_at");
+            entity.Property(e => e.PlatformFee)
+                .HasColumnType("decimal(18, 0)")
+                .HasColumnName("platform_fee");
+            entity.Property(e => e.Status)
+                .HasMaxLength(512)
+                .HasColumnName("status");
+        });
 
         modelBuilder.Entity<HostPayoutItem>(entity =>
         {
-            entity.HasKey(e => e.PayoutItemId).HasName("PK__HOST_PAY__7BD82C6EC2DEF800");
+            entity.HasKey(e => e.PayoutItemId).HasName("PK__HOST_PAY__7BD82C6E988D4E2C");
 
             entity.ToTable("HOST_PAYOUT_ITEM");
 
@@ -458,7 +451,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<HostSubscription>(entity =>
         {
-            entity.HasKey(e => e.HostSubId).HasName("PK__HOST_SUB__70E025A86398D62B");
+            entity.HasKey(e => e.HostSubId).HasName("PK__HOST_SUB__70E025A8255DC507");
 
             entity.ToTable("HOST_SUBSCRIPTION");
 
@@ -478,7 +471,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__MESSAGE__0BBF6EE66A29A9C7");
+            entity.HasKey(e => e.MessageId).HasName("PK__MESSAGE__0BBF6EE642C66712");
 
             entity.ToTable("MESSAGE");
 
@@ -497,7 +490,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Mongodb>(entity =>
         {
-            entity.HasKey(e => e.MongodbId).HasName("PK__MONGODB__EC04A0A4296391BA");
+            entity.HasKey(e => e.MongodbId).HasName("PK__MONGODB__EC04A0A46D06AF0D");
 
             entity.ToTable("MONGODB");
 
@@ -508,9 +501,27 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
         });
 
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(e => e.TokenId).HasName("PK__PASSWORD__CB3C9E17F478FD11");
+
+            entity.ToTable("PASSWORD_RESET_TOKENS");
+
+            entity.HasIndex(e => e.UserId, "IX_RESET_user");
+
+            entity.Property(e => e.TokenId).HasColumnName("token_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.TokenHash)
+                .HasMaxLength(128)
+                .HasColumnName("token_hash");
+            entity.Property(e => e.UsedAt).HasColumnName("used_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__PAYMENT__ED1FC9EAC09D521F");
+            entity.HasKey(e => e.PaymentId).HasName("PK__PAYMENT__ED1FC9EA93AB42BF");
 
             entity.ToTable("PAYMENT");
 
@@ -539,7 +550,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<PaymentTransaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__PAYMENT___85C600AFF61D16FE");
+            entity.HasKey(e => e.TransactionId).HasName("PK__PAYMENT___85C600AF3FD2114B");
 
             entity.ToTable("PAYMENT_TRANSACTION");
 
@@ -567,11 +578,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__PERMISSI__E5331AFABDE523E5");
+            entity.HasKey(e => e.PermissionId).HasName("PK__PERMISSI__E5331AFA8B6A32BD");
 
             entity.ToTable("PERMISSIONS");
 
-            entity.HasIndex(e => e.PermCode, "UQ__PERMISSI__B74793E21EAAECA9").IsUnique();
+            entity.HasIndex(e => e.PermCode, "UQ__PERMISSI__B74793E20BFB334B").IsUnique();
 
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.Action)
@@ -599,7 +610,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<PointLedger>(entity =>
         {
-            entity.HasKey(e => e.LedgerId).HasName("PK__POINT_LE__97EDEDA1A65064C7");
+            entity.HasKey(e => e.LedgerId).HasName("PK__POINT_LE__97EDEDA106537E4C");
 
             entity.ToTable("POINT_LEDGER");
 
@@ -624,13 +635,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<PointRule>(entity =>
         {
-            entity.HasKey(e => e.RuleId).HasName("PK__POINT_RU__E92A92968C8655ED");
+            entity.HasKey(e => e.RuleId).HasName("PK__POINT_RU__E92A929615541F28");
 
             entity.ToTable("POINT_RULE");
 
-            entity.Property(e => e.RuleId)
-                .ValueGeneratedNever()
-                .HasColumnName("rule_id");
+            entity.Property(e => e.RuleId).HasColumnName("rule_id");
             entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
             entity.Property(e => e.ActiveTo).HasColumnName("active_to");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -647,7 +656,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => e.PostsId).HasName("PK__POSTS__7F3EFABEA9ED0FB3");
+            entity.HasKey(e => e.PostsId).HasName("PK__POSTS__7F3EFABE61054DC5");
 
             entity.ToTable("POSTS");
 
@@ -696,7 +705,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<PostsCategory>(entity =>
         {
-            entity.HasKey(e => e.PostCategoriesId).HasName("PK__POSTS_CA__CA316AA57FD5418E");
+            entity.HasKey(e => e.PostCategoriesId).HasName("PK__POSTS_CA__CA316AA5085DE16F");
 
             entity.ToTable("POSTS_CATEGORIES");
 
@@ -707,7 +716,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => e.ReviewId).HasName("PK__REVIEW__60883D903DC79179");
+            entity.HasKey(e => e.ReviewId).HasName("PK__REVIEW__60883D90E8625244");
 
             entity.ToTable("REVIEW");
 
@@ -727,11 +736,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__ROLES__760965CC7A951EF1");
+            entity.HasKey(e => e.RoleId).HasName("PK__ROLES__760965CCCB353F1E");
 
             entity.ToTable("ROLES");
 
-            entity.HasIndex(e => e.RoleCode, "UQ__ROLES__BAE63075F256B1E6").IsUnique();
+            entity.HasIndex(e => e.RoleCode, "UQ__ROLES__BAE630752E5F246E").IsUnique();
 
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.CreatedAt)
@@ -753,7 +762,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<RolePermission>(entity =>
         {
-            entity.HasKey(e => e.RolePermissionId).HasName("PK__ROLE_PER__B1E85A1056F73565");
+            entity.HasKey(e => e.RolePermissionId).HasName("PK__ROLE_PER__B1E85A10361D904C");
 
             entity.ToTable("ROLE_PERMISSIONS");
 
@@ -763,25 +772,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
-
-			// 沒有 RolePermission.Role 導覽
-			entity.HasOne<Role>()
-			 .WithMany(r => r.RolePermissions)
-			 .HasForeignKey(x => x.RoleId)
-			 .OnDelete(DeleteBehavior.Cascade);
-
-			// 沒有 RolePermission.Permission 導覽
-			entity.HasOne<Permission>()
-			 .WithMany(p => p.RolePermissions)
-			 .HasForeignKey(x => x.PermissionId)
-			 .OnDelete(DeleteBehavior.Cascade);
-
-			entity.HasIndex(x => new { x.RoleId, x.PermissionId }).IsUnique();
-		});
+        });
 
         modelBuilder.Entity<RoomList>(entity =>
         {
-            entity.HasKey(e => e.RoomId).HasName("PK__ROOM_LIS__19675A8A113AD555");
+            entity.HasKey(e => e.RoomId).HasName("PK__ROOM_LIS__19675A8ABE13219B");
 
             entity.ToTable("ROOM_LIST");
 
@@ -805,17 +800,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("title");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-
-			// 加關聯設定
-			entity.HasOne(e => e.Host)                      // RoomList 有一個 Host
-				  .WithMany(e => e.RoomLists)                 // Host 有很多 RoomList
-				  .HasForeignKey(e => e.HostId)             // FK 是 Booking.GuestId
-				  .HasConstraintName("FK_ROOMLIST_USER");     // FK 名稱可自訂
-		});
+        });
 
         modelBuilder.Entity<RoomPhoto>(entity =>
         {
-            entity.HasKey(e => e.PhotoId).HasName("PK__ROOM_PHO__CB48C83D1260697E");
+            entity.HasKey(e => e.PhotoId).HasName("PK__ROOM_PHO__CB48C83D1D93AC0F");
 
             entity.ToTable("ROOM_PHOTO");
 
@@ -839,7 +828,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<SubscriptionBillingLog>(entity =>
         {
-            entity.HasKey(e => e.BillId).HasName("PK__SUBSCRIP__D706DDB353A1920F");
+            entity.HasKey(e => e.BillId).HasName("PK__SUBSCRIP__D706DDB3F0EE10A9");
 
             entity.ToTable("SUBSCRIPTION_BILLING_LOG");
 
@@ -862,13 +851,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<SubscriptionPlan>(entity =>
         {
-            entity.HasKey(e => e.PlanId).HasName("PK__SUBSCRIP__BE9F8F1D03F5C15C");
+            entity.HasKey(e => e.PlanId).HasName("PK__SUBSCRIP__BE9F8F1D6F5A681E");
 
             entity.ToTable("SUBSCRIPTION_PLAN");
 
-            entity.Property(e => e.PlanId)
-                .ValueGeneratedNever()
-                .HasColumnName("plan_id");
+            entity.Property(e => e.PlanId).HasColumnName("plan_id");
             entity.Property(e => e.CommissionRate)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("commission_rate");
@@ -886,7 +873,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<SupportTicket>(entity =>
         {
-            entity.HasKey(e => e.SupportTicketsId).HasName("PK__SUPPORT___494F332344458DE0");
+            entity.HasKey(e => e.SupportTicketsId).HasName("PK__SUPPORT___494F3323B7166F5C");
 
             entity.ToTable("SUPPORT_TICKETS");
 
@@ -918,55 +905,51 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__USER__B9BE370FE84E4CAB");
+            entity.HasKey(e => e.UserId).HasName("PK__USER__B9BE370FE101149C");
 
             entity.ToTable("USER");
 
-			entity.Property(e => e.UserId).HasColumnName("user_id");
-			entity.Property(e => e.Address)
-				.HasMaxLength(512)
-				.HasColumnName("address");
-			entity.Property(e => e.BirthDate).HasColumnName("birth_date");
-			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-			entity.Property(e => e.Email)
-				.HasMaxLength(512)
-				.HasColumnName("email");
-			entity.Property(e => e.Gender)
-				.HasMaxLength(512)
-				.HasColumnName("gender");
-			entity.Property(e => e.Isverified).HasColumnName("isverified");
-			entity.Property(e => e.Name)
-				.HasMaxLength(512)
-				.HasColumnName("name");
-			entity.Property(e => e.PasswordHash)
-				.HasMaxLength(512)
-				.HasColumnName("password_hash");
-			entity.Property(e => e.Phone)
-				.HasMaxLength(512)
-				.HasColumnName("phone");
-			entity.Property(e => e.Point).HasColumnName("point");
-			entity.Property(e => e.ProfileImageurl)
-				.HasMaxLength(512)
-				.HasColumnName("profile_imageurl");
-			entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-			entity.Property(e => e.Username)
-				.HasMaxLength(512)
-				.HasColumnName("username");
-		});
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Address)
+                .HasMaxLength(512)
+                .HasColumnName("address");
+            entity.Property(e => e.BirthDate).HasColumnName("birth_date");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.Email)
+                .HasMaxLength(512)
+                .HasColumnName("email");
+            entity.Property(e => e.Gender)
+                .HasMaxLength(512)
+                .HasColumnName("gender");
+            entity.Property(e => e.Isverified).HasColumnName("isverified");
+            entity.Property(e => e.Name)
+                .HasMaxLength(512)
+                .HasColumnName("name");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(512)
+                .HasColumnName("password_hash");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(512)
+                .HasColumnName("phone");
+            entity.Property(e => e.Point).HasColumnName("point");
+            entity.Property(e => e.ProfileImageurl)
+                .HasMaxLength(512)
+                .HasColumnName("profile_imageurl");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.Username)
+                .HasMaxLength(512)
+                .HasColumnName("username");
+        });
 
         modelBuilder.Entity<UserFavoriteReport>(entity =>
         {
-            entity.HasKey(e => e.FavoriteId).HasName("PK__USER_FAV__46ACF4CB7DF0D760");
+            entity.HasKey(e => e.FavoriteId).HasName("PK__USER_FAV__46ACF4CBF2243EE5");
 
             entity.ToTable("USER_FAVORITE_REPORT");
 
-            entity.Property(e => e.FavoriteId)
-                .ValueGeneratedNever()
-                .HasColumnName("favorite_id");
+            entity.Property(e => e.FavoriteId).HasColumnName("favorite_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.ReportParams)
-                .HasMaxLength(512)
-                .HasColumnName("report_params");
+            entity.Property(e => e.ReportParams).HasColumnName("report_params");
             entity.Property(e => e.ReportType)
                 .HasMaxLength(50)
                 .HasColumnName("report_type");
@@ -975,7 +958,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.UserRoleId).HasName("PK__USER_ROL__B8D9ABA22552F59C");
+            entity.HasKey(e => e.UserRoleId).HasName("PK__USER_ROL__B8D9ABA269118471");
 
             entity.ToTable("USER_ROLES");
 
@@ -985,21 +968,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
-			// 沒有 UserRole.User 導覽 → 用 HasOne<User>()
-			entity.HasOne<User>()
-			 .WithMany(u => u.UserRoles)
-			 .HasForeignKey(x => x.UserId)
-			 .OnDelete(DeleteBehavior.Cascade);
-
-			// 沒有 UserRole.Role 導覽 → 用 HasOne<Role>()
-			entity.HasOne<Role>()
-			 .WithMany(r => r.UserRoles)
-			 .HasForeignKey(x => x.RoleId)
-			 .OnDelete(DeleteBehavior.Cascade);
-
-			entity.HasIndex(x => new { x.UserId, x.RoleId }).IsUnique();
-		});
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }
