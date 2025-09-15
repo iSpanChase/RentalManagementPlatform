@@ -112,10 +112,11 @@
                                                 @if (plan.CanActivate)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-success btn-sm"
+                                                            class="btn btn-success btn-xs"
                                                             title="啟用"
                                                             data-action="activate"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@plan.PlanId"
+                                                            style="padding: 2px 6px; font-size: 11px;">
                                                         <i class="fas fa-play me-1"></i>啟用
                                                     </button>
                                                 }
@@ -124,7 +125,7 @@
                                                 @if (plan.CanEdit)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-warning btn-sm"
+                                                            class="btn btn-warning btn-xs"
                                                             title="編輯"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#planModal"
@@ -134,7 +135,8 @@
                                                             data-monthly-fee="@plan.MonthlyFee"
                                                             data-commission-rate="@plan.CommissionRate"
                                                             data-perk-priority="@plan.PerkPriority"
-                                                            data-perk-analytics="@plan.PerkAnalytics">
+                                                            data-perk-analytics="@plan.PerkAnalytics"
+                                                            style="padding: 2px 6px; font-size: 11px;">
                                                         <i class="fas fa-edit me-1"></i>編輯
                                                     </button>
                                                 }
@@ -143,10 +145,11 @@
                                                 @if (plan.CanDeactivate)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-secondary btn-sm"
+                                                            class="btn btn-secondary btn-xs"
                                                             title="停用"
                                                             data-action="deactivate"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@plan.PlanId"
+                                                            style="padding: 2px 6px; font-size: 11px;">
                                                         <i class="fas fa-pause me-1"></i>停用
                                                     </button>
                                                 }
@@ -155,10 +158,11 @@
                                                 @if (plan.CanDelete)
                                                 {
                                                     <button type="button"
-                                                            class="btn btn-danger btn-sm"
+                                                            class="btn btn-danger btn-xs"
                                                             title="刪除"
                                                             data-action="delete"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@plan.PlanId"
+                                                            style="padding: 2px 6px; font-size: 11px;">
                                                         <i class="fas fa-trash me-1"></i>刪除
                                                     </button>
                                                 }
