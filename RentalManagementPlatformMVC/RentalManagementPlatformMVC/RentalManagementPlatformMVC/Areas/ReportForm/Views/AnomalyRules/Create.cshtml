@@ -1,0 +1,52 @@
+﻿@model RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly.RuleVM;
+@{
+    ViewData["Title"] = "新增規則";
+    var targetTypes = (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.TargetTypes;
+    var ops = (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Operators;
+}
+
+<h3>新增規則</h3>
+<hr />
+
+<form asp-action="Create" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="RuleName" class="form-label"></label>
+        <input asp-for="RuleName" class="form-control" />
+        <span asp-validation-for="RuleName" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="TargetType" class="form-label">監控指標</label>
+        <select asp-for="TargetType" class="form-select" asp-items="targetTypes"></select>
+        <span asp-validation-for="TargetType" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="ConditionExpression" class="form-label">條件</label>
+        <select asp-for="ConditionExpression" class="form-select" asp-items="ops"></select>
+        <span asp-validation-for="ConditionExpression" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="ThresholdValue" class="form-label">門檻</label>
+        <input asp-for="ThresholdValue" class="form-control" />
+        <span asp-validation-for="ThresholdValue" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <div class="form-check">
+            <input class="form-check-input" asp-for="IsActive" />
+            <label class="form-check-label fw-bold" asp-for="IsActive">啟用</label>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">儲存</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">返回</a>
+    </div>
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

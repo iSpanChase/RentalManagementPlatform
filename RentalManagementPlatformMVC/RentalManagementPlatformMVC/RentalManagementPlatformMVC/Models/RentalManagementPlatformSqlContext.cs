@@ -121,6 +121,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.DetectedValue)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("detected_value");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(10)
+                .HasColumnName("event_type");
             entity.Property(e => e.ExpectedValue)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("expected_value");
