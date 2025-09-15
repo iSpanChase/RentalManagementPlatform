@@ -1,0 +1,24 @@
+﻿<div class="card p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">父分類名稱</label>
+            <input id="parentName" class="form-control" />
+            <input id="parentId" type="hidden" />
+        </div>
+        <div class="col-md-3">
+            <button id="btnSaveParent" class="btn btn-primary w-100">新增/更新</button>
+        </div>
+        <div class="col-md-3">
+            <button id="btnResetParent" class="btn btn-outline-secondary w-100">清空</button>
+        </div>
+    </div>
+
+    <hr />
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead><tr><th>ID</th><th>名稱</th><th>操作</th></tr></thead>
+            <tbody id="parentList"></tbody>
+        </table>
+    </div>
+    <small class="text-muted">* 不能刪除仍有子分類或文章的父分類。</small>
+</div>
