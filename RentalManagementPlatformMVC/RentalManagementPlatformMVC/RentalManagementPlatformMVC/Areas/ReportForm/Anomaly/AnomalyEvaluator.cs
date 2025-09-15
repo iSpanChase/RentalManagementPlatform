@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
 
-namespace RentalManagementPlatformMVC.Areas.ReportForm.AnomalyEvaluator
+namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
 {
     public class AnomalyEvaluator : IAnomalyEvaluator
     {
@@ -31,14 +32,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.AnomalyEvaluator
                         inserted += await EvaluateUserAgeAsync(rule, now, ct);
                         break;
 
-                    case "HostAvgRatingP30D":
-                        inserted += await EvaluateHostAvgRatingP30DAsync(rule, now, ct);
-                        break;
-
-                    case "HostAvgRatingALL":
-                        inserted += await EvaluateHostAvgRatingALLAsync(rule, now, ct);
-                        break;
-
                     default:
                         _logger.LogWarning("Unknown TargetType: {tt}", rule.TargetType);
                         break;
@@ -51,18 +44,20 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.AnomalyEvaluator
         // ---- UserAge: 從生日換算年齡，逐一比對 ----
         private async Task<int> EvaluateUserAgeAsync(AnomalyRule rule, DateTime nowUtc, CancellationToken ct)
         {
+            var today = DateTime.UtcNow.AddHours(8).Date;
+
             // 用原生 SQL 算歲數（最準確）
-            var rows = await _context.Set<UserAgeRow>()
-                .FromSqlRaw("""
-                DECLARE @Now DATETIME2 = SYSUTCDATETIME();
-                SELECT 
-                  U.user_id AS TargetId,
-                  DATEDIFF(YEAR, U.birth_date, @Now)
-                    - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, U.birth_date, @Now), U.birth_date) > @Now THEN 1 ELSE 0 END 
-                    AS Age
-                FROM [USER] AS U
-                WHERE U.birth_date IS NOT NULL;
-            """)
+            var rows = await _context.Users
+                .Where(u => u.BirthDate != null)
+                .Select(u => new UserAgeRow
+                {
+                    TargetId = u.UserId,
+                    Age = (today.Year - u.BirthDate.Year)
+                                    - ((u.BirthDate.Month > today.Month) ||
+                                            (u.BirthDate.Month == today.Month && u.BirthDate.Day > today.Day)
+                                        ? 1 : 0
+                                    )
+                })
                 .AsNoTracking()
                 .ToListAsync(ct);
 
@@ -116,19 +111,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.AnomalyEvaluator
 
             if (inserted > 0) await _context.SaveChangesAsync(ct);
             return inserted;
-        }
-
-        // ---- HostAvgRating：給你留兩個空殼（你可沿用之前的 SQL/LINQ）----
-        private async Task<int> EvaluateHostAvgRatingP30DAsync(AnomalyRule rule, DateTime nowUtc, CancellationToken ct)
-        {
-            // TODO: 依你前面的做法把近30天的 host 平均評分聚合出來
-            return 0;
-        }
-
-        private async Task<int> EvaluateHostAvgRatingALLAsync(AnomalyRule rule, DateTime nowUtc, CancellationToken ct)
-        {
-            // TODO: 依你前面的做法把全期間平均評分聚合出來
-            return 0;
         }
 
         private static bool Compare(decimal value, string op, decimal threshold) => op switch

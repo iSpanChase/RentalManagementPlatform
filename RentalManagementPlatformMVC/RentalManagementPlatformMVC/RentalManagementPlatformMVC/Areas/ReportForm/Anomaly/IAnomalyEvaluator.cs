@@ -1,4 +1,4 @@
-﻿namespace RentalManagementPlatformMVC.Areas.ReportForm.AnomalyEvaluator
+﻿namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
 {
     public interface IAnomalyEvaluator
     {

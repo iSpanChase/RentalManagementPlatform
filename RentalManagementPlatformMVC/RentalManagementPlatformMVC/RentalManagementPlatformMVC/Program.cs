@@ -21,6 +21,7 @@ using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Areas.Room_List.Services;
 using Meilisearch;
+using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
 
 namespace RentalManagementPlatformMVC
 {
@@ -77,8 +78,10 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
 			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
 
+            builder.Services.AddScoped<IAnomalyEvaluator, AnomalyEvaluator>();
+            builder.Services.AddHostedService<AnomalyBackgroundService>();
 
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 			builder.Services.AddControllersWithViews();
 			//var app = builder.Build();

@@ -25,8 +25,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly
     {
         public static readonly (string Value, string Text)[] TargetTypes =
         [
-            ("HostAvgRatingP30D", "房東平均評分（近30天）"),
-            ("HostAvgRatingALL", "房東平均評分（全部）"),
             ("UserAge", "使用者年齡"),
             // 之後可持續擴充其他可監控指標
         ];
