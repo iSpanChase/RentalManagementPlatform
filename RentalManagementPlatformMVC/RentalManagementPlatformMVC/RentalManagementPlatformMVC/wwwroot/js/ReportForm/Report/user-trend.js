@@ -7,12 +7,14 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        timePolicy, 
     }) {
         ns.register(id, {
             title,
             defaultType,
             base,
             endpoint,
+            timePolicy, 
 
             buildFilterUI(container) {
                 container.innerHTML = `
@@ -107,5 +109,12 @@
         id: 'UserCreateCountTrend',
         title: '使用者創建數趨勢',
         endpoint: 'UserCreateCountTrend',
+    });
+    registerReportFilter({
+        id: 'UserRoleComposition',
+        title: '使用者組成',
+        endpoint: 'UserRoleComposition',
+        defaultType: 'pie',
+        timePolicy: 'none', 
     });
 })();

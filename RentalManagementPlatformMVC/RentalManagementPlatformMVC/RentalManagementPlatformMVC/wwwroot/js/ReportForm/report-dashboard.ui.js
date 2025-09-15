@@ -4,43 +4,58 @@
 
     // === 工具：收集當前「新增/編輯」面板的狀態，組合成送 API 與重建卡片所需的結構 ===
     function collectPanelState() {
-        const timeFd = ReportTime.collect("#reportControls");
-        if (new Date(timeFd.get("Start")) > new Date(timeFd.get("End"))) {
-            alert("時間資訊設定錯誤");
-            return;
-        }
+        // 先收集篩選，等一下要從裡面讀 ReportId
         const filterFd = ReportConfig.collectFilters({ filterPanel: '#reportFilterPanel' });
 
-        const title = document.querySelector('#cardTitleInput').value?.trim() || '';
-        const typeSel = document.querySelector('#globalReportType');
-        const chartType = typeSel ? typeSel.value : 'bar';
-
-        // ⭐ 報表種類：優先從 collectFilters 拿，拿不到就從下拉保底
-        const reportId =
+        // ⭐ 報表種類：優先從 collectFilters 拿，拿不到再從多個候選節點保底
+        let reportId =
             filterFd.get('ReportId') ||
             document.querySelector('[name="ReportId"]')?.value ||
             document.querySelector('#reportSelect')?.value ||
             document.querySelector('#reportId')?.value ||
             '';
 
-        const def = ReportConfig.get(reportId); // 依 ReportId 取 base/endpoint/title
+        // 沒選報表就不做了
+        const def = reportId ? ReportConfig.get(reportId) : null;
+        if (!def) {
+            alert('請先選擇要建立的報表種類');
+            return;
+        }
 
-        // 合併 FormData
         const fd = new FormData();
-        for (const [k, v] of timeFd.entries())
-            fd.append(k, v);
-        for (const [k, v] of filterFd.entries())
-            fd.append(k, v);
-        // ⭐ 確保 ReportId 一定在表單裡（以便後續序列化/我的最愛）
+
+        // ⭐ 只有需要時間的報表才收集時間
+        if (def.timePolicy !== 'none') {
+            const timeFd = ReportTime.collect('#reportControls');
+            const start = timeFd.get('Start');
+            const end = timeFd.get('End');
+
+            // 有填才檢查先後；允許空白（由後端套預設或報錯）
+            if (start && end && new Date(start) > new Date(end)) {
+                alert('時間資訊設定錯誤：開始時間不可大於結束時間');
+                return;
+            }
+            for (const [k, v] of timeFd.entries()) fd.append(k, v);
+        }
+
+        // 把篩選項目丟進去
+        for (const [k, v] of filterFd.entries()) fd.append(k, v);
+
+        // ⭐ 確保 ReportId 一定存在（for 我的最愛序列化）
         if (!fd.get('ReportId') && reportId) fd.append('ReportId', reportId);
 
+        // 標題 & 圖表型別
+        const title = (document.querySelector('#cardTitleInput')?.value || '').trim();
+        const typeSel = document.querySelector('#globalReportType');
+        const chartType = typeSel?.value || def.defaultType || 'bar';
+
         return {
-            title: title || def?.title || '未命名卡片',
+            title: title || def.title || '未命名卡片',
             chartType,
             reportId,
-            base: def?.base,
-            endpoint: def?.endpoint,
-            formData: fd
+            base: def.base,
+            endpoint: def.endpoint,
+            formData: fd,
         };
     }
 

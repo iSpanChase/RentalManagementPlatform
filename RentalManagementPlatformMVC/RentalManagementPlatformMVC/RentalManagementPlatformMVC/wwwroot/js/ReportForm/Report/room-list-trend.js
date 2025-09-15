@@ -8,12 +8,14 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        timePolicy,
     }) {
         ns.register(id, {
             title,
             defaultType,
             base,
             endpoint,
+            timePolicy,
 
             buildFilterUI(container) {
                 container.innerHTML = `

@@ -6,9 +6,9 @@
     function switchTimeUnit(root) {
         const unit = root.querySelector("#globalTimeUnit").value;
         // 隱藏所有
-        root.querySelectorAll("#timeSelectors .time-unit-input-block").forEach(x => x.hidden = true);
+        root.querySelectorAll("#time-selectors .time-unit-input-block").forEach(x => x.hidden = true);
         // 顯示對應
-        const block = root.querySelector(`#timeSelectors .input-${unit}`);
+        const block = root.querySelector(`#time-selectors .input-${unit}`);
         if (block) block.hidden = false;
 
         // 如果是週，且週的選單還沒填，把週數選單用你的函式補起來

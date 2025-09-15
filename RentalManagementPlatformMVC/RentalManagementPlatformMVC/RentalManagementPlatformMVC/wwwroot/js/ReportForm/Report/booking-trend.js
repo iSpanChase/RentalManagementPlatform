@@ -8,6 +8,7 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        timePolicy,
     }) {
         ns.register(id, {
             title,
@@ -15,6 +16,7 @@
             base,
             endpoint,
 
+            timePolicy,
             buildFilterUI(container) {
                 container.innerHTML = `
                     <div class="row filter-row">

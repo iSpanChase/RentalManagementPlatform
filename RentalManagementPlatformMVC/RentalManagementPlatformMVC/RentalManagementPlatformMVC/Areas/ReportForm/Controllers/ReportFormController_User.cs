@@ -86,5 +86,26 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UserRoleComposition(string gender, int? ageMin, int? ageMax, string roleId)
+        {
+            var query = _context.Roles
+                .Where(r => roleId == null || roleId.Contains(r.RoleId.ToString()))
+                .Select(r => new {
+                    r.RoleName,
+                    Count = r.UserRoles.Count()
+                });
+
+            var labels = await query.Select(x => x.RoleName).ToArrayAsync();
+            var data = await query.Select(x => x.Count).ToArrayAsync();
+            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+            return Json(new
+            {
+                labels,
+                data,
+                colors,
+                label = "使用者數"
+            });
+        }
     }
 }

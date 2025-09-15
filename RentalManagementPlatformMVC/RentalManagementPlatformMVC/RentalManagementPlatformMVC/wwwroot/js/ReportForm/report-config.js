@@ -50,6 +50,10 @@
             if (def?.buildFilterUI) {
                 def.buildFilterUI(panel);
             }
+
+            const timeWrap = document.querySelector('.time-area');
+            if (timeWrap) timeWrap.hidden = (def?.timePolicy === 'none');
+
             // 若報表定義了預設圖表型別，就覆寫外部的圖表型別選擇器
             if (def?.defaultType) {
                 const typeSel = document.querySelector('#globalReportType');
