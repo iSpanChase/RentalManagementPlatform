@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace RentalManagementPlatformMVC.Areas.Room_List.Models
 {
     public class RoomSummaryViewModel
-    {
+    
+    
+    {   [Display(Name = "房源ID")]
         public int RoomId { get; set; }
 
         [Display(Name = "標題")]
@@ -14,7 +16,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
 
         [Display(Name = "房東")]
         public string? HostName { get; set; }
-
+        
         public string? MainImageUrl { get; set; }
     }
 }

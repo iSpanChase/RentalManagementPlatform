@@ -69,11 +69,12 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             var roomList = await _writeRepository.FindAsync(id);
             if (roomList != null)
             {
-                _writeRepository.Remove(roomList);
+                //_writeRepository.Remove(roomList);
+                roomList.Status="已刪除";
                 await _writeRepository.SaveChangesAsync();
 
-                var index = _meilisearchClient.Index("rooms");
-                await index.DeleteOneDocumentAsync(id.ToString());
+                //var index = _meilisearchClient.Index("rooms");
+                //await index.DeleteOneDocumentAsync(id.ToString());
             }
         }
 

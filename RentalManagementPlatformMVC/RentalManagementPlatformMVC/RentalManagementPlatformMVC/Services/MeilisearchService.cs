@@ -17,16 +17,19 @@ namespace RentalManagementPlatformMVC.Services
         private readonly MeilisearchClient _meiliClient;
         private readonly RentalManagementPlatformSqlContext _dbContext;
         private readonly ILogger<MeilisearchService> _logger;
+        private readonly IMinioService _minioService;
         private const string IndexName = "rooms";
 
         public MeilisearchService(
             MeilisearchClient meiliClient,
             RentalManagementPlatformSqlContext dbContext,
-            ILogger<MeilisearchService> logger)
+            ILogger<MeilisearchService> logger,
+            IMinioService minioService)
         {
             _meiliClient = meiliClient;
             _dbContext = dbContext;
             _logger = logger;
+            _minioService = minioService;
         }
 
         public async Task<IEnumerable<RoomListSearchDto>> SearchAsync(string query)
@@ -43,15 +46,34 @@ namespace RentalManagementPlatformMVC.Services
                 var searchResult = await index.SearchAsync<RoomListSearchDto>(query, new SearchQuery { Limit = 20 });
 
                 _logger.LogInformation("Meilisearch raw response: {RawResponse}", System.Text.Json.JsonSerializer.Serialize(searchResult));
-                
-                _logger.LogInformation("Meilisearch returned {Count} hits.", searchResult.Hits.Count());
-                if (searchResult.Hits.Any())
+
+                var hits = searchResult.Hits.ToList(); // Use ToList() to allow modification
+                _logger.LogInformation("Meilisearch returned {Count} hits.", hits.Count);
+
+                // Populate CoverImageUrl from MinIO for each hit
+                foreach (var hit in hits)
                 {
-                    var firstHit = searchResult.Hits.First();
-                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', Description='{Description}', PricePerNight={PricePerNight}, MaxGuests={MaxGuests}, HostId={HostId}, CityName='{CityName}', DistrictId={DistrictId}, DistrictName='{DistrictName}', AddressLine='{AddressLine}', GeoLat={GeoLat}, GeoLng={GeoLng}, RatingAvg={RatingAvg}, ReviewsCount={ReviewsCount}, CoverBucket='{CoverBucket}', CoverObjectKey='{CoverObjectKey}', CoverContentType='{CoverContentType}', CreatedAt={CreatedAt}, UpdatedAt={UpdatedAt}, AmenitiesCount={AmenitiesCount}.",
-                        firstHit.RoomId, firstHit.Title, firstHit.Description, firstHit.PricePerNight, firstHit.MaxGuests, firstHit.HostId, firstHit.CityName, firstHit.DistrictId, firstHit.DistrictName, firstHit.AddressLine, firstHit.Geo?.Lat, firstHit.Geo?.Lng, firstHit.RatingAvg, firstHit.ReviewsCount, firstHit.CoverBucket, firstHit.CoverObjectKey, firstHit.CoverContentType, firstHit.CreatedAt, firstHit.UpdatedAt, firstHit.Amenities?.Count ?? 0);
+                    if (!string.IsNullOrEmpty(hit.CoverObjectKey))
+                    {
+                        try
+                        {
+                            hit.CoverImageUrl = await _minioService.GetFileUrlAsync(hit.CoverObjectKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to get MinIO URL for object key '{ObjectKey}'.", hit.CoverObjectKey);
+                            hit.CoverImageUrl = null; // Ensure it's null on failure
+                        }
+                    }
                 }
-                return searchResult.Hits;
+
+                if (hits.Any())
+                {
+                    var firstHit = hits.First();
+                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', CoverImageUrl='{CoverImageUrl}'",
+                        firstHit.RoomId, firstHit.Title, firstHit.CoverImageUrl);
+                }
+                return hits;
             }
             catch (Exception ex)
             {

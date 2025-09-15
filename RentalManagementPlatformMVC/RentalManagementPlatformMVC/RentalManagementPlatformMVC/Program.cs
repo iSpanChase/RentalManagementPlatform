@@ -21,6 +21,8 @@ using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Areas.Room_List.Services;
 using Meilisearch;
+using RentalManagementPlatformMVC.DTOs;
+using Minio;
 
 namespace RentalManagementPlatformMVC
 {
@@ -50,6 +52,10 @@ namespace RentalManagementPlatformMVC
             // Meilisearch Client and Service registration
             builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
             builder.Services.AddScoped<MeilisearchService>();
+
+            // MinIO Client and Service registration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+            builder.Services.AddSingleton<IMinioService, MinioService>();
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

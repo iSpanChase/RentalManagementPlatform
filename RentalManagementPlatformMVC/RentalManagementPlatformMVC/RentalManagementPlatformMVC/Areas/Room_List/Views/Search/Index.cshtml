@@ -1,11 +1,11 @@
 @using RentalManagementPlatformMVC.Areas.Room_List.Models
 
 @{
-    ViewData["Title"] = "Search Rooms";
+    ViewData["Title"] = "房源搜尋";
     var currentQuery = ViewData["CurrentQuery"] as string;
 }
 
-<h1>Search Rooms</h1>
+<h1>房源搜尋</h1>
 
 <div class="row">
     <div class="col-md-8">
@@ -85,6 +85,7 @@
             searchForm.addEventListener('submit', function (e) {
                 e.preventDefault(); 
             });
+            //攔截submit 只走ajax
         });
     </script>
 }

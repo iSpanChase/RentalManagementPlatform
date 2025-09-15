@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.Room_List.Models;
 using RentalManagementPlatformMVC.Services.Interfaces;
+using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
 using RentalManagementPlatformMVC.Services;
 using System.Collections.Generic;
@@ -14,26 +15,60 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
     {
         private readonly IRoomListReadRepository _repository;
         private readonly MeilisearchService _meilisearchService;
+        private readonly IMinioService _minioService;
+        private readonly RentalManagementPlatformSqlContext _context;
 
-        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService)
+        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService, IMinioService minioService, RentalManagementPlatformSqlContext context)
         {
             _repository = repository;
             _meilisearchService = meilisearchService;
+            _minioService = minioService;
+            _context = context;
         }
 
         public async Task<List<RoomSummaryViewModel>> GetRoomSummariesAsync()
         {
-            var roomSummaries = await (from room in _repository.GetAll()
-                                     join user in _repository.GetUsers() on room.HostId equals user.UserId
-                                     select new RoomSummaryViewModel
-                                     {
-                                         RoomId = room.RoomId,
-                                         Title = room.Title,
-                                         Status = room.Status,
-                                         HostName = user.Name
-                                     })
-                                     .ToListAsync();
-            return roomSummaries;
+            var roomData = await (from room in _repository.GetAll()
+                                  join user in _repository.GetUsers() on room.HostId equals user.UserId
+                                  select new
+                                  {
+                                      room.RoomId,
+                                      room.Title,
+                                      room.Status,
+                                      user.Name,
+                                      ObjectKey = _context.RoomPhotos
+                                                      .Where(p => p.RoomId == room.RoomId)
+                                                      .Select(p => p.ObjectKey)
+                                                      .FirstOrDefault()
+                                  })
+                                  .ToListAsync();
+
+            var viewModels = roomData.Select(s => new RoomSummaryViewModel
+            {
+                RoomId = s.RoomId,
+                Title = s.Title,
+                Status = s.Status,
+                HostName = s.Name,
+                MainImageUrl = s.ObjectKey // Temporarily store the object key here
+            }).ToList();
+
+            foreach (var summary in viewModels)
+            {
+                if (!string.IsNullOrEmpty(summary.MainImageUrl))
+                {
+                    try
+                    {
+                        var objectKey = summary.MainImageUrl;
+                        summary.MainImageUrl = await _minioService.GetFileUrlAsync(objectKey);
+                    }
+                    catch (System.Exception)
+                    {
+                        summary.MainImageUrl = null; // Set to null if URL generation fails
+                    }
+                }
+            }
+
+            return viewModels;
         }
 
         public async Task<RoomDetailsViewModel?> GetRoomDetailsAsync(int id)

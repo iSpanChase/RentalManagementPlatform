@@ -65,6 +65,11 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
 
 		[JsonPropertyName("amenities")]
 		public List<string> Amenities { get; set; } = new();
+
+		// This property will be populated by the MeilisearchService after fetching the data.
+		// It should not be part of the Meilisearch index itself.
+		[JsonIgnore]
+		public string? CoverImageUrl { get; set; }
 	}
 
 	public class GeoLocation
