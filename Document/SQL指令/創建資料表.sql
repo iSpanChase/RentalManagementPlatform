@@ -2,7 +2,7 @@
 USE RentalManagementPlatformSQL;
 
 CREATE TABLE [PASSWORD_RESET_TOKENS] (
-  [token_id] int PRIMARY KEY NOT NULL,
+  [token_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [user_id] int NOT NULL,
   [token_hash] nvarchar(128) NOT NULL,
   [expires_at] DATETIME2 NOT NULL,
@@ -238,7 +238,7 @@ CREATE TABLE [HOST_PAYOUT_ITEM] (
 GO
 
 CREATE TABLE [SUBSCRIPTION_PLAN] (
-  [plan_id] int PRIMARY KEY,
+  [plan_id] int IDENTITY(1,1) PRIMARY KEY,
   [plan_name] nvarchar(512),
   [monthly_fee] decimal,
   [commission_rate] decimal,
@@ -273,7 +273,7 @@ CREATE TABLE [SUBSCRIPTION_BILLING_LOG] (
 GO
 
 CREATE TABLE [POINT_RULE] (
-  [rule_id] int PRIMARY KEY,
+  [rule_id] int IDENTITY(1,1) PRIMARY KEY,
   [earn_rate_per_ntd] decimal,
   [max_points_per_order] int,
   [expiry_months] int,
@@ -408,10 +408,10 @@ CREATE TABLE [POSTS] (
 GO
 
 CREATE TABLE [USER_FAVORITE_REPORT] (
-  [favorite_id] int PRIMARY KEY NOT NULL,
+  [favorite_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [user_id] int,
   [report_type] nvarchar(50),
-  [report_params] nvarchar(512),
+  [report_params] nvarchar(max),
   [created_at] DATETIME2
 )
 GO
