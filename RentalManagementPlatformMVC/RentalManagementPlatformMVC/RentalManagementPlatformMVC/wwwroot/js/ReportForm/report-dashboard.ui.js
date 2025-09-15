@@ -1,4 +1,6 @@
 ﻿(function () {
+    const maxCardNum = 15;
+
     const CardBus = new Map(); // key: cardId -> {el, chart, state}
     let editingCardId = null;  // 編輯中的卡 id（null 表示新增模式）
 
@@ -65,8 +67,8 @@
             // 新增模式：限制數量
             const snapshot = [];
             CardBus.forEach(({ state }) => snapshot.push(state));
-            if (snapshot.length >= 6) {
-                alert("一個畫面最多只能有6張卡片");
+            if (snapshot.length >= maxCardNum) {
+                alert(`一個畫面最多只能有${maxCardNum}張卡片`);
                 return;
             }
         }
@@ -202,8 +204,8 @@
         const snapshot = [];
         CardBus.forEach(({ state }) => snapshot.push(state));
 
-        if (snapshot.length > 6) {
-            alert("最多只能存6張卡片");
+        if (snapshot.length > maxCardNum) {
+            alert(`最多只能存${maxCardNum}張卡片`);
             return;
         }
         if (snapshot.length <= 0) {
