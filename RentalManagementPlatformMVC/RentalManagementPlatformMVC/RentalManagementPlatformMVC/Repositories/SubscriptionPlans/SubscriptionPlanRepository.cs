@@ -72,6 +72,11 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 			return true;
 		}
 
+		/// <summary>
+		/// 更新指定的訂閱方案資訊。
+		/// </summary>
+		/// <param name="plan">包含更新資料的訂閱方案物件。</param>
+		/// <returns>已更新的訂閱方案物件。</returns>
 		public async Task<SubscriptionPlan> EditPlanAsync(SubscriptionPlan plan)
 		{
 			_context.SubscriptionPlans.Update(plan);
@@ -80,7 +85,10 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 		}
 
 
+
 		// 以下是檢查驗證用的輔助方法
+
+		// 根據方案名稱取得方案
 		public async Task<SubscriptionPlan?> GetByNameAsync(string planName)
 		{
 			return await _context.SubscriptionPlans
@@ -88,6 +96,7 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 				.FirstOrDefaultAsync(p => p.PlanName == planName);
 		}
 
+		// 根據方案 ID 取得方案
 		public async Task<SubscriptionPlan?> GetPlanByIdAsync(int planId)
 		{
 			return await _context.SubscriptionPlans

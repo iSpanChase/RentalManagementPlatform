@@ -113,6 +113,11 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 			return await _subscriptionPlanRepository.DeletePlanAsync(planId);
 		}
 
+		/// <summary>
+		/// 編輯現有的訂閱方案資訊。
+		/// </summary>
+		/// <param name="planDto">包含要更新的訂閱方案資訊的資料傳輸物件。</param>
+		/// <returns>編輯完成的訂閱方案資料傳輸物件。</returns>
 		public async Task<SubscriptionPlanDto> EditPlanAsync(EditPlanDto planDto)
 		{
 			var plan = await _subscriptionPlanRepository.GetPlanByIdAsync(planDto.PlanId);
@@ -141,6 +146,10 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 			var updatedPlan = await _subscriptionPlanRepository.EditPlanAsync(plan);
 			return _mapper.Map<SubscriptionPlanDto>(updatedPlan);
 		}
+
+
+
+		// 以下為方案狀態變更和商業邏輯驗證
 
 		/// <summary>
 		/// 啟用指定的訂閱方案

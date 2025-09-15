@@ -214,6 +214,7 @@
                                                 @(item.Status?.ToLower() == "confirmed" ? "bg-success" :
                                                   item.Status?.ToLower() == "pending"   ? "bg-warning text-dark" :
                                                   item.Status?.ToLower() == "cancelled"  ? "bg-danger" :
+                                                  item.Status?.ToLower() == "completed"  ? "bg-info" :
                                                   "bg-secondary")">
                                                 @item.DisplayStatus
                                             </span>

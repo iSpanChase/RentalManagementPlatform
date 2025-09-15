@@ -11,6 +11,8 @@ using RentalManagementPlatformMVC.Services.Bookings;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using AutoMapper;
+using RentalManagementPlatformMVC.Repositories.PointRules;
+using RentalManagementPlatformMVC.Services.PointRules;
 
 namespace RentalManagementPlatformMVC
 {
@@ -47,7 +49,12 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 			builder.Services.AddScoped<IHostSubscriptionRepository, HostSubscriptionRepository>();
 			builder.Services.AddScoped<IHostSubscriptionService, HostSubscriptionService>();
-			builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
+			builder.Services.AddScoped<IPointRuleRepository, PointRuleRepository>();
+			builder.Services.AddScoped<IPointRuleService, PointRuleService>();
+			builder.Services.AddScoped<IPointLedgerRepository, PointLedgerRepository>();
+			builder.Services.AddScoped<IPointLedgerService, PointLedgerService>();
+
+			builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
 			var app = builder.Build();
 

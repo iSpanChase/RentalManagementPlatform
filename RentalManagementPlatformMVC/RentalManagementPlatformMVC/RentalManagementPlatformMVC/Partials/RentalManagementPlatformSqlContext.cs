@@ -113,5 +113,15 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				  .HasConstraintName("FK_SUBSCRIPTIONBILLINGLOG_HOSTSUBSCRIPTION")
 				  .OnDelete(DeleteBehavior.Restrict);
 		});
+
+		modelBuilder.Entity<PointLedger>(entity =>
+		{
+			// User 一對多關聯
+			entity.HasOne(e => e.Guest)
+				  .WithMany(e => e.PointLedgers)
+				  .HasForeignKey(e => e.GuestId)
+				  .HasConstraintName("FK_POINTLEDGER_USER")
+				  .OnDelete(DeleteBehavior.Restrict);
+		});
 	}
 }

@@ -9,7 +9,6 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 	{
 		// 查詢相關
 		Task<PagedResult<SubscriptionPlanDto>> GetPagedPlansAsync(int pageIndex, int pageSize);
-		//Task<SubscriptionPlanDto?> GetPlanByIdAsync(int planId);
 
 		// CRUD 操作
 		Task<SubscriptionPlanDto> CreatePlanAsync(CreatePlanDto planDto);

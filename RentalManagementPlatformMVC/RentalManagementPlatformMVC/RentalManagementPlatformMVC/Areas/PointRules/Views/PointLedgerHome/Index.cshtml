@@ -1,7 +1,7 @@
-﻿@model RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels.HostSubscriptionIndexViewModel
+﻿@model RentalManagementPlatformMVC.Areas.PointRules.ViewModels.PointLedgerIndexViewModel
 
 @{
-    ViewData["Title"] = "訂閱方案管理";
+    ViewData["Title"] = "點數方案管理";
 
     // 計算本頁顯示的起始與結束資料編號
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
@@ -18,17 +18,18 @@
     // 將目前條件轉為 Dictionary<string, string?>，供分頁/排序連結沿用
     var routeBase = new Dictionary<string, string?>
     {
-        ["HostId"] = Model.Criteria?.HostId?.ToString(),
-        ["PlanId"] = Model.Criteria?.PlanId?.ToString(),
-        ["Status"] = Model.Criteria?.Status,
-        ["StartDateFrom"] = Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd"),
-        ["StartDateTo"] = Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd"),
-        ["CreatedAtFrom"] = Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd"),
-        ["CreatedAtTo"] = Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd"),
-        ["NextBillingDateFrom"] = Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd"),
-        ["NextBillingDateTo"] = Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd"),
-        ["HostName"] = Model.Criteria?.HostName,
-        ["PlanName"] = Model.Criteria?.PlanName,
+        ["GuestId"] = Model.Criteria?.GuestId?.ToString(),
+        ["GuestName"] = Model.Criteria?.GuestName,
+        ["OrderNumberSnapshot"] = Model.Criteria?.OrderNumberSnapshot,
+        ["Type"] = Model.Criteria?.Type,
+        ["PointsFrom"] = Model.Criteria?.PointsFrom?.ToString(),
+        ["PointsTo"] = Model.Criteria?.PointsTo?.ToString(),
+        ["OccurredAtFrom"] = Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd"),
+        ["OccurredAtTo"] = Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd"),
+        ["ExpiresAtFrom"] = Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd"),
+        ["ExpiresAtTo"] = Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd"),
+        ["Note"] = Model.Criteria?.Note,
+        ["IsExpired"] = Model.Criteria?.IsExpired?.ToString().ToLower(),
         ["SortBy"] = Model.Criteria?.SortBy,
         ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
     };
@@ -51,7 +52,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">訂閱方案管理</h1>
+                <h1 class="page-title m-0">點數方案管理</h1>
             </div>
         </div>
     </div>
@@ -62,19 +63,19 @@
         <!-- 分頁導覽 Start -->
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "plan" ? "active" : "")"
-                   asp-area="SubscriptionPlan"
-                   asp-controller="SubscriptionPlanHome"
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "rule" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointRuleHome"
                    asp-action="Index">
                     <i class="fa-solid fa-plus-square"></i>  方案創建
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
-                   asp-area="SubscriptionPlan"
-                   asp-controller="HostSubscriptionHome"
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "ledger" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointLedgerHome"
                    asp-action="Index">
-                    <i class="fa-solid fa-crown"></i> 訂閱查看
+                    <i class="fa-solid fa-coins"></i> 點數查看
                 </a>
             </li>
         </ul>
@@ -93,56 +94,59 @@
 
                     <!-- 第一行 -->
                     <div class="col-12 col-md-3">
-                        <label class="form-label">房東姓名</label>
-                        <input name="HostName" class="form-control" placeholder="輸入房東姓名關鍵字" value="@(Model.Criteria?.HostName ?? "")" />
+                        <label class="form-label">房客姓名</label>
+                        <input name="GuestName" class="form-control" placeholder="輸入房客姓名關鍵字" value="@(Model.Criteria?.GuestName ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
-                        <label class="form-label">狀態</label>
-                        <select name="Status" class="form-select">
+                        <label class="form-label">訂單號碼</label>
+                        <input name="OrderNumberSnapshot" class="form-control" placeholder="輸入訂單號碼" value="@(Model.Criteria?.OrderNumberSnapshot ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">點數類型</label>
+                        <select name="Type" class="form-select">
                             <option value="">— 全部 —</option>
-                            <option value="active" selected="@(Model.Criteria?.Status == "active" ? "selected" : null)">啟用中</option>
-                            <option value="canceled" selected="@(Model.Criteria?.Status == "canceled" ? "selected" : null)">已取消</option>
-                            <option value="expired" selected="@(Model.Criteria?.Status == "expired" ? "selected" : null)">已到期</option>
+                            <option value="EARN" selected="@(Model.Criteria?.Type == "EARN" ? "selected" : null)">獲得</option>
+                            <option value="REDEEM" selected="@(Model.Criteria?.Type == "REDEEM" ? "selected" : null)">兌換</option>
+                            <option value="EXPIRE" selected="@(Model.Criteria?.Type == "EXPIRE" ? "selected" : null)">過期</option>
+                            <option value="REFUND" selected="@(Model.Criteria?.Type == "REFUND" ? "selected" : null)">退款</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">過期狀態</label>
+                        <select name="IsExpired" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="false" selected="@(Model.Criteria?.IsExpired == false ? "selected" : null)">有效</option>
+                            <option value="true" selected="@(Model.Criteria?.IsExpired == true ? "selected" : null)">已過期</option>
                         </select>
                     </div>
 
                     <!-- 第二行 -->
                     <div class="col-6 col-md-3">
-                        <label class="form-label">開始日期起</label>
-                        <input type="date" name="StartDateFrom" class="form-control" value="@(Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <label class="form-label">發生時間起</label>
+                        <input type="date" name="OccurredAtFrom" class="form-control" value="@(Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <label class="form-label">開始日期迄</label>
-                        <input type="date" name="StartDateTo" class="form-control" value="@(Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <label class="form-label">發生時間迄</label>
+                        <input type="date" name="OccurredAtTo" class="form-control" value="@(Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <label class="form-label">建立時間起</label>
-                        <input type="date" name="CreatedAtFrom" class="form-control" value="@(Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <label class="form-label">到期時間起</label>
+                        <input type="date" name="ExpiresAtFrom" class="form-control" value="@(Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <label class="form-label">建立時間迄</label>
-                        <input type="date" name="CreatedAtTo" class="form-control" value="@(Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <label class="form-label">到期時間迄</label>
+                        <input type="date" name="ExpiresAtTo" class="form-control" value="@(Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
-
                     <!-- 第三行 -->
-                    <div class="col-6 col-md-3">
-                        <label class="form-label">下次計費起</label>
-                        <input type="date" name="NextBillingDateFrom" class="form-control" value="@(Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <label class="form-label">下次計費迄</label>
-                        <input type="date" name="NextBillingDateTo" class="form-control" value="@(Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd") ?? "")" />
-                    </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序欄位</label>
                         <select name="SortBy" class="form-select">
-                            <option value="CreatedAt" selected="@(Model.Criteria?.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
-                            <option value="HostSubId" selected="@(Model.Criteria?.SortBy == "HostSubId" ? "selected" : null)">訂閱編號</option>
-                            <option value="HostName" selected="@(Model.Criteria?.SortBy == "HostName" ? "selected" : null)">房東姓名</option>
-                            <option value="PlanName" selected="@(Model.Criteria?.SortBy == "PlanName" ? "selected" : null)">方案名稱</option>
-                            <option value="StartDate" selected="@(Model.Criteria?.SortBy == "StartDate" ? "selected" : null)">開始日期</option>
-                            <option value="NextBillingDate" selected="@(Model.Criteria?.SortBy == "NextBillingDate" ? "selected" : null)">下次計費日期</option>
-                            <option value="Status" selected="@(Model.Criteria?.SortBy == "Status" ? "selected" : null)">狀態</option>
+                            <option value="OccurredAt" selected="@(Model.Criteria?.SortBy == "OccurredAt" ? "selected" : null)">發生時間</option>
+                            <option value="LedgerId" selected="@(Model.Criteria?.SortBy == "LedgerId" ? "selected" : null)">帳本編號</option>
+                            <option value="GuestName" selected="@(Model.Criteria?.SortBy == "GuestName" ? "selected" : null)">房客姓名</option>
+                            <option value="Type" selected="@(Model.Criteria?.SortBy == "Type" ? "selected" : null)">點數類型</option>
+                            <option value="Points" selected="@(Model.Criteria?.SortBy == "Points" ? "selected" : null)">點數</option>
+                            <option value="ExpiresAt" selected="@(Model.Criteria?.SortBy == "ExpiresAt" ? "selected" : null)">到期時間</option>
                         </select>
                     </div>
                     <div class="col-6 col-md-3">
@@ -159,8 +163,8 @@
                             <i class="fa-solid fa-magnifying-glass"></i> 搜尋
                         </button>
                         <a class="btn btn-outline-secondary"
-                           asp-area="SubscriptionPlan"
-                           asp-controller="HostSubscriptionHome"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
                            asp-action="Index">
                             <i class="fa-solid fa-rotate-right"></i> 重設
                         </a>
@@ -173,7 +177,7 @@
         <!-- 訂閱列表卡片 Start -->
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">訂閱房東列表</h3>
+                <h3 class="card-title">房客點數列表</h3>
             </div>
 
             <div class="card-body p-0">
@@ -191,43 +195,34 @@
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
                         <thead class="thead-light text-center align-middle">
-                            <tr>
-                                <th style="width: 8%;">序號</th>
-                                <th style="width: 11%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().HostName)</th>
-                                <th style="width: 11%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().PlanName)</th>
-                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().StartDate)</th>
-                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().NextBillingDate)</th>
-                                <th style="width: 15%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().CancelAtPeriodEnd)</th>
-                                <th style="width: 8%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().Status)</th>
-                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().CreatedAt)</th>
-                                <th style="width: 10%;">詳細</th>
-                            </tr>
+                                <tr>
+                                    <th style="width: 6%;">序號</th>
+                                    <th style="width: 18%;">@Html.DisplayNameFor(model => model.PointLedgers.First().GuestName)</th>
+                                    <th style="width: 15%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OrderNumberSnapshot)</th>
+                                    <th style="width: 12%;">@Html.DisplayNameFor(model => model.PointLedgers.First().TypeDisplay)</th>
+                                    <th style="width: 10%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Points)</th>
+                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OccurredAt)</th>
+                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().ExpiresAt)</th>
+                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Note)</th>
+                                </tr>
                         </thead>
                         <tbody>
-                            @if (Model.HostSubscriptions != null && Model.HostSubscriptions.Any())
+                            @if (Model.PointLedgers != null && Model.PointLedgers.Any())
                             {
-                                @foreach (var item in Model.HostSubscriptions)
-                                    {
-                                        <tr>
-                                            <td>@index</td>
-                                            <td>@item.HostName</td>
-                                            <td>@item.DisplayName</td>
-                                            <td>@item.StartDate?.ToString("yyyy-MM-dd")</td>
-                                            <td>@item.NextBillingDate?.ToString("yyyy-MM-dd")</td>
-                                            <td>@(item.CancelAtPeriodEnd == true ? "是" : item.CancelAtPeriodEnd == false ? "否" : "未設定")</td>
-                                            <td>
-                                                <span class="badge py-2 px-3 @(item.Status?.ToLower() == "active" ? "bg-success" :
-                                                                               item.Status?.ToLower() == "canceled" ? "bg-secondary" : "bg-light text-dark")">
-                                                                             @item.DisplayStatus
-                                                </span>
-                                            </td>
-                                            <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
-                                            <td>
-                                                <button class="btn btn-primary btn-detail" data-id="@item.HostSubId">查看</button>
-                                            </td>
-                                        </tr>
-                                        index++;
-                                    }
+                                @foreach (var item in Model.PointLedgers)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@item.GuestName</td>
+                                        <td>@item.OrderNumberSnapshot</td>
+                                        <td>@item.TypeDisplay</td>
+                                        <td>@item.Points</td>
+                                        <td>@item.OccurredAt?.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.ExpiresAt?.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.Note</td>
+                                     </tr>
+                                     index++;
+                                }
                             }
                             else
                             {
@@ -246,8 +241,8 @@
                     </div>
                     <div class="d-flex gap-2">
                         <a class="btn btn-outline-success btn-sm"
-                           asp-area="SubscriptionPlan"
-                           asp-controller="HostSubscriptionHome"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
                            asp-action="ExportExcel"
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
@@ -256,8 +251,8 @@
                             匯出 Excel
                         </a>
                         <a class="btn btn-outline-primary btn-sm"
-                           asp-area="SubscriptionPlan"
-                           asp-controller="HostSubscriptionHome"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
                            asp-action="ExportCsv"
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
@@ -285,8 +280,8 @@
                             <!-- 上一頁 -->
                             <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="SubscriptionPlan"
-                                   asp-controller="HostSubscriptionHome"
+                                   asp-area="PointRules"
+                                   asp-controller="PointLedgerHome"
                                    asp-action="Index"
                                    asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage - 1)"
@@ -300,8 +295,8 @@
                             {
                                 <li class="page-item">
                                     <a class="page-link"
-                                       asp-area="SubscriptionPlan"
-                                       asp-controller="HostSubscriptionHome"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
                                        asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="1"
@@ -319,8 +314,8 @@
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
                                     <a class="page-link"
-                                       asp-area="SubscriptionPlan"
-                                       asp-controller="HostSubscriptionHome"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
                                        asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@i"
@@ -338,8 +333,8 @@
                                 </li>
                                 <li class="page-item">
                                     <a class="page-link"
-                                       asp-area="SubscriptionPlan"
-                                       asp-controller="HostSubscriptionHome"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
                                        asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@totalPages"
@@ -352,8 +347,8 @@
                             <!-- 下一頁 -->
                             <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="SubscriptionPlan"
-                                   asp-controller="HostSubscriptionHome"
+                                   asp-area="PointRules"
+                                   asp-controller="PointLedgerHome"
                                    asp-action="Index"
                                    asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage + 1)"
@@ -369,49 +364,3 @@
     </div>
 </section>
 
-@section Modals {
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content" id="modal-detail-content">
-                <!-- AJAX 載入內容 -->
-            </div>
-        </div>
-    </div>
-}
-
-@section Scripts {
-    <script>
-        document.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.btn-detail');
-            if (!btn) return;
-            e.preventDefault();
-
-            const id = btn.dataset.id;
-            const content = document.getElementById('modal-detail-content');
-
-            // 顯示載入中 & 開窗
-            btn.disabled = true;
-            content.innerHTML = '<div class="modal-body text-center py-5"><div class="spinner-border" role="status"></div><div class="mt-2">載入中…</div></div>';
-            const modalEl = document.getElementById('detailModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.show();
-
-            try {
-                const url = '@Url.Action("Details", "HostSubscriptionHome", new { area = "SubscriptionPlan" })' + '?id=' + encodeURIComponent(id);
-                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                if (!resp.ok) {
-                    const msg = resp.status === 404 ? '找不到這筆訂閱'
-                            : resp.status === 403 ? '沒有權限檢視'
-                            : `載入失敗（${resp.status}）`;
-                    throw new Error(msg);
-                }
-                const html = await resp.text();
-                content.innerHTML = html; // 部分檢視含 modal-header + modal-body
-            } catch (err) {
-                content.innerHTML = `<div class="modal-body text-danger p-3">${err.message}</div>`;
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    </script>
-}

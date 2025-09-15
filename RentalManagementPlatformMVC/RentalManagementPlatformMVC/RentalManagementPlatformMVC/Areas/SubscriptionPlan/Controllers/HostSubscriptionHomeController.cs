@@ -30,6 +30,8 @@ namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 		/// <param name="pageSize">每頁顯示筆數，預設為20筆</param>
 		/// <returns>返回包含分頁訂閱清單的 HostSubscriptionIndexViewModel 的 IActionResult</returns>
 		[HttpGet]
+		[Route("SubscriptionPlan/HostSubscriptionHome")]
+		[Route("SubscriptionPlan/HostSubscriptionHome/Index")]
 		public async Task<IActionResult> Index([FromQuery] HostSubscriptionSearchCriteriaDto criteria, int pageIndex = 1, int pageSize = 20)
 		{
 			// 預設排序

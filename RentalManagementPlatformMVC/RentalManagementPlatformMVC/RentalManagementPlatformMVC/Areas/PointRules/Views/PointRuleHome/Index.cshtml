@@ -1,13 +1,21 @@
-﻿@using RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels
-@model SubscriptionPlanIndexViewModel
+﻿@using RentalManagementPlatformMVC.Areas.PointRules.ViewModels
+@model RentalManagementPlatformMVC.Areas.PointRules.ViewModels.PointRuleIndexViewModel
 
 @{
-    ViewData["Title"] = "訂閱方案管理";
-    var itemTitle = new SubscriptionPlanIndexRowViewModel();
+    ViewData["Title"] = "點數方案管理";
+    var itemTitle = new PointRuleIndexRowViewModel();
 
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 序號計算
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
     var currentPage = Model.PageIndex;
     var totalPages = Model.TotalPages;
-    var range = 2;
+    int range = 2; // 頁碼範圍
 
     <style>
         .page-title {
@@ -28,16 +36,16 @@
     <div class="container-fluid">
         <div class="row mb-2 align-items-center">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">訂閱方案管理</h1>
+                <h1 class="page-title m-0">點數方案管理</h1>
             </div>
             <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
-                <button class="btn btn-primary d-flex align-items-center gap-2 ms-auto" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#planModal"
+                <button class="btn btn-primary d-flex align-items-center gap-2 ms-auto"
+                        data-bs-toggle="modal"
+                        data-bs-target="#ruleModal"
                         data-mode="create"
                         style="border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <i class="fas fa-plus-circle"></i>
-                    <span>新增方案</span>
+                    <span>新增規則</span>
                 </button>
             </div>
         </div>
@@ -50,19 +58,19 @@
         <!-- 分頁導覽 Start -->
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "plan" ? "active" : "")"
-                   asp-area="SubscriptionPlan"
-                   asp-controller="SubscriptionPlanHome"
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "rule" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointRuleHome"
                    asp-action="Index">
                     <i class="fa-solid fa-plus-square"></i>  方案創建
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
-                   asp-area="SubscriptionPlan"
-                   asp-controller="HostSubscriptionHome"
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "ledger" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointLedgerHome"
                    asp-action="Index">
-                    <i class="fa-solid fa-crown"></i> 訂閱查看
+                    <i class="fa-solid fa-coins"></i> 點數查看
                 </a>
             </li>
         </ul>
@@ -77,88 +85,92 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover mb-0 text-center align-middle">
-                        <thead class="table-light">
+                        <thead class="table-light text-center align-middle">
                             <tr>
-                                <th style="width:12%">@Html.DisplayNameFor(m => itemTitle.PlanName)</th>
-                                <th style="width:10%">@Html.DisplayNameFor(m => itemTitle.MonthlyFee)</th>
-                                <th style="width:10%">@Html.DisplayNameFor(m => itemTitle.CommissionRate)</th>
-                                <th style="width:24%">@Html.DisplayNameFor(m => itemTitle.PerksDisplay)</th>
-                                <th style="width:10%">@Html.DisplayNameFor(m => itemTitle.StatusDisplay)</th>
-                                <th style="width:14%">@Html.DisplayNameFor(m => itemTitle.CreatedAt)</th>
-                                <th style="width:20%">操作</th>
+                                <th style="width:10%;">@Html.DisplayNameFor(p => itemTitle.EarnRatePerNtd)</th>
+                                <th style="width:10%;">@Html.DisplayNameFor(p => itemTitle.MaxPointsPerOrder)</th>
+                                <th style="width:8%;">@Html.DisplayNameFor(p => itemTitle.ExpiryMonths)</th>
+                                <th style="width:10%;">@Html.DisplayNameFor(p => itemTitle.RedeemRateNtdPerPt)</th>
+                                <th style="width:13%;">@Html.DisplayNameFor(p => itemTitle.ActiveFrom)</th>
+                                <th style="width:13%;">@Html.DisplayNameFor(p => itemTitle.ActiveTo)</th>
+                                <th style="width:8%;">@Html.DisplayNameFor(p => itemTitle.StatusDisplay)</th>
+                                <th style="width:13%;">@Html.DisplayNameFor(p => itemTitle.CreatedAt)</th>
+                                <th style="width:15%;">操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @if (Model.Plans != null && Model.Plans.Any())
+                            @if (Model.Rules != null && Model.Rules.Any())
                             {
-                                @foreach (var plan in Model.Plans)
+                                @foreach (var rule in Model.Rules)
                                 {
                                     <tr>
-                                        <td class="text-start text-center align-middle">@Html.DisplayFor(m => plan.DisplayName)</td>
-                                        <td>@Html.DisplayFor(m => plan.MonthlyFee)</td>
-                                        <td>@Html.DisplayFor(m => plan.CommissionRate)</td>
-                                        <td class="text-start">
-                                            @Html.DisplayFor(m => plan.PerksDisplay)
-                                        </td>
+                                        <td>@Html.DisplayFor(m => rule.EarnRatePerNtd)</td>
+                                        <td>@Html.DisplayFor(m => rule.MaxPointsPerOrder)</td>
+                                        <td>@Html.DisplayFor(m => rule.ExpiryMonths)</td>
+                                        <td>@Html.DisplayFor(m => rule.RedeemRateNtdPerPt)</td>
+                                        <td>@Html.DisplayFor(m => rule.ActiveFrom)</td>
+                                        <td>@Html.DisplayFor(m => rule.ActiveTo)</td>
                                         <td>
-                                            <span class="badge py-2 px-3 @(plan.IsActive ? "bg-success" : "bg-secondary")">
-                                                @Html.DisplayFor(m => plan.StatusDisplay)
+                                            <span class="badge py-2 px-3 @(rule.IsActive ? "bg-success" : "bg-secondary")">
+                                                @(rule.IsActive ? "啟用" : "停用")
                                             </span>
                                         </td>
-                                        <td>@Html.DisplayFor(m => plan.CreatedAt)</td>
+                                        <td>@Html.DisplayFor(m => rule.CreatedAt)</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <!-- 啟用按鈕 -->
-                                                @if (plan.CanActivate)
+                                                <!-- 按鈕群組 -->
+                                                @* 啟用按鈕 *@
+                                                @if (rule.CanActivate)
                                                 {
                                                     <button type="button"
                                                             class="btn btn-success btn-sm"
                                                             title="啟用"
                                                             data-action="activate"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@rule.RuleId">
                                                         <i class="fas fa-play me-1"></i>啟用
                                                     </button>
                                                 }
 
-                                                <!-- 編輯按鈕 -->
-                                                @if (plan.CanEdit)
+                                                @* 編輯按鈕 *@
+                                                @if (rule.CanEdit)
                                                 {
                                                     <button type="button"
                                                             class="btn btn-warning btn-sm"
                                                             title="編輯"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#planModal"
+                                                            data-bs-target="#ruleModal"
                                                             data-mode="edit"
-                                                            data-id="@plan.PlanId"
-                                                            data-name="@plan.PlanName"
-                                                            data-monthly-fee="@plan.MonthlyFee"
-                                                            data-commission-rate="@plan.CommissionRate"
-                                                            data-perk-priority="@plan.PerkPriority"
-                                                            data-perk-analytics="@plan.PerkAnalytics">
+                                                            data-id="@rule.RuleId"
+                                                            data-earn-rate="@rule.EarnRatePerNtd"
+                                                            data-max-points="@rule.MaxPointsPerOrder"
+                                                            data-expiry-months="@rule.ExpiryMonths"
+                                                            data-redeem-rate="@rule.RedeemRateNtdPerPt"
+                                                            data-active-from="@rule.ActiveFrom?.ToString("yyyy-MM-ddTHH")"
+                                                            data-active-to="@rule.ActiveTo?.ToString("yyyy-MM-ddTHH")">
                                                         <i class="fas fa-edit me-1"></i>編輯
                                                     </button>
                                                 }
 
-                                                <!-- 停用按鈕 -->
-                                                @if (plan.CanDeactivate)
+                                                @* 停用按鈕 *@
+                                                @if (rule.CanDeactivate)
                                                 {
                                                     <button type="button"
                                                             class="btn btn-secondary btn-sm"
                                                             title="停用"
                                                             data-action="deactivate"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@rule.RuleId">
                                                         <i class="fas fa-pause me-1"></i>停用
                                                     </button>
                                                 }
 
-                                                <!-- 刪除按鈕 -->
-                                                @if (plan.CanDelete)
+                                                @* 刪除按鈕 *@
+                                                @if (rule.CanDelete)
                                                 {
                                                     <button type="button"
                                                             class="btn btn-danger btn-sm"
                                                             title="刪除"
                                                             data-action="delete"
-                                                            data-id="@plan.PlanId">
+                                                            data-id="@rule.RuleId">
                                                         <i class="fas fa-trash me-1"></i>刪除
                                                     </button>
                                                 }
@@ -170,7 +182,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="7" class="text-muted">目前尚無資料</td>
+                                    <td colspan="9" class="text-muted text-center">目前尚無資料</td>
                                 </tr>
                             }
                         </tbody>
@@ -188,7 +200,7 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3"
                                 title="重新整理資料"
                                 style="border-radius: 6px;"
                                 onclick="location.reload()">
@@ -214,8 +226,8 @@
                                 <!-- 上一頁 -->
                                 <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                     <a class="page-link"
-                                       asp-area="SubscriptionPlan"
-                                       asp-controller="SubscriptionPlanHome"
+                                       asp-area="PointRules"
+                                       asp-controller="PointRuleHome"
                                        asp-action="Index"
                                        asp-route-pageIndex="@(currentPage - 1)"
                                        asp-route-pageSize="@Model.PageSize">
@@ -228,8 +240,8 @@
                                 {
                                     <li class="page-item">
                                         <a class="page-link"
-                                           asp-area="SubscriptionPlan"
-                                           asp-controller="SubscriptionPlanHome"
+                                           asp-area="PointRules"
+                                           asp-controller="PointRuleHome"
                                            asp-action="Index"
                                            asp-route-pageIndex="1"
                                            asp-route-pageSize="@Model.PageSize">
@@ -246,8 +258,8 @@
                                 {
                                     <li class="page-item @(i == currentPage ? "active" : "")">
                                         <a class="page-link"
-                                           asp-area="SubscriptionPlan"
-                                           asp-controller="SubscriptionPlanHome"
+                                           asp-area="PointRules"
+                                           asp-controller="PointRuleHome"
                                            asp-action="Index"
                                            asp-route-pageIndex="@i"
                                            asp-route-pageSize="@Model.PageSize">
@@ -264,8 +276,8 @@
                                     </li>
                                     <li class="page-item">
                                         <a class="page-link"
-                                           asp-area="SubscriptionPlan"
-                                           asp-controller="SubscriptionPlanHome"
+                                           asp-area="PointRules"
+                                           asp-controller="PointRuleHome"
                                            asp-action="Index"
                                            asp-route-pageIndex="@totalPages"
                                            asp-route-pageSize="@Model.PageSize">
@@ -277,8 +289,8 @@
                                 <!-- 下一頁 -->
                                 <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                                     <a class="page-link"
-                                       asp-area="SubscriptionPlan"
-                                       asp-controller="SubscriptionPlanHome"
+                                       asp-area="PointRules"
+                                       asp-controller="PointRuleHome"
                                        asp-action="Index"
                                        asp-route-pageIndex="@(currentPage + 1)"
                                        asp-route-pageSize="@Model.PageSize">
@@ -296,90 +308,107 @@
 </section>
 
 @section Modals {
-    @Html.Partial("_PlanModalPartial")
+    @Html.Partial("_RuleModalPartial")
 }
 
 @section Scripts {
     <script>
         // 取得 Modal 元件
-        const planModalEl = document.getElementById('planModal');
-        const planModal = planModalEl ? new bootstrap.Modal(planModalEl) : null;
+        const ruleModalEl = document.getElementById('ruleModal');
+        const ruleModal = ruleModalEl ? new bootstrap.Modal(ruleModalEl) : null;
 
         // Modal 顯示時的事件處理
-        planModalEl?.addEventListener('show.bs.modal', function (event) {
+        ruleModalEl?.addEventListener('show.bs.modal', function (event) {
             const btn = event.relatedTarget;
             if (!btn) return;
 
             const mode = btn.getAttribute('data-mode') || 'create';
-            const modalTitle = document.getElementById('planModalLabel');
-            const planForm = document.getElementById('planForm');
+            const modalTitle = document.getElementById('ruleModalLabel');
+            const ruleForm = document.getElementById('ruleForm');
 
             // 清空表單
-            planForm.reset();
-            document.getElementById('planId').value = '';
+            ruleForm.reset();
+            document.getElementById('ruleId').value = '';
 
             // 新增模式
             if (mode === 'create') {
-                modalTitle.textContent = '新增方案';
+                modalTitle.textContent = '新增點數規則';
                 return;
             }
 
             // 編輯模式
             if (mode === 'edit') {
-                modalTitle.textContent = '編輯方案';
+                modalTitle.textContent = '編輯點數規則';
 
                 // 從 data attributes 載入資料
-                document.getElementById('planId').value = btn.getAttribute('data-id') ?? '';
-                document.getElementById('planName').value = btn.getAttribute('data-name') ?? '';
-                document.getElementById('monthlyFee').value = btn.getAttribute('data-monthly-fee') ?? 0;
+                document.getElementById('ruleId').value = btn.getAttribute('data-id') ?? '';
+                document.getElementById('earnRatePerNtd').value = btn.getAttribute('data-earn-rate') ?? '';
+                document.getElementById('maxPointsPerOrder').value = btn.getAttribute('data-max-points') ?? '';
+                document.getElementById('expiryMonths').value = btn.getAttribute('data-expiry-months') ?? '';
+                document.getElementById('redeemRateNtdPerPt').value = btn.getAttribute('data-redeem-rate') ?? '';
 
-                // 抽成比例：後端是 0~1，前端顯示 %
-                const rate = parseFloat(btn.getAttribute('data-commission-rate') ?? '0');
-                document.getElementById('commissionRate').value = isNaN(rate) ? 0 : (rate * 100);
+                // 日期處理
+                const activeFrom = btn.getAttribute('data-active-from');
+                const activeTo = btn.getAttribute('data-active-to');
 
-                // 權益勾選
-                const priorityValue = btn.getAttribute('data-perk-priority');
-                const analyticsValue = btn.getAttribute('data-perk-analytics');
+                if (activeFrom) {
+                    const fromDate = new Date(activeFrom);
+                    document.getElementById('activeFrom').value = fromDate.toISOString().slice(0, 16);
+                }
 
-                document.getElementById('perkPriority').checked = (priorityValue?.toLowerCase() === 'true');
-                document.getElementById('perkAnalytics').checked = (analyticsValue?.toLowerCase() === 'true');
+                if (activeTo) {
+                    const toDate = new Date(activeTo);
+                    document.getElementById('activeTo').value = toDate.toISOString().slice(0, 16);
+                }
             }
         });
 
         // 儲存按鈕事件
-        document.getElementById('btnSavePlan')?.addEventListener('click', function () {
+        document.getElementById('btnSaveRule')?.addEventListener('click', function () {
             const payload = {
-                planId: document.getElementById('planId').value || null,
-                planName: document.getElementById('planName').value.trim(),
-                monthlyFee: parseFloat(document.getElementById('monthlyFee').value || '0'),
-                commissionRate: (parseFloat(document.getElementById('commissionRate').value || '0') / 100), // 轉回 0~1
-                perkPriority: document.getElementById('perkPriority').checked,
-                perkAnalytics: document.getElementById('perkAnalytics').checked
+                ruleId: document.getElementById('ruleId').value || null,
+                earnRatePerNtd: parseFloat(document.getElementById('earnRatePerNtd').value || '0'),
+                maxPointsPerOrder: document.getElementById('maxPointsPerOrder').value ? parseInt(document.getElementById('maxPointsPerOrder').value) : null,
+                expiryMonths: document.getElementById('expiryMonths').value ? parseInt(document.getElementById('expiryMonths').value) : null,
+                redeemRateNtdPerPt: parseFloat(document.getElementById('redeemRateNtdPerPt').value || '0'),
+                activeFrom: document.getElementById('activeFrom').value || null,
+                activeTo: document.getElementById('activeTo').value || null
             };
 
             // 驗證必填欄位
-            if (!payload.planName) {
-                alert('請輸入方案名稱');
+            if (!payload.earnRatePerNtd || payload.earnRatePerNtd <= 0) {
+                alert('請輸入有效的賺取比例');
                 return;
             }
 
+            if (!payload.redeemRateNtdPerPt || payload.redeemRateNtdPerPt <= 0) {
+                alert('請輸入有效的兌換比例');
+                return;
+            }
+
+            // Debug: 檢查 payload
+            console.log('Payload:', payload);
+
             // 呼叫 Create API
-            if (!payload.planId) {
-                // 新增方案
-                fetch('@Url.Action("Create", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+            if (!payload.ruleId) {
+                // 新增規則
+                fetch('@Url.Action("Create", "PointRuleHome", new { area = "PointRules" })', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: new URLSearchParams({
-                        'PlanName': payload.planName,
-                        'MonthlyFee': payload.monthlyFee,
-                        'CommissionRate': payload.commissionRate,
-                        'PerkPriority': payload.perkPriority,
-                        'PerkAnalytics': payload.perkAnalytics
-                    })
+                    body: new URLSearchParams(Object.fromEntries(
+                        Object.entries({
+                            '__RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value,
+                            'EarnRatePerNtd': payload.earnRatePerNtd,
+                            'MaxPointsPerOrder': payload.maxPointsPerOrder,
+                            'ExpiryMonths': payload.expiryMonths,
+                            'RedeemRateNtdPerPt': payload.redeemRateNtdPerPt,
+                            'ActiveFrom': payload.activeFrom,
+                            'ActiveTo': payload.activeTo
+                        }).filter(([key, value]) => value !== null && value !== undefined && value !== '')
+                    ))
                 })
                 .then(response => response.json())
                 .then(result => {
@@ -411,22 +440,25 @@
                     alert('發生錯誤，請稍後再試');
                 });
             } else {
-                // 編輯方案
-                fetch('@Url.Action("Update", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                // 編輯點數規則
+                fetch('@Url.Action("Update", "PointRuleHome", new { area = "PointRules" })', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: new URLSearchParams({
-                        'PlanId': payload.planId,
-                        'PlanName': payload.planName,
-                        'MonthlyFee': payload.monthlyFee,
-                        'CommissionRate': payload.commissionRate,
-                        'PerkPriority': payload.perkPriority,
-                        'PerkAnalytics': payload.perkAnalytics
-                    })
+                    body: new URLSearchParams(Object.fromEntries(
+                        Object.entries({
+                            '__RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value,
+                            'RuleId': payload.ruleId,
+                            'EarnRatePerNtd': payload.earnRatePerNtd,
+                            'MaxPointsPerOrder': payload.maxPointsPerOrder,
+                            'ExpiryMonths': payload.expiryMonths,
+                            'RedeemRateNtdPerPt': payload.redeemRateNtdPerPt,
+                            'ActiveFrom': payload.activeFrom,
+                            'ActiveTo': payload.activeTo
+                        }).filter(([key, value]) => value !== null && value !== undefined && value !== '')
+                    ))
                 })
                 .then(response => response.json())
                 .then(result => {
@@ -441,13 +473,6 @@
                                 errorMessages.push(...result.errors[field]);
                             }
                             alert('錯誤：\n' + errorMessages.join('\n'));
-                        } else if (result.field) {
-                            // 特定欄位錯誤
-                            alert('錯誤：' + result.error);
-                            // 可以針對特定欄位進行標記
-                            if (result.field === 'PlanName') {
-                                document.getElementById('planName').focus();
-                            }
                         } else {
                             alert('錯誤：' + result.error);
                         }
@@ -458,7 +483,7 @@
                     alert('發生錯誤，請稍後再試');
                 });
             }
-            
+
             planModal?.hide();
         });
 
@@ -474,8 +499,8 @@
 
             switch (action) {
                 case 'activate':
-                    if (confirm('確定要啟用此方案嗎？')) {
-                        fetch('@Url.Action("Activate", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                    if (confirm('確定要啟用此點數規則嗎？')) {
+                        fetch('@Url.Action("Activate", "PointRuleHome", new { area = "PointRules" })', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -483,7 +508,7 @@
                                 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                             },
                             body: new URLSearchParams({
-                                'planId': id
+                                'ruleId': id
                             })
                         })
                         .then(response => response.json())
@@ -503,8 +528,8 @@
                     break;
 
                 case 'deactivate':
-                    if (confirm('確定要停用此方案嗎？已訂閱此方案的使用者將無法享有方案權益，但訂閱紀錄會保留。')) {
-                        fetch('@Url.Action("Deactivate", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                    if (confirm('確定要停用此點數規則嗎？停用後將無法享有點數獲得與兌換功能。')) {
+                        fetch('@Url.Action("Deactivate", "PointRuleHome", new { area = "PointRules" })', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -512,7 +537,7 @@
                                 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                             },
                             body: new URLSearchParams({
-                                'planId': id
+                                'ruleId': id
                             })
                         })
                         .then(response => response.json())
@@ -532,8 +557,8 @@
                     break;
 
                 case 'delete':
-                    if (confirm('確定要刪除此方案嗎？此操作無法復原。')) {
-                        fetch('@Url.Action("Delete", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })', {
+                    if (confirm('確定要刪除此點數規則嗎？此操作無法復原。')) {
+                        fetch('@Url.Action("Delete", "PointRuleHome", new { area = "PointRules" })', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -541,7 +566,7 @@
                                 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                             },
                             body: new URLSearchParams({
-                                'planId': id
+                                'ruleId': id
                             })
                         })
                         .then(response => response.json())

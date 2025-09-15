@@ -14,8 +14,10 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 		Task<SubscriptionPlan> EditPlanAsync(SubscriptionPlan plan);
 		Task<bool> UpdatePlanStatusAsync(int planId, bool isActive);
 
+
 		// 計數方法
 		Task<int> GetActiveSubscriberCountAsync(int planId);
+
 
 		// 檢查方法
 		Task<bool> HasActiveSubscribersAsync(int planId);

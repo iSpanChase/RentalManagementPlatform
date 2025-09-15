@@ -677,7 +677,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 			entity.ToTable("POINT_RULE");
 
 			entity.Property(e => e.RuleId)
-				.ValueGeneratedNever()
+				.ValueGeneratedOnAdd()
 				.HasColumnName("rule_id");
 			entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
 			entity.Property(e => e.ActiveTo).HasColumnName("active_to");
