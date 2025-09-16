@@ -40,12 +40,8 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         {
             if (!ModelState.IsValid) { FillSelectLists(); return View(vm); }
 
-            // 若 rule_id 非 IDENTITY：用「最大值+1」簡單產生（先求快；之後可改成 IDENTITY）
-            var nextId = (await _context.AnomalyRules.MaxAsync(x => (int?)x.RuleId)) + 1 ?? 1;
-
             var entity = new AnomalyRule
             {
-                RuleId = nextId,
                 RuleName = vm.RuleName.Trim(),
                 TargetType = vm.TargetType,
                 ConditionExpression = vm.ConditionExpression,
