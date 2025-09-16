@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Presentation;
+﻿using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Presentation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly;
@@ -16,10 +17,12 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         // GET: /AnomalyRules
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id)
         {
+            var queryable = id == null ? _context.AnomalyDetectionLogs  : _context.AnomalyDetectionLogs.Where(x=>x.RuleId==id);
+
             var items = await (
-                 from adl in _context.AnomalyDetectionLogs
+                 from adl in queryable
                  join maxCreated in (
                      from log in _context.AnomalyDetectionLogs
                      group log by log.TargetId into g

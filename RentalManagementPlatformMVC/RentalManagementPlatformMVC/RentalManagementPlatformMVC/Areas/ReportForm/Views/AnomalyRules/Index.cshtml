@@ -70,7 +70,7 @@
 										@Html.AntiForgeryToken()
 									</form>
 								</td>
-								<td>@r.RuleName</td>
+								<td><a asp-controller="AnomalyLog" asp-action="Index" asp-route-Id="@r.RuleId">@r.RuleName</a></td>
 								<td>@(map.TryGetValue(r.TargetType, out var t) ? t : r.TargetType)</td>
 								<td>@r.ConditionExpression</td>
 								<td>@r.ThresholdValue</td>
