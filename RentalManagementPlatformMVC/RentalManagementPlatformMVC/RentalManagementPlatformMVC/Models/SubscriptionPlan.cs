@@ -20,6 +20,4 @@ public partial class SubscriptionPlan
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
-
-    public virtual ICollection<HostSubscription> HostSubscriptions { get; set; } = new List<HostSubscription>();
 }

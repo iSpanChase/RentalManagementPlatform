@@ -22,6 +22,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
         [Display(Name = "狀態")]
         public string? Status { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public AddressViewModel? Address { get; set; }
 
         public HostViewModel? Host { get; set; }

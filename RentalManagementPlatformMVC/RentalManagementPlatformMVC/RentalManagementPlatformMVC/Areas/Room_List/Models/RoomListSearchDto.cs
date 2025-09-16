@@ -63,6 +63,12 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
 		[JsonPropertyName("updated_at")]
 		public DateTime? UpdatedAt { get; set; }
 
+        [JsonPropertyName("status")]
+        public string? Status { get; set; }
+
+        [JsonPropertyName("is_deleted")]
+        public bool IsDeleted { get; set; }
+
 		[JsonPropertyName("amenities")]
 		public List<string> Amenities { get; set; } = new();
 

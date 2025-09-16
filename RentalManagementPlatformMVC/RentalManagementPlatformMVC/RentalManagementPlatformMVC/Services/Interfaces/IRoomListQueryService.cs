@@ -9,6 +9,7 @@ namespace RentalManagementPlatformMVC.Services.Interfaces
     {
         Task<List<RoomSummaryViewModel>> GetRoomSummariesAsync();
         Task<RoomDetailsViewModel?> GetRoomDetailsAsync(int id);
+        Task<RoomDetailsViewModel?> GetRoomDataForIndexingAsync(int id);
         Task<RoomInputViewModel?> GetRoomForEditAsync(int id);
         Task<RoomSummaryViewModel?> GetRoomSummaryForDeleteAsync(int id);
         Task<bool> RoomListExistsAsync(int id);

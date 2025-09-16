@@ -69,12 +69,12 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             var roomList = await _writeRepository.FindAsync(id);
             if (roomList != null)
             {
-                //_writeRepository.Remove(roomList);
-                roomList.Status="已刪除";
+                roomList.IsDeleted = true;
+                roomList.UpdatedAt = DateTime.UtcNow;
+                _writeRepository.Update(roomList);
                 await _writeRepository.SaveChangesAsync();
 
-                //var index = _meilisearchClient.Index("rooms");
-                //await index.DeleteOneDocumentAsync(id.ToString());
+                await UpdateSearchIndexAsync(id);
             }
         }
 
@@ -82,7 +82,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
         {
             // This re-uses the logic from the query service to get the full DTO
             // In a real-world scenario, you might have a dedicated DTO builder for this
-            var roomDetails = await _queryService.GetRoomDetailsAsync(roomId);
+            var roomDetails = await _queryService.GetRoomDataForIndexingAsync(roomId);
 
             if (roomDetails != null)
             {
@@ -103,6 +103,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                     Geo = roomDetails.Geo,
                     CreatedAt = roomDetails.CreatedAt,
                     UpdatedAt = roomDetails.UpdatedAt,
+                    Status = roomDetails.Status,
+                    IsDeleted = roomDetails.IsDeleted,
                     Amenities = roomDetails.Amenities
                 };
 

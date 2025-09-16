@@ -18,6 +18,4 @@ public partial class RoomPhoto
     public string ContentType { get; set; } = null!;
 
     public string PhotoType { get; set; } = null!;
-
-    public virtual RoomList? Room { get; set; }
 }
