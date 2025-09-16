@@ -17,6 +17,19 @@ using RentalManagementPlatformMVC.Services.PointRules;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
+using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.Auth.Services;
+using RentalManagementPlatformMVC.Areas.Auth.Data;
+using RentalManagementPlatformMVC.Areas.Auth.Repositories;
+using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Services;
+using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Repository;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
 
 namespace RentalManagementPlatformMVC
 {
@@ -36,15 +49,15 @@ namespace RentalManagementPlatformMVC
 
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			//service註冊
-			// builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
-			// builder.Services.AddScoped<CouponCommandService>();
+			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+			builder.Services.AddScoped<CouponCommandService>();
 
 			//repository註冊
-			// builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
-			// builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
+			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
+			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
 
-      // Meilisearch Client and Service registration
-      builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			// Meilisearch Client and Service registration
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
       builder.Services.AddScoped<MeilisearchService>();
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -52,17 +65,17 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			// builder.Services.AddScoped<IUserRepository, UserRepository>();
-			// builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-			// builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+			builder.Services.AddScoped<IUserService, UserService>();
 
-			// builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
-			// builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
+			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
+			builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
 
-			// builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
 
-			// builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
-			// builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();
+			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+			builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
@@ -82,11 +95,11 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
 
-			// builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
-			// builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
 
-			// builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
-			// builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
 
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
