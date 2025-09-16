@@ -3,37 +3,55 @@
 	ViewData["Title"] = "警示紀錄";
 }
 
-@if (TempData["msg"] != null)
-{
-	<div class="alert alert-success">@TempData["msg"]</div>
-}
 
-<table class="table table-sm table-hover align-middle">
-	<thead>
-		<tr>
-			<th>檢測紀錄 ID</th>
-			<th>套用的規則</th>
-			<th>目標類型</th>
-			<th>目標ID</th>
-			<th>條件</th>
-			<th>門檻</th>
-			<th>實際檢測數值</th>
-			<th>建立時間 (UTC)</th>
-		</tr>
-	</thead>
-	<tbody>
-		@foreach (var r in Model)
-		{
-			<tr class="table-secondary">
-				<td>@r.LogId</td>
-				<td>@r.RuleName</td>
-				<td>@r.TargetType</td>
-				<td>@r.TargetId</td>
-				<td>@r.ConditionExpression</td>
-				<td>@r.ThresholdValue</td>
-				<td>@r.RealValue</td>
-				<td>@r.CreateTime.Value.ToString("yyyy-MM-dd HH:mm")</td>
-			</tr>
-		}
-	</tbody>
-</table>
+<div class="container py-4">
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<h1 class="h3 mb-0">@ViewData["Title"]</h1>
+		<div class="d-flex gap-2">
+		</div>
+	</div>
+	@if (TempData["msg"] != null)
+	{
+		<div class="alert alert-success">@TempData["msg"]</div>
+	}
+
+	<div class="card shadow-sm">
+		<div class="card-body p-0">
+			<div class="table-responsive">
+				<table class="table table-striped table-hover align-middle table-sm">
+					<thead class="table-light">
+						<tr>
+							<th>檢測紀錄 ID</th>
+							<th>套用的規則</th>
+							<th>目標類型</th>
+							<th>目標ID</th>
+							<th>條件</th>
+							<th>門檻</th>
+							<th>實際檢測數值</th>
+							<th>建立時間 (UTC)</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var r in Model)
+						{
+							<tr class="table-secondary">
+								<td>@r.LogId</td>
+								<td>@r.RuleName</td>
+								<td>@r.TargetType</td>
+								<td>@r.TargetId</td>
+								<td>@r.ConditionExpression</td>
+								<td>@r.ThresholdValue</td>
+								<td>@r.RealValue</td>
+								<td>@r.CreateTime.Value.ToString("yyyy-MM-dd HH:mm")</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	@if (TempData["msg"] != null)
+	{
+		<div class="alert alert-success">@TempData["msg"]</div>
+	}
+</div>

@@ -1,14 +1,19 @@
-﻿@model RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly.RuleVM;
+@model RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly.RuleVM;
 @{
     ViewData["Title"] = "新增規則";
     var targetTypes = (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.TargetTypes;
     var ops = (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Operators;
 }
 
-<h3>新增規則</h3>
-<hr />
 
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 mb-0">@ViewData["Title"]</h1>
+  </div>
+  <div class="card shadow-sm">
+    <div class="card-body">
 <form asp-action="Create" method="post" class="row g-3">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
     <div class="col-md-6">
         <label asp-for="RuleName" class="form-label"></label>
         <input asp-for="RuleName" class="form-control" />
@@ -36,7 +41,7 @@
     <div class="col-md-3 d-flex align-items-end">
         <div class="form-check">
             <input class="form-check-input" asp-for="IsActive" />
-            <label class="form-check-label fw-bold" asp-for="IsActive">啟用</label>
+            <label class="form-check-label fw-bold form-label" asp-for="IsActive">啟用</label>
         </div>
     </div>
 
@@ -47,6 +52,10 @@
     @Html.AntiForgeryToken()
 </form>
 
+
+    </div>
+  </div>
+</div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
