@@ -159,7 +159,8 @@ CREATE TABLE [ROOM_LIST] (
   [price_per_night] decimal,
   [status] nvarchar(512),
   [created_at] DATETIME2,
-  [updated_at] DATETIME2
+  [updated_at] DATETIME2,
+  [is_deleted] bit NOT NULL
 )
 GO
 
@@ -169,8 +170,12 @@ CREATE TABLE [ROOM_PHOTO] (
   [sort_order] int,
   [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
   [object_key] NVARCHAR(512) NOT NULL,
-  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg'
+  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg',
+  [photo_type] NVARCHAR(20) NOT NULL
 )
+
+CREATE INDEX IX_ROOM_PHOTO_Room_Type_Sort
+  ON dbo.ROOM_PHOTO(room_id, photo_type, sort_order, photo_id);
 GO
 
 CREATE TABLE [ROLES] (
@@ -238,14 +243,14 @@ CREATE TABLE [HOST_PAYOUT_ITEM] (
 GO
 
 CREATE TABLE [SUBSCRIPTION_PLAN] (
-  [plan_id] int IDENTITY(1,1) PRIMARY KEY,
-  [plan_name] nvarchar(512),
-  [monthly_fee] decimal,
-  [commission_rate] decimal,
-  [perk_priority] BIT,
-  [perk_analytics] BIT,
-  [is_active] BIT,
-  [created_at] DATETIME2
+  [plan_id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  [plan_name] nvarchar(512) NOT NULL,
+  [monthly_fee] decimal NOT NULL,
+  [commission_rate] decimal(18,4) NOT NULL,
+  [perk_priority] BIT NOT NULL,
+  [perk_analytics] BIT NOT NULL,
+  [is_active] BIT NOT NULL,
+  [created_at] DATETIME2 NOT NULL
 )
 GO
 
@@ -274,7 +279,7 @@ GO
 
 CREATE TABLE [POINT_RULE] (
   [rule_id] int IDENTITY(1,1) PRIMARY KEY,
-  [earn_rate_per_ntd] decimal,
+  [earn_rate_per_ntd] decimal(18,4),
   [max_points_per_order] int,
   [expiry_months] int,
   [redeem_rate_ntd_per_pt] decimal,
