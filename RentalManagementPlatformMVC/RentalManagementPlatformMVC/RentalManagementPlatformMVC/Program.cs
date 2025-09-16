@@ -48,7 +48,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+            builder.Services.AddSingleton<AnomalyNotifier>();
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			//service註冊
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
@@ -94,7 +94,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPointLedgerRepository, PointLedgerRepository>();
 			builder.Services.AddScoped<IPointLedgerService, PointLedgerService>();
 
-			builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
 
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();

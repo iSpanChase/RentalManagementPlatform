@@ -7,17 +7,16 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
     public class AnomalyEvaluator : IAnomalyEvaluator
     {
         private readonly RentalManagementPlatformSqlContext _context;
-        private readonly ILogger<AnomalyEvaluator> _logger;
-
-        public AnomalyEvaluator(RentalManagementPlatformSqlContext db, ILogger<AnomalyEvaluator> logger)
+        private readonly AnomalyNotifier _notifier;
+        public AnomalyEvaluator(RentalManagementPlatformSqlContext db, AnomalyNotifier notifier)
         {
             _context = db;
-            _logger = logger;
+            _notifier = notifier;
         }
 
         public async Task<int> EvaluateOnceAsync(CancellationToken ct = default)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.UtcNow.AddHours(8);
             var rules = await _context.AnomalyRules
                 .Where(r => r.IsActive.Value)
                 .ToListAsync(ct);
@@ -31,10 +30,6 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
                     case "UserAge":
                         inserted += await EvaluateUserAgeAsync(rule, now, ct);
                         break;
-
-                    default:
-                        _logger.LogWarning("Unknown TargetType: {tt}", rule.TargetType);
-                        break;
                 }
             }
 
@@ -42,19 +37,17 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
         }
 
         // ---- UserAge: 從生日換算年齡，逐一比對 ----
-        private async Task<int> EvaluateUserAgeAsync(AnomalyRule rule, DateTime nowUtc, CancellationToken ct)
+        private async Task<int> EvaluateUserAgeAsync(AnomalyRule rule, DateTime now, CancellationToken ct)
         {
-            var today = DateTime.UtcNow.AddHours(8).Date;
-
             // 用原生 SQL 算歲數（最準確）
             var rows = await _context.Users
                 .Where(u => u.BirthDate != null)
                 .Select(u => new UserAgeRow
                 {
                     TargetId = u.UserId,
-                    Age = (today.Year - u.BirthDate.Year)
-                                    - ((u.BirthDate.Month > today.Month) ||
-                                            (u.BirthDate.Month == today.Month && u.BirthDate.Day > today.Day)
+                    Age = (now.Year - u.BirthDate.Year)
+                                    - ((u.BirthDate.Month > now.Month) ||
+                                            (u.BirthDate.Month == now.Month && u.BirthDate.Day > now.Day)
                                         ? 1 : 0
                                     )
                 })
@@ -62,54 +55,58 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
                 .ToListAsync(ct);
 
             int inserted = 0;
-
+            var eventsToBroadcast = new List<object>();
             foreach (var r in rows)
             {
                 var value = (decimal)r.Age;
-                bool isAbnormal = Compare(value, rule.ConditionExpression, rule.ThresholdValue.Value);
 
                 // 取最近一筆事件（沒有就 null）
-                var last = await _context.AnomalyDetectionLogs
+                string? last = await _context.AnomalyDetectionLogs
                     .Where(x => x.RuleId == rule.RuleId && x.TargetId == r.TargetId)
                     .OrderByDescending(x => x.CreatedAt)
                     .Select(x => x.EventType)
                     .FirstOrDefaultAsync(ct);
 
-                if (isAbnormal)
+                bool isAbnormal = Compare(value, rule.ConditionExpression, rule.ThresholdValue.Value);
+                bool isAbnormalBefore = string.Equals(last, "ALERT", StringComparison.OrdinalIgnoreCase);
+                if (isAbnormal != isAbnormalBefore)
                 {
-                    if (!string.Equals(last, "ALERT", StringComparison.OrdinalIgnoreCase))
+                    inserted++;
+                    _context.AnomalyDetectionLogs.Add(new AnomalyDetectionLog
                     {
-                        _context.AnomalyDetectionLogs.Add(new AnomalyDetectionLog
-                        {
-                            RuleId = rule.RuleId,
-                            TargetId = r.TargetId,
-                            DetectedValue = value,
-                            ExpectedValue = rule.ThresholdValue,
-                            CreatedAt = nowUtc,
-                            EventType = "ALERT"
-                        });
-                        inserted++;
-                    }
-                }
-                else
-                {
-                    if (string.Equals(last, "ALERT", StringComparison.OrdinalIgnoreCase))
+                        RuleId = rule.RuleId,
+                        TargetId = r.TargetId,
+                        DetectedValue = value,
+                        ExpectedValue = rule.ThresholdValue,
+                        CreatedAt = now,
+                        EventType = isAbnormal ? "ALERT" : "RECOVER",
+                    });
+
+                    if (isAbnormal)
                     {
-                        _context.AnomalyDetectionLogs.Add(new AnomalyDetectionLog
+                        eventsToBroadcast.Add(new
                         {
-                            RuleId = rule.RuleId,
-                            TargetId = r.TargetId,
-                            DetectedValue = value,
-                            ExpectedValue = rule.ThresholdValue,
-                            CreatedAt = nowUtc,
-                            EventType = "RECOVER"
+                            type = isAbnormal ? "ALERT" : "RECOVER",
+                            ruleId = rule.RuleId,
+                            ruleName = rule.RuleName,     // 親和一點
+                            targetId = r.TargetId,
+                            value,
+                            expected = rule.ThresholdValue,
+                            at = now
                         });
-                        inserted++;
                     }
                 }
             }
 
-            if (inserted > 0) await _context.SaveChangesAsync(ct);
+            if (inserted > 0)
+            {
+                await _context.SaveChangesAsync(ct);
+                foreach (var ev in eventsToBroadcast)
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(ev);
+                    await _notifier.BroadcastAsync(json);
+                }
+            }
             return inserted;
         }
 

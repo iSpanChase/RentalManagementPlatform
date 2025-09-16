@@ -3,12 +3,11 @@
     public class AnomalyBackgroundService : BackgroundService
     {
         private readonly IServiceProvider _sp;
-        private readonly ILogger<AnomalyBackgroundService> _logger;
-        private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan Interval = TimeSpan.FromSeconds(10);
 
-        public AnomalyBackgroundService(IServiceProvider sp, ILogger<AnomalyBackgroundService> logger)
+        public AnomalyBackgroundService(IServiceProvider sp)
         {
-            _sp = sp; _logger = logger;
+            _sp = sp;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,9 +20,8 @@
                     using var scope = _sp.CreateScope();
                     var eval = scope.ServiceProvider.GetRequiredService<IAnomalyEvaluator>();
                     var n = await eval.EvaluateOnceAsync(stoppingToken);
-                    if (n > 0) _logger.LogInformation("Anomaly events inserted: {n}", n);
                 }
-                catch (Exception ex) { _logger.LogError(ex, "Anomaly scan failed"); }
+                catch (Exception ex) {}
 
                 await timer.WaitForNextTickAsync(stoppingToken);
             }
