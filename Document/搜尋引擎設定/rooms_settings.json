@@ -16,7 +16,8 @@
     "price_per_night",
     "max_guests",
     "amenities",
-    "host_name"
+    "host_name",
+    "is_deleted"
   ],
   "sortableAttributes": [
     "price_per_night",
