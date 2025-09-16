@@ -56,6 +56,8 @@ namespace RentalManagementPlatformMVC
             // MinIO Client and Service registration
             builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
             builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

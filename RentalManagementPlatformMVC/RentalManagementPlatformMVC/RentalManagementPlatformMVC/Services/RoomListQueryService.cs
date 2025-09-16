@@ -1,13 +1,11 @@
-
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.Room_List.Models;
 using RentalManagementPlatformMVC.Services.Interfaces;
-using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
-using RentalManagementPlatformMVC.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC.Areas.Room_List.Services
 {
@@ -15,65 +13,52 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
     {
         private readonly IRoomListReadRepository _repository;
         private readonly MeilisearchService _meilisearchService;
-        private readonly IMinioService _minioService;
-        private readonly RentalManagementPlatformSqlContext _context;
+        private readonly IFileUrlResolver _urlResolver; // Changed to use the new resolver
 
-        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService, IMinioService minioService, RentalManagementPlatformSqlContext context)
+        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService, IFileUrlResolver urlResolver)
         {
             _repository = repository;
             _meilisearchService = meilisearchService;
-            _minioService = minioService;
-            _context = context;
+            _urlResolver = urlResolver;
         }
 
         public async Task<List<RoomSummaryViewModel>> GetRoomSummariesAsync()
         {
-            var roomData = await (from room in _repository.GetAll()
-                                  join user in _repository.GetUsers() on room.HostId equals user.UserId
-                                  select new
-                                  {
-                                      room.RoomId,
-                                      room.Title,
-                                      room.Status,
-                                      user.Name,
-                                      ObjectKey = _context.RoomPhotos
-                                                      .Where(p => p.RoomId == room.RoomId)
-                                                      .Select(p => p.ObjectKey)
-                                                      .FirstOrDefault()
-                                  })
-                                  .ToListAsync();
+            var roomsWithUsers = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
+                                        where room.IsDeleted == false
+                                        join user in _repository.GetUsers() on room.HostId equals user.UserId
+                                        select new { Room = room, User = user })
+                                        .ToListAsync();
 
-            var viewModels = roomData.Select(s => new RoomSummaryViewModel
-            {
-                RoomId = s.RoomId,
-                Title = s.Title,
-                Status = s.Status,
-                HostName = s.Name,
-                MainImageUrl = s.ObjectKey // Temporarily store the object key here
-            }).ToList();
+            var roomSummaries = new List<RoomSummaryViewModel>();
 
-            foreach (var summary in viewModels)
+            foreach (var item in roomsWithUsers)
             {
-                if (!string.IsNullOrEmpty(summary.MainImageUrl))
+                var summary = new RoomSummaryViewModel
                 {
-                    try
+                    RoomId = item.Room.RoomId,
+                    Title = item.Room.Title,
+                    Status = item.Room.Status,
+                    HostName = item.User.Name
+                };
+
+                if (item.Room.RoomPhotos != null && item.Room.RoomPhotos.Any())
+                {
+                    var mainPhoto = item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+                    if (mainPhoto != null)
                     {
-                        var objectKey = summary.MainImageUrl;
-                        summary.MainImageUrl = await _minioService.GetFileUrlAsync(objectKey);
-                    }
-                    catch (System.Exception)
-                    {
-                        summary.MainImageUrl = null; // Set to null if URL generation fails
+                        summary.MainImageUrl = await _urlResolver.GetUrlAsync("Room", item.Room.RoomId, mainPhoto.PhotoType);
                     }
                 }
+                roomSummaries.Add(summary);
             }
 
-            return viewModels;
+            return roomSummaries;
         }
 
         public async Task<RoomDetailsViewModel?> GetRoomDetailsAsync(int id)
         {
-            var roomDetails = await (from room in _repository.GetAll()
+            var roomDetails = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
                                      where room.RoomId == id
                                      join user in _repository.GetUsers() on room.HostId equals user.UserId
                                      join address in _repository.GetAddresses() on room.AddressId equals address.AddressId
@@ -102,7 +87,12 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                                          CoverContentType = null,
                                          CreatedAt = room.CreatedAt ?? System.DateTime.MinValue,
                                          UpdatedAt = room.UpdatedAt ?? System.DateTime.MinValue,
-                                         PhotoUrls = new List<string>(),
+                                         PhotoUrls = room.RoomPhotos != null
+                                                     ? room.RoomPhotos.OrderBy(p => p.SortOrder)
+                                                                      .Select(p => _urlResolver.GetUrlAsync("Room", room.RoomId, p.PhotoType).Result) // Note: .Result can cause deadlocks in some contexts. Consider refactoring if issues arise.
+                                                                      .Where(url => !string.IsNullOrEmpty(url))
+                                                                      .ToList()
+                                                     : new List<string>(),
                                          Amenities = new List<string>()
                                      }).FirstOrDefaultAsync();
 

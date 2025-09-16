@@ -22,4 +22,16 @@ public partial class Message
     public string? Content { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual Booking? Booking { get; set; }
+
+    public virtual FaqArticle? Faq { get; set; }
+
+    public virtual User? Receiver { get; set; }
+
+    public virtual RoomList? Room { get; set; }
+
+    public virtual User? Sender { get; set; }
+
+    public virtual SupportTicket? Ticket { get; set; }
 }

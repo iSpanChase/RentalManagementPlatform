@@ -24,4 +24,8 @@ public partial class HostPayout
     public string? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual User? Host { get; set; }
+
+    public virtual ICollection<HostPayoutItem> HostPayoutItems { get; set; } = new List<HostPayoutItem>();
 }

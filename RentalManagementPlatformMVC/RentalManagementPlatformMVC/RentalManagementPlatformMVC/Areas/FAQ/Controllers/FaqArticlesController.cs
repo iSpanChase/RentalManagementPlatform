@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.FAQ.ViewModels;
@@ -134,4 +134,4 @@ namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
             return _db.FaqArticles.Any(e => e.FaqArticlesId == id);
         }
     }
-}
+}*/
