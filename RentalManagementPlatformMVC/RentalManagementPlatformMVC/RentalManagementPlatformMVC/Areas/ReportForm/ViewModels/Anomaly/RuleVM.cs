@@ -15,7 +15,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly
         [Required, StringLength(8)]
         public string ConditionExpression { get; set; } = "<";
 
-        [Range(typeof(decimal), "0", "9999999999")]
+        [Range(typeof(decimal), "-9999999999", "9999999999")]
         public decimal? ThresholdValue { get; set; }
 
         public bool IsActive { get; set; } = true;
