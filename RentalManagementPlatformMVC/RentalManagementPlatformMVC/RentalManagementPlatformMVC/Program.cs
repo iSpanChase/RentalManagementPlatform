@@ -25,6 +25,7 @@ using RentalManagementPlatformMVC.Repositories;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
 using RentalManagementPlatformMVC.Services;
 using RentalManagementPlatformMVC.Services.Interfaces;
+using System;
 
 namespace RentalManagementPlatformMVC
 {
@@ -78,7 +79,7 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.AddAuthorization(options =>
 			{
-				foreach (var (code, _, _, _, _) in AppPermissions.All())
+				foreach (var code in AppPermissions.AllCodes())
 					options.AddPolicy(code, p => p.Requirements.Add(new PermissionRequirement(code)));
 			});
 			builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
@@ -128,8 +129,14 @@ namespace RentalManagementPlatformMVC
 
 			var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+			using (var scope = app.Services.CreateScope())
+			{
+				var db = scope.ServiceProvider.GetRequiredService<RentalManagementPlatformSqlContext>();
+				PermissionSeeder.SeedAsync(db).GetAwaiter().GetResult();
+			}
+
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
             }

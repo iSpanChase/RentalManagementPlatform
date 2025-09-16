@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace RentalManagementPlatformMVC.Areas.Permissions.Services
+namespace RentalManagementPlatformMVC.Areas.Auth.Services
 {
 	public class PermissionRequirement : IAuthorizationRequirement
 	{

@@ -20,19 +20,19 @@
 			public const string ManagePermissions = "Roles.ManagePermissions";
 		}
 
-		public static IEnumerable<(string code, string name, string module, string action, string? desc)> All()
+		public static IEnumerable<string> AllCodes()
 		{
-			yield return (Users.View, "檢視使用者", "Users", "View", null);
-			yield return (Users.Browse, "瀏覽使用者清單", "Users", "Browse", null);
-			yield return (Users.Create, "新增使用者", "Users", "Create", null);
-			yield return (Users.Edit, "編輯使用者", "Users", "Edit", null);
-			yield return (Users.Delete, "刪除使用者", "Users", "Delete", null);
+			yield return Users.Browse;
+			yield return Users.View;
+			yield return Users.Create;
+			yield return Users.Edit;
+			yield return Users.Delete;
 
-			yield return (Roles.View, "檢視角色", "Roles", "View", null);
-			yield return (Roles.Create, "新增角色", "Roles", "Create", null);
-			yield return (Roles.Edit, "編輯角色", "Roles", "Edit", null);
-			yield return (Roles.Delete, "刪除角色", "Roles", "Delete", null);
-			yield return (Roles.ManagePermissions, "管理角色權限", "Roles", "ManagePermissions", null);
+			yield return Roles.View;
+			yield return Roles.Create;
+			yield return Roles.Edit;
+			yield return Roles.Delete;
+			yield return Roles.ManagePermissions;
 		}
 	}
 }

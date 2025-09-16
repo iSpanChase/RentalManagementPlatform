@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using RentalManagementPlatformMVC.Areas.Permissions.Models;
 using RentalManagementPlatformMVC.Areas.UserManagement.Mapping;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
@@ -14,7 +15,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 	/// 僅負責接收/回傳 ViewModel，商業邏輯委派至服務層。
 	/// </summary>
 	[Area("UserManagement")]
-	//[Authorize(Policy = "Users.View")]
+	[Authorize]
 	public class UserManagementController : Controller
 	{
 		private readonly IUserService _svc; // MVC Facade
@@ -34,7 +35,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <param name="pageSize">每頁筆數。</param>
 		/// <returns>清單頁的 View 結果。</returns>
 		[HttpGet]
-		//[Authorize(Policy = "Users.Browse")]
+		[Authorize(Policy = AppPermissions.Users.Browse)]
 		public async Task<IActionResult> Index([FromQuery] UserFilterVm f)
 		{
 			var (items, total) = await _svc.ListAsync(f);
@@ -64,7 +65,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// </summary>
 		/// <returns>Create 視圖。</returns>
 		[HttpGet]
-		//[Authorize(Policy = "Users.Create")]
+		[Authorize(Policy = AppPermissions.Users.Create)]
 		public IActionResult Create() 
 		{
 			var genders = new List<SelectListItem>
@@ -84,7 +85,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>成功導回清單；失敗則回填表單。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		//[Authorize(Policy = "Users.Create")]
+		[Authorize(Policy = AppPermissions.Users.Create)]
 		public async Task<IActionResult> Create(UserCreateVm vm)
 		{
 			if (!ModelState.IsValid) return View(vm);
@@ -108,7 +109,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <param name="id">使用者主鍵。</param>
 		/// <returns>Edit 視圖。</returns>
 		[HttpGet]
-		//[Authorize(Policy = "Users.Edit")]
+		[Authorize(Policy = AppPermissions.Users.Edit)]
 		public async Task<IActionResult> Edit(int id)
 		{
 			var detail = await _svc.GetAsync(id);
@@ -140,7 +141,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>成功導回清單；失敗則回填表單。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		//[Authorize(Policy = "Users.Edit")]
+		[Authorize(Policy = AppPermissions.Users.Edit)]
 		public async Task<IActionResult> Edit(UserEditVm vm)
 		{
 			// 觀察是否真的打進來
@@ -195,7 +196,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>導回清單頁。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		[Authorize(Policy = "Users.Delete")]
+		[Authorize(Policy = AppPermissions.Users.Delete)]
 		public async Task<IActionResult> Delete(int id)
 		{
 			await _svc.DeleteAsync(id);

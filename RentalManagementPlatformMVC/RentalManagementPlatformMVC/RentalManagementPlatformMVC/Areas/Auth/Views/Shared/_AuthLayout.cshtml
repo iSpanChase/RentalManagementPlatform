@@ -111,11 +111,11 @@
 
 
 
-@if (User?.Identity?.IsAuthenticated ?? false)
+@* @if (User?.Identity?.IsAuthenticated ?? false)
 {
     <form class="d-inline" method="post" asp-area="Auth" asp-action="Logout">
         @Html.AntiForgeryToken()
         <button class="btn btn-sm btn-outline-secondary">登出</button>
     </form>
-}
+} *@
 
