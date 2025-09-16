@@ -70,7 +70,7 @@ namespace RentalManagementPlatformMVC.Services.Bookings
 				GuestName = booking.Guest?.Name,                  // 安全取值
 				Coupon = booking.Coupon?.CouponName,              // 安全取值
 				Room = booking.Room?.Title,                       // 安全取值
-				HostName = booking.Room?.Host?.Name,             // 安全取值
+				HostName = booking.Room?.Host?.Name,              // 安全取值
 				Guests = booking.BookingGuests?
 					.Select(g => new BookingGuestDto { GuestName = g.GuestName })
 					.ToList() ?? new List<BookingGuestDto>()      // 永遠給不為 null 的集合
@@ -86,7 +86,6 @@ namespace RentalManagementPlatformMVC.Services.Bookings
 		/// <returns>包含符合條件的訂單清單、分頁資訊及總筆數的分頁結果物件</returns>
 		public async Task<PagedResult<BookingDto>> SearchBookingsAsync(BookingSearchCriteriaDto criteria, int pageIndex, int pageSize)
 		{
-			// 可選：簡單規格修正（避免使用者傳錯）
 			if (criteria.MinPrice.HasValue && criteria.MaxPrice.HasValue &&
 				criteria.MinPrice > criteria.MaxPrice)
 			{

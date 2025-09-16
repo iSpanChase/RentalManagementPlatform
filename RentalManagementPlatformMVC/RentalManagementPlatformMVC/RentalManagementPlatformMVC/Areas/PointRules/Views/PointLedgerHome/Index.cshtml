@@ -123,19 +123,19 @@
                     <!-- 第二行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">發生時間起</label>
-                        <input type="date" name="OccurredAtFrom" class="form-control" value="@(Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="OccurredAtFrom" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">發生時間迄</label>
-                        <input type="date" name="OccurredAtTo" class="form-control" value="@(Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="OccurredAtTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">到期時間起</label>
-                        <input type="date" name="ExpiresAtFrom" class="form-control" value="@(Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="ExpiresAtFrom" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">到期時間迄</label>
-                        <input type="date" name="ExpiresAtTo" class="form-control" value="@(Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="ExpiresAtTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <!-- 第三行 -->
                     <div class="col-6 col-md-3">
@@ -195,39 +195,39 @@
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
                         <thead class="thead-light text-center align-middle">
-                                <tr>
-                                    <th style="width: 6%;">序號</th>
-                                    <th style="width: 18%;">@Html.DisplayNameFor(model => model.PointLedgers.First().GuestName)</th>
-                                    <th style="width: 15%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OrderNumberSnapshot)</th>
-                                    <th style="width: 12%;">@Html.DisplayNameFor(model => model.PointLedgers.First().TypeDisplay)</th>
-                                    <th style="width: 10%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Points)</th>
-                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OccurredAt)</th>
-                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().ExpiresAt)</th>
-                                    <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Note)</th>
-                                </tr>
+                            <tr>
+                                <th style="width: 6%;">序號</th>
+                                <th style="width: 18%;">@Html.DisplayNameFor(model => model.PointLedgers.First().GuestName)</th>
+                                <th style="width: 15%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OrderNumberSnapshot)</th>
+                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.PointLedgers.First().TypeDisplay)</th>
+                                <th style="width: 10%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Points)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OccurredAt)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().ExpiresAt)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Note)</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @if (Model.PointLedgers != null && Model.PointLedgers.Any())
                             {
-                                @foreach (var item in Model.PointLedgers)
+                                foreach (var item in Model.PointLedgers)
                                 {
                                     <tr>
                                         <td>@index</td>
-                                        <td>@item.GuestName</td>
-                                        <td>@item.OrderNumberSnapshot</td>
-                                        <td>@item.TypeDisplay</td>
-                                        <td>@item.Points</td>
-                                        <td>@item.OccurredAt?.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.ExpiresAt?.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.Note</td>
-                                     </tr>
-                                     index++;
+                                        <td>@Html.DisplayFor(_ => item.GuestName)</td>
+                                        <td>@Html.DisplayFor(_ => item.OrderNumberSnapshot)</td>
+                                        <td>@Html.DisplayFor(_ => item.TypeDisplay)</td>
+                                        <td>@Html.DisplayFor(_ => item.Points)</td>
+                                        <td>@Html.DisplayFor(_ => item.OccurredAt)</td>
+                                        <td>@Html.DisplayFor(_ => item.ExpiresAt)</td>
+                                        <td>@Html.DisplayFor(_ => item.Note)</td>
+                                    </tr>
+                                    index++;
                                 }
                             }
                             else
                             {
                                 <tr>
-                                    <td colspan="7">目前沒有訂閱資料</td>
+                                    <td colspan="8" class="text-center text-muted py-4">目前沒有點數紀錄</td>
                                 </tr>
                             }
                         </tbody>

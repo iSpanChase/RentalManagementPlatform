@@ -93,15 +93,15 @@
                     <!-- 第一行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">房東姓名</label>
-                        <input name="HostName" class="form-control" value="@(Model.Criteria?.HostName ?? "")" />
+                        <input name="HostName" class="form-control" placeholder="請輸入房東姓名" value="@(Model.Criteria?.HostName ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">週期起始</label>
-                        <input type="date" name="CycleStart" class="form-control" value="@(Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CycleStart" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">週期結束</label>
-                        <input type="date" name="CycleEnd" class="form-control" value="@(Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CycleEnd" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">狀態</label>
@@ -117,19 +117,19 @@
                     <!-- 第二行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款起</label>
-                        <input type="date" name="PaidStartDate" class="form-control" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidStartDate" class="form-control" placeholder="選擇付款起始日期" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款迄</label>
-                        <input type="date" name="PaidEndDate" class="form-control" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidEndDate" class="form-control" placeholder="選擇付款結束日期" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
-                        <input type="number" name="MinAmount" class="form-control" step="1" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                        <input type="number" name="MinAmount" class="form-control" step="1" placeholder="輸入最低金額" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
-                        <input type="number" name="MaxAmount" class="form-control" step="1" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                        <input type="number" name="MaxAmount" class="form-control" step="1" placeholder="輸入最高金額" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
                     </div>
 
                     <!-- 第三行 -->
