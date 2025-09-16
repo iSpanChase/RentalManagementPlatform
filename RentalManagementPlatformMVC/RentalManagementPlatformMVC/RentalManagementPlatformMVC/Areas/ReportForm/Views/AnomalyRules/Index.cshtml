@@ -20,6 +20,29 @@
 		<div class="alert alert-success">@TempData["msg"]</div>
 	}
 
+	<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="deleteConfirmLabel">確認刪除</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+				</div>
+				<div class="modal-body">
+					規則 [ @(TempData["RuleName"]) ] 已有紀錄引用
+					<br>
+					將連帶記錄一同刪除，確定要刪除嗎？
+				</div>
+				<div class="modal-footer">
+					<form asp-action="DeleteConfirmed" method="post">
+						<input type="hidden" name="id" value="@TempData["DeleteId"]" />
+						<button type="submit" class="btn btn-danger">確定</button>
+					</form>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="card shadow-sm">
 		<div class="card-body p-0">
 			<div class="table-responsive">
@@ -53,8 +76,7 @@
 								<td>@r.ThresholdValue</td>
 								<td>@r.CreatedAt.Value.ToString("yyyy-MM-dd HH:mm")</td>
 								<td class="text-end">
-									<a asp-action="Edit" asp-route-id="@r.RuleId" class="btn btn-sm btn-outline-primary me-1">編輯</a>
-									<form asp-action="Delete" asp-route-id="@r.RuleId" method="post" class="d-inline" onsubmit="return confirm('確定刪除？');">
+									<form asp-action="Delete" asp-route-id="@r.RuleId" method="post" class="d-inline">
 										<button class="btn btn-sm btn-outline-danger" type="submit">刪除</button>
 										@Html.AntiForgeryToken()
 									</form>
@@ -86,5 +108,13 @@
 			// EventSource 會自動重連，不用自己處理
 			};
 		})();
+
+		document.addEventListener("DOMContentLoaded", function () {
+			var needConfirm = "@TempData["ShowDeleteConfirm"]" === "True";
+			if (needConfirm) {
+				var modal = new bootstrap.Modal(document.getElementById("deleteConfirmModal"));
+				modal.show();
+			}
+		});
 	</script>
 }

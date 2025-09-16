@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly;
 using RentalManagementPlatformMVC.Models;
+using System.Threading.Tasks;
 
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
@@ -76,38 +77,46 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             return View(vm);
         }
 
-        // POST: /AnomalyRules/Edit/5
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, RuleVM vm)
-        {
-            if (!ModelState.IsValid) { FillSelectLists(); return View(vm); }
-
-            var e = await _context.AnomalyRules.FindAsync(id);
-            if (e == null) return NotFound();
-
-            e.RuleName = vm.RuleName.Trim();
-            e.TargetType = vm.TargetType;
-            e.ConditionExpression = vm.ConditionExpression;
-            e.ThresholdValue = vm.ThresholdValue;
-            e.IsActive = vm.IsActive;
-
-            await _context.SaveChangesAsync();
-            TempData["msg"] = "已更新規則。";
-            return RedirectToAction(nameof(Index));
-        }
-
         // POST: /AnomalyRules/Delete/5
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var e = await _context.AnomalyRules.FindAsync(id);
+            if (e == null)
+                return NotFound();
+
+            if (!await IsEditable(id))
+            {
+                // 回傳 Index 頁面，但附帶一個「需要確認刪除」的 flag
+                TempData["ShowDeleteConfirm"] = true;
+                TempData["DeleteId"] = id;
+                TempData["RuleName"] = e.RuleName;
+                return RedirectToAction(nameof(Index));
+            }
+
+            _context.AnomalyRules.Remove(e);
+            await _context.SaveChangesAsync();
+            TempData["msg"] = "已刪除規則。";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var e = await _context.AnomalyRules.FindAsync(id);
             if (e != null)
             {
                 _context.AnomalyRules.Remove(e);
+                _context.RemoveRange(_context.AnomalyDetectionLogs.Where(x => x.RuleId == id));
                 await _context.SaveChangesAsync();
                 TempData["msg"] = "已刪除規則。";
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        async Task<bool> IsEditable(int id)
+        {
+            return !await _context.AnomalyDetectionLogs.Where(x=>x.RuleId == id).AnyAsync();
         }
 
         // POST: /AnomalyRules/Toggle/5 （啟用/停用）
