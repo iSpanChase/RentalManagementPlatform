@@ -39,7 +39,9 @@
       "兒童餐具",
       "熱水壺"
     ],
-    "host_name": "林宥芸"
+    "host_name": "林宥芸",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 2,
@@ -81,7 +83,9 @@
       "廚房",
       "電梯"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 3,
@@ -123,7 +127,9 @@
       "兒童餐具",
       "電梯"
     ],
-    "host_name": "林宥芸"
+    "host_name": "林宥芸",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 4,
@@ -166,7 +172,9 @@
       "熱水壺",
       "烤盤"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 5,
@@ -209,7 +217,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "蕭筱琦"
+    "host_name": "蕭筱琦",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 6,
@@ -252,7 +262,9 @@
       "浴缸",
       "熱水壺"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 7,
@@ -297,7 +309,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 8,
@@ -340,7 +354,9 @@
       "廚房",
       "熱水壺"
     ],
-    "host_name": "劉宸婷"
+    "host_name": "劉宸婷",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 9,
@@ -386,7 +402,9 @@
       "盤子和餐具",
       "嬰兒床"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 10,
@@ -431,7 +449,9 @@
       "熱水壺",
       "烤盤"
     ],
-    "host_name": "何筱綺"
+    "host_name": "何筱綺",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 11,
@@ -475,7 +495,9 @@
       "Wi-Fi",
       "烤盤"
     ],
-    "host_name": "莊俊鈞"
+    "host_name": "莊俊鈞",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 12,
@@ -520,7 +542,9 @@
       "戶外監視錄影器",
       "Wi-Fi"
     ],
-    "host_name": "謝嘉妍"
+    "host_name": "謝嘉妍",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 13,
@@ -564,7 +588,9 @@
       "浴缸",
       "遮光窗簾"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 14,
@@ -608,7 +634,9 @@
       "廚房",
       "遮光窗簾"
     ],
-    "host_name": "周宸萱"
+    "host_name": "周宸萱",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 15,
@@ -653,7 +681,9 @@
       "咖啡機",
       "兒童餐具"
     ],
-    "host_name": "王庭涵"
+    "host_name": "王庭涵",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 16,
@@ -700,7 +730,9 @@
       "床單",
       "咖啡機"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 17,
@@ -747,7 +779,9 @@
       "烤箱",
       "咖啡機"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 18,
@@ -794,7 +828,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 19,
@@ -837,7 +873,9 @@
       "Wi-Fi",
       "遮光窗簾"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 20,
@@ -879,7 +917,9 @@
       "盤子和餐具",
       "遮光窗簾"
     ],
-    "host_name": "曾明慈"
+    "host_name": "曾明慈",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 21,
@@ -923,7 +963,9 @@
       "戶外監視錄影器",
       "烤盤"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 22,
@@ -969,7 +1011,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 23,
@@ -1013,7 +1057,9 @@
       "盤子和餐具",
       "遮光窗簾"
     ],
-    "host_name": "謝宥雯"
+    "host_name": "謝宥雯",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 24,
@@ -1059,7 +1105,9 @@
       "嬰兒床",
       "烤箱"
     ],
-    "host_name": "林宥芸"
+    "host_name": "林宥芸",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 25,
@@ -1105,7 +1153,9 @@
       "烤箱",
       "遮光窗簾"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 26,
@@ -1149,7 +1199,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 27,
@@ -1196,7 +1248,9 @@
       "熱水壺",
       "床單"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 28,
@@ -1240,7 +1294,9 @@
       "煙霧警報器",
       "兒童餐具"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 29,
@@ -1282,7 +1338,9 @@
       "Wi-Fi",
       "電梯"
     ],
-    "host_name": "呂郡峰"
+    "host_name": "呂郡峰",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 30,
@@ -1329,7 +1387,9 @@
       "床單",
       "遮光窗簾"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 31,
@@ -1376,7 +1436,9 @@
       "床單",
       "咖啡機"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 32,
@@ -1420,7 +1482,9 @@
       "Wi-Fi",
       "電梯"
     ],
-    "host_name": "莊宸傑"
+    "host_name": "莊宸傑",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 33,
@@ -1463,7 +1527,9 @@
       "兒童餐具",
       "烤盤"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 34,
@@ -1507,7 +1573,9 @@
       "兒童餐具",
       "基本廚具"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 35,
@@ -1549,7 +1617,9 @@
       "Wi-Fi",
       "烤盤"
     ],
-    "host_name": "呂郡峰"
+    "host_name": "呂郡峰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 36,
@@ -1593,7 +1663,9 @@
       "Wi-Fi",
       "電梯"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 37,
@@ -1638,7 +1710,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "廖柏陽"
+    "host_name": "廖柏陽",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 38,
@@ -1682,7 +1756,9 @@
       "爐子",
       "遮光窗簾"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 39,
@@ -1728,7 +1804,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "廖冠翰"
+    "host_name": "廖冠翰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 40,
@@ -1771,7 +1849,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 41,
@@ -1818,7 +1898,9 @@
       "烤箱",
       "咖啡機"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 42,
@@ -1865,7 +1947,9 @@
       "煙霧警報器",
       "兒童餐具"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 43,
@@ -1908,7 +1992,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 44,
@@ -1955,7 +2041,9 @@
       "可寄放行李",
       "遮光窗簾"
     ],
-    "host_name": "劉庭妍"
+    "host_name": "劉庭妍",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 45,
@@ -1999,7 +2087,9 @@
       "兒童餐具",
       "遮光窗簾"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 46,
@@ -2044,7 +2134,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "謝嘉妍"
+    "host_name": "謝嘉妍",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 47,
@@ -2088,7 +2180,9 @@
       "廚房",
       "烤盤"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 48,
@@ -2134,7 +2228,9 @@
       "嬰兒床",
       "床單"
     ],
-    "host_name": "劉庭妍"
+    "host_name": "劉庭妍",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 49,
@@ -2181,7 +2277,9 @@
       "床單",
       "遮光窗簾"
     ],
-    "host_name": "張雅筠"
+    "host_name": "張雅筠",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 50,
@@ -2226,7 +2324,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 51,
@@ -2271,7 +2371,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "許昀霖"
+    "host_name": "許昀霖",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 52,
@@ -2315,7 +2417,9 @@
       "浴缸",
       "基本廚具"
     ],
-    "host_name": "林采澐"
+    "host_name": "林采澐",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 53,
@@ -2357,7 +2461,9 @@
       "兒童餐具",
       "烤盤"
     ],
-    "host_name": "蕭筱琦"
+    "host_name": "蕭筱琦",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 54,
@@ -2402,7 +2508,9 @@
       "嬰兒安全門欄",
       "兒童餐具"
     ],
-    "host_name": "張郡雯"
+    "host_name": "張郡雯",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 55,
@@ -2448,7 +2556,9 @@
       "可寄放行李",
       "遮光窗簾"
     ],
-    "host_name": "張雅筠"
+    "host_name": "張雅筠",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 56,
@@ -2494,7 +2604,9 @@
       "床單",
       "遮光窗簾"
     ],
-    "host_name": "廖柏陽"
+    "host_name": "廖柏陽",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 57,
@@ -2540,7 +2652,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 58,
@@ -2582,7 +2696,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "鄭凱慈"
+    "host_name": "鄭凱慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 59,
@@ -2629,7 +2745,9 @@
       "洗碗機",
       "戶外監視錄影器"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 60,
@@ -2674,7 +2792,9 @@
       "兒童餐具",
       "基本廚具"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 61,
@@ -2721,7 +2841,9 @@
       "嬰兒床",
       "遮光窗簾"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 62,
@@ -2763,7 +2885,9 @@
       "兒童餐具",
       "熱水壺"
     ],
-    "host_name": "何筱綺"
+    "host_name": "何筱綺",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 63,
@@ -2805,7 +2929,9 @@
       "煙霧警報器",
       "Wi-Fi"
     ],
-    "host_name": "周宸萱"
+    "host_name": "周宸萱",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 64,
@@ -2848,7 +2974,9 @@
       "Wi-Fi",
       "遮光窗簾"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 65,
@@ -2893,7 +3021,9 @@
       "咖啡機",
       "電梯"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 66,
@@ -2938,7 +3068,9 @@
       "煙霧警報器",
       "咖啡機"
     ],
-    "host_name": "謝嘉妍"
+    "host_name": "謝嘉妍",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 67,
@@ -2985,7 +3117,9 @@
       "路邊收費停車位",
       "嬰兒床"
     ],
-    "host_name": "江語哲"
+    "host_name": "江語哲",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 68,
@@ -3032,7 +3166,9 @@
       "床單",
       "咖啡機"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 69,
@@ -3079,7 +3215,9 @@
       "床單",
       "咖啡機"
     ],
-    "host_name": "葉紹涵"
+    "host_name": "葉紹涵",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 70,
@@ -3121,7 +3259,9 @@
       "廚房",
       "烤盤"
     ],
-    "host_name": "陳昀鈞"
+    "host_name": "陳昀鈞",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 71,
@@ -3167,7 +3307,9 @@
       "嬰兒床",
       "床單"
     ],
-    "host_name": "江語哲"
+    "host_name": "江語哲",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 72,
@@ -3209,7 +3351,9 @@
       "兒童餐具",
       "電梯"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 73,
@@ -3253,7 +3397,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 74,
@@ -3295,7 +3441,9 @@
       "Wi-Fi",
       "電梯"
     ],
-    "host_name": "許昀霖"
+    "host_name": "許昀霖",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 75,
@@ -3340,7 +3488,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 76,
@@ -3385,7 +3535,9 @@
       "吹風機",
       "烤盤"
     ],
-    "host_name": "劉庭妍"
+    "host_name": "劉庭妍",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 77,
@@ -3430,7 +3582,9 @@
       "兒童餐具",
       "熱水壺"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 78,
@@ -3476,7 +3630,9 @@
       "盤子和餐具",
       "可寄放行李"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 79,
@@ -3521,7 +3677,9 @@
       "Wi-Fi",
       "兒童餐具"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 80,
@@ -3564,7 +3722,9 @@
       "盤子和餐具",
       "遮光窗簾"
     ],
-    "host_name": "葉紹涵"
+    "host_name": "葉紹涵",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 81,
@@ -3609,7 +3769,9 @@
       "廚房",
       "烤盤"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 82,
@@ -3652,7 +3814,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "鄭凱慈"
+    "host_name": "鄭凱慈",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 83,
@@ -3694,7 +3858,9 @@
       "音效系統",
       "Wi-Fi"
     ],
-    "host_name": "呂郡峰"
+    "host_name": "呂郡峰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 84,
@@ -3738,7 +3904,9 @@
       "廚房",
       "Wi-Fi"
     ],
-    "host_name": "王庭涵"
+    "host_name": "王庭涵",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 85,
@@ -3784,7 +3952,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 86,
@@ -3827,7 +3997,9 @@
       "廚房",
       "兒童餐具"
     ],
-    "host_name": "廖冠翰"
+    "host_name": "廖冠翰",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 87,
@@ -3870,7 +4042,9 @@
       "廚房",
       "烤盤"
     ],
-    "host_name": "周怡慈"
+    "host_name": "周怡慈",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 88,
@@ -3916,7 +4090,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "莊俊鈞"
+    "host_name": "莊俊鈞",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 89,
@@ -3960,7 +4136,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "謝嘉妍"
+    "host_name": "謝嘉妍",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 90,
@@ -4004,7 +4182,9 @@
       "兒童餐具",
       "電梯"
     ],
-    "host_name": "莊俊鈞"
+    "host_name": "莊俊鈞",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 91,
@@ -4051,7 +4231,9 @@
       "煙霧警報器",
       "兒童餐具"
     ],
-    "host_name": "鄭凱慈"
+    "host_name": "鄭凱慈",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 92,
@@ -4094,7 +4276,9 @@
       "煙霧警報器",
       "基本廚具"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 93,
@@ -4141,7 +4325,9 @@
       "兒童餐具",
       "床單"
     ],
-    "host_name": "劉宸婷"
+    "host_name": "劉宸婷",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 94,
@@ -4184,7 +4370,9 @@
       "廚房",
       "Wi-Fi"
     ],
-    "host_name": "劉庭妍"
+    "host_name": "劉庭妍",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 95,
@@ -4231,7 +4419,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 96,
@@ -4274,7 +4464,9 @@
       "兒童餐具",
       "烤盤"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 97,
@@ -4318,7 +4510,9 @@
       "冷凍庫",
       "浴缸"
     ],
-    "host_name": "陳昀哲"
+    "host_name": "陳昀哲",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 98,
@@ -4363,7 +4557,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "林承琦"
+    "host_name": "林承琦",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 99,
@@ -4406,7 +4602,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 100,
@@ -4448,7 +4646,9 @@
       "煙霧警報器",
       "基本廚具"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 101,
@@ -4494,7 +4694,9 @@
       "盤子和餐具",
       "兒童餐具"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 102,
@@ -4538,7 +4740,9 @@
       "Wi-Fi",
       "遮光窗簾"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 103,
@@ -4581,7 +4785,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "廖冠翰"
+    "host_name": "廖冠翰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 104,
@@ -4624,7 +4830,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 105,
@@ -4671,7 +4879,9 @@
       "嬰兒床",
       "咖啡機"
     ],
-    "host_name": "陳昀哲"
+    "host_name": "陳昀哲",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 106,
@@ -4715,7 +4925,9 @@
       "滅火器",
       "浴缸"
     ],
-    "host_name": "江語哲"
+    "host_name": "江語哲",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 107,
@@ -4761,7 +4973,9 @@
       "路邊收費停車位",
       "咖啡機"
     ],
-    "host_name": "蕭筱琦"
+    "host_name": "蕭筱琦",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 108,
@@ -4807,7 +5021,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 109,
@@ -4854,7 +5070,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "林承琦"
+    "host_name": "林承琦",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 110,
@@ -4896,7 +5114,9 @@
       "冷凍庫",
       "煙霧警報器"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 111,
@@ -4940,7 +5160,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "葉紹涵"
+    "host_name": "葉紹涵",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 112,
@@ -4983,7 +5205,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 113,
@@ -5027,7 +5251,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 114,
@@ -5073,7 +5299,9 @@
       "烤箱",
       "咖啡機"
     ],
-    "host_name": "周怡慈"
+    "host_name": "周怡慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 115,
@@ -5119,7 +5347,9 @@
       "烤箱",
       "咖啡機"
     ],
-    "host_name": "林采澐"
+    "host_name": "林采澐",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 116,
@@ -5162,7 +5392,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 117,
@@ -5205,7 +5437,9 @@
       "Wi-Fi",
       "盤子和餐具"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 118,
@@ -5248,7 +5482,9 @@
       "廚房",
       "遮光窗簾"
     ],
-    "host_name": "羅俊霖"
+    "host_name": "羅俊霖",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 119,
@@ -5293,7 +5529,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "王俊志"
+    "host_name": "王俊志",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 120,
@@ -5339,7 +5577,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 121,
@@ -5381,7 +5621,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "陳品萱"
+    "host_name": "陳品萱",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 122,
@@ -5426,7 +5668,9 @@
       "兒童餐具",
       "烤盤"
     ],
-    "host_name": "廖冠翰"
+    "host_name": "廖冠翰",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 123,
@@ -5471,7 +5715,9 @@
       "盤子和餐具",
       "遮光窗簾"
     ],
-    "host_name": "王庭涵"
+    "host_name": "王庭涵",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 124,
@@ -5518,7 +5764,9 @@
       "咖啡機",
       "遮光窗簾"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 125,
@@ -5561,7 +5809,9 @@
       "盤子和餐具",
       "兒童餐具"
     ],
-    "host_name": "莊宸傑"
+    "host_name": "莊宸傑",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 126,
@@ -5606,7 +5856,9 @@
       "Wi-Fi",
       "烤盤"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 127,
@@ -5652,7 +5904,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "羅俊霖"
+    "host_name": "羅俊霖",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 128,
@@ -5698,7 +5952,9 @@
       "嬰兒床",
       "遮光窗簾"
     ],
-    "host_name": "許昀霖"
+    "host_name": "許昀霖",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 129,
@@ -5742,7 +5998,9 @@
       "Wi-Fi",
       "基本廚具"
     ],
-    "host_name": "許昀霖"
+    "host_name": "許昀霖",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 130,
@@ -5786,7 +6044,9 @@
       "咖啡機",
       "熱水壺"
     ],
-    "host_name": "江語哲"
+    "host_name": "江語哲",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 131,
@@ -5831,7 +6091,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 132,
@@ -5876,7 +6138,9 @@
       "嬰兒安全門欄",
       "電梯"
     ],
-    "host_name": "蕭品慈"
+    "host_name": "蕭品慈",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 133,
@@ -5919,7 +6183,9 @@
       "熱水壺",
       "遮光窗簾"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 134,
@@ -5961,7 +6227,9 @@
       "熱水壺",
       "遮光窗簾"
     ],
-    "host_name": "陳昀鈞"
+    "host_name": "陳昀鈞",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 135,
@@ -6003,7 +6271,9 @@
       "廚房",
       "電梯"
     ],
-    "host_name": "葉紹涵"
+    "host_name": "葉紹涵",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 136,
@@ -6048,7 +6318,9 @@
       "Wi-Fi",
       "烤盤"
     ],
-    "host_name": "何筱綺"
+    "host_name": "何筱綺",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 137,
@@ -6090,7 +6362,9 @@
       "電動車充電器",
       "烤盤"
     ],
-    "host_name": "許昀霖"
+    "host_name": "許昀霖",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 138,
@@ -6133,7 +6407,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 139,
@@ -6179,7 +6455,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 140,
@@ -6222,7 +6500,9 @@
       "兒童餐具",
       "電梯"
     ],
-    "host_name": "曾明慈"
+    "host_name": "曾明慈",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 141,
@@ -6269,7 +6549,9 @@
       "兒童餐具",
       "熱水壺"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 142,
@@ -6313,7 +6595,9 @@
       "冷凍庫",
       "咖啡機"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 143,
@@ -6357,7 +6641,9 @@
       "兒童餐具",
       "烤盤"
     ],
-    "host_name": "鄭凱慈"
+    "host_name": "鄭凱慈",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 144,
@@ -6399,7 +6685,9 @@
       "Wi-Fi",
       "盤子和餐具"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 145,
@@ -6442,7 +6730,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "曾明慈"
+    "host_name": "曾明慈",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 146,
@@ -6487,7 +6777,9 @@
       "兒童餐具",
       "遮光窗簾"
     ],
-    "host_name": "王俊志"
+    "host_name": "王俊志",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 147,
@@ -6534,7 +6826,9 @@
       "可寄放行李",
       "遮光窗簾"
     ],
-    "host_name": "周怡慈"
+    "host_name": "周怡慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 148,
@@ -6576,7 +6870,9 @@
       "冷凍庫",
       "煙霧警報器"
     ],
-    "host_name": "楊惠雯"
+    "host_name": "楊惠雯",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 149,
@@ -6623,7 +6919,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "林詠妍"
+    "host_name": "林詠妍",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 150,
@@ -6667,7 +6965,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "何筱綺"
+    "host_name": "何筱綺",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 151,
@@ -6711,7 +7011,9 @@
       "兒童餐具",
       "熱水壺"
     ],
-    "host_name": "賴雅綺"
+    "host_name": "賴雅綺",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 152,
@@ -6755,7 +7057,9 @@
       "咖啡機",
       "Wi-Fi"
     ],
-    "host_name": "葉紹涵"
+    "host_name": "葉紹涵",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 153,
@@ -6802,7 +7106,9 @@
       "可寄放行李",
       "嬰兒床"
     ],
-    "host_name": "劉庭妍"
+    "host_name": "劉庭妍",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 154,
@@ -6847,7 +7153,9 @@
       "冷凍庫",
       "咖啡機"
     ],
-    "host_name": "林宥芸"
+    "host_name": "林宥芸",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 155,
@@ -6891,7 +7199,9 @@
       "熱水壺",
       "基本廚具"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 156,
@@ -6934,7 +7244,9 @@
       "煙霧警報器",
       "基本廚具"
     ],
-    "host_name": "謝宥雯"
+    "host_name": "謝宥雯",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 157,
@@ -6980,7 +7292,9 @@
       "路邊收費停車位",
       "嬰兒床"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 158,
@@ -7026,7 +7340,9 @@
       "嬰兒床",
       "床單"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 159,
@@ -7068,7 +7384,9 @@
       "熱水壺",
       "電梯"
     ],
-    "host_name": "林宥芸"
+    "host_name": "林宥芸",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 160,
@@ -7113,7 +7431,9 @@
       "熱水壺",
       "烤盤"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 161,
@@ -7156,7 +7476,9 @@
       "廚房",
       "Wi-Fi"
     ],
-    "host_name": "曾志琳"
+    "host_name": "曾志琳",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 162,
@@ -7202,7 +7524,9 @@
       "路邊收費停車位",
       "嬰兒床"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 163,
@@ -7247,7 +7571,9 @@
       "兒童餐具",
       "電梯"
     ],
-    "host_name": "林承翰"
+    "host_name": "林承翰",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 164,
@@ -7291,7 +7617,9 @@
       "嬰兒安全門欄",
       "兒童餐具"
     ],
-    "host_name": "周宸萱"
+    "host_name": "周宸萱",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 165,
@@ -7335,7 +7663,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "江品慈"
+    "host_name": "江品慈",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 166,
@@ -7381,7 +7711,9 @@
       "可寄放行李",
       "烤箱"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 167,
@@ -7426,7 +7758,9 @@
       "熱水壺",
       "遮光窗簾"
     ],
-    "host_name": "鄭凱慈"
+    "host_name": "鄭凱慈",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 168,
@@ -7471,7 +7805,9 @@
       "房東迎接",
       "電梯"
     ],
-    "host_name": "陳品萱"
+    "host_name": "陳品萱",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 169,
@@ -7518,7 +7854,9 @@
       "熱水壺",
       "路邊收費停車位"
     ],
-    "host_name": "劉宸婷"
+    "host_name": "劉宸婷",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 170,
@@ -7560,7 +7898,9 @@
       "滅火器",
       "冷凍庫"
     ],
-    "host_name": "張雅筠"
+    "host_name": "張雅筠",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 171,
@@ -7607,7 +7947,9 @@
       "床單",
       "烤箱"
     ],
-    "host_name": "劉惠慈"
+    "host_name": "劉惠慈",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 172,
@@ -7654,7 +7996,9 @@
       "兒童餐具",
       "遮光窗簾"
     ],
-    "host_name": "周偉筑"
+    "host_name": "周偉筑",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 173,
@@ -7696,7 +8040,9 @@
       "Wi-Fi",
       "盤子和餐具"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 174,
@@ -7741,7 +8087,9 @@
       "盤子和餐具",
       "基本廚具"
     ],
-    "host_name": "陳品萱"
+    "host_name": "陳品萱",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 175,
@@ -7785,7 +8133,9 @@
       "浴缸",
       "烤盤"
     ],
-    "host_name": "何昀翔"
+    "host_name": "何昀翔",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 176,
@@ -7832,7 +8182,9 @@
       "烤箱",
       "遮光窗簾"
     ],
-    "host_name": "陳品萱"
+    "host_name": "陳品萱",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 177,
@@ -7878,7 +8230,9 @@
       "可寄放行李",
       "烤箱"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 178,
@@ -7925,7 +8279,9 @@
       "可寄放行李",
       "遮光窗簾"
     ],
-    "host_name": "張郡雯"
+    "host_name": "張郡雯",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 179,
@@ -7972,7 +8328,9 @@
       "盤子和餐具",
       "可寄放行李"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 180,
@@ -8019,7 +8377,9 @@
       "嬰兒床",
       "咖啡機"
     ],
-    "host_name": "莊宸傑"
+    "host_name": "莊宸傑",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 181,
@@ -8063,7 +8423,9 @@
       "滅火器",
       "兒童餐具"
     ],
-    "host_name": "李欣翰"
+    "host_name": "李欣翰",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 182,
@@ -8108,7 +8470,9 @@
       "冷凍庫",
       "熱水壺"
     ],
-    "host_name": "廖冠翰"
+    "host_name": "廖冠翰",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 183,
@@ -8154,7 +8518,9 @@
       "路邊收費停車位",
       "嬰兒床"
     ],
-    "host_name": "賴詠辰"
+    "host_name": "賴詠辰",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 184,
@@ -8201,7 +8567,9 @@
       "可寄放行李",
       "咖啡機"
     ],
-    "host_name": "周偉筑"
+    "host_name": "周偉筑",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 185,
@@ -8245,7 +8613,9 @@
       "冷凍庫",
       "基本廚具"
     ],
-    "host_name": "郭冠哲"
+    "host_name": "郭冠哲",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 186,
@@ -8287,7 +8657,9 @@
       "滅火器",
       "浴缸"
     ],
-    "host_name": "王俊志"
+    "host_name": "王俊志",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 187,
@@ -8333,7 +8705,9 @@
       "煙霧警報器",
       "路邊收費停車位"
     ],
-    "host_name": "張郡雯"
+    "host_name": "張郡雯",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 188,
@@ -8377,7 +8751,9 @@
       "盤子和餐具",
       "烤盤"
     ],
-    "host_name": "謝宥雯"
+    "host_name": "謝宥雯",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 189,
@@ -8424,7 +8800,9 @@
       "嬰兒床",
       "遮光窗簾"
     ],
-    "host_name": "陳昀哲"
+    "host_name": "陳昀哲",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 190,
@@ -8470,7 +8848,9 @@
       "嬰兒床",
       "烤箱"
     ],
-    "host_name": "洪佩陽"
+    "host_name": "洪佩陽",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 191,
@@ -8517,7 +8897,9 @@
       "嬰兒床",
       "床單"
     ],
-    "host_name": "莊俊鈞"
+    "host_name": "莊俊鈞",
+    "status": "待審核",
+    "is_deleted": false
   },
   {
     "room_id": 192,
@@ -8563,7 +8945,9 @@
       "可寄放行李",
       "床單"
     ],
-    "host_name": "鄭惠涵"
+    "host_name": "鄭惠涵",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 193,
@@ -8606,7 +8990,9 @@
       "Wi-Fi",
       "電梯"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "已下架",
+    "is_deleted": false
   },
   {
     "room_id": 194,
@@ -8651,7 +9037,9 @@
       "兒童餐具",
       "遮光窗簾"
     ],
-    "host_name": "周怡慈"
+    "host_name": "周怡慈",
+    "status": "remove",
+    "is_deleted": true
   },
   {
     "room_id": 195,
@@ -8694,7 +9082,9 @@
       "盤子和餐具",
       "電梯"
     ],
-    "host_name": "林采澐"
+    "host_name": "林采澐",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 196,
@@ -8739,7 +9129,9 @@
       "盤子和餐具",
       "熱水壺"
     ],
-    "host_name": "周怡慈"
+    "host_name": "周怡慈",
+    "status": "上架中",
+    "is_deleted": false
   },
   {
     "room_id": 197,
@@ -8783,7 +9175,9 @@
       "熱水壺",
       "遮光窗簾"
     ],
-    "host_name": "呂詠瑜"
+    "host_name": "呂詠瑜",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 198,
@@ -8828,7 +9222,9 @@
       "冷凍庫",
       "熱水壺"
     ],
-    "host_name": "江語哲"
+    "host_name": "江語哲",
+    "status": "已拒絕",
+    "is_deleted": false
   },
   {
     "room_id": 199,
@@ -8871,7 +9267,9 @@
       "廚房",
       "電梯"
     ],
-    "host_name": "鄭家筠"
+    "host_name": "鄭家筠",
+    "status": "已通過",
+    "is_deleted": false
   },
   {
     "room_id": 200,
@@ -8917,6 +9315,8 @@
       "香皂",
       "兒童餐椅"
     ],
-    "host_name": "謝宥雯"
+    "host_name": "謝宥雯",
+    "status": "已下架",
+    "is_deleted": false
   }
 ]
