@@ -1,0 +1,48 @@
+﻿@model RentalManagementPlatformMVC.Areas.UserManagement.ViewModels.AssignUserRolesVm
+@{
+    ViewData["Title"] = "指派角色";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">指派角色給：@Model.Name (@Model.Username)</h4>
+    <a class="btn btn-outline-secondary" asp-area="UserManagement" asp-controller="UserManagement" asp-action="Index">返回</a>
+</div>
+
+<form method="post" asp-area="UserManagement" asp-controller="UserManagement" asp-action="AssignRoles">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">
+                                <input type="checkbox" id="chkAll"
+                                       onclick="document.querySelectorAll('.rolechk').forEach(x=>x.checked=this.checked);" />
+                            </th>
+                            <th>角色名稱</th>
+                            <th>代碼</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Roles)
+                        {
+                            <tr>
+                                <td>
+                                    <input class="form-check-input rolechk" type="checkbox"
+                                           name="SelectedRoleIds" value="@r.RoleId" @(r.Checked ? "checked" : "") />
+                                </td>
+                                <td>@r.RoleName</td>
+                                <td><code>@r.RoleCode</code></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-primary" type="submit">儲存</button>
+        </div>
+    </div>
+</form>

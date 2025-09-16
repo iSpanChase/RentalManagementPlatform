@@ -1,4 +1,4 @@
-﻿@* <!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -77,45 +77,9 @@
     @await RenderSectionAsync("Modals", required: false)
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html> *@
+</html>
 
 @* <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
 <script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script> *@
-
-
-@* Views/Shared/_AuthLayout.cshtml *@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>@ViewData["Title"] - 系統</title>
-
-    <!-- 參考你專案實際路徑：AdminLTE 4 + Bootstrap -->
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/lib/admin-lte/dist/css/adminlte.min.css" />
-
-    @RenderSection("Styles", required: false)
-</head>
-<body class="hold-transition login-page">
-    <main class="container py-4">
-        @RenderBody()
-    </main>
-
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/admin-lte/dist/js/adminlte.min.js"></script>
-    @RenderSection("Scripts", required: false)
-</body>
-</html>
-
-
-
-@* @if (User?.Identity?.IsAuthenticated ?? false)
-{
-    <form class="d-inline" method="post" asp-area="Auth" asp-action="Logout">
-        @Html.AntiForgeryToken()
-        <button class="btn btn-sm btn-outline-secondary">登出</button>
-    </form>
-} *@
 

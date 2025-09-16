@@ -58,7 +58,7 @@
                             <label class="form-label">關鍵字（帳號/Email/姓名）</label>
                             <input class="form-control" name="Keyword" value="@Model.Filter.Keyword" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label class="form-label">性別</label>
                             <select class="form-select" name="Gender">
                                 <option value="">— 全部 —</option>
@@ -66,7 +66,7 @@
                                 <option value="F" selected="@(Model.Filter.Gender == "F")">女</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label class="form-label">是否驗證</label>
                             <select class="form-select" name="Isverified">
                                 <option value="">— 全部 —</option>
@@ -74,15 +74,27 @@
                                 <option value="false" selected="@(Model.Filter.Isverified == false)">未驗證</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label class="form-label">建立起</label>
                             <input type="date" class="form-control" name="CreatedFrom"
                                    value="@(Model.Filter.CreatedFrom?.ToString("yyyy-MM-dd"))" />
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label class="form-label">建立迄</label>
                             <input type="date" class="form-control" name="CreatedTo"
                                    value="@(Model.Filter.CreatedTo?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">分頁顯示數量</label>
+                            <select class="form-select" name="PageSize">
+                                @{
+                                    int[] sizes = new[] { 10, 20, 50, 100 };
+                                }
+                                @foreach (var s in sizes)
+                                {
+                                    <option value="@s" selected="@(pageSize == s)">@s / page</option>
+                                }
+                            </select>
                         </div>
                     </div>
 
@@ -200,6 +212,10 @@
                                     <td>@x.Email</td>
                                     <td>@x.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
                                     <td>
+                                        <a class="btn btn-sm btn-outline-secondary"
+                                           asp-area="UserManagement" asp-controller="UserManagement" asp-action="AssignRoles"
+                                           asp-route-id="@x.UserId">指派角色</a>
+
                                         <a class="btn btn-sm btn-primary"
                                            asp-area="UserManagement" asp-controller="UserManagement"
                                            asp-action="Edit" asp-route-id="@x.UserId">編輯</a>

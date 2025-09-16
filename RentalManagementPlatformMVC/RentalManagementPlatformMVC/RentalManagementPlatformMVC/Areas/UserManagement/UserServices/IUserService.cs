@@ -42,5 +42,8 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 		/// </summary>
 		/// <param name="userId">使用者主鍵。</param>
 		Task DeleteAsync(int userId);
+
+		Task<AssignUserRolesVm> GetAssignRolesAsync(int userId);
+		Task AssignRolesAsync(int userId, int[] roleIds);
 	}
 }

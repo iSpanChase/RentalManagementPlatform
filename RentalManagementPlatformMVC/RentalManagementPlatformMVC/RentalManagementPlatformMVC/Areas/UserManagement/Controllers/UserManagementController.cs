@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using RentalManagementPlatformMVC.Areas.Permissions.Models;
 using RentalManagementPlatformMVC.Areas.UserManagement.Mapping;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
+using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 {
@@ -12,6 +15,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 	/// 僅負責接收/回傳 ViewModel，商業邏輯委派至服務層。
 	/// </summary>
 	[Area("UserManagement")]
+	[Authorize]
 	public class UserManagementController : Controller
 	{
 		private readonly IUserService _svc; // MVC Facade
@@ -31,6 +35,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <param name="pageSize">每頁筆數。</param>
 		/// <returns>清單頁的 View 結果。</returns>
 		[HttpGet]
+		[Authorize(Policy = AppPermissions.Users.Browse)]
 		public async Task<IActionResult> Index([FromQuery] UserFilterVm f)
 		{
 			var (items, total) = await _svc.ListAsync(f);
@@ -60,6 +65,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// </summary>
 		/// <returns>Create 視圖。</returns>
 		[HttpGet]
+		[Authorize(Policy = AppPermissions.Users.Create)]
 		public IActionResult Create() 
 		{
 			var genders = new List<SelectListItem>
@@ -79,6 +85,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>成功導回清單；失敗則回填表單。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Policy = AppPermissions.Users.Create)]
 		public async Task<IActionResult> Create(UserCreateVm vm)
 		{
 			if (!ModelState.IsValid) return View(vm);
@@ -102,6 +109,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <param name="id">使用者主鍵。</param>
 		/// <returns>Edit 視圖。</returns>
 		[HttpGet]
+		[Authorize(Policy = AppPermissions.Users.Edit)]
 		public async Task<IActionResult> Edit(int id)
 		{
 			var detail = await _svc.GetAsync(id);
@@ -133,6 +141,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>成功導回清單；失敗則回填表單。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Policy = AppPermissions.Users.Edit)]
 		public async Task<IActionResult> Edit(UserEditVm vm)
 		{
 			// 觀察是否真的打進來
@@ -187,6 +196,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>導回清單頁。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Policy = AppPermissions.Users.Delete)]
 		public async Task<IActionResult> Delete(int id)
 		{
 			await _svc.DeleteAsync(id);
@@ -200,5 +210,31 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 			new SelectListItem { Value = "M", Text = "男", Selected = selected == "M" },
 			new SelectListItem { Value = "F", Text = "女", Selected = selected == "F" },
 		};
+
+		/// <summary>
+		/// 顯示角色指派表單。
+		/// </summary>
+		/// <param name="id">使用者主鍵。</param>
+		/// <returns>AssignRoles 視圖。</returns>
+		[HttpGet]
+		public async Task<IActionResult> AssignRoles(int id)
+		{
+			var vm = await _svc.GetAssignRolesAsync(id);
+			return View(vm);
+		}
+
+		/// <summary>
+		/// 接收角色指派表單並更新資料。
+		/// </summary>
+		/// <param name="vm">角色指派表單的 ViewModel。</param>
+		/// <returns>成功導回清單；失敗則回填表單。</returns>
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> AssignRoles(AssignUserRolesVm vm)
+		{
+			await _svc.AssignRolesAsync(vm.UserId, vm.SelectedRoleIds ?? Array.Empty<int>());
+			TempData["Msg"] = "角色指派已更新";
+			return RedirectToAction(nameof(Index)); // 導回使用者清單或明細
+		}
 	}
 }
