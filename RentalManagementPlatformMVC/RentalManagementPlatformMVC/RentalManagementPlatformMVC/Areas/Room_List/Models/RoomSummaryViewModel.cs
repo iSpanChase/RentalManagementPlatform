@@ -18,5 +18,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
         public string? HostName { get; set; }
         
         public string? MainImageUrl { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }

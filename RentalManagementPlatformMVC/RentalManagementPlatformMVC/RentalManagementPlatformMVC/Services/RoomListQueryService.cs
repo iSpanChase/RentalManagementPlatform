@@ -25,7 +25,6 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
         public async Task<List<RoomSummaryViewModel>> GetRoomSummariesAsync()
         {
             var roomsWithUsers = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
-                                        where room.IsDeleted == false
                                         join user in _repository.GetUsers() on room.HostId equals user.UserId
                                         select new { Room = room, User = user })
                                         .ToListAsync();
@@ -38,8 +37,9 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 {
                     RoomId = item.Room.RoomId,
                     Title = item.Room.Title,
-                    Status = item.Room.Status,
-                    HostName = item.User.Name
+                    Status = item.Room.Status, // Populating Status
+                    HostName = item.User.Name,
+                    IsDeleted = item.Room.IsDeleted // Populating IsDeleted
                 };
 
                 if (item.Room.RoomPhotos != null && item.Room.RoomPhotos.Any())
@@ -58,53 +58,66 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
 
         public async Task<RoomDetailsViewModel?> GetRoomDetailsAsync(int id)
         {
-            var roomDetails = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
-                                     where room.RoomId == id && room.IsDeleted == false
+            var rawData = await (from room in _repository.GetAll().Include(r => r.RoomPhotos)
+                                     where room.RoomId == id
                                      join user in _repository.GetUsers() on room.HostId equals user.UserId
                                      join address in _repository.GetAddresses() on room.AddressId equals address.AddressId
                                      join district in _repository.GetDistricts() on address.DistrictId equals district.DistrictId
                                      join city in _repository.GetCities() on district.CityId equals city.CityId
-                                     select new RoomDetailsViewModel
-                                     {
-                                         RoomId = room.RoomId,
-                                         Title = room.Title,
-                                         Description = room.Description,
-                                         MaxGuests = room.MaxGuests ?? 0,
-                                         PricePerNight = room.PricePerNight ?? 0,
-                                         Status = room.Status,
-                                         IsDeleted = room.IsDeleted,
-                                         Host = new HostViewModel { HostName = user.Name },
-                                         HostId = user.UserId,
-                                         CityName = city.CityName,
-                                         DistrictId = district.DistrictId,
-                                         DistrictName = district.DistrictName,
-                                         Address = new AddressViewModel { FullAddress = city.CityName + district.DistrictName + address.Street },
-                                         AddressLine = address.Street,
-                                         Geo = new GeoLocation { Lat = (double)address.Latitude, Lng = (double)address.Longitude },
-                                         RatingAvg = 0,
-                                         ReviewsCount = 0,
-                                         CoverBucket = null,
-                                         CoverObjectKey = null,
-                                         CoverContentType = null,
-                                         CreatedAt = room.CreatedAt ?? System.DateTime.MinValue,
-                                         UpdatedAt = room.UpdatedAt ?? System.DateTime.MinValue,
-                                         PhotoUrls = room.RoomPhotos != null
-                                                     ? room.RoomPhotos.OrderBy(p => p.SortOrder)
-                                                                      .Select(p => _urlResolver.GetUrlAsync("Room", room.RoomId, p.PhotoType).Result) // Note: .Result can cause deadlocks in some contexts. Consider refactoring if issues arise.
-                                                                      .Where(url => !string.IsNullOrEmpty(url))
-                                                                      .ToList()
-                                                     : new List<string>(),
-                                         Amenities = new List<string>()
-                                     }).FirstOrDefaultAsync();
+                                     select new { room, user, address, district, city })
+                                     .FirstOrDefaultAsync();
 
-            if (roomDetails != null)
+            if (rawData == null)
             {
-                var searchResult = await _meilisearchService.SearchAsync(roomDetails.RoomId.ToString());
-                var roomFromMeilisearch = searchResult.FirstOrDefault();
-                if (roomFromMeilisearch != null)
+                return null;
+            }
+
+            var photoUrls = new List<string>();
+            if (rawData.room.RoomPhotos != null)
+            {
+                foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    roomDetails.Amenities = roomFromMeilisearch.Amenities;
+                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        photoUrls.Add(url);
+                    }
                 }
+            }
+
+            var roomDetails = new RoomDetailsViewModel
+            {
+                RoomId = rawData.room.RoomId,
+                Title = rawData.room.Title,
+                Description = rawData.room.Description,
+                MaxGuests = rawData.room.MaxGuests ?? 0,
+                PricePerNight = rawData.room.PricePerNight ?? 0,
+                Status = rawData.room.Status,
+                IsDeleted = rawData.room.IsDeleted,
+                Host = new HostViewModel { HostName = rawData.user.Name },
+                HostId = rawData.user.UserId,
+                CityName = rawData.city.CityName,
+                DistrictId = rawData.district.DistrictId,
+                DistrictName = rawData.district.DistrictName,
+                Address = new AddressViewModel { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street },
+                AddressLine = rawData.address.Street,
+                Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
+                RatingAvg = 0,
+                ReviewsCount = 0,
+                CoverBucket = null,
+                CoverObjectKey = null,
+                CoverContentType = null,
+                CreatedAt = rawData.room.CreatedAt ?? System.DateTime.MinValue,
+                UpdatedAt = rawData.room.UpdatedAt ?? System.DateTime.MinValue,
+                PhotoUrls = photoUrls,
+                Amenities = new List<string>()
+            };
+
+            var searchResult = await _meilisearchService.SearchAsync(roomDetails.RoomId.ToString());
+            var roomFromMeilisearch = searchResult.FirstOrDefault();
+            if (roomFromMeilisearch != null)
+            {
+                roomDetails.Amenities = roomFromMeilisearch.Amenities;
             }
 
             return roomDetails;
@@ -112,53 +125,66 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
 
         public async Task<RoomDetailsViewModel?> GetRoomDataForIndexingAsync(int id)
         {
-            var roomDetails = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
+            var rawData = await (from room in _repository.GetAll().Include(r => r.RoomPhotos)
                                      where room.RoomId == id
                                      join user in _repository.GetUsers() on room.HostId equals user.UserId
                                      join address in _repository.GetAddresses() on room.AddressId equals address.AddressId
                                      join district in _repository.GetDistricts() on address.DistrictId equals district.DistrictId
                                      join city in _repository.GetCities() on district.CityId equals city.CityId
-                                     select new RoomDetailsViewModel
-                                     {
-                                         RoomId = room.RoomId,
-                                         Title = room.Title,
-                                         Description = room.Description,
-                                         MaxGuests = room.MaxGuests ?? 0,
-                                         PricePerNight = room.PricePerNight ?? 0,
-                                         Status = room.Status,
-                                         IsDeleted = room.IsDeleted,
-                                         Host = new HostViewModel { HostName = user.Name },
-                                         HostId = user.UserId,
-                                         CityName = city.CityName,
-                                         DistrictId = district.DistrictId,
-                                         DistrictName = district.DistrictName,
-                                         Address = new AddressViewModel { FullAddress = city.CityName + district.DistrictName + address.Street },
-                                         AddressLine = address.Street,
-                                         Geo = new GeoLocation { Lat = (double)address.Latitude, Lng = (double)address.Longitude },
-                                         RatingAvg = 0,
-                                         ReviewsCount = 0,
-                                         CoverBucket = null,
-                                         CoverObjectKey = null,
-                                         CoverContentType = null,
-                                         CreatedAt = room.CreatedAt ?? System.DateTime.MinValue,
-                                         UpdatedAt = room.UpdatedAt ?? System.DateTime.MinValue,
-                                         PhotoUrls = room.RoomPhotos != null
-                                                     ? room.RoomPhotos.OrderBy(p => p.SortOrder)
-                                                                      .Select(p => _urlResolver.GetUrlAsync("Room", room.RoomId, p.PhotoType).Result) // Note: .Result can cause deadlocks in some contexts. Consider refactoring if issues arise.
-                                                                      .Where(url => !string.IsNullOrEmpty(url))
-                                                                      .ToList()
-                                                     : new List<string>(),
-                                         Amenities = new List<string>()
-                                     }).FirstOrDefaultAsync();
+                                     select new { room, user, address, district, city })
+                                     .FirstOrDefaultAsync();
 
-            if (roomDetails != null)
+            if (rawData == null)
             {
-                var searchResult = await _meilisearchService.SearchAsync(roomDetails.RoomId.ToString());
-                var roomFromMeilisearch = searchResult.FirstOrDefault();
-                if (roomFromMeilisearch != null)
+                return null;
+            }
+            
+            var photoUrls = new List<string>();
+            if (rawData.room.RoomPhotos != null)
+            {
+                foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    roomDetails.Amenities = roomFromMeilisearch.Amenities;
+                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        photoUrls.Add(url);
+                    }
                 }
+            }
+
+            var roomDetails = new RoomDetailsViewModel
+            {
+                RoomId = rawData.room.RoomId,
+                Title = rawData.room.Title,
+                Description = rawData.room.Description,
+                MaxGuests = rawData.room.MaxGuests ?? 0,
+                PricePerNight = rawData.room.PricePerNight ?? 0,
+                Status = rawData.room.Status,
+                IsDeleted = rawData.room.IsDeleted,
+                Host = new HostViewModel { HostName = rawData.user.Name },
+                HostId = rawData.user.UserId,
+                CityName = rawData.city.CityName,
+                DistrictId = rawData.district.DistrictId,
+                DistrictName = rawData.district.DistrictName,
+                Address = new AddressViewModel { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street },
+                AddressLine = rawData.address.Street,
+                Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
+                RatingAvg = 0,
+                ReviewsCount = 0,
+                CoverBucket = null,
+                CoverObjectKey = null,
+                CoverContentType = null,
+                CreatedAt = rawData.room.CreatedAt ?? System.DateTime.MinValue,
+                UpdatedAt = rawData.room.UpdatedAt ?? System.DateTime.MinValue,
+                PhotoUrls = photoUrls,
+                Amenities = new List<string>()
+            };
+
+            var searchResult = await _meilisearchService.SearchAsync(roomDetails.RoomId.ToString());
+            var roomFromMeilisearch = searchResult.FirstOrDefault();
+            if (roomFromMeilisearch != null)
+            {
+                roomDetails.Amenities = roomFromMeilisearch.Amenities;
             }
 
             return roomDetails;
@@ -182,7 +208,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
         public async Task<RoomSummaryViewModel?> GetRoomSummaryForDeleteAsync(int id)
         {
             return await (from room in _repository.GetAll()
-                          where room.RoomId == id && room.IsDeleted == false
+                          where room.RoomId == id
                           join user in _repository.GetUsers() on room.HostId equals user.UserId
                           select new RoomSummaryViewModel
                           {

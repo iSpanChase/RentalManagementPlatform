@@ -57,10 +57,18 @@
         </td>
         <td>
             <td>
-                <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.RoomId">編輯</a>
+            <td>
+                @if (!item.IsDeleted)
+                {
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.RoomId">編輯</a>
+                }
                 <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@item.RoomId">詳細</a>
-                <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.RoomId">刪除</a>
+                @if (!item.IsDeleted)
+                {
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.RoomId">刪除</a>
+                }
             </td>
+        </td>
         </td>
     </tr>
 }

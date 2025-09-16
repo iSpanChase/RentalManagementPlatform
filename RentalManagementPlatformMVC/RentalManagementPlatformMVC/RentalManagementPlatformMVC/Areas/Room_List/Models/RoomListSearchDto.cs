@@ -63,24 +63,17 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
 		[JsonPropertyName("updated_at")]
 		public DateTime? UpdatedAt { get; set; }
 
-        [JsonPropertyName("status")]
-        public string? Status { get; set; }
-
+        public string? CoverImageUrl { get; set; }
+        public List<string> Amenities { get; set; } = new List<string>();
+        public string Status { get; set; } = string.Empty; // Added Status field
+        
         [JsonPropertyName("is_deleted")]
-        public bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } // Added IsDeleted field for Meilisearch filtering
+    }
 
-		[JsonPropertyName("amenities")]
-		public List<string> Amenities { get; set; } = new();
-
-		// This property will be populated by the MeilisearchService after fetching the data.
-		// It should not be part of the Meilisearch index itself.
-		[JsonIgnore]
-		public string? CoverImageUrl { get; set; }
-	}
-
-	public class GeoLocation
-	{
-		[JsonPropertyName("lat")] public double Lat { get; set; }
-		[JsonPropertyName("lng")] public double Lng { get; set; }
-	}
+    public class GeoLocation
+    {
+        public double Lat { get; set; }
+        public double Lng { get; set; }
+    }
 }

@@ -1,5 +1,6 @@
 {
   "searchableAttributes": [
+    "status",
     "title",
     "city_name",
     "district_name",
@@ -17,8 +18,7 @@
     "max_guests",
     "amenities",
     "host_name",
-    "is_deleted",
-    "status"
+    "is_deleted"
   ],
   "sortableAttributes": [
     "price_per_night",

@@ -70,6 +70,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             if (roomList != null)
             {
                 roomList.IsDeleted = true;
+                roomList.Status = "已刪除";
                 roomList.UpdatedAt = DateTime.UtcNow;
                 _writeRepository.Update(roomList);
                 await _writeRepository.SaveChangesAsync();
