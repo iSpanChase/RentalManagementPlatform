@@ -30,6 +30,9 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
                     case "UserAge":
                         inserted += await EvaluateUserAgeAsync(rule, now, ct);
                         break;
+                    case "RoomAverageRating":
+                        inserted += await EvaluateRoomAverageRatingAsync(rule, now, ct);
+                        break;
                 }
             }
 
@@ -42,10 +45,10 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
             // 用原生 SQL 算歲數（最準確）
             var rows = await _context.Users
                 .Where(u => u.BirthDate != null)
-                .Select(u => new UserAgeRow
+                .Select(u => new Row
                 {
                     TargetId = u.UserId,
-                    Age = (now.Year - u.BirthDate.Year)
+                    Value = (now.Year - u.BirthDate.Year)
                                     - ((u.BirthDate.Month > now.Month) ||
                                             (u.BirthDate.Month == now.Month && u.BirthDate.Day > now.Day)
                                         ? 1 : 0
@@ -53,12 +56,32 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
                 })
                 .AsNoTracking()
                 .ToListAsync(ct);
+            return await CheckAbnormal(rule, now, rows, ct);
+        }
 
+        private async Task<int> EvaluateRoomAverageRatingAsync(AnomalyRule rule, DateTime now, CancellationToken ct)
+        {
+            var rows = await _context.Reviews
+                .Where(x => x.Rating != null)
+                .GroupBy(x => x.RoomId)
+                .Select(x => new Row()
+                {
+                    TargetId = x.Key.Value,
+                    Value = (decimal)x.Select(r => r.Rating).Average().Value,
+                })
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return await CheckAbnormal(rule, now, rows, ct);
+        }
+
+        private async Task<int> CheckAbnormal(AnomalyRule rule, DateTime now, List<Row> rows, CancellationToken ct)
+        {
             int inserted = 0;
             var eventsToBroadcast = new List<object>();
             foreach (var r in rows)
             {
-                var value = (decimal)r.Age;
+                var value = (decimal)r.Value;
 
                 // 取最近一筆事件（沒有就 null）
                 string? last = await _context.AnomalyDetectionLogs
@@ -88,7 +111,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
                         {
                             type = isAbnormal ? "ALERT" : "RECOVER",
                             ruleId = rule.RuleId,
-                            ruleName = rule.RuleName,     // 親和一點
+                            ruleName = rule.RuleName,
                             targetId = r.TargetId,
                             value,
                             expected = rule.ThresholdValue,
@@ -121,11 +144,10 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
             _ => false
         };
 
-        // Keyless 映射（年齡查詢結果）
-        public class UserAgeRow
+        public class Row
         {
             public int TargetId { get; set; }
-            public int Age { get; set; }
+            public decimal Value { get; set; }
         }
     }
 }
