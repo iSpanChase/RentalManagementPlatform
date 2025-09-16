@@ -109,29 +109,29 @@
                     <!-- 第二行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">開始日期起</label>
-                        <input type="date" name="StartDateFrom" class="form-control" value="@(Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="StartDateFrom" class="form-control" placeholder="選擇開始日期" value="@(Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">開始日期迄</label>
-                        <input type="date" name="StartDateTo" class="form-control" value="@(Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="StartDateTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">建立時間起</label>
-                        <input type="date" name="CreatedAtFrom" class="form-control" value="@(Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CreatedAtFrom" class="form-control" placeholder="選擇建立開始日期" value="@(Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">建立時間迄</label>
-                        <input type="date" name="CreatedAtTo" class="form-control" value="@(Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CreatedAtTo" class="form-control" placeholder="選擇建立結束日期" value="@(Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <!-- 第三行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">下次計費起</label>
-                        <input type="date" name="NextBillingDateFrom" class="form-control" value="@(Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="NextBillingDateFrom" class="form-control" placeholder="選擇計費開始日期" value="@(Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">下次計費迄</label>
-                        <input type="date" name="NextBillingDateTo" class="form-control" value="@(Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="NextBillingDateTo" class="form-control" placeholder="選擇計費結束日期" value="@(Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序欄位</label>
@@ -206,33 +206,33 @@
                         <tbody>
                             @if (Model.HostSubscriptions != null && Model.HostSubscriptions.Any())
                             {
-                                @foreach (var item in Model.HostSubscriptions)
-                                    {
-                                        <tr>
-                                            <td>@index</td>
-                                            <td>@item.HostName</td>
-                                            <td>@item.DisplayName</td>
-                                            <td>@item.StartDate?.ToString("yyyy-MM-dd")</td>
-                                            <td>@item.NextBillingDate?.ToString("yyyy-MM-dd")</td>
-                                            <td>@(item.CancelAtPeriodEnd == true ? "是" : item.CancelAtPeriodEnd == false ? "否" : "未設定")</td>
-                                            <td>
-                                                <span class="badge py-2 px-3 @(item.Status?.ToLower() == "active" ? "bg-success" :
-                                                                               item.Status?.ToLower() == "canceled" ? "bg-secondary" : "bg-light text-dark")">
-                                                                             @item.DisplayStatus
-                                                </span>
-                                            </td>
-                                            <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
-                                            <td>
-                                                <button class="btn btn-primary btn-detail" data-id="@item.HostSubId">查看</button>
-                                            </td>
-                                        </tr>
-                                        index++;
-                                    }
+                                foreach (var item in Model.HostSubscriptions)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@Html.DisplayFor(_ => item.HostName)</td>
+                                        <td>@Html.DisplayFor(_ => item.DisplayName)</td>
+                                        <td>@Html.DisplayFor(_ => item.StartDate)</td>
+                                        <td>@Html.DisplayFor(_ => item.NextBillingDate)</td>
+                                        <td>@Html.DisplayFor(_ => item.DisplayCancelAtPeriodEnd)</td>
+                                        <td>
+                                            <span class="badge py-2 px-3 @(item.Status?.ToLower() == "active" ? "bg-success" :
+                                                                           item.Status?.ToLower() == "canceled" ? "bg-secondary" : "bg-light text-dark")">
+                                                                         @Html.DisplayFor(_ => item.DisplayStatus)
+                                            </span>
+                                        </td>
+                                        <td>@Html.DisplayFor(_ => item.CreatedAt)</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.HostSubId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
+                                }
                             }
                             else
                             {
                                 <tr>
-                                    <td colspan="7">目前沒有訂閱資料</td>
+                                    <td colspan="9" class="text-center text-muted py-4">目前沒有訂閱資料</td>
                                 </tr>
                             }
                         </tbody>
