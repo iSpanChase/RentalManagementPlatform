@@ -31,25 +31,11 @@ using RentalManagementPlatformMVC.Repositories.PointRules;
 using RentalManagementPlatformMVC.Repositories.SubscriptionPlans;
 using RentalManagementPlatformMVC.Repositories.Payments;
 using RentalManagementPlatformMVC.Repositories.Bookings;
-using RentalManagementPlatformMVC.Services;
-using RentalManagementPlatformMVC.Services.Interfaces;
 using RentalManagementPlatformMVC.Services.PointRules;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
-using RentalManagementPlatformMVC.CommonRepos;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
-using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
-using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
-using RentalManagementPlatformMVC.Areas.Auth.Services;
-using RentalManagementPlatformMVC.Areas.Auth.Data;
-using RentalManagementPlatformMVC.Areas.Auth.Repositories;
-using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Services;
-using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Repository;
-using RentalManagementPlatformMVC.Areas.Room_List.Services;
+
 
 namespace RentalManagementPlatformMVC
 {
