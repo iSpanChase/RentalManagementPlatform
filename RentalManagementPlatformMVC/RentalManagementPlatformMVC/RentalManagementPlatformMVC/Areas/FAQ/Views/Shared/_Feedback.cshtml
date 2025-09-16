@@ -1,0 +1,21 @@
+﻿<div class="card p-3">
+    <div class="row g-2">
+        <div class="col-md-6">
+            <label class="form-label">依文章篩選（可選）</label>
+            <select id="feedbackArticleFilter" class="form-select"></select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button id="btnReloadFeedback" class="btn btn-outline-primary w-100">重新載入</button>
+        </div>
+    </div>
+
+    <hr />
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr><th>ID</th><th>文章</th><th>使用者</th><th>回饋</th><th>原因</th><th>Email</th><th>建立時間</th><th>操作</th></tr>
+            </thead>
+            <tbody id="feedbackList"></tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,124 @@
+﻿@model RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels.HostSubscriptionDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">訂閱詳細資料</div>
+        <div class="text-secondary small">
+            @Html.DisplayNameFor(m => m.HostSubId)：<span class="fw-semibold">@Html.DisplayFor(m => m.HostSubId)</span>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+        <!-- 左半：訂閱基本資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-calendar2-week me-1"></i> 訂閱資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.StartDate)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.StartDate)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.NextBillingDate)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.NextBillingDate)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Status)</div>
+                    <div class="col-7">
+                        <span class="badge rounded-pill @(Model.Status?.ToLower() == "active" ? "bg-success" :
+                                                          Model.Status?.ToLower() == "canceled" ? "bg-warning text-dark" :
+                                                          Model.Status?.ToLower() == "expired" ? "bg-danger" : "bg-secondary")">
+                                                        @Html.DisplayFor(m => m.DisplayStatus)
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CancelAtPeriodEnd)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.DisplayCancelAtPeriodEnd)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CreatedAt)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.CreatedAt)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：房東與方案資訊 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-person-badge me-1"></i> 房東與方案
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.HostName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.HostName)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PlanName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.PlanName)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.HostId)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.HostId)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PlanId)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.PlanId)</div>
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-receipt me-1"></i> 帳單紀錄
+                </div>
+
+                @if (Model.Billings == null || !Model.Billings.Any())
+                {
+                    <div class="small text-muted">尚無帳單紀錄</div>
+                }
+                else
+                {
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered table-striped text-center align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width:15%">@Html.DisplayNameFor(m => m.Billings.First().BillId)</th>
+                                    <th style="width:20%">@Html.DisplayNameFor(m => m.Billings.First().Amount)</th>
+                                    <th style="width:15%">@Html.DisplayNameFor(m => m.Billings.First().PaidStatus)</th>
+                                    <th style="width:25%">@Html.DisplayNameFor(m => m.Billings.First().PaidAt)</th>
+                                    <th style="width:25%">@Html.DisplayNameFor(m => m.Billings.First().CreatedAt)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var billing in Model.Billings)
+                                {
+                                    <tr>
+                                        <td>@Html.DisplayFor(_ => billing.BillId)</td>
+                                        <td class="fw-medium">@Html.DisplayFor(_ => billing.Amount)</td>
+                                        <td>
+                                            <span class="badge rounded-pill @(billing.PaidStatus?.ToLower() == "paid" ? "bg-success" :
+                                                                                                                                billing.PaidStatus?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                                                                                billing.PaidStatus?.ToLower() == "overdue" ? "bg-danger" :
+                                                                                                                                billing.PaidStatus?.ToLower() == "failed" ? "bg-danger" :
+                                                                                                                                "bg-secondary")">
+                                        @Html.DisplayFor(_ => billing.DisplayPaidStatus)
+                                    </span>
+                                </td>
+                                <td>@Html.DisplayFor(_ => billing.PaidAt)</td>
+                                <td>@Html.DisplayFor(_ => billing.CreatedAt)</td>
+                            </tr>
+                                                        }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>

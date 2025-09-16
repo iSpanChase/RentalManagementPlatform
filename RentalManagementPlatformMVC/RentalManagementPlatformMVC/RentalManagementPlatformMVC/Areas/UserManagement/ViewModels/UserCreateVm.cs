@@ -16,7 +16,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.ViewModels
 		[Required, MinLength(8)]
 		public string PasswordHash { get; set; } = null!;
 		public string Gender { get; set; }
-		public DateTime BirthDate { get; set; }
+		public DateTime BirthDate { get; set; } = DateTime.Today;
 		[MaxLength(50)] public string? Phone { get; set; }
 		[MaxLength(512)] public string Address { get; set; }
 		public int? Point { get; set; }

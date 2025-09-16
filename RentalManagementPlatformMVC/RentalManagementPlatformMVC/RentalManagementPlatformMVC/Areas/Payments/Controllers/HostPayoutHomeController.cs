@@ -3,8 +3,8 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Payments.ViewModels;
-using RentalManagementPlatformMVC.DTOs;
-using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.DTOs.Payments;
+using RentalManagementPlatformMVC.Services.Payments;
 using System.Text;
 
 namespace RentalManagementPlatformMVC.Areas.Payments.Controllers

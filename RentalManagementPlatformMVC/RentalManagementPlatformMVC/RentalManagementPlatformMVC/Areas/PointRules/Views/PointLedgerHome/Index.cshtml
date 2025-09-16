@@ -1,0 +1,366 @@
+﻿@model RentalManagementPlatformMVC.Areas.PointRules.ViewModels.PointLedgerIndexViewModel
+
+@{
+    ViewData["Title"] = "點數方案管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 序號計算
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+    int range = 2; // 頁碼範圍
+
+    // 將目前條件轉為 Dictionary<string, string?>，供分頁/排序連結沿用
+    var routeBase = new Dictionary<string, string?>
+    {
+        ["GuestId"] = Model.Criteria?.GuestId?.ToString(),
+        ["GuestName"] = Model.Criteria?.GuestName,
+        ["OrderNumberSnapshot"] = Model.Criteria?.OrderNumberSnapshot,
+        ["Type"] = Model.Criteria?.Type,
+        ["PointsFrom"] = Model.Criteria?.PointsFrom?.ToString(),
+        ["PointsTo"] = Model.Criteria?.PointsTo?.ToString(),
+        ["OccurredAtFrom"] = Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd"),
+        ["OccurredAtTo"] = Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd"),
+        ["ExpiresAtFrom"] = Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd"),
+        ["ExpiresAtTo"] = Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd"),
+        ["Note"] = Model.Criteria?.Note,
+        ["IsExpired"] = Model.Criteria?.IsExpired?.ToString().ToLower(),
+        ["SortBy"] = Model.Criteria?.SortBy,
+        ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
+    };
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">點數方案管理</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "rule" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointRuleHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-plus-square"></i>  方案創建
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "ledger" ? "active" : "")"
+                   asp-area="PointRules"
+                   asp-controller="PointLedgerHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-coins"></i> 點數查看
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+
+        <!-- 搜尋條件卡片 Start -->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <!-- 確保查詢時回到第一頁 -->
+                    <input type="hidden" name="pageIndex" value="1" />
+                    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
+                    <!-- 第一行 -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">房客姓名</label>
+                        <input name="GuestName" class="form-control" placeholder="輸入房客姓名關鍵字" value="@(Model.Criteria?.GuestName ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">訂單號碼</label>
+                        <input name="OrderNumberSnapshot" class="form-control" placeholder="輸入訂單號碼" value="@(Model.Criteria?.OrderNumberSnapshot ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">點數類型</label>
+                        <select name="Type" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="EARN" selected="@(Model.Criteria?.Type == "EARN" ? "selected" : null)">獲得</option>
+                            <option value="REDEEM" selected="@(Model.Criteria?.Type == "REDEEM" ? "selected" : null)">兌換</option>
+                            <option value="EXPIRE" selected="@(Model.Criteria?.Type == "EXPIRE" ? "selected" : null)">過期</option>
+                            <option value="REFUND" selected="@(Model.Criteria?.Type == "REFUND" ? "selected" : null)">退款</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">過期狀態</label>
+                        <select name="IsExpired" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="false" selected="@(Model.Criteria?.IsExpired == false ? "selected" : null)">有效</option>
+                            <option value="true" selected="@(Model.Criteria?.IsExpired == true ? "selected" : null)">已過期</option>
+                        </select>
+                    </div>
+
+                    <!-- 第二行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">發生時間起</label>
+                        <input type="date" name="OccurredAtFrom" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.OccurredAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">發生時間迄</label>
+                        <input type="date" name="OccurredAtTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.OccurredAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">到期時間起</label>
+                        <input type="date" name="ExpiresAtFrom" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.ExpiresAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">到期時間迄</label>
+                        <input type="date" name="ExpiresAtTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.ExpiresAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <!-- 第三行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序欄位</label>
+                        <select name="SortBy" class="form-select">
+                            <option value="OccurredAt" selected="@(Model.Criteria?.SortBy == "OccurredAt" ? "selected" : null)">發生時間</option>
+                            <option value="LedgerId" selected="@(Model.Criteria?.SortBy == "LedgerId" ? "selected" : null)">帳本編號</option>
+                            <option value="GuestName" selected="@(Model.Criteria?.SortBy == "GuestName" ? "selected" : null)">房客姓名</option>
+                            <option value="Type" selected="@(Model.Criteria?.SortBy == "Type" ? "selected" : null)">點數類型</option>
+                            <option value="Points" selected="@(Model.Criteria?.SortBy == "Points" ? "selected" : null)">點數</option>
+                            <option value="ExpiresAt" selected="@(Model.Criteria?.SortBy == "ExpiresAt" ? "selected" : null)">到期時間</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序方式</label>
+                        <select name="IsDescending" class="form-select">
+                            <option value="true" selected="@(Model.Criteria?.IsDescending == true ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@(Model.Criteria?.IsDescending == false ? "selected" : null)">升冪（舊→新 / 低→高）</option>
+                        </select>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="col-12 col-md-6 d-flex align-items-end justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-magnifying-glass"></i> 搜尋
+                        </button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right"></i> 重設
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 搜尋條件卡片 End -->
+
+        <!-- 訂閱列表卡片 Start -->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">房客點數列表</h3>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- 資料統計 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">@Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">顯示第 @startRecord - @endRecord 筆</span>
+                    </div>
+                </div>
+
+                <!-- 資料表格 -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light text-center align-middle">
+                            <tr>
+                                <th style="width: 6%;">序號</th>
+                                <th style="width: 18%;">@Html.DisplayNameFor(model => model.PointLedgers.First().GuestName)</th>
+                                <th style="width: 15%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OrderNumberSnapshot)</th>
+                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.PointLedgers.First().TypeDisplay)</th>
+                                <th style="width: 10%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Points)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().OccurredAt)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().ExpiresAt)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.PointLedgers.First().Note)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.PointLedgers != null && Model.PointLedgers.Any())
+                            {
+                                foreach (var item in Model.PointLedgers)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@Html.DisplayFor(_ => item.GuestName)</td>
+                                        <td>@Html.DisplayFor(_ => item.OrderNumberSnapshot)</td>
+                                        <td>@Html.DisplayFor(_ => item.TypeDisplay)</td>
+                                        <td>@Html.DisplayFor(_ => item.Points)</td>
+                                        <td>@Html.DisplayFor(_ => item.OccurredAt)</td>
+                                        <td>@Html.DisplayFor(_ => item.ExpiresAt)</td>
+                                        <td>@Html.DisplayFor(_ => item.Note)</td>
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">目前沒有點數紀錄</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">第 @currentPage 頁，共 @totalPages 頁</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
+                           asp-action="ExportExcel"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
+                            匯出 Excel
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="PointRules"
+                           asp-controller="PointLedgerHome"
+                           asp-action="ExportCsv"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
+                            匯出 CSV
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3"
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁器 (僅在需要時顯示) -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="PointRules"
+                                   asp-controller="PointLedgerHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="PointRules"
+                                       asp-controller="PointLedgerHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@totalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="PointRules"
+                                   asp-controller="PointLedgerHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+

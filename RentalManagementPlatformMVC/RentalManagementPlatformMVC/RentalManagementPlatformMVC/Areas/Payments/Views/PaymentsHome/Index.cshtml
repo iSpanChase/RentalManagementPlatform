@@ -97,15 +97,15 @@
                     <!-- 第一行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂單編號</label>
-                        <input name="OrderNumber" class="form-control" value="@(Model.Criteria?.OrderNumber ?? "")" />
+                        <input name="OrderNumber" class="form-control" placeholder="例如：ORD20241201001" value="@(Model.Criteria?.OrderNumber ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">平台付款編號</label>
-                        <input name="PaymentRef" class="form-control" value="@(Model.Criteria?.PaymentRef ?? "")" />
+                        <input name="PaymentRef" class="form-control" placeholder="例如：PAY20241201001" value="@(Model.Criteria?.PaymentRef ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">交易參考號</label>
-                        <input name="TransactionRef" class="form-control" value="@(Model.Criteria?.TransactionRef ?? "")" />
+                        <input name="TransactionRef" class="form-control" placeholder="輸入第三方交易參考號" value="@(Model.Criteria?.TransactionRef ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">狀態</label>
@@ -121,29 +121,29 @@
                     <!-- 第二行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂房姓名</label>
-                        <input name="GuestName" class="form-control" value="@(Model.Criteria?.GuestName ?? "")" />
+                        <input name="GuestName" class="form-control" placeholder="輸入房客姓名" value="@(Model.Criteria?.GuestName ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">房間名稱</label>
-                        <input name="RoomTitle" class="form-control" placeholder="輸入房名關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
+                        <input name="RoomTitle" class="form-control" placeholder="輸入房間名稱關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款起</label>
-                        <input type="date" name="PaidStartDate" class="form-control" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidStartDate" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款迄</label>
-                        <input type="date" name="PaidEndDate" class="form-control" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidEndDate" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <!-- 第三行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
-                        <input type="number" name="MinAmount" class="form-control" step="1" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                        <input type="number" name="MinAmount" class="form-control" step="1" placeholder="例如：1000" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
-                        <input type="number" name="MaxAmount" class="form-control" step="1" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                        <input type="number" name="MaxAmount" class="form-control" step="1" placeholder="例如：50000" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序欄位</label>
@@ -166,12 +166,12 @@
 
                     <!-- 按鈕 -->
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass me-1"></i>搜尋</button>
                         <a class="btn btn-outline-secondary"
                            asp-area="Payments"
                            asp-controller="PaymentsHome"
                            asp-action="Index">
-                            <i class="fa-solid fa-rotate-right"></i>重設
+                            <i class="fa-solid fa-rotate-right me-1"></i>重設
                        </a>
                     </div>
                 </form>
@@ -203,13 +203,13 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>序號</th>
-                                <th>訂單編號</th>
-                                <th>訂單金額</th>
-                                <th>平台付款編號</th>
-                                <th>付款方式</th>
-                                <th>付款時間</th>
-                                <th>狀態</th>
-                                <th>建立時間</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().OrderNumberSnapshot)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().Amount)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaymentRef)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayMethod)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaidAt)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayStatus)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().CreatedAt)</th>
                                 <th>詳細</th>
                             </tr>
                         </thead>
@@ -220,19 +220,25 @@
                                 {
                                     <tr>
                                         <td>@index</td>
-                                        <td>@item.OrderNumberSnapshot</td>
-                                        <td>NT$ @item.Amount?.ToString("N0")</td>
-                                        <td>@item.PaymentRef</td>
-                                        <td>@item.DisplayMethod</td>
-                                        <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@Html.DisplayFor(m => item.OrderNumberSnapshot)</td>
+                                        <td>
+                                            @if (item.Amount.HasValue)
+                                            {
+                                                @($"NT$ {item.Amount.Value:N0}")
+                                            }
+                                        </td>
+                                        <td>@Html.DisplayFor(m => item.PaymentRef)</td>
+                                        <td>@Html.DisplayFor(m => item.DisplayMethod)</td>
+                                        <td>@Html.DisplayFor(m => item.PaidAt)</td>
                                         <td>
                                             <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
                                                                            item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
                                                                            item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">@item.DisplayStatus
+                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
+                                                                         @Html.DisplayFor(m => item.DisplayStatus)
                                             </span>
                                         </td>
-                                        <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@Html.DisplayFor(m => item.CreatedAt)</td>
                                         <td>
                                             <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
                                         </td>
@@ -276,6 +282,13 @@
                             <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
                     </div>
                 </div>
             </div>

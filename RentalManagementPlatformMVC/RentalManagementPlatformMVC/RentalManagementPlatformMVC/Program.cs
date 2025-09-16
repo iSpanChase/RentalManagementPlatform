@@ -1,24 +1,34 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
-using RentalManagementPlatformMVC.Areas.Management.Repository;
-using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Services;
-using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
-using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
-using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
-using RentalManagementPlatformMVC.CommonRepos;
+using Meilisearch;
 using RentalManagementPlatformMVC.Data;
+using RentalManagementPlatformMVC.Mappings;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
-using RentalManagementPlatformMVC.Services.Interfaces;
+using RentalManagementPlatformMVC.Repositories.PointRules;
+using RentalManagementPlatformMVC.Repositories.SubscriptionPlans;
+using RentalManagementPlatformMVC.Repositories.Payments;
+using RentalManagementPlatformMVC.Repositories.Bookings;
 using RentalManagementPlatformMVC.Services;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.Services.Interfaces;
+using RentalManagementPlatformMVC.Services.PointRules;
+using RentalManagementPlatformMVC.Services.SubscriptionPlans;
+using RentalManagementPlatformMVC.Services.Payments;
+using RentalManagementPlatformMVC.Services.Bookings;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
+using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.Auth.Services;
+using RentalManagementPlatformMVC.Areas.Auth.Data;
+using RentalManagementPlatformMVC.Areas.Auth.Repositories;
+using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Services;
+using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Repository;
 using RentalManagementPlatformMVC.Areas.Room_List.Services;
 using Meilisearch;
 using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
@@ -33,7 +43,7 @@ namespace RentalManagementPlatformMVC
 
 
 			// Identity 用的 Context（連線字串用 DefaultConnection）
-			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+			// builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
 
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -48,12 +58,12 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
 
-      // Meilisearch Client and Service registration
-      builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			// Meilisearch Client and Service registration
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
       builder.Services.AddScoped<MeilisearchService>();
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-
+			//註冊Context類別，並給予對應資料庫的連線方式
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
@@ -64,12 +74,27 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
 			builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
 
+			builder.Services.AddScoped<IAuthService, AuthService>();
+
+			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+			builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();
+
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
 			builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 			builder.Services.AddScoped<IPaymentService, PaymentService>();
 			builder.Services.AddScoped<IHostPayoutRepository, HostPayoutRepository>();
 			builder.Services.AddScoped<IHostPayoutService, HostPayoutService>();
+			builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+			builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+			builder.Services.AddScoped<IHostSubscriptionRepository, HostSubscriptionRepository>();
+			builder.Services.AddScoped<IHostSubscriptionService, HostSubscriptionService>();
+			builder.Services.AddScoped<IPointRuleRepository, PointRuleRepository>();
+			builder.Services.AddScoped<IPointRuleService, PointRuleService>();
+			builder.Services.AddScoped<IPointLedgerRepository, PointLedgerRepository>();
+			builder.Services.AddScoped<IPointLedgerService, PointLedgerService>();
+
+			builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
 
 
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
@@ -120,8 +145,8 @@ namespace RentalManagementPlatformMVC
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
 
             app.UseRouting();
 

@@ -181,6 +181,21 @@
                 </ul>
             </li>
             <!--end::User Menu Dropdown-->
+            <!--begin::Logout--><!--這一區是廷翊新增的登入/登出按鈕，整合時請勿刪除-->
+            <li class="nav-item">
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <form class="d-inline" method="post" asp-area="Auth" asp-controller="Auth" asp-action="Logout">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-secondary">登出</button>
+                    </form>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-primary" asp-area="Auth" asp-controller="Auth" asp-action="Login">登入</a>
+                }
+            </li>
+            <!--end::Logout--><!--這一區是廷翊新增的登入/登出按鈕，整合時請勿刪除-->
         </ul>
         <!--end::End Navbar Links-->
     </div>

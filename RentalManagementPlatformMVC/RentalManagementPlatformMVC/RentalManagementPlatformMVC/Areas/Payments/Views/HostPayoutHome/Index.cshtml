@@ -93,15 +93,15 @@
                     <!-- 第一行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">房東姓名</label>
-                        <input name="HostName" class="form-control" value="@(Model.Criteria?.HostName ?? "")" />
+                        <input name="HostName" class="form-control" placeholder="請輸入房東姓名" value="@(Model.Criteria?.HostName ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">週期起始</label>
-                        <input type="date" name="CycleStart" class="form-control" value="@(Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CycleStart" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.CycleStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">週期結束</label>
-                        <input type="date" name="CycleEnd" class="form-control" value="@(Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="CycleEnd" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.CycleEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">狀態</label>
@@ -117,19 +117,19 @@
                     <!-- 第二行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款起</label>
-                        <input type="date" name="PaidStartDate" class="form-control" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidStartDate" class="form-control" placeholder="選擇付款起始日期" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款迄</label>
-                        <input type="date" name="PaidEndDate" class="form-control" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidEndDate" class="form-control" placeholder="選擇付款結束日期" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
-                        <input type="number" name="MinAmount" class="form-control" step="1" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                        <input type="number" name="MinAmount" class="form-control" step="1" placeholder="輸入最低金額" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
-                        <input type="number" name="MaxAmount" class="form-control" step="1" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                        <input type="number" name="MaxAmount" class="form-control" step="1" placeholder="輸入最高金額" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
                     </div>
 
                     <!-- 第三行 -->
@@ -152,14 +152,16 @@
                         </select>
                     </div>
 
-                    <!-- 按鈕 -->
-                    <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                    <!-- 按鈕區域 -->
+                    <div class="col-12 col-md-6 d-flex align-items-end justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>搜尋
+                        </button>
                         <a class="btn btn-outline-secondary"
                            asp-area="Payments"
                            asp-controller="HostPayoutHome"
                            asp-action="Index">
-                            <i class="fa-solid fa-rotate-right"></i>重設
+                            <i class="fa-solid fa-rotate-right me-1"></i>重設
                         </a>
                     </div>
                 </form>
@@ -174,7 +176,6 @@
             </div>
 
             <div class="card-body p-0">
-
                 <!-- 資料統計 -->
                 <div class="d-flex justify-content-between align-items-center px-3 py-2">
                     <div>
@@ -263,6 +264,13 @@
                             <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -367,7 +375,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
+                    <h5 class="modal-title" id="detailModalLabel">撥款詳細資料</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="modal-detail-content">

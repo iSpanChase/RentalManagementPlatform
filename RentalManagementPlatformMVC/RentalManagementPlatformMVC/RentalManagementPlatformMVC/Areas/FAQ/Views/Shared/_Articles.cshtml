@@ -1,0 +1,36 @@
+﻿<div class="card p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">子分類</label>
+            <select id="childDropdown" class="form-select"></select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">文章標題</label>
+            <input id="articleTitle" class="form-control" />
+            <input id="articleId" type="hidden" />
+        </div>
+        <div class="col-md-3">
+            <div class="mb-2">
+                <label class="form-label">文章狀態</label>
+                <select id="articleStatus" class="form-select">
+                    <option value="draft">草稿</option>
+                    <option value="published">發佈</option>
+                    <option value="archived">封存</option>
+                </select>
+            </div>
+            <button id="btnSaveArticle" class="btn btn-primary w-100">新增/更新</button>
+        </div>
+        <div class="col-12">
+            <label class="form-label mt-2">內容</label>
+            <textarea id="articleContent" class="form-control" rows="6"></textarea>
+        </div>
+    </div>
+
+    <hr />
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead><tr><th>ID</th><th>子分類</th><th>標題</th><th>啟用</th><th>操作</th></tr></thead>
+            <tbody id="articleList"></tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,417 @@
+﻿@model RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels.HostSubscriptionIndexViewModel
+
+@{
+    ViewData["Title"] = "訂閱方案管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 序號計算
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+    int range = 2; // 頁碼範圍
+
+    // 將目前條件轉為 Dictionary<string, string?>，供分頁/排序連結沿用
+    var routeBase = new Dictionary<string, string?>
+    {
+        ["HostId"] = Model.Criteria?.HostId?.ToString(),
+        ["PlanId"] = Model.Criteria?.PlanId?.ToString(),
+        ["Status"] = Model.Criteria?.Status,
+        ["StartDateFrom"] = Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd"),
+        ["StartDateTo"] = Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd"),
+        ["CreatedAtFrom"] = Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd"),
+        ["CreatedAtTo"] = Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd"),
+        ["NextBillingDateFrom"] = Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd"),
+        ["NextBillingDateTo"] = Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd"),
+        ["HostName"] = Model.Criteria?.HostName,
+        ["PlanName"] = Model.Criteria?.PlanName,
+        ["SortBy"] = Model.Criteria?.SortBy,
+        ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
+    };
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">訂閱方案管理</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "plan" ? "active" : "")"
+                   asp-area="SubscriptionPlan"
+                   asp-controller="SubscriptionPlanHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-plus-square"></i>  方案創建
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="SubscriptionPlan"
+                   asp-controller="HostSubscriptionHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-crown"></i> 訂閱查看
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+
+        <!-- 搜尋條件卡片 Start -->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <!-- 確保查詢時回到第一頁 -->
+                    <input type="hidden" name="pageIndex" value="1" />
+                    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
+                    <!-- 第一行 -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">房東姓名</label>
+                        <input name="HostName" class="form-control" placeholder="輸入房東姓名關鍵字" value="@(Model.Criteria?.HostName ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">狀態</label>
+                        <select name="Status" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="active" selected="@(Model.Criteria?.Status == "active" ? "selected" : null)">啟用中</option>
+                            <option value="canceled" selected="@(Model.Criteria?.Status == "canceled" ? "selected" : null)">已取消</option>
+                            <option value="expired" selected="@(Model.Criteria?.Status == "expired" ? "selected" : null)">已到期</option>
+                        </select>
+                    </div>
+
+                    <!-- 第二行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">開始日期起</label>
+                        <input type="date" name="StartDateFrom" class="form-control" placeholder="選擇開始日期" value="@(Model.Criteria?.StartDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">開始日期迄</label>
+                        <input type="date" name="StartDateTo" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.StartDateTo?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">建立時間起</label>
+                        <input type="date" name="CreatedAtFrom" class="form-control" placeholder="選擇建立開始日期" value="@(Model.Criteria?.CreatedAtFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">建立時間迄</label>
+                        <input type="date" name="CreatedAtTo" class="form-control" placeholder="選擇建立結束日期" value="@(Model.Criteria?.CreatedAtTo?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+
+                    <!-- 第三行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">下次計費起</label>
+                        <input type="date" name="NextBillingDateFrom" class="form-control" placeholder="選擇計費開始日期" value="@(Model.Criteria?.NextBillingDateFrom?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">下次計費迄</label>
+                        <input type="date" name="NextBillingDateTo" class="form-control" placeholder="選擇計費結束日期" value="@(Model.Criteria?.NextBillingDateTo?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序欄位</label>
+                        <select name="SortBy" class="form-select">
+                            <option value="CreatedAt" selected="@(Model.Criteria?.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
+                            <option value="HostSubId" selected="@(Model.Criteria?.SortBy == "HostSubId" ? "selected" : null)">訂閱編號</option>
+                            <option value="HostName" selected="@(Model.Criteria?.SortBy == "HostName" ? "selected" : null)">房東姓名</option>
+                            <option value="PlanName" selected="@(Model.Criteria?.SortBy == "PlanName" ? "selected" : null)">方案名稱</option>
+                            <option value="StartDate" selected="@(Model.Criteria?.SortBy == "StartDate" ? "selected" : null)">開始日期</option>
+                            <option value="NextBillingDate" selected="@(Model.Criteria?.SortBy == "NextBillingDate" ? "selected" : null)">下次計費日期</option>
+                            <option value="Status" selected="@(Model.Criteria?.SortBy == "Status" ? "selected" : null)">狀態</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序方式</label>
+                        <select name="IsDescending" class="form-select">
+                            <option value="true" selected="@(Model.Criteria?.IsDescending == true ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@(Model.Criteria?.IsDescending == false ? "selected" : null)">升冪（舊→新 / 低→高）</option>
+                        </select>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="col-12 col-md-6 d-flex align-items-end justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-magnifying-glass"></i> 搜尋
+                        </button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="SubscriptionPlan"
+                           asp-controller="HostSubscriptionHome"
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right"></i> 重設
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 搜尋條件卡片 End -->
+
+        <!-- 訂閱列表卡片 Start -->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">訂閱房東列表</h3>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- 資料統計 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">@Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">顯示第 @startRecord - @endRecord 筆</span>
+                    </div>
+                </div>
+
+                <!-- 資料表格 -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light text-center align-middle">
+                            <tr>
+                                <th style="width: 8%;">序號</th>
+                                <th style="width: 11%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().HostName)</th>
+                                <th style="width: 11%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().PlanName)</th>
+                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().StartDate)</th>
+                                <th style="width: 12%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().NextBillingDate)</th>
+                                <th style="width: 15%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().CancelAtPeriodEnd)</th>
+                                <th style="width: 8%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().Status)</th>
+                                <th style="width: 13%;">@Html.DisplayNameFor(model => model.HostSubscriptions.First().CreatedAt)</th>
+                                <th style="width: 10%;">詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.HostSubscriptions != null && Model.HostSubscriptions.Any())
+                            {
+                                foreach (var item in Model.HostSubscriptions)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@Html.DisplayFor(_ => item.HostName)</td>
+                                        <td>@Html.DisplayFor(_ => item.DisplayName)</td>
+                                        <td>@Html.DisplayFor(_ => item.StartDate)</td>
+                                        <td>@Html.DisplayFor(_ => item.NextBillingDate)</td>
+                                        <td>@Html.DisplayFor(_ => item.DisplayCancelAtPeriodEnd)</td>
+                                        <td>
+                                            <span class="badge py-2 px-3 @(item.Status?.ToLower() == "active" ? "bg-success" :
+                                                                           item.Status?.ToLower() == "canceled" ? "bg-secondary" : "bg-light text-dark")">
+                                                                         @Html.DisplayFor(_ => item.DisplayStatus)
+                                            </span>
+                                        </td>
+                                        <td>@Html.DisplayFor(_ => item.CreatedAt)</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.HostSubId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">目前沒有訂閱資料</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">第 @currentPage 頁，共 @totalPages 頁</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="SubscriptionPlan"
+                           asp-controller="HostSubscriptionHome"
+                           asp-action="ExportExcel"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
+                            匯出 Excel
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="SubscriptionPlan"
+                           asp-controller="HostSubscriptionHome"
+                           asp-action="ExportCsv"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
+                            匯出 CSV
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3"
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁器 (僅在需要時顯示) -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="SubscriptionPlan"
+                                   asp-controller="HostSubscriptionHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="SubscriptionPlan"
+                                       asp-controller="HostSubscriptionHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="SubscriptionPlan"
+                                       asp-controller="HostSubscriptionHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="SubscriptionPlan"
+                                       asp-controller="HostSubscriptionHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@totalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="SubscriptionPlan"
+                                   asp-controller="HostSubscriptionHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Modals {
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content" id="modal-detail-content">
+                <!-- AJAX 載入內容 -->
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-detail');
+            if (!btn) return;
+            e.preventDefault();
+
+            const id = btn.dataset.id;
+            const content = document.getElementById('modal-detail-content');
+
+            // 顯示載入中 & 開窗
+            btn.disabled = true;
+            content.innerHTML = '<div class="modal-body text-center py-5"><div class="spinner-border" role="status"></div><div class="mt-2">載入中…</div></div>';
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            try {
+                const url = '@Url.Action("Details", "HostSubscriptionHome", new { area = "SubscriptionPlan" })' + '?id=' + encodeURIComponent(id);
+                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!resp.ok) {
+                    const msg = resp.status === 404 ? '找不到這筆訂閱'
+                            : resp.status === 403 ? '沒有權限檢視'
+                            : `載入失敗（${resp.status}）`;
+                    throw new Error(msg);
+                }
+                const html = await resp.text();
+                content.innerHTML = html; // 部分檢視含 modal-header + modal-body
+            } catch (err) {
+                content.innerHTML = `<div class="modal-body text-danger p-3">${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+}

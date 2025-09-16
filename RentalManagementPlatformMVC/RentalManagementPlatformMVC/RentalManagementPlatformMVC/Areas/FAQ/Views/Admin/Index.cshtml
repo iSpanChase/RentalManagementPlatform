@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "FAQ 後台管理系統";
+    var rvt = (string?)ViewData["RequestVerificationToken"];
+}
+
+<div class="container py-3">
+    <h2 class="mb-3">FAQ 後台管理系統</h2>
+
+    <!-- Token 供 AJAX 使用 -->
+    <meta name="request-verification-token" content="@rvt" />
+
+    <ul class="nav nav-tabs" id="faqTabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-parent">父分類</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-child">子分類</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-article">文章</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-feedback">回饋</a></li>
+    </ul>
+
+    <div class="tab-content pt-3">
+        <div class="tab-pane fade show active" id="tab-parent">
+            @await Html.PartialAsync("_ParentCategory")
+        </div>
+        <div class="tab-pane fade" id="tab-child">
+            @await Html.PartialAsync("_ChildCategory")
+        </div>
+        <div class="tab-pane fade" id="tab-article">
+            @await Html.PartialAsync("_Articles")
+        </div>
+        <div class="tab-pane fade" id="tab-feedback">
+            @await Html.PartialAsync("_Feedback")
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/js/faq-admin.js"></script>
+}

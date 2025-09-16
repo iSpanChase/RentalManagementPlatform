@@ -3,11 +3,11 @@
 <!-- Header -->
 <div class="modal-header border-0">
     <div class="d-flex flex-column">
-        <div class="fs-5 fw-semibold">付款詳細資料</div>
+        <div class="fs-5 fw-semibold">@Html.DisplayNameFor(m => m.PaymentId)</div>
         <div class="text-secondary small">
-            付款編號：<span class="fw-semibold">@Model.PaymentId</span>
+            @Html.DisplayNameFor(m => m.PaymentId)：<span class="fw-semibold">@Html.DisplayFor(m => m.PaymentId)</span>
             <span class="mx-2">|</span>
-            訂單編號：<span class="fw-semibold">@Model.OrderNumberSnapshot</span>
+            @Html.DisplayNameFor(m => m.OrderNumberSnapshot)：<span class="fw-semibold">@Html.DisplayFor(m => m.OrderNumberSnapshot)</span>
         </div>
     </div>
 </div>
@@ -23,33 +23,37 @@
                 </div>
 
                 <div class="row small gy-2">
-                    <div class="col-5 text-secondary">金額</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Amount)</div>
                     <div class="col-7 fw-semibold text-end text-md-start">
-                        NT$ @((Model.Amount?.ToString("N0")) ?? "-")
+                        @{
+                            // 若你已在 ViewModel 用 [DataType(DataType.Currency)]，也可改用：@Html.DisplayFor(m => m.Amount)
+                            var amt = Model.Amount.HasValue ? $"NT$ {Model.Amount.Value:N0}" : "-";
+                        }
+                        @amt
                     </div>
 
-                    <div class="col-5 text-secondary">付款方式</div>
-                    <div class="col-7 fw-medium">@Model.DisplayMethod</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Method)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.DisplayMethod)</div>
 
-                    <div class="col-5 text-secondary">付款時間</div>
-                    <div class="col-7">@((Model.PaidAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PaidAt)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.PaidAt)</div>
 
-                    <div class="col-5 text-secondary">付款參考號</div>
-                    <div class="col-7">@(Model.PaymentRef ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PaymentRef)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.PaymentRef)</div>
 
-                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Status)</div>
                     <div class="col-7">
                         <span class="badge py-2 px-3
                             @(Model.Status?.ToLower() == "paid" ? "bg-success" :
                               Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
                               Model.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
                               Model.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
-                            @Model.DisplayStatus
+                            @Html.DisplayFor(m => m.DisplayStatus)
                         </span>
                     </div>
 
-                    <div class="col-5 text-secondary">建立時間</div>
-                    <div class="col-7">@((Model.PaymentCreatedAt?.ToString("yyyy-MM-dd HH:mm")) ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PaymentCreatedAt)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.PaymentCreatedAt)</div>
                 </div>
             </div>
         </div>
@@ -58,7 +62,7 @@
         <div class="col-12 col-md-6">
             <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted fw-semibold mb-2">
-                    <i class="bi bi-receipt me-1"></i> 交易紀錄
+                    <i class="bi bi-receipt me-1"></i> @Html.DisplayNameFor(m => m.Transactions)
                 </div>
 
                 @if (Model.Transactions == null || !Model.Transactions.Any())
@@ -71,26 +75,26 @@
                         <table class="table table-bordered table-striped text-center align-middle w-100">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width:8%">交易序號</th>
-                                    <th style="width:15%">金流商</th>
-                                    <th style="width:20%">金流商交易編號</th>
-                                    <th style="width:10%">回應代碼</th>
-                                    <th style="width:20%">回應訊息</th>
-                                    <th style="width:15%">交易參考號</th>
-                                    <th style="width:12%">建立時間</th>
+                                    <th style="width:8%">@Html.DisplayNameFor(m => m.Transactions.First().TransactionId)</th>
+                                    <th style="width:15%">@Html.DisplayNameFor(m => m.Transactions.First().Provider)</th>
+                                    <th style="width:20%">@Html.DisplayNameFor(m => m.Transactions.First().ProviderTxnId)</th>
+                                    <th style="width:10%">@Html.DisplayNameFor(m => m.Transactions.First().ResponseCode)</th>
+                                    <th style="width:20%">@Html.DisplayNameFor(m => m.Transactions.First().ResponseMessage)</th>
+                                    <th style="width:15%">@Html.DisplayNameFor(m => m.Transactions.First().TxnRef)</th>
+                                    <th style="width:12%">@Html.DisplayNameFor(m => m.Transactions.First().TransactionCreatedAt)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var txn in Model.Transactions)
                                 {
                                     <tr>
-                                        <td>@txn.TransactionId</td>
-                                        <td>@(txn.Provider ?? "-")</td>
-                                        <td>@(txn.ProviderTxnId ?? "-")</td>
-                                        <td>@(txn.ResponseCode ?? "-")</td>
-                                        <td>@(txn.ResponseMessage ?? "-")</td>
-                                        <td>@(txn.TxnRef ?? "-")</td>
-                                        <td>@(txn.TransactionCreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                        <td>@Html.DisplayFor(_ => txn.TransactionId)</td>
+                                        <td>@Html.DisplayFor(_ => txn.Provider)</td>
+                                        <td>@Html.DisplayFor(_ => txn.ProviderTxnId)</td>
+                                        <td>@Html.DisplayFor(_ => txn.ResponseCode)</td>
+                                        <td>@Html.DisplayFor(_ => txn.ResponseMessage)</td>
+                                        <td>@Html.DisplayFor(_ => txn.TxnRef)</td>
+                                        <td>@Html.DisplayFor(_ => txn.TransactionCreatedAt)</td>
                                     </tr>
                                 }
                             </tbody>
@@ -105,11 +109,11 @@
                 </div>
 
                 <div class="row small gy-2">
-                    <div class="col-5 text-secondary">訂房姓名</div>
-                    <div class="col-7 fw-medium">@(Model.GuestName ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.GuestName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.GuestName)</div>
 
-                    <div class="col-5 text-secondary">房間名稱</div>
-                    <div class="col-7">@(Model.RoomTitle ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.RoomTitle)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.RoomTitle)</div>
                 </div>
             </div>
         </div>
