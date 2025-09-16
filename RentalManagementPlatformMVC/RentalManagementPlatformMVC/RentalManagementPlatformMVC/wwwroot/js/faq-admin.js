@@ -407,25 +407,26 @@
         <td>${f.reason ?? ''}</td>
         <td>${f.contactEmail ?? ''}</td>
         <td>${(f.createdAt || '').toString().replace('T', ' ').substring(0, 19)}</td>
-        <td><button class="btn btn-sm btn-outline-danger" data-act="del-feedback" data-id="${f.faqFeedbackId}">刪除</button></td>`;
+        `;
             tbody.appendChild(tr);
         });
     }
+    //asdf<td><button class="btn btn-sm btn-outline-danger" data-act="del-feedback" data-id="${f.faqFeedbackId}">刪除</button></td>
 
-    document.addEventListener('click', async (e) => {
-        const t = e.target;
-        if (t.matches('#btnReloadFeedback')) {
-            loadFeedback();
-        }
-        if (t.dataset.act === 'del-feedback') {
-            if (confirm('確認刪除此回饋？')) {
-                const id = t.dataset.id;
-                const res = await del(`/FAQ/Admin/Feedback/Delete?id=${id}`);
-                alert(res.message || res.Message);
-                loadFeedback();
-            }
-        }
-    });
+    //document.addEventListener('click', async (e) => {
+    //    const t = e.target;
+    //    if (t.matches('#btnReloadFeedback')) {
+    //        loadFeedback();
+    //    }
+    //    if (t.dataset.act === 'del-feedback') {
+    //        if (confirm('確認刪除此回饋？')) {
+    //            const id = t.dataset.id;
+    //            const res = await del(`/FAQ/Admin/Feedback/Delete?id=${id}`);
+    //            alert(res.message || res.Message);
+    //            loadFeedback();
+    //        }
+    //    }
+    //});
 
     // ===== 頁面初始化 =====
     document.addEventListener('DOMContentLoaded', async () => {
