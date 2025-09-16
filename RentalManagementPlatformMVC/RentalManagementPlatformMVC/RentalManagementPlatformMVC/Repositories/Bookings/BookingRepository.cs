@@ -24,7 +24,7 @@ namespace RentalManagementPlatformMVC.Repositories.Bookings
 		{
 			// 邊界值驗證
 			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
-			pageSize = pageSize <= 0 ? 20 : Math.Min(pageSize, 100); // 限制最大頁面大小為100
+			pageSize = pageSize <= 0 ? 20 : pageSize; // 限制最大頁面大小為100
 
 			var query = _context.Bookings
 				.AsNoTracking()

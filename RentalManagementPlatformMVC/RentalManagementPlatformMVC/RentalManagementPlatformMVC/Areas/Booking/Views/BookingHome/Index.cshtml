@@ -74,7 +74,7 @@
 
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂單編號</label>
-                        <input name="OrderNumber" class="form-control" value="@(Model.Criteria.OrderNumber ?? "")" />
+                        <input name="OrderNumber" class="form-control" placeholder="輸入訂單編號" value="@(Model.Criteria.OrderNumber ?? "")" />
                     </div>
 
                     <div class="col-12 col-md-3">
@@ -91,7 +91,7 @@
 
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂房姓名</label>
-                        <input name="GuestName" class="form-control" value="@(Model.Criteria.GuestName ?? "")" />
+                        <input name="GuestName" class="form-control" placeholder="輸入訂房人姓名" value="@(Model.Criteria.GuestName ?? "")" />
                     </div>
 
                     <div class="col-12 col-md-3">
@@ -102,33 +102,39 @@
                     <div class="col-6 col-md-3">
                         <label class="form-label">入住起</label>
                         <input type="date" name="CheckInStartDate" class="form-control"
+                               placeholder="選擇入住起始日期"
                                value="@(Model.Criteria.CheckInStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">入住迄</label>
                         <input type="date" name="CheckInEndDate" class="form-control"
+                               placeholder="選擇入住結束日期"
                                value="@(Model.Criteria.CheckInEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">退房起</label>
                         <input type="date" name="CheckOutStartDate" class="form-control"
+                               placeholder="選擇退房起始日期"
                                value="@(Model.Criteria.CheckOutStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">退房迄</label>
                         <input type="date" name="CheckOutEndDate" class="form-control"
+                               placeholder="選擇退房結束日期"
                                value="@(Model.Criteria.CheckOutEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
                         <input type="number" name="MinPrice" class="form-control" step="1"
+                               placeholder="輸入最低金額"
                                value="@(Model.Criteria.MinPrice?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
                         <input type="number" name="MaxPrice" class="form-control" step="1"
+                               placeholder="輸入最高金額"
                                value="@(Model.Criteria.MaxPrice?.ToString() ?? "")" />
                     </div>
 
@@ -187,13 +193,13 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>序號</th>
-                                <th>訂單編號</th>
-                                <th>訂房姓名</th>
-                                <th>入住日期</th>
-                                <th>退房日期</th>
-                                <th>總金額</th>
-                                <th>狀態</th>
-                                <th>建立時間</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().OrderNumber)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().GuestName)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().CheckIn)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().CheckOut)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().TotalPrice)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().Status)</th>
+                                <th>@Html.DisplayNameFor(model => model.Bookings.First().CreatedAt)</th>
                                 <th>詳細</th>
                             </tr>
                         </thead>
@@ -204,22 +210,21 @@
                                 {
                                     <tr>
                                         <td>@index</td>
-                                        <td>@item.OrderNumber</td>
-                                        <td>@item.GuestName</td>
-                                        <td>@item.CheckIn?.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.CheckOut?.ToString("yyyy-MM-dd")</td>
-                                        <td>NT$ @item.TotalPrice?.ToString("N0")</td>
+                                        <td>@Html.DisplayFor(m => item.OrderNumber)</td>
+                                        <td>@Html.DisplayFor(m => item.GuestName)</td>
+                                        <td>@Html.DisplayFor(m => item.CheckIn)</td>
+                                        <td>@Html.DisplayFor(m => item.CheckOut)</td>
+                                        <td>@Html.DisplayFor(m => item.TotalPrice)</td>
                                         <td>
                                             <span class="badge py-2 px-3
                                                 @(item.Status?.ToLower() == "confirmed" ? "bg-success" :
-                                                  item.Status?.ToLower() == "pending"   ? "bg-warning text-dark" :
-                                                  item.Status?.ToLower() == "cancelled"  ? "bg-danger" :
-                                                  item.Status?.ToLower() == "completed"  ? "bg-info" :
-                                                  "bg-secondary")">
+                                                  item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                  item.Status?.ToLower() == "cancelled" ? "bg-danger" :
+                                                  item.Status?.ToLower() == "completed" ? "bg-info" : "bg-secondary")">
                                                 @item.DisplayStatus
                                             </span>
                                         </td>
-                                        <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@Html.DisplayFor(m => item.CreatedAt)</td>
                                         <td>
                                             <button class="btn btn-primary btn-detail" data-id="@item.BookingId">查看</button>
                                         </td>
@@ -280,7 +285,9 @@
                             <!-- 上一頁 -->
                             <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                   asp-area="Booking"
+                                   asp-controller="BookingHome"
+                                   asp-action="Index"
                                    asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage - 1)"
                                    asp-route-pageSize="@Model.PageSize">
@@ -293,7 +300,9 @@
                             {
                                 <li class="page-item">
                                     <a class="page-link"
-                                       asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                       asp-area="Booking"
+                                       asp-controller="BookingHome"
+                                       asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="1"
                                        asp-route-pageSize="@Model.PageSize">
@@ -308,7 +317,9 @@
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
                                     <a class="page-link"
-                                       asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                       asp-area="Booking"
+                                       asp-controller="BookingHome"
+                                       asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@i"
                                        asp-route-pageSize="@Model.PageSize">
@@ -323,7 +334,9 @@
                                 <li class="page-item disabled"><span class="page-link">...</span></li>
                                 <li class="page-item">
                                     <a class="page-link"
-                                       asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                       asp-area="Booking"
+                                       asp-controller="BookingHome"
+                                       asp-action="Index"
                                        asp-all-route-data="routeBase"
                                        asp-route-pageIndex="@totalPages"
                                        asp-route-pageSize="@Model.PageSize">
@@ -335,7 +348,9 @@
                             <!-- 下一頁 -->
                             <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                                 <a class="page-link"
-                                   asp-area="Booking" asp-controller="BookingHome" asp-action="Index"
+                                   asp-area="Booking"
+                                   asp-controller="BookingHome"
+                                   asp-action="Index"
                                    asp-all-route-data="routeBase"
                                    asp-route-pageIndex="@(currentPage + 1)"
                                    asp-route-pageSize="@Model.PageSize">
