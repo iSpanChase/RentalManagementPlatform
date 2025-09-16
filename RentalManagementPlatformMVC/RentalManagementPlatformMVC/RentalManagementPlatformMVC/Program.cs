@@ -1,7 +1,8 @@
+using Meilisearch;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Areas.Auth.Data;
 using RentalManagementPlatformMVC.Areas.Auth.Repositories;
 using RentalManagementPlatformMVC.Areas.Auth.Services;
@@ -9,8 +10,12 @@ using RentalManagementPlatformMVC.Areas.Management.Repository;
 using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.Services;
 using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
+using RentalManagementPlatformMVC.Areas.Permissions.Models;
+using RentalManagementPlatformMVC.Areas.Permissions.PermissionsRepositories;
+using RentalManagementPlatformMVC.Areas.Permissions.Services;
 using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
 using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.CommonRepos;
@@ -18,12 +23,8 @@ using RentalManagementPlatformMVC.Data;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformMVC.Repositories;
 using RentalManagementPlatformMVC.Repositories.Interfaces;
-using RentalManagementPlatformMVC.Services.Interfaces;
 using RentalManagementPlatformMVC.Services;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
-using RentalManagementPlatformMVC.CommonRepos;
-using RentalManagementPlatformMVC.Areas.Room_List.Services;
-using Meilisearch;
+using RentalManagementPlatformMVC.Services.Interfaces;
 
 namespace RentalManagementPlatformMVC
 {
@@ -63,10 +64,24 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 			builder.Services.AddScoped<IUserService, UserService>();
 
-			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
-			builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
+			// 泛型 Repo 註冊
+			builder.Services.AddScoped<IRepository<UserRole>, EfRepository<UserRole>>();
+			builder.Services.AddScoped<IRepository<Role>, EfRepository<Role>>();
+
+			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   
+			builder.Services.AddScoped<IRolesService, RolesService>();         
 
 			builder.Services.AddScoped<IAuthService, AuthService>();
+
+			builder.Services.AddScoped<IPermissionsService, PermissionsService>();
+			builder.Services.AddScoped<IPermissionsRepository, PermissionsRepository>();
+
+			builder.Services.AddAuthorization(options =>
+			{
+				foreach (var (code, _, _, _, _) in AppPermissions.All())
+					options.AddPolicy(code, p => p.Requirements.Add(new PermissionRequirement(code)));
+			});
+			builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 			builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();

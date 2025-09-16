@@ -606,7 +606,11 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(sysdatetime())")
                 .HasColumnName("updated_at");
-        });
+
+
+			entity.HasIndex(e => e.PermCode).IsUnique();
+			entity.HasIndex(e => new { e.Module, e.Action });
+		});
 
         modelBuilder.Entity<PointLedger>(entity =>
         {
@@ -772,6 +776,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
+
         });
 
         modelBuilder.Entity<RoomList>(entity =>

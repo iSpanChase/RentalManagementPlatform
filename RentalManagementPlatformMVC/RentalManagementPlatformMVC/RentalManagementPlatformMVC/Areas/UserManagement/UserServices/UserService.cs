@@ -11,10 +11,21 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 	public class UserService : IUserService
 	{
 		private readonly IUserRepository _userRepo;
+		private readonly IRepository<UserRole> _userRoleRepo;
+		private readonly IRepository<Role> _roleRepo;
 		private readonly IUnitOfWork _uow;
 
-		public UserService(IUserRepository userRepo, IUnitOfWork uow)
-			=> (_userRepo, _uow) = (userRepo, uow);
+		public UserService(
+			IUserRepository userRepo,
+			IRepository<UserRole> userRoleRepo,
+			IRepository<Role> roleRepo,
+			IUnitOfWork uow)
+		{
+			_userRepo = userRepo;
+			_userRoleRepo = userRoleRepo;
+			_roleRepo = roleRepo;
+			_uow = uow;
+		}
 
 		public async Task<(IReadOnlyList<UserListItemDto> Items, int Total)> ListAsync(UserFilterVm f)
 		{
@@ -145,6 +156,55 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 			var user = await _userRepo.GetByIdAsync(userId) ?? throw new KeyNotFoundException("User not found");
 			_userRepo.Remove(user);
 			await _uow.SaveChangesAsync();
+		}
+
+
+		public async Task<AssignUserRolesVm> GetAssignRolesAsync(int userId)
+		{
+			var u = await _userRepo.GetByIdAsync(userId) ?? throw new KeyNotFoundException("User not found");
+
+			var assignedIds = (await _userRoleRepo.ListAsync(ur => ur.UserId == userId))
+							  .Select(ur => ur.RoleId).ToHashSet();
+
+			var allRoles = await _roleRepo.ListAsync(); // 以名稱排序可在 View 做
+			return new AssignUserRolesVm
+			{
+				UserId = u.UserId,
+				Username = u.Username,
+				Email = u.Email,
+				Name = u.Name,
+				Roles = allRoles.OrderBy(r => r.RoleName).Select(r => new RoleCheckItem
+				{
+					RoleId = r.RoleId,
+					RoleCode = r.RoleCode,
+					RoleName = r.RoleName,
+					Checked = assignedIds.Contains(r.RoleId)
+				}).ToList(),
+				SelectedRoleIds = assignedIds.ToArray()
+			};
+		}
+
+		public async Task AssignRolesAsync(int userId, int[] roleIds)
+		{
+			// 確認使用者存在
+			_ = await _userRepo.GetByIdAsync(userId) ?? throw new KeyNotFoundException("User not found");
+
+			// 目前角色
+			var current = await _userRoleRepo.ListAsync(ur => ur.UserId == userId);
+			var currentIds = current.Select(c => c.RoleId).ToHashSet();
+
+			// 目標角色（去重）
+			var want = new HashSet<int>((roleIds ?? Array.Empty<int>()).Distinct());
+
+			// 新增
+			foreach (var rid in want.Except(currentIds))
+				await _userRoleRepo.AddAsync(new UserRole { UserId = userId, RoleId = rid });
+
+			// 移除
+			foreach (var ur in current.Where(c => !want.Contains(c.RoleId)))
+				_userRoleRepo.Remove(ur);
+
+			await _uow.SaveChangesAsync(); // UoW 統一提交（你現成的 SaveChanges）:contentReference[oaicite:4]{index=4}
 		}
 	}
 }

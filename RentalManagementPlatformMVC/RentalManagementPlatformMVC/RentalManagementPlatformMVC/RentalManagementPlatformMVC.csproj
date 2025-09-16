@@ -26,6 +26,7 @@
 
     <Folder Include="Areas\Management\Data\" />
     <Folder Include="Areas\Management\Models\" />
+    <Folder Include="Areas\Permissions\Data\" />
     <Folder Include="Areas\ReportForm\Data\" />
     <Folder Include="Areas\ReportForm\Models\" />
     <Folder Include="Areas\FAQ\Data\" />
