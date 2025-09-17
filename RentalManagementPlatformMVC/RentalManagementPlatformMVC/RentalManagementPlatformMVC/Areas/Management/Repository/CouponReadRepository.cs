@@ -42,8 +42,7 @@ public class CouponWriteRepository : ICouponWriteRepository//Coupon的Repository
 		if (coupon != null)//假如資料存在,不是null的狀態,就做軟刪除
 		{
 			coupon.IsDeleted = true;//該筆資料為已刪除(軟刪除)
-			_db.Coupons.Update(coupon);//標記為更新(Update本身為同步方法,不需要await)
-			
+			_db.Coupons.Update(coupon);//標記為更新(Update本身為同步方法,不需要await)	
 		}
 	}
 

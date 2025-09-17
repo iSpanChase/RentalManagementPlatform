@@ -4,7 +4,7 @@ namespace RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces
 {
 	public interface IUserReadRepository
 	{
-		IQueryable<Models.User> Query();
-		Task<Models.User?> GetByIdAsync(int UserId);//判斷用戶的生日時間
+		IQueryable<Models.User> Query();//回傳 User 資料表的 延遲查詢
+		Task<Models.User?> GetByIdAsync(int UserId);//非同步取得單一用戶資料
 	}
 }

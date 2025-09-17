@@ -12,15 +12,14 @@ public class CouponController : Controller
 	private readonly ICouponQueryService _querySvc;
 	private readonly CouponCommandService _commandSvc;
 
-	public CouponController(ICouponQueryService querySvc, CouponCommandService commandSvc) 
-	{ 
+	public CouponController(ICouponQueryService querySvc, CouponCommandService commandSvc)
+	{
 		_querySvc = querySvc;
 		_commandSvc = commandSvc;
-	} 
+	}
 
-	public async Task<IActionResult> Index(int page = 1, string? keyword = null)
+	public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? keyword = null)
 	{
-		int pageSize = 10; 
 		var (data, totalCount) = await _querySvc.GetPagedListAsync(page, pageSize, keyword);
 
 		var vmList = data.Select(d => new CouponListItemVm
@@ -50,21 +49,21 @@ public class CouponController : Controller
 
 
 	[HttpPost]
-	public async Task<IActionResult> Create(Coupon coupon) 
+	public async Task<IActionResult> Create(Coupon coupon)
 	{
 		await _commandSvc.AddCouponAsync(coupon);
 		return RedirectToAction("Index");
 	}
 
 	[HttpPost]
-	public async Task<IActionResult> Edit(Coupon coupon) 
+	public async Task<IActionResult> Edit(Coupon coupon)
 	{
 		await _commandSvc.UpdateCouponAsync(coupon);
 		return RedirectToAction("Index");
 	}
 
 	[HttpPost]
-	public async Task<IActionResult> Delete(int id) 
+	public async Task<IActionResult> Delete(int id)
 	{
 		await _commandSvc.SoftDeleteCouponAsync(id);
 		return RedirectToAction("Index");

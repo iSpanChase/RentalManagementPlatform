@@ -7,29 +7,41 @@
         int pageIndex = Convert.ToInt32(ViewData["PageIndex"]);
         int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
     }
+<div class="content-wrapper">
+    <div class="container">
+        <div class="mx-auto mt-3" style="max-width: 1200px;">
+            <h2 class="mb-4">優惠券管理</h2>
 
-<h2 class="mb-3">優惠券管理</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- 搜尋 -->
+    <form method="get" class="d-flex align-items-center">
+        <input type="text" name="keyword" class="form-control form-control-sm me-1" style="width: 200px;" placeholder="搜尋..." />
+        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search"></i> 搜尋 </button>
+     </form>
+    <div class="btn-group">
+        <form asp-area="Management" asp-controller="CouponGuest" asp-action="Index" method="get" class="me-2">
+            <button type="submit" class="btn btn-sm btn-outline-info"><i class="bi bi-journal-text"></i> 查看發放紀錄</button>
+        </form>
+           <form asp-area="Management" asp-controller="CouponGrant" asp-action="Grant" method="get" class="me-2">
+            <button type="submit" class="btn btn-sm btn-outline-info"><i class="bi bi-journal-text"></i> 發放優惠券</button>
+        </form>
 
-<!-- 搜尋表單 -->
-<form method="get" asp-action="Index" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="keyword" class="form-control" value="@ViewData["Keyword"]" placeholder="搜尋優惠券..." />
-        <button type="submit" class="btn btn-primary">搜尋</button>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#createModal"><i class="bi bi-plus-circle"></i> 新增優惠券</button>
     </div>
-</form>
-
-<!-- 新增優惠券按鈕 -->
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createModal">新增優惠券</button>
+</div>
 
 <!-- 優惠券表格 -->
-<table class="table table-striped table-bordered align-middle">
+<table class="table table-striped table-bordered table-sm text-nowrap" style="font-size: 0.85rem;">
     <thead class="table-dark">
         <tr>
             <th>名稱</th>
             <th>折扣碼</th>
             <th>折扣方式</th>
+            <th>說明</th>
             <th>折扣額度</th>
             <th>最低消費</th>
+            <th>最短租期</th>
+            <th>最長租期</th>
             <th>租期(起)</th>
             <th>租期(迄)</th>
             <th>到期日</th>
@@ -41,52 +53,100 @@
         @foreach (var item in Model)//對應到ViewModel的顯示
         {
             <tr>
-                <td>@item.CouponName</td>
+                <td>@item.CouponName</td> 
                 <td>@item.DiscountCode</td>
                 <td>@item.DiscountMethod</td>
+                <td>@item.Description</td>
                 <td>@item.DiscountQuotaDisplay</td>
                 <td>@item.LowSpendDisplay</td>
+                <td>@item.MinRentalPeriod</td>
+                <td>@item.MaxRentalPeriod</td>
                 <td>@item.StartRentalPeriodDisplay</td>
                 <td>@item.EndRentalPeriodDisplay</td>
                 <td>@item.EndAtDisplay</td>
                 <td>
-                    <span class="@(item.IsDeleted ? "text-danger" : "text-success")">
+                    <span class="badge @(item.IsDeleted ? "bg-danger" : "bg-success")">
                         @(item.IsDeleted ? "已刪除" : "正常")
                     </span>
                 </td>
                 <td>
                     <!-- 編輯按鈕 -->
-                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal-@item.CouponId">編輯</button>
-
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal-@item.CouponId"><i class="bi bi-pencil-square"></i> 編輯</button>
                     <!-- 刪除按鈕 -->
                     <form asp-action="Delete" asp-route-id="@item.CouponId" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('確定要刪除嗎?')">刪除</button>
-                    </form>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('確定要刪除這筆資料嗎？')"><i class="bi bi-trash"></i> 刪除 </button>
+                </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<!-- 分頁 -->
+@{
+    int maxPagesToShow = 6; // 顯示的最大頁碼數
+    int halfPages = maxPagesToShow / 2;
+
+    int startPage = Math.Max(1, pageIndex - halfPages);
+    int endPage = Math.Min(totalPages, pageIndex + halfPages);
+
+    // 保持最大頁碼數，如果到達前或後邊界，自動補齊另一側
+    if (endPage - startPage + 1 < maxPagesToShow)
+    {
+        if (startPage == 1)
+        {
+            endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+        }
+        else if (endPage == totalPages)
+        {
+            startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+        }
+    }
+}
+
 <nav>
     <ul class="pagination justify-content-center">
         <!-- 上一頁 -->
         <li class="page-item @(pageIndex <= 1 ? "disabled" : "")">
-            <a class="page-link" asp-action="Index" asp-route-page="@(pageIndex - 1)">上一頁</a>
+            <a class="page-link" asp-action="Index" asp-route-page="@(pageIndex - 1)" asp-route-keyword="@ViewData["Keyword"]">上一頁</a>
         </li>
-        <!--頁碼-->
-        @for (int i = 1; i <= totalPages; i++)
+
+        <!-- 開頭省略號 -->
+        @if (startPage > 1)
+        {
+            <li class="page-item"><a class="page-link" asp-action="Index" asp-route-page="1">1</a></li>
+            @if (startPage > 2)
             {
-                <li class="page-item @(i == pageIndex ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-                </li>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
             }
+        }
+
+        <!-- 中間頁碼 -->
+        @for (int i = startPage; i <= endPage; i++)
+        {
+            <li class="page-item @(i == pageIndex ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-keyword="@ViewData["Keyword"]">@i</a>
+            </li>
+        }
+
+        <!-- 結尾省略號 -->
+        @if (endPage < totalPages)
+        {
+            @if (endPage < totalPages - 1)
+            {
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            }
+            <li class="page-item"><a class="page-link" asp-action="Index" asp-route-page="@totalPages">@totalPages</a></li>
+        }
+
         <!-- 下一頁 -->
         <li class="page-item @(pageIndex >= totalPages ? "disabled" : "")">
-            <a class="page-link" asp-action="Index" asp-route-page="@(pageIndex + 1)">下一頁</a>
+            <a class="page-link" asp-action="Index" asp-route-page="@(pageIndex + 1)" asp-route-keyword="@ViewData["Keyword"]">下一頁</a>
+        </li>
     </ul>
 </nav>
+        </div>
+    </div>
+    </div>
 
 <!-- 編輯 Modal -->
 @foreach (var item in Model)
@@ -114,12 +174,24 @@
                             <input class="form-control" name="DiscountMethod" value="@item.DiscountMethod" />
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">說明</label>
+                            <input class="form-control" name="Description" value="@item.Description" />
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">折扣額度</label>
                             <input class="form-control" name="DiscountQuota" value="@item.DiscountQuota" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">最低消費</label>
                             <input class="form-control" name="LowSpend" value="@item.LowSpend" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">最短租期</label>
+                            <input class="form-control" name="MinRentalPeriod" value="@item.MinRentalPeriod" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">最長租期</label>
+                            <input class="form-control" name="MaxRentalPeriod" value="@item.MaxRentalPeriod" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">租期(起)</label>
@@ -167,12 +239,24 @@
                         <input class="form-control" name="DiscountMethod" />
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">說明</label>
+                        <input class="form-control" name="Description" />
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">折扣額度</label>
                         <input class="form-control" name="DiscountQuota" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">最低消費</label>
                         <input class="form-control" name="LowSpend" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最短租期</label>
+                        <input class="form-control" name="MinRentalPeriod" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最長租期</label>
+                        <input class="form-control" name="MaxRentalPeriod" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">租期(起)</label>

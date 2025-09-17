@@ -3,9 +3,8 @@
 namespace RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces
 {
 	//repository介面:定義資料存取方法
-	public interface ICouponGuestRepository
+	public interface IDistrictRepository
 	{
-		//回傳CouponGuest資料表IQueryable
-		IQueryable<CouponGuest> Query();
+		IQueryable<District>Query();//回傳Districty資料表IQueryable(延遲查詢)
 	}
 }

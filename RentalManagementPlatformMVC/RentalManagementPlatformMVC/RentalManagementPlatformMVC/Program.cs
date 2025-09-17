@@ -41,15 +41,24 @@ namespace RentalManagementPlatformMVC
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			//service註冊
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+			builder.Services.AddScoped<ICouponGuestQueryService, CouponGuestQueryService>();
+			builder.Services.AddScoped<IPostQueryService, PostQueryService>();
 			builder.Services.AddScoped<CouponCommandService>();
+			builder.Services.AddScoped<CouponGrantService>();
+			builder.Services.AddScoped<CouponDropdownService>();
+			builder.Services.AddScoped<UserDropdownService>();
 
 			//repository註冊
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
+			builder.Services.AddScoped<ICouponGuestRepository, CouponGuestRepository>();
+			builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
+			builder.Services.AddScoped<IPostRepository, PostRepository>();
+			builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 
-      // Meilisearch Client and Service registration
-      builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
-      builder.Services.AddScoped<MeilisearchService>();
+			// Meilisearch Client and Service registration
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			builder.Services.AddScoped<MeilisearchService>();
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 
