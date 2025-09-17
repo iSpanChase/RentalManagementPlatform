@@ -11,6 +11,7 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 {
 	[Area("SubscriptionPlan")]
+	[Authorize]
 	public class HostSubscriptionHomeController : Controller
 	{
 		private readonly IHostSubscriptionService _hostSubscriptionService;

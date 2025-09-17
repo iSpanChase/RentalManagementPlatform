@@ -9,6 +9,7 @@ using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 {
 	[Area("SubscriptionPlan")]
+	[Authorize]
 	public class SubscriptionPlanHomeController : Controller
 	{
 		private readonly ISubscriptionPlanService _subscriptionPlanService;

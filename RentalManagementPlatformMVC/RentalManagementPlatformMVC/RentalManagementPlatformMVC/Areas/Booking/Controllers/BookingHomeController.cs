@@ -9,6 +9,7 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 {
 	[Area("Booking")]
+	[Authorize]
 	public class BookingHomeController : Controller
 	{
 		private readonly IBookingService _bookingService;
