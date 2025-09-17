@@ -21,13 +21,13 @@ namespace RentalManagementPlatformMVC.Services.Payments
 		/// <returns>包含主機收款資料列表和分頁資訊的分頁結果物件</returns>
 		public async Task<PagedResult<HostPayoutDto>> GetPagedHostPayoutsAsync(int pageIndex, int pageSize)
 		{
-			var (entities, totalCount) = await _hostPayoutRepository.GetPagedHostPayoutsAsync(pageIndex, pageSize);
+			var pagedEntities = await _hostPayoutRepository.GetPagedHostPayoutsAsync(pageIndex, pageSize);
 
-			var hostPayoutDtos = entities.Select(p => new HostPayoutDto
+			var hostPayoutDtos = pagedEntities.Items.Select(p => new HostPayoutDto
 			{
 				PayoutId = p.PayoutId,
 				HostId = p.HostId,
-				HostName = p.Host.Name,
+				HostName = p.Host?.Name,
 				CycleStart = p.CycleStart,
 				CycleEnd = p.CycleEnd,
 				AmountGross = p.AmountGross,
@@ -41,9 +41,9 @@ namespace RentalManagementPlatformMVC.Services.Payments
 			return new PagedResult<HostPayoutDto>
 			{
 				Items = hostPayoutDtos,
-				PageIndex = pageIndex,
-				PageSize = pageSize,
-				TotalCount = totalCount
+				PageIndex = pagedEntities.PageIndex,
+				PageSize = pagedEntities.PageSize,
+				TotalCount = pagedEntities.TotalCount
 			};
 		}
 

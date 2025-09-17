@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.DTOs.Bookings;
 using RentalManagementPlatformMVC.Models;
 
@@ -18,13 +19,12 @@ namespace RentalManagementPlatformMVC.Repositories.Bookings
 		/// 提供基本的訂單分頁查詢功能，包含客戶資訊，依建立時間降序排列
 		/// </summary>
 		/// <param name="pageIndex">頁面索引，從1開始。若小於等於0則自動設為1</param>
-		/// <param name="pageSize">每頁筆數，若小於等於0則自動設為20筆，最大限制100筆以確保效能</param>
+		/// <param name="pageSize">每頁筆數，若小於等於0則自動設為20筆</param>
 		/// <returns>回傳包含訂單清單與總筆數的元組</returns>
-		public async Task<(IEnumerable<Booking>, int)> GetPagedBookingsAsync(int pageIndex, int pageSize)
+		public async Task<PagedResult<Booking>> GetPagedBookingsAsync(int pageIndex, int pageSize)
 		{
-			// 邊界值驗證
 			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
-			pageSize = pageSize <= 0 ? 20 : pageSize; // 限制最大頁面大小為100
+			pageSize = pageSize <= 0 ? 20 : pageSize;
 
 			var query = _context.Bookings
 				.AsNoTracking()
@@ -38,7 +38,13 @@ namespace RentalManagementPlatformMVC.Repositories.Bookings
 				.Take(pageSize)
 				.ToListAsync();
 
-			return (items, totalCount);
+			return new PagedResult<Booking>
+			{
+				Items = items,
+				PageIndex = pageIndex,
+				PageSize = pageSize,
+				TotalCount = totalCount
+			};
 		}
 
 		/// <summary>
@@ -158,14 +164,11 @@ namespace RentalManagementPlatformMVC.Repositories.Bookings
 					: query.OrderBy(b => b.CreatedAt).ThenBy(b => b.BookingId),
 			};
 
-			// 先算總筆數
 			var totalCount = await query.CountAsync();
 
-			// 分頁邊界修正
 			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
 			pageSize = pageSize <= 0 ? 20 : pageSize;
 
-			// 取當頁資料（回傳實體）
 			var entities = await query
 				.Skip((pageIndex - 1) * pageSize)
 				.Take(pageSize)
