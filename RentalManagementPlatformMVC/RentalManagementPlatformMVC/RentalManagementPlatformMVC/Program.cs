@@ -35,7 +35,12 @@ using RentalManagementPlatformMVC.Services.PointRules;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
-
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
+using Meilisearch;
+using RentalManagementPlatformMVC.DTOs;
+using Minio;
 
 namespace RentalManagementPlatformMVC
 {
@@ -71,9 +76,17 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPostRepository, PostRepository>();
 			builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 
-			// Meilisearch Client and Service registration
-			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
-			builder.Services.AddScoped<MeilisearchService>();
+
+            // Meilisearch Client and Service registration
+            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+            builder.Services.AddScoped<MeilisearchService>();
+
+            // MinIO Client and Service registration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+            builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+
 
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
