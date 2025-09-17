@@ -1,0 +1,98 @@
+﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.AssignPermissionsVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "指派權限";
+    // 建議你在建立 SelectListItem 時，Text 走「Module.Action - PermName」格式（和 Index 觀感一致）
+    var rows = Model.AllPermissions.Select(s => new
+    {
+        Id = int.TryParse(s.Value, out var id) ? id : 0,
+        Text = s.Text,
+        Selected = s.Selected
+    }).OrderBy(x => x.Text).ToList();
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">指派權限給角色：@Model.RoleName</h3>
+        <div class="card-tools">
+            <a class="btn btn-sm btn-secondary"
+               asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">
+                返回角色編輯
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form method="post" asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignPermissions">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="RoleId" />
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm" id="permFilter" placeholder="搜尋 Module/Action/名稱">
+                </div>
+                <div class="col-auto d-flex gap-2">
+                    <button type="button" id="btnSelectAll" class="btn btn-sm btn-outline-primary">全選</button>
+                    <button type="button" id="btnClear" class="btn btn-sm btn-outline-secondary">清除</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle" id="permTable">
+                    <thead>
+                        <tr>
+                            <th style="width:42px"><input type="checkbox" id="chkAll" /></th>
+                            <th>Permission</th>
+                            <th class="text-muted small">PermissionId</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in rows)
+                        {
+                            <tr>
+                                <td>
+                                    <input class="form-check-input row-check"
+                                           type="checkbox"
+                                           name="SelectedPermissionIds"
+                                           value="@r.Id"
+                                           @(r.Selected ? "checked" : null) />
+                                </td>
+                                <td>@r.Text</td>
+                                <td class="text-muted">@r.Id</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">儲存</button>
+                <a class="btn btn-secondary"
+                   asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chkAll = document.getElementById('chkAll');
+        const btnSelectAll = document.getElementById('btnSelectAll');
+        const btnClear = document.getElementById('btnClear');
+        const filter = document.getElementById('permFilter');
+
+        function rows(){ return Array.from(document.querySelectorAll('#permTable tbody tr')); }
+        function checks(){ return Array.from(document.querySelectorAll('#permTable .row-check')); }
+
+        chkAll?.addEventListener('change', ()=> checks().forEach(c=> c.checked = chkAll.checked));
+        btnSelectAll?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = true); chkAll.checked = true; });
+        btnClear?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = false); chkAll.checked = false; });
+        filter?.addEventListener('input', ()=>{
+          const q = filter.value.toLowerCase().trim();
+          rows().forEach(tr=>{
+            const text = tr.children[1].innerText.toLowerCase();
+            tr.style.display = text.includes(q) ? '' : 'none';
+          });
+        });
+    </script>
+}

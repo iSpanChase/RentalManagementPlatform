@@ -1,0 +1,98 @@
+﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.AssignUsersVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "指派使用者";
+    var rows = Model.AllUsers.Select(s => new
+    {
+        Id = int.TryParse(s.Value, out var id) ? id : 0,
+        Name = s.Text,
+        Selected = s.Selected
+    }).OrderBy(x => x.Name).ToList();
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">指派使用者給角色：@Model.RoleName</h3>
+        <div class="card-tools">
+            <a class="btn btn-sm btn-secondary"
+               asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">
+                返回角色編輯
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form method="post" asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignUsers">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="RoleId" />
+
+            <!-- 工具列：搜尋/全選/清除（風格與 Permissions/Index 類似） -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm" id="userFilter" placeholder="搜尋使用者名稱/Email">
+                </div>
+                <div class="col-auto d-flex gap-2">
+                    <button type="button" id="btnSelectAll" class="btn btn-sm btn-outline-primary">全選</button>
+                    <button type="button" id="btnClear" class="btn btn-sm btn-outline-secondary">清除</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle" id="userTable">
+                    <thead>
+                        <tr>
+                            <th style="width:42px"><input type="checkbox" id="chkAll" /></th>
+                            <th>使用者</th>
+                            <th class="text-muted small">UserId</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in rows)
+                        {
+                            <tr>
+                                <td>
+                                    <input class="form-check-input row-check"
+                                           type="checkbox"
+                                           name="SelectedUserIds"
+                                           value="@r.Id"
+                                           @(r.Selected ? "checked" : null) />
+                                </td>
+                                <td>@r.Name</td>
+                                <td class="text-muted">@r.Id</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">儲存</button>
+                <a class="btn btn-secondary"
+                   asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chkAll = document.getElementById('chkAll');
+        const btnSelectAll = document.getElementById('btnSelectAll');
+        const btnClear = document.getElementById('btnClear');
+        const filter = document.getElementById('userFilter');
+
+        function rows(){ return Array.from(document.querySelectorAll('#userTable tbody tr')); }
+        function checks(){ return Array.from(document.querySelectorAll('#userTable .row-check')); }
+
+        chkAll?.addEventListener('change', ()=> checks().forEach(c=> c.checked = chkAll.checked));
+        btnSelectAll?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = true); chkAll.checked = true; });
+        btnClear?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = false); chkAll.checked = false; });
+        filter?.addEventListener('input', ()=>{
+          const q = filter.value.toLowerCase().trim();
+          rows().forEach(tr=>{
+            const text = tr.children[1].innerText.toLowerCase();
+            tr.style.display = text.includes(q) ? '' : 'none';
+          });
+        });
+    </script>
+}

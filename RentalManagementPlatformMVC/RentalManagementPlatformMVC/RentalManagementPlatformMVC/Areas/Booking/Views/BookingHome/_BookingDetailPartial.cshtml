@@ -4,23 +4,18 @@
 <div class="modal-header border-0">
     <div class="d-flex flex-column">
         <div class="fs-5 fw-semibold">訂單詳細資料</div>
-        <div class="text-secondary small">訂單編號：<span class="fw-semibold">@Model.OrderNumber</span></div>
+        <div class="text-secondary small">
+            @Html.DisplayNameFor(m => m.OrderNumber)：
+            <span class="fw-semibold">@Html.DisplayFor(m => m.OrderNumber)</span>
+        </div>
     </div>
-
-    @{
-        var status = (Model.Status ?? "").ToLower();
-
-        var commissionText = Model.CommissionRateSnapshot.HasValue
-        ? (Model.CommissionRateSnapshot.Value > 1
-        ? $"{Model.CommissionRateSnapshot:P0}"
-        : $"{Model.CommissionRateSnapshot:P0}")
-        : "-";
-    }
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 
 <!-- Body -->
 <div class="modal-body pt-0">
     <div class="row g-3">
+
         <!-- 左半：日期/金額/狀態 -->
         <div class="col-12 col-md-6">
             <div class="border rounded-3 p-3 h-100">
@@ -29,27 +24,30 @@
                 </div>
 
                 <div class="row small gy-2">
-                    <div class="col-5 text-secondary">入住日期</div>
-                    <div class="col-7 fw-medium">@(Model.CheckIn?.ToString("yyyy-MM-dd") ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CheckIn)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.CheckIn)</div>
 
-                    <div class="col-5 text-secondary">退房日期</div>
-                    <div class="col-7 fw-medium">@(Model.CheckOut?.ToString("yyyy-MM-dd") ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CheckOut)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.CheckOut)</div>
 
-                    <div class="col-5 text-secondary">總金額</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.TotalPrice)</div>
                     <div class="col-7 fw-semibold text-end text-md-start">
-                        NT$ @((Model.TotalPrice?.ToString("N0")) ?? "-")
+                        @Html.DisplayFor(m => m.TotalPrice)
                     </div>
 
-                    <div class="col-5 text-secondary">狀態</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Status)</div>
                     <div class="col-7">
-                        <span class="badge rounded-pill @(Model.Status?.ToLower() == "confirmed" ? "bg-success" :
-                                                                                        Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                                                        Model.Status?.ToLower() == "cancelled" ? "bg-danger" :
-                                                                                          "bg-secondary")">@Model.DisplayStatus</span>
+                        <span class="badge rounded-pill
+                            @(Model.Status?.ToLower() == "confirmed" ? "bg-success" :
+                              Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                              Model.Status?.ToLower() == "cancelled" ? "bg-danger" :
+                              Model.Status?.ToLower() == "completed" ? "bg-info" : "bg-secondary")">
+                            @Model.DisplayStatus
+                        </span>
                     </div>
 
-                    <div class="col-5 text-secondary">建立時間</div>
-                    <div class="col-7">@(Model.CreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CreatedAt)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.CreatedAt)</div>
                 </div>
             </div>
         </div>
@@ -62,47 +60,46 @@
                 </div>
 
                 <div class="row small gy-2">
-                    <div class="col-5 text-secondary">訂房姓名</div>
-                    <div class="col-7 fw-medium">@(Model.GuestName)</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.GuestName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.GuestName)</div>
 
-                    <div class="col-5 text-secondary">同行旅客</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Guests)</div>
                     <div class="col-7">
                         <div class="d-flex flex-wrap gap-2">
                             @if (Model.Guests?.Any() == true)
                             {
                                 foreach (var g in Model.Guests)
                                 {
-                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border">@g.GuestName</span>
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border">
+                                        @g.GuestName
+                                    </span>
                                 }
                             }
                             else
                             {
-
                                 <span class="text-muted">-</span>
                             }
                         </div>
                     </div>
 
-                    <div class="col-5 text-secondary">房間名稱</div>
-                    <div class="col-7">@Model.Room</div> @* 可改 RoomName *@
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Room)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.Room)</div>
 
-                    <div class="col-5 text-secondary">優惠券</div>
-                    <div class="col-7">@Model.Coupon</div> @* 可改 CouponCode / Name *@
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Coupon)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.Coupon)</div>
 
-                    <div class="col-5 text-secondary">獲得點數</div>
-                    <div class="col-7 fw-medium">@(Model.PointsEarned?.ToString("N0") ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PointsEarned)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.PointsEarned)</div>
 
-                    <div class="col-5 text-secondary">使用點數</div>
-                    <div class="col-7 fw-medium">@(Model.PointsRedeemed?.ToString("N0") ?? "-")</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PointsRedeemed)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.PointsRedeemed)</div>
 
-                    <div class="col-5 text-secondary">房東姓名</div>
-                    <div class="col-7 fw-medium">@(Model.HostName)</div>
-
-                    <div class="col-5 text-secondary">房東抽成</div>
-                    <div class="col-7 fw-medium">@commissionText</div>
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.HostName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.HostName)</div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 

@@ -1,0 +1,91 @@
+@using RentalManagementPlatformMVC.Areas.Room_List.Models
+
+@{
+    ViewData["Title"] = "房源搜尋";
+    var currentQuery = ViewData["CurrentQuery"] as string;
+}
+
+<h1>房源搜尋</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-area="Room_List" asp-controller="Search" asp-action="Index" method="get" id="searchForm">
+            <div class="input-group mb-3">
+                <input type="search" name="query" class="form-control" placeholder="請輸入房型地址" value="@currentQuery" autocomplete="off" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary" style="display: none;">搜尋</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<div id="searchResultsContainer">
+    <!-- AJAX results will be loaded here -->
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.querySelector('input[name="query"]');
+            const resultsContainer = document.getElementById('searchResultsContainer');
+            const searchForm = document.getElementById('searchForm');
+            const initialQuery = searchInput.value;
+
+            // 防止使用者快速輸入造成每個字都發請求，會 延遲 300ms 才真的送出查詢。
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+
+            function performSearch(query) {
+                if (query === null || query.trim() === '') {
+                    resultsContainer.innerHTML = ''; // Clear results
+                    return;
+                }
+                
+                resultsContainer.innerHTML = '<p><em>Searching...</em></p>';
+                
+                // Build URL safely
+                const url = new URL('@Url.Action("Ajax", "Search", new { Area = "Room_List" })', window.location.origin);
+                url.searchParams.append('query', query);
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.statusText);
+                        }
+                        return response.text(); // We expect HTML, so use .text()
+                    })
+                    .then(html => {
+                        resultsContainer.innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        resultsContainer.innerHTML = '<p class="text-danger">An error occurred while fetching results.</p>';
+                    });
+            }
+
+            const debouncedSearch = debounce(performSearch, 300);
+
+            if (initialQuery) {
+                performSearch(initialQuery);
+            }
+
+            searchInput.addEventListener('input', function () {
+                debouncedSearch(this.value);
+            });
+
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault(); 
+            });
+            //攔截submit 只走ajax
+        });
+    </script>
+}

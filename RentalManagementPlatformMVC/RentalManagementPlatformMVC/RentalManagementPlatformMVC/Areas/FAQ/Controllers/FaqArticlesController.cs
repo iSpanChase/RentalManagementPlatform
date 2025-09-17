@@ -1,119 +1,99 @@
-﻿using System;
+﻿/*using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.FAQ.ViewModels;
+using RentalManagementPlatformMVC.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
 {
     [Area("FAQ")]
     public class FaqArticlesController : Controller
     {
-        private readonly RentalManagementPlatformSqlContext _context;
+        private readonly RentalManagementPlatformSqlContext _db;
+        public FaqArticlesController(RentalManagementPlatformSqlContext db) => _db = db;
 
-        public FaqArticlesController(RentalManagementPlatformSqlContext context)
+        // Index：加關鍵字/分類/分頁
+        public async Task<IActionResult> Index(string? keyword, int? categoryId, int page = 1, int size = 10)
         {
-            _context = context;
+            var q = _db.FaqArticles.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(keyword))
+                q = q.Where(x => x.Title!.Contains(keyword) || x.Summary!.Contains(keyword));
+            if (categoryId.HasValue)
+                q = q.Where(x => x.CategoryId == categoryId);
+
+            var total = await q.CountAsync();
+            var items = await q.OrderByDescending(x => x.IsPinned)
+                               .ThenByDescending(x => x.FaqArticlesId)
+                               .Skip((page - 1) * size).Take(size)
+                               .Select(x => new FaqArticleViewModel
+                               {
+                                   FaqArticlesId = x.FaqArticlesId,
+                                   Title = x.Title!,
+                                   Summary = x.Summary,
+                                   Content = x.Content,
+                                   IsPinned = x.IsPinned,
+                                   CategoryId = x.CategoryId
+                               }).ToListAsync();
+
+            ViewBag.Total = total; ViewBag.Page = page; ViewBag.Size = size;
+            return View(items);
         }
 
-        // GET: FAQ/FaqArticles
-        public async Task<IActionResult> Index()
+        // Create (GET)
+        public IActionResult Create() => View(new FaqArticleViewModel());
+
+        // Create (POST)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(FaqArticleViewModel m)
         {
-            return View(await _context.FaqArticles.ToListAsync());
+            if (!ModelState.IsValid) return View(m);
+            var e = new FaqArticle
+            {
+                Title = m.Title,
+                Summary = m.Summary,
+                Content = m.Content,
+                IsPinned = m.IsPinned,
+                CategoryId = m.CategoryId
+            };
+            _db.FaqArticles.Add(e);
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: FAQ/FaqArticles/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // Edit (GET)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            var e = await _db.FaqArticles.FindAsync(id);
+            if (e == null) return NotFound();
+            return View(new FaqArticleViewModel
             {
-                return NotFound();
-            }
-
-            var faqArticle = await _context.FaqArticles
-                .FirstOrDefaultAsync(m => m.FaqArticlesId == id);
-            if (faqArticle == null)
-            {
-                return NotFound();
-            }
-
-            return View(faqArticle);
+                FaqArticlesId = e.FaqArticlesId,
+                Title = e.Title!,
+                Summary = e.Summary,
+                Content = e.Content,
+                IsPinned = e.IsPinned,
+                CategoryId = e.CategoryId
+            });
         }
 
-        // GET: FAQ/FaqArticles/Create
-        public IActionResult Create()
+        // Edit (POST)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, FaqArticleViewModel m)
         {
-            return View();
-        }
+            if (id != m.FaqArticlesId) return BadRequest();
+            if (!ModelState.IsValid) return View(m);
 
-        // POST: FAQ/FaqArticles/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FaqArticlesId,Slug,CategoryId,AuthorId,Title,Summary,Content,IsPinned,PublishedAt,ViewCount,HelpfulYes,HelpfulNo,Status,CreatedAt,UpdatedAt")] FaqArticle faqArticle)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(faqArticle);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(faqArticle);
-        }
+            var e = await _db.FaqArticles.FindAsync(id);
+            if (e == null) return NotFound();
 
-        // GET: FAQ/FaqArticles/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var faqArticle = await _context.FaqArticles.FindAsync(id);
-            if (faqArticle == null)
-            {
-                return NotFound();
-            }
-            return View(faqArticle);
-        }
-
-        // POST: FAQ/FaqArticles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("FaqArticlesId,Slug,CategoryId,AuthorId,Title,Summary,Content,IsPinned,PublishedAt,ViewCount,HelpfulYes,HelpfulNo,Status,CreatedAt,UpdatedAt")] FaqArticle faqArticle)
-        {
-            if (id != faqArticle.FaqArticlesId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(faqArticle);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!FaqArticleExists(faqArticle.FaqArticlesId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(faqArticle);
+            e.Title = m.Title; e.Summary = m.Summary; e.Content = m.Content;
+            e.IsPinned = m.IsPinned; e.CategoryId = m.CategoryId;
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: FAQ/FaqArticles/Delete/5
@@ -124,7 +104,7 @@ namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
                 return NotFound();
             }
 
-            var faqArticle = await _context.FaqArticles
+            var faqArticle = await _db.FaqArticles
                 .FirstOrDefaultAsync(m => m.FaqArticlesId == id);
             if (faqArticle == null)
             {
@@ -139,19 +119,19 @@ namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var faqArticle = await _context.FaqArticles.FindAsync(id);
+            var faqArticle = await _db.FaqArticles.FindAsync(id);
             if (faqArticle != null)
             {
-                _context.FaqArticles.Remove(faqArticle);
+                _db.FaqArticles.Remove(faqArticle);
             }
 
-            await _context.SaveChangesAsync();
+            await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool FaqArticleExists(int id)
         {
-            return _context.FaqArticles.Any(e => e.FaqArticlesId == id);
+            return _db.FaqArticles.Any(e => e.FaqArticlesId == id);
         }
     }
-}
+}*/

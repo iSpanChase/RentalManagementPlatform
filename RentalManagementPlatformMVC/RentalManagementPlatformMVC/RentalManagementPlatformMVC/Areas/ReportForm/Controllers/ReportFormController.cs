@@ -1,13 +1,25 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.Helpers;
+using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels;
 using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
     [Area("ReportForm")]
-    public class ReportFormController : Controller
+    [Authorize]
+    public partial class ReportFormController : Controller
     {
-        public IActionResult Index()
+        private readonly RentalManagementPlatformSqlContext _context;
+
+        public ReportFormController(RentalManagementPlatformSqlContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
             return View();
         }
@@ -32,38 +44,9 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             yield return temp;
         }
 
-        List<decimal> GetTotalPrice(DateTime[] intervals)
+        IEnumerable<string> FormatDateIntervals(string timeUnit, IEnumerable<DateTime> intervals)
         {
-            using (var context = new RentalManagementPlatformSqlContext())
-            {
-                var results = new List<decimal>();
-
-                for (var i = 0; i < intervals.Length - 1; i++)
-                {
-                    var start = intervals[i];
-                    var end = intervals[i + 1];
-
-                    // 避免 Sum() 在空集合拋出例外，改用 (decimal?) + ?? 0m
-                    var totalPrice = context.Bookings
-                        .Where(x => x.CreatedAt != null &&
-                                    x.CreatedAt.Value >= start &&
-                                    x.CreatedAt.Value < end &&
-                                    x.TotalPrice != null)
-                        .Sum(x => (decimal?)x.TotalPrice) ?? 0m;
-
-                    results.Add(totalPrice);
-                }
-
-                return results;
-            }
-        }
-
-        [HttpPost]
-        public IActionResult GetChartData(string timeUnit, DateTime start, DateTime end)
-        {
-            var intervals = GetIntervals(timeUnit, start, end).ToArray();
-
-            var labels = intervals.Select(x => timeUnit switch
+            return intervals.Select(x => timeUnit switch
             {
                 "day" => x.ToString("yyyy/M/d"),
                 "week" => x.ToString("yyyy/M/d"),
@@ -71,19 +54,28 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 "quarter" => $"{x:yyyy}/Q{((x.Month - 1) / 3 + 1)}",
                 "year" => x.ToString("yyyy"),
                 _ => throw new ArgumentException("Invalid timeUnit")
-            }).SkipLast(1).ToArray();
+            }).SkipLast(1);
+        }
 
-            var data = GetTotalPrice(intervals);
+        [HttpGet] //Get : ReportForm/ReportForm/Cities
+        public async Task<IActionResult> Cities()
+        {
+            var citiesDataForm = await _context.Cities.Select(x => new CityVM(x)).ToArrayAsync();
+            return Json(citiesDataForm);
+        }
 
-            var colors = ColorPaletteHelper.GenerateColors(labels.Length);
+        [HttpGet]
+        public async Task<IActionResult> Districts(int cityId)
+        {
+            var DistrictsDataForm = await _context.Districts.Where(x => x.CityId == cityId).Select(x => new DistrictVM(x)).ToArrayAsync();
+            return Json(DistrictsDataForm);
+        }
 
-            return Json(new
-            {
-                labels,
-                data,
-                colors,
-                label = "銷售額 (NTD)"
-            });
+        [HttpPost]
+        public async Task<IActionResult> Roles()
+        {
+            var RolesDataForm = await _context.Roles.Select(x => new RoleVM(x)).ToArrayAsync();
+            return Json(RolesDataForm);
         }
     }
 }

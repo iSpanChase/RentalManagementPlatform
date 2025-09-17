@@ -1,0 +1,115 @@
+﻿<!-- 新增／編輯點數規則 Modal -->
+<div class="modal fade" id="ruleModal" tabindex="-1" aria-labelledby="ruleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header border-0">
+                <div class="d-flex flex-column">
+                    <div class="fs-5 fw-semibold" id="ruleModalLabel">新增點數規則</div>
+                    <div class="text-secondary small">點數規則會先以「停用」狀態建立，啟用後才會生效</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body pt-0">
+                <form id="ruleForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="ruleId" />
+                    <div class="row g-3">
+                        <!-- 點數獲得 -->
+                        <div class="col-6 col-md-3">
+                            <label for="earnRatePerNtd" class="form-label fw-semibold">點數獲得 *</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       id="earnRatePerNtd"
+                                       class="form-control"
+                                       min="0.01"
+                                       step="0.01"
+                                       placeholder="1.00"
+                                       required />
+                                <span class="input-group-text">點/元</span>
+                            </div>
+                            <small class="text-muted">每消費1元可獲得多少點數</small>
+                        </div>
+
+                        <!-- 單筆訂單點數上限 -->
+                        <div class="col-6 col-md-3">
+                            <label for="maxPointsPerOrder" class="form-label fw-semibold">單筆上限</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       id="maxPointsPerOrder"
+                                       class="form-control"
+                                       min="0"
+                                       placeholder="1000" />
+                                <span class="input-group-text">點</span>
+                            </div>
+                            <small class="text-muted">單筆訂單最多可獲得點數</small>
+                        </div>
+
+                        <!-- 點數有效期限 -->
+                        <div class="col-6 col-md-3">
+                            <label for="expiryMonths" class="form-label fw-semibold">有效期限</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       id="expiryMonths"
+                                       class="form-control"
+                                       min="1"
+                                       max="120"
+                                       placeholder="12" />
+                                <span class="input-group-text">月</span>
+                            </div>
+                            <small class="text-muted">點數的有效期限(1-120個月)</small>
+                        </div>
+
+                        <!-- 點數兌換比例 -->
+                        <div class="col-6 col-md-3">
+                            <label for="redeemRateNtdPerPt" class="form-label fw-semibold">兌換比例 *</label>
+                            <div class="input-group">
+                                <input type="number"
+                                       id="redeemRateNtdPerPt"
+                                       class="form-control"
+                                       min="0.01"
+                                       step="0.01"
+                                       placeholder="1.00"
+                                       required />
+                                <span class="input-group-text">元/點</span>
+                            </div>
+                            <small class="text-muted">1點數可兌換多少元</small>
+                        </div>
+
+                        <!-- 生效日期範圍 -->
+                        <div class="col-12">
+                            <div class="border rounded-3 p-3">
+                                <div class="text-muted fw-semibold mb-2">
+                                    <i class="bi bi-calendar-range me-1"></i> 生效日期範圍
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="activeFrom" class="form-label">開始日期</label>
+                                        <input type="datetime-local"
+                                               id="activeFrom"
+                                               class="form-control" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="activeTo" class="form-label">結束日期</label>
+                                        <input type="datetime-local"
+                                               id="activeTo"
+                                               class="form-control" />
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-1 d-block">留空表示無限制</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer border-0">
+                <button type="button" id="btnSaveRule" class="btn btn-primary">儲存</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>

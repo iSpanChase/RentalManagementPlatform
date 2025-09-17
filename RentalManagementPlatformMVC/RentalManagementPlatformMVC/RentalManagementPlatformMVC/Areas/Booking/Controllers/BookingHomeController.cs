@@ -1,13 +1,15 @@
 ﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Booking.ViewModels;
-using RentalManagementPlatformMVC.DTOs;
-using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.DTOs.Bookings;
+using RentalManagementPlatformMVC.Services.Bookings;
 using System.Text;
 
 namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 {
 	[Area("Booking")]
+	[Authorize]
 	public class BookingHomeController : Controller
 	{
 		private readonly IBookingService _bookingService;
@@ -29,7 +31,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 		[HttpGet]
 		public async Task<IActionResult> Index([FromQuery] BookingSearchCriteriaDto criteria, int pageIndex = 1, int pageSize = 20)
 		{
-			// 1) 預設排序（首次載入或沒帶時）
+			// 預設排序（首次載入或沒帶時）
 			if (string.IsNullOrWhiteSpace(criteria.SortBy))
 				criteria.SortBy = "createdAt";
 
@@ -37,7 +39,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 			if (!Request.Query.ContainsKey(nameof(criteria.IsDescending)))
 				criteria.IsDescending = true;
 
-			// 2) 判斷：有任一篩選「或有排序參數」就走搜尋管線
+			// 判斷：有任一篩選「或有排序參數」就走搜尋管線
 			bool hasFilter = HasAnyFilter(criteria);
 			bool hasSort = !string.IsNullOrWhiteSpace(criteria.SortBy)
 						   || Request.Query.ContainsKey(nameof(criteria.IsDescending));
@@ -46,7 +48,7 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 				? await _bookingService.SearchBookingsAsync(criteria, pageIndex, pageSize)
 				: await _bookingService.GetPagedBookingsAsync(pageIndex, pageSize);
 
-			// 3) 用 ViewModel 帶回 criteria（不要只放 ViewBag）
+			// 用 ViewModel 帶回 criteria
 			var vm = new BookingIndexViewModel
 			{
 				Bookings = pagedResult.Items.Select(b => new BookingIndexRowViewModel
@@ -65,8 +67,6 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 				PageSize = pagedResult.PageSize,
 				TotalPages = pagedResult.TotalPages,
 				TotalCount = pagedResult.TotalCount,
-
-				// << 關鍵：給 View 回填用
 				Criteria = criteria
 			};
 
@@ -109,11 +109,6 @@ namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 
 			return PartialView("_BookingDetailPartial", vm);
 		}
-
-		[HttpGet]
-		public IActionResult Search() => View();
-
-		// ---- Private Helpers ----
 
 		/// <summary>
 		/// 檢查搜尋條件物件是否包含任何有效的篩選條件。

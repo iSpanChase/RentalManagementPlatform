@@ -1,6 +1,11 @@
 -- 切換使用資料庫
 USE RentalManagementPlatformSQL;
 
+ALTER TABLE [PASSWORD_RESET_TOKENS] --not repeatable
+    ADD CONSTRAINT FK_PASSWORD_RESET_TOKENS_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
 ALTER TABLE [ADDRESS] --not repeatable
     ADD CONSTRAINT FK_ADDRESS_district_id_DISTRICT_district_id 
     FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);
@@ -64,11 +69,6 @@ GO
 ALTER TABLE [REVIEW] --not repeatable
     ADD CONSTRAINT FK_REVIEW_booking_id_BOOKING_booking_id 
     FOREIGN KEY ([booking_id]) REFERENCES [BOOKING] ([booking_id]);
-GO
-
-ALTER TABLE [REVIEW] 
-    ADD CONSTRAINT FK_REVIEW_host_id_USER_user_id 
-    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
 GO
 
 ALTER TABLE [REVIEW] 

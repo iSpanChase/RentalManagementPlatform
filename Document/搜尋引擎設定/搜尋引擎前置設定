@@ -1,0 +1,28 @@
+將room_seed,rooms_settings放到專案根目錄
+
+在根目錄打開cmd 分別輸入以下四行 並將apikey替換成你的apikey
+
+建立索引
+
+curl.exe -X POST "http://127.0.0.1:7700/indexes" -H "Authorization: Bearer iSpanChase998520" -H "Content-Type: application/json" --data "{\"uid\": \"rooms\", \"primaryKey\": \"room_id\"}"
+
+導入資料
+
+curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorization: Bearer iSpanChase998520" -H "Content-Type: application/json" --data-binary "@rooms_seed.json"
+
+搜尋設定
+
+curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorization: Bearer iSpanChase998520" -H "Content-Type: application/json" --data-binary "@rooms_settings.json"
+
+同義字
+
+curl.exe -X PUT "http://127.0.0.1:7700/indexes/rooms/settings/synonyms" -H "Authorization: Bearer iSpanChase998520" -H "Content-Type: application/json" --data-binary "@synonyms.json"
+
+在appsettings加入連線字串
+
+"Meilisearch": {
+    "Url": "http://127.0.0.1:7700",
+    "ApiKey": "iSpanChase998520"
+  },
+
+

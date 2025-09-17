@@ -16,4 +16,6 @@ public partial class RoomPhoto
     public string ObjectKey { get; set; } = null!;
 
     public string ContentType { get; set; } = null!;
+
+    public string PhotoType { get; set; } = null!;
 }

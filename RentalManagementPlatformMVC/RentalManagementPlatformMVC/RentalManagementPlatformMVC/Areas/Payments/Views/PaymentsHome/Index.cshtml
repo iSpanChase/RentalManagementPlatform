@@ -33,27 +33,27 @@
         ["SortBy"] = Model.Criteria?.SortBy,
         ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
     };
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
 }
-
-<style>
-    .page-title {
-        font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        color: #34495e;
-    }
-
-    .card-title {
-        font-weight: bold;
-    }
-</style>
 
 <!-- 頁面標題 -->
 <div class="content-header mt-3">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">帳務管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
         </div>
     </div>
@@ -61,6 +61,26 @@
 
 <section class="content">
     <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "guest" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="PaymentsHome"
+                   asp-action="Index">
+                    <i class="fa-regular fa-user"></i> 房客帳務
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="HostPayoutHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-house-user"></i> 房東出款
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
 
         <!-- 搜尋條件卡片 Start -->
         <div class="card card-primary card-outline mb-3">
@@ -77,15 +97,15 @@
                     <!-- 第一行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂單編號</label>
-                        <input name="OrderNumber" class="form-control" value="@(Model.Criteria?.OrderNumber ?? "")" />
+                        <input name="OrderNumber" class="form-control" placeholder="例如：ORD20241201001" value="@(Model.Criteria?.OrderNumber ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">平台付款編號</label>
-                        <input name="PaymentRef" class="form-control" value="@(Model.Criteria?.PaymentRef ?? "")" />
+                        <input name="PaymentRef" class="form-control" placeholder="例如：PAY20241201001" value="@(Model.Criteria?.PaymentRef ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">交易參考號</label>
-                        <input name="TransactionRef" class="form-control" value="@(Model.Criteria?.TransactionRef ?? "")" />
+                        <input name="TransactionRef" class="form-control" placeholder="輸入第三方交易參考號" value="@(Model.Criteria?.TransactionRef ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">狀態</label>
@@ -101,29 +121,29 @@
                     <!-- 第二行 -->
                     <div class="col-12 col-md-3">
                         <label class="form-label">訂房姓名</label>
-                        <input name="GuestName" class="form-control" value="@(Model.Criteria?.GuestName ?? "")" />
+                        <input name="GuestName" class="form-control" placeholder="輸入房客姓名" value="@(Model.Criteria?.GuestName ?? "")" />
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label">房間名稱</label>
-                        <input name="RoomTitle" class="form-control" placeholder="輸入房名關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
+                        <input name="RoomTitle" class="form-control" placeholder="輸入房間名稱關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款起</label>
-                        <input type="date" name="PaidStartDate" class="form-control" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidStartDate" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">付款迄</label>
-                        <input type="date" name="PaidEndDate" class="form-control" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                        <input type="date" name="PaidEndDate" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
                     </div>
 
                     <!-- 第三行 -->
                     <div class="col-6 col-md-3">
                         <label class="form-label">最低金額</label>
-                        <input type="number" name="MinAmount" class="form-control" step="1" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                        <input type="number" name="MinAmount" class="form-control" step="1" placeholder="例如：1000" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">最高金額</label>
-                        <input type="number" name="MaxAmount" class="form-control" step="1" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                        <input type="number" name="MaxAmount" class="form-control" step="1" placeholder="例如：50000" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label">排序欄位</label>
@@ -146,20 +166,23 @@
 
                     <!-- 按鈕 -->
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">搜尋</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass me-1"></i>搜尋</button>
                         <a class="btn btn-outline-secondary"
                            asp-area="Payments"
                            asp-controller="PaymentsHome"
-                           asp-action="Index">重設</a>
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right me-1"></i>重設
+                       </a>
                     </div>
                 </form>
             </div>
         </div>
         <!-- 搜尋條件卡片 End -->
+
         <!-- 帳務列表卡片 Start -->
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">帳務列表</h3>
+                <h3 class="card-title">房客帳務列表</h3>
             </div>
 
             <div class="card-body p-0">
@@ -180,13 +203,13 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>序號</th>
-                                <th>訂單編號</th>
-                                <th>訂單金額</th>
-                                <th>平台付款編號</th>
-                                <th>付款方式</th>
-                                <th>付款時間</th>
-                                <th>狀態</th>
-                                <th>建立時間</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().OrderNumberSnapshot)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().Amount)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaymentRef)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayMethod)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaidAt)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayStatus)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().CreatedAt)</th>
                                 <th>詳細</th>
                             </tr>
                         </thead>
@@ -197,25 +220,30 @@
                                 {
                                     <tr>
                                         <td>@index</td>
-                                        <td>@item.OrderNumberSnapshot</td>
-                                        <td>NT$ @item.Amount?.ToString("N0")</td>
-                                        <td>@item.PaymentRef</td>
-                                        <td>@item.DisplayMethod</td>
-                                        <td>@item.PaidAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@Html.DisplayFor(m => item.OrderNumberSnapshot)</td>
+                                        <td>
+                                            @if (item.Amount.HasValue)
+                                            {
+                                                @($"NT$ {item.Amount.Value:N0}")
+                                            }
+                                        </td>
+                                        <td>@Html.DisplayFor(m => item.PaymentRef)</td>
+                                        <td>@Html.DisplayFor(m => item.DisplayMethod)</td>
+                                        <td>@Html.DisplayFor(m => item.PaidAt)</td>
                                         <td>
                                             <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
-                                                                                                                                                                            item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
-                                                                                                                                                                            item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
-                                                                                                                                                                            item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
-                                        @item.DisplayStatus
-                                    </span>
-                                </td>
-                                <td>@item.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td>
-                                    <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
-                                </td>
-                            </tr>
-                                                        index++;
+                                                                           item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                           item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
+                                                                         @Html.DisplayFor(m => item.DisplayStatus)
+                                            </span>
+                                        </td>
+                                        <td>@Html.DisplayFor(m => item.CreatedAt)</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
                                 }
                             }
                             else
@@ -241,6 +269,7 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
                             匯出 Excel
                         </a>
                         <a class="btn btn-outline-primary btn-sm"
@@ -250,8 +279,16 @@
                            asp-all-route-data="routeBase"
                            asp-route-pageIndex="@Model.PageIndex"
                            asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
                             匯出 CSV
                         </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -399,13 +436,15 @@
                            '?paymentId=' + encodeURIComponent(id);
 
                 const resp = await fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
                 });
 
                 if (!resp.ok) {
-                    const msg = resp.status === 404 ? '找不到這筆付款' :
-                               resp.status === 403 ? '沒有權限檢視' :
-                               `載入失敗（${resp.status}）`;
+                    const msg = resp.status === 404 ? '找不到這筆付款'
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
                     throw new Error(msg);
                 }
 
@@ -413,7 +452,11 @@
                 content.innerHTML = html;
 
             } catch (err) {
-                content.innerHTML = `<div class="text-danger p-3">${err.message}</div>`;
+                content.innerHTML = `
+                    <div class="text-danger p-3">
+                        ${err.message}
+                    </div>
+                `;
             } finally {
                 btn.disabled = false;
             }
