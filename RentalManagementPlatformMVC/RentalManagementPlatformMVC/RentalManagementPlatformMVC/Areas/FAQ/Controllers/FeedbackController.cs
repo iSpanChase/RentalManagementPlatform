@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.FAQ.Controllers;
 using RentalManagementPlatformMVC.Models;
@@ -6,6 +7,7 @@ using RentalManagementPlatformMVC.Models;
 namespace RentalManagementPlatform.Areas.FAQ.Controllers;
 
 [Area("FAQ")]
+[Authorize]
 [Route("FAQ/Admin/[controller]/[action]")]
 public class FeedbackController : Controller
 {
@@ -34,6 +36,7 @@ public class FeedbackController : Controller
     }
 
     [HttpDelete]
+    [Authorize]
     //[ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
@@ -46,6 +49,7 @@ public class FeedbackController : Controller
 
     // 提供 Feedback 篩選下拉：全部文章
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> AllArticlesForDropdown()
     {
         var data = await _db.FaqArticles
