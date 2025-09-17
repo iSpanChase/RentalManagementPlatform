@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Payments.ViewModels;
 using RentalManagementPlatformMVC.DTOs.Payments;
@@ -10,6 +11,7 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 {
 	[Area("Payments")]
+	[Authorize]
 	public class HostPayoutHomeController : Controller
 	{
 		private readonly IHostPayoutService _hostPayoutService;
