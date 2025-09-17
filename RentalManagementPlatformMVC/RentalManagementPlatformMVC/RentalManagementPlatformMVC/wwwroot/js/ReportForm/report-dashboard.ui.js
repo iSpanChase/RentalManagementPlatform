@@ -49,7 +49,7 @@
         // 標題 & 圖表型別
         const title = (document.querySelector('#cardTitleInput')?.value || '').trim();
         const typeSel = document.querySelector('#globalReportType');
-        const chartType = typeSel?.value || def.defaultType || 'bar';
+        const chartType = (def?.cardKind === 'metric') ? 'metric' : (typeSel.value || def?.defaultType || 'bar');
 
         return {
             title: title || def.title || '未命名卡片',

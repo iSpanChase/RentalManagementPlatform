@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\ReportForm\Views\Shared\" />
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
 
     <Folder Include="Areas\Management\Data\" />

@@ -32,6 +32,14 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             }
             return results;
         }
+
+        async Task<int> BookingCount(int? cityId, int? districtId)
+        {
+            IQueryable<Models.Booking> bookingWhereAddress = BookingSelecter(cityId, districtId);
+            var count = await bookingWhereAddress.CountAsync();
+            return count;
+        }
+
         async Task<List<decimal>> BookingTotalAmount
             (DateTime[] intervals, int? cityId, int? districtId)
         {
@@ -46,8 +54,7 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
             return results;
         }
 
-        IQueryable<Models.Booking> BookingSelecter
-            (DateTime[] intervals, int i, int? cityId, int? districtId)
+        IQueryable<Models.Booking> BookingSelecter(DateTime[] intervals, int i, int? cityId, int? districtId)
         {
             var start = intervals[i];
             var end = intervals[i + 1];
@@ -57,6 +64,20 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                             x.CreatedAt.Value >= start &&
                             x.CreatedAt.Value < end &&
                             x.TotalPrice != null)
+                .Join(_context.RoomLists, b => b.RoomId, rl => rl.RoomId, (b, rl) => new { b, rl })
+                .Join(_context.Addresses, brl => brl.rl.AddressId, a => a.AddressId, (brl, a) => new { brl, a })
+                .Join(_context.Districts, brla => brla.a.DistrictId, d => d.DistrictId, (brla, d) => new { brla, d })
+                .Join(_context.Cities, brlad => brlad.d.CityId, c => c.CityId, (brlad, c) => new { brlad, c })
+                .Where(x => districtId == null || x.brlad.d.DistrictId == districtId)
+                .Where(x => cityId == null || x.c.CityId == cityId)
+                .Select(x => x.brlad.brla.brl.b);
+            return result;
+        }
+
+        IQueryable<Models.Booking> BookingSelecter(int? cityId, int? districtId)
+        {
+            var result = _context.Bookings
+                .Where(x => x.CreatedAt != null && x.TotalPrice != null)
                 .Join(_context.RoomLists, b => b.RoomId, rl => rl.RoomId, (b, rl) => new { b, rl })
                 .Join(_context.Addresses, brl => brl.rl.AddressId, a => a.AddressId, (brl, a) => new { brl, a })
                 .Join(_context.Districts, brla => brla.a.DistrictId, d => d.DistrictId, (brla, d) => new { brla, d })
@@ -116,6 +137,13 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                 colors,
                 label = "總金額 (NTD)"
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TotalBookings(int? cityId, int? districtId)
+        {
+            var data = await BookingCount(cityId, districtId);
+            return Json(new { data });
         }
     }
 }

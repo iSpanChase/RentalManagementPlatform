@@ -8,6 +8,7 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        cardKind,
         timePolicy,
     }) {
         ns.register(id, {
@@ -15,7 +16,7 @@
             defaultType,
             base,
             endpoint,
-
+            cardKind,
             timePolicy,
             buildFilterUI(container) {
                 container.innerHTML = `
@@ -102,17 +103,28 @@
         id: 'BookingAverageAmountTrend',
         title: '訂單平均金額趨勢',
         endpoint: 'BookingAverageAmountTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'BookingTotalAmountTrend',
         title: '訂單總金額趨勢',
         endpoint: 'BookingTotalAmountTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'BookingCountTrend',
         title: '訂單數量趨勢',
         endpoint: 'BookingCountTrend',
+        cardKind: 'chart',
+    });
+
+    registerReportFilter({
+        id: 'TotalBookings',
+        title: '累積訂單數',
+        endpoint: 'TotalBookings',
+        cardKind: 'metric',
+        timePolicy: 'none',
     });
 })();

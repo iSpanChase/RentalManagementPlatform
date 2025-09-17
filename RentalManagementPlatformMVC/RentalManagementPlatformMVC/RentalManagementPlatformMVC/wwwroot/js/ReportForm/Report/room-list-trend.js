@@ -8,6 +8,7 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        cardKind,
         timePolicy,
     }) {
         ns.register(id, {
@@ -15,6 +16,7 @@
             defaultType,
             base,
             endpoint,
+            cardKind,
             timePolicy,
 
             buildFilterUI(container) {
@@ -135,23 +137,27 @@
         id: 'RoomListAveragePriceTrend',
         title: '房源平均金額趨勢',
         endpoint: 'RoomListAveragePriceTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'RoomListAverageRatingTrend',
         title: '房源平均評分趨勢',
         endpoint: 'RoomListAverageRatingTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'RoomListCountTrend',
         title: '房源數量趨勢',
         endpoint: 'RoomListCountTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'RoomListCreateCountTrend',
         title: '房源創建數量趨勢',
         endpoint: 'RoomListCreateCountTrend',
+        cardKind: 'chart',
     });
 })();

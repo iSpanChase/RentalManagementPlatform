@@ -35,12 +35,23 @@ using RentalManagementPlatformMVC.Services.PointRules;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
-using RentalManagementPlatformMVC.CommonRepos;
-using RentalManagementPlatformMVC.Areas.Room_List.Services;
-using Meilisearch;
 using RentalManagementPlatformMVC.DTOs;
 using Minio;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.CommonRepos;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
+using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
+using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
+using RentalManagementPlatformMVC.Areas.Auth.Services;
+using RentalManagementPlatformMVC.Areas.Auth.Data;
+using RentalManagementPlatformMVC.Areas.Auth.Repositories;
+using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Services;
+using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
+using RentalManagementPlatformMVC.Areas.Management.Repository;
+using RentalManagementPlatformMVC.Areas.Room_List.Services;
+using Meilisearch;
+using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
 
 namespace RentalManagementPlatformMVC
 {
@@ -57,7 +68,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+            builder.Services.AddSingleton<AnomalyNotifier>();
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			//service註冊
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
@@ -142,7 +153,7 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPointLedgerRepository, PointLedgerRepository>();
 			builder.Services.AddScoped<IPointLedgerService, PointLedgerService>();
 
-			builder.Services.AddAutoMapper(cfg => {}, typeof(MappingProfile).Assembly);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
 
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
@@ -151,8 +162,10 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
 			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
 
+            builder.Services.AddScoped<IAnomalyEvaluator, AnomalyEvaluator>();
+            builder.Services.AddHostedService<AnomalyBackgroundService>();
 
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 			builder.Services.AddControllersWithViews();
 			//var app = builder.Build();
