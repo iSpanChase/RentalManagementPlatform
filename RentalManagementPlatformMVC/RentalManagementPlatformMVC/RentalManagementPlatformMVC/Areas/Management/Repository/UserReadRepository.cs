@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
+using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.Management.Repository
 {
 	public class UserReadRepository: IUserReadRepository
 	{
-		private readonly DbContext _db;
-		public UserReadRepository(DbContext db)=>_db = db;//建構函式注入：讓外部提供 DbContext 實例
+		private readonly RentalManagementPlatformSqlContext _db;
+		public UserReadRepository(RentalManagementPlatformSqlContext db) =>_db = db;//建構函式注入：讓外部提供 DbContext 實例
 
 		public async Task<Models.User?> GetByIdAsync(int userId)
 		{

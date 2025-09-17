@@ -21,5 +21,7 @@ public partial class PointRule
 
     public bool? IsActive { get; set; }
 
+    public bool? HasBeenActivated { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 }
