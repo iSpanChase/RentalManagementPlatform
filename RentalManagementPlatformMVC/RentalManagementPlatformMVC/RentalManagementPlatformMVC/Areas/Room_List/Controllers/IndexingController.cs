@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Services;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
 {
     [Area("Room_List")]
+    [Authorize]
     public class IndexingController : Controller
     {
         private readonly MeilisearchService _meilisearchService;
