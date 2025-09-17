@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Roles.Mapping;
 using RentalManagementPlatformMVC.Areas.Roles.RolesDTOs;
 using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
@@ -7,6 +8,7 @@ using RentalManagementPlatformMVC.Areas.Roles.ViewModels;
 namespace RentalManagementPlatformMVC.Areas.Roles.Controllers
 {
 	[Area("Roles")]
+	[Authorize]
 	public class RolesManagementController : Controller
 	{
 		private readonly IRolesService _svc;

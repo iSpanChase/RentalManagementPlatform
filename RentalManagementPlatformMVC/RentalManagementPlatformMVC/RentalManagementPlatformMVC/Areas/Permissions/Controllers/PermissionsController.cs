@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Permissions.PermissionsDTOs;
 using RentalManagementPlatformMVC.Areas.Permissions.Services;
 using RentalManagementPlatformMVC.Areas.Permissions.ViewModels;
@@ -7,6 +8,7 @@ using System.Linq;
 namespace RentalManagementPlatformMVC.Areas.Permissions.Controllers
 {
 	[Area("Permissions")]
+	[Authorize]
 	public class PermissionsController : Controller
 	{
 		private readonly IPermissionsService _svc;
