@@ -8,7 +8,6 @@ using RentalManagementPlatformMVC.Services.PointRules;
 namespace RentalManagementPlatformMVC.Areas.PointRules.Controllers
 {
 	[Area("PointRules")]
-	[Authorize]
 	public class PointRuleHomeController : Controller
 	{
 		private readonly IPointRuleService _pointRuleService;

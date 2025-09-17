@@ -11,7 +11,6 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 {
 	[Area("Payments")]
-	[Authorize]
 	public class PaymentsHomeController : Controller
 	{
 		private readonly IPaymentService _paymentService;

@@ -10,7 +10,6 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.PointRules.Controllers
 {
     [Area("PointRules")]
-	[Authorize]
 	public class PointLedgerHomeController : Controller
     {
         private readonly IPointLedgerService _pointLedgerService;

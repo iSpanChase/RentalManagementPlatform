@@ -18,14 +18,14 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 		{
 			var pagedEntities = await _hostSubscriptionRepository.GetPagedHostSubscriptionsAsync(pageIndex, pageSize);
 
-			var hostPlanDto = _mapper.Map<List<HostSubscriptionDto>>(pagedEntities);
+			var hostPlanDto = _mapper.Map<List<HostSubscriptionDto>>(pagedEntities.Items);
 
 			return new PagedResult<HostSubscriptionDto>
 			{
 				Items = hostPlanDto,
 				PageIndex = pagedEntities.PageIndex,
 				PageSize = pagedEntities.PageSize,
-				TotalCount = pagedEntities.PageSize
+				TotalCount = pagedEntities.TotalCount
 			};
 		}
 
