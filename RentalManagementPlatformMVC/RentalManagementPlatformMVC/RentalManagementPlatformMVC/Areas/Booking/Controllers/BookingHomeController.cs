@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Booking.ViewModels;
 using RentalManagementPlatformMVC.DTOs.Bookings;
@@ -8,6 +9,7 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.Booking.Controllers
 {
 	[Area("Booking")]
+	[Authorize]
 	public class BookingHomeController : Controller
 	{
 		private readonly IBookingService _bookingService;

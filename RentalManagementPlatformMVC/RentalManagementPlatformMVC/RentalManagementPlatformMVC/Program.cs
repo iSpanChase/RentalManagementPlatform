@@ -35,6 +35,8 @@ using RentalManagementPlatformMVC.Services.PointRules;
 using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
+using RentalManagementPlatformMVC.DTOs;
+using Minio;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.CommonRepos;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
@@ -70,15 +72,33 @@ namespace RentalManagementPlatformMVC
 			// 業務資料表用的 Context（連線字串同樣指向同一顆 DB）
 			//service註冊
 			builder.Services.AddScoped<ICouponQueryService, CouponQueryService>();
+			builder.Services.AddScoped<ICouponGuestQueryService, CouponGuestQueryService>();
+			builder.Services.AddScoped<IPostQueryService, PostQueryService>();
 			builder.Services.AddScoped<CouponCommandService>();
+			builder.Services.AddScoped<CouponGrantService>();
+			builder.Services.AddScoped<CouponDropdownService>();
+			builder.Services.AddScoped<UserDropdownService>();
 
 			//repository註冊
 			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
 			builder.Services.AddScoped<ICouponWriteRepository, CouponWriteRepository>();
+			builder.Services.AddScoped<ICouponGuestRepository, CouponGuestRepository>();
+			builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
+			builder.Services.AddScoped<IPostRepository, PostRepository>();
+			builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 
-			// Meilisearch Client and Service registration
-			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
-      builder.Services.AddScoped<MeilisearchService>();
+
+            // Meilisearch Client and Service registration
+            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+            builder.Services.AddScoped<MeilisearchService>();
+
+            // MinIO Client and Service registration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+            builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+
+
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 			//註冊Context類別，並給予對應資料庫的連線方式
@@ -101,11 +121,18 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPermissionsService, PermissionsService>();
 			builder.Services.AddScoped<IPermissionsRepository, PermissionsRepository>();
 
+			builder.Services.AddHttpContextAccessor();
+
 			builder.Services.AddAuthorization(options =>
 			{
+				// 將 AppPermissions.AllCodes() 中的每一個 code 都註冊成 Policy
 				foreach (var code in AppPermissions.AllCodes())
+				{
 					options.AddPolicy(code, p => p.Requirements.Add(new PermissionRequirement(code)));
+				}
 			});
+
+			// 註冊授權處理器
 			builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));

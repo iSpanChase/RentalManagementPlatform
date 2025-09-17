@@ -31,7 +31,7 @@ public class CouponQueryService: ICouponQueryService
 		}
 
 		return await query
-			.OrderByDescending(c => c.CouponId)
+			.OrderBy(c => c.CouponId)
 			.Select(c => new CouponDto
 			{
 				CouponId = c.CouponId,
@@ -67,7 +67,7 @@ public class CouponQueryService: ICouponQueryService
 		var totalCount = await query.CountAsync();//取得總筆數
 
 		var data = await query
-			.OrderByDescending(c => c.CouponId)
+			.OrderBy(c => c.CouponId)
 			.Skip((pageIndex - 1) * pageSize)
 			.Take(pageSize)
 			.Select(c => new CouponDto

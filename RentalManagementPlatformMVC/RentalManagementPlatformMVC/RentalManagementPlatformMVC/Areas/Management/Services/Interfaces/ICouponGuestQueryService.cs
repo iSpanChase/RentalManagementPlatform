@@ -4,6 +4,7 @@ namespace RentalManagementPlatformMVC.Areas.Management.Services.Interfaces
 {
 	public interface ICouponGuestQueryService
 	{
-		Task<List<CouponGuestDto>> GetListAsync(string? keyword = null);
+		//回傳dto列表與總筆數
+		Task<(List<CouponGuestDto> Data, int TotalCount)> GetPagedListAsync(int pageIndex, int pageSize, string? keyword = null);
 	}
 }

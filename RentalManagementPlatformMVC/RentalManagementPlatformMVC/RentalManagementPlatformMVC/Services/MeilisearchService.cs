@@ -17,16 +17,26 @@ namespace RentalManagementPlatformMVC.Services
         private readonly MeilisearchClient _meiliClient;
         private readonly RentalManagementPlatformSqlContext _dbContext;
         private readonly ILogger<MeilisearchService> _logger;
+        private readonly IMinioService _minioService;
         private const string IndexName = "rooms";
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         public MeilisearchService(
             MeilisearchClient meiliClient,
             RentalManagementPlatformSqlContext dbContext,
-            ILogger<MeilisearchService> logger)
+            ILogger<MeilisearchService> logger,
+            IMinioService minioService)
         {
+            _jsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                PropertyNameCaseInsensitive = true
+            };
             _meiliClient = meiliClient;
+
             _dbContext = dbContext;
             _logger = logger;
+            _minioService = minioService;
         }
 
         public async Task<IEnumerable<RoomListSearchDto>> SearchAsync(string query)
@@ -40,18 +50,42 @@ namespace RentalManagementPlatformMVC.Services
             {
                 _logger.LogInformation("Searching Meilisearch index '{IndexName}' with query: '{Query}'.", IndexName, query);
                 var index = _meiliClient.Index(IndexName);
-                var searchResult = await index.SearchAsync<RoomListSearchDto>(query, new SearchQuery { Limit = 20 });
+                var searchResult = await index.SearchAsync<RoomListSearchDto>(query, new SearchQuery { Limit = 200 });
 
                 _logger.LogInformation("Meilisearch raw response: {RawResponse}", System.Text.Json.JsonSerializer.Serialize(searchResult));
-                
-                _logger.LogInformation("Meilisearch returned {Count} hits.", searchResult.Hits.Count());
-                if (searchResult.Hits.Any())
+
+                var hits = searchResult.Hits.ToList(); // Use ToList() to allow modification
+                _logger.LogInformation("Meilisearch returned {Count} hits.", hits.Count);
+
+                foreach (var hit in hits)
                 {
-                    var firstHit = searchResult.Hits.First();
-                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', Description='{Description}', PricePerNight={PricePerNight}, MaxGuests={MaxGuests}, HostId={HostId}, CityName='{CityName}', DistrictId={DistrictId}, DistrictName='{DistrictName}', AddressLine='{AddressLine}', GeoLat={GeoLat}, GeoLng={GeoLng}, RatingAvg={RatingAvg}, ReviewsCount={ReviewsCount}, CoverBucket='{CoverBucket}', CoverObjectKey='{CoverObjectKey}', CoverContentType='{CoverContentType}', CreatedAt={CreatedAt}, UpdatedAt={UpdatedAt}, AmenitiesCount={AmenitiesCount}.",
-                        firstHit.RoomId, firstHit.Title, firstHit.Description, firstHit.PricePerNight, firstHit.MaxGuests, firstHit.HostId, firstHit.CityName, firstHit.DistrictId, firstHit.DistrictName, firstHit.AddressLine, firstHit.Geo?.Lat, firstHit.Geo?.Lng, firstHit.RatingAvg, firstHit.ReviewsCount, firstHit.CoverBucket, firstHit.CoverObjectKey, firstHit.CoverContentType, firstHit.CreatedAt, firstHit.UpdatedAt, firstHit.Amenities?.Count ?? 0);
+                    _logger.LogInformation("DEBUG: RoomId={RoomId}, Title='{Title}', IsDeleted={IsDeleted}", hit.RoomId, hit.Title, hit.IsDeleted);
                 }
-                return searchResult.Hits;
+
+                // Populate CoverImageUrl from MinIO for each hit
+                foreach (var hit in hits)
+                {
+                    if (!string.IsNullOrEmpty(hit.CoverObjectKey))
+                    {
+                        try
+                        {
+                            hit.CoverImageUrl = await _minioService.GetFileUrlAsync(hit.CoverObjectKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to get MinIO URL for object key '{ObjectKey}'.", hit.CoverObjectKey);
+                            hit.CoverImageUrl = null; // Ensure it's null on failure
+                        }
+                    }
+                }
+
+                if (hits.Any())
+                {
+                    var firstHit = hits.First();
+                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', CoverImageUrl='{CoverImageUrl}'",
+                        firstHit.RoomId, firstHit.Title, firstHit.CoverImageUrl);
+                }
+                return hits;
             }
             catch (Exception ex)
             {
@@ -65,19 +99,35 @@ namespace RentalManagementPlatformMVC.Services
             try
             {
                 _logger.LogInformation("Starting to index all room lists.");
-                var dtos = await MapAllToDto();
+                var index = _meiliClient.Index(IndexName);
+                const int batchSize = 1000; // Define your batch size
+                int totalRooms = await _dbContext.RoomLists.CountAsync();
 
-                if (dtos.Any())
+                _logger.LogInformation("Total rooms to index: {TotalRooms}", totalRooms);
+
+                for (int skip = 0; skip < totalRooms; skip += batchSize)
                 {
-                    var index = _meiliClient.Index(IndexName);
-                    // Use RoomId as the primary key for Meilisearch
-                    var taskInfo = await index.AddDocumentsAsync(dtos, "RoomId");
-                    _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                    _logger.LogInformation("Processing batch: Skip {Skip}, Take {Take}", skip, batchSize);
+                    var dtos = await GetRoomListDtosBatchAsync(skip, batchSize);
+
+                    if (dtos.Any())
+                    {
+                        try
+                        {
+                            var taskInfo = await index.AddDocumentsAsync(dtos);
+                            _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to send {Count} documents to Meilisearch for indexing in batch (Skip: {Skip}, Take: {Take}).", dtos.Count, skip, batchSize);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No documents found in batch (Skip: {Skip}, Take: {Take}).", skip, batchSize);
+                    }
                 }
-                else
-                {
-                    _logger.LogInformation("No room lists found to index.");
-                }
+                _logger.LogInformation("Finished indexing all room lists.");
             }
             catch (Exception ex)
             {
@@ -97,7 +147,7 @@ namespace RentalManagementPlatformMVC.Services
                 }
 
                 var index = _meiliClient.Index(IndexName);
-                await index.AddDocumentsAsync(new[] { dto }, "RoomId");
+                await index.AddDocumentsAsync(new[] { dto });
                 _logger.LogInformation("Successfully indexed document for Room ID {RoomId}.", roomId);
             }
             catch (Exception ex)
@@ -122,73 +172,97 @@ namespace RentalManagementPlatformMVC.Services
 
         private async Task<RoomListSearchDto?> MapSingleToDto(int roomId)
         {
-            var result = await (from room in _dbContext.RoomLists
+            var result = await (from room in _dbContext.RoomLists.Include(r => r.RoomPhotos) // Include RoomPhotos
                                 where room.RoomId == roomId
                                 join user in _dbContext.Users on room.HostId equals user.UserId
                                 join address in _dbContext.Addresses on room.AddressId equals address.AddressId
                                 join district in _dbContext.Districts on address.DistrictId equals district.DistrictId
                                 join city in _dbContext.Cities on district.CityId equals city.CityId
-                                select new RoomListSearchDto
+                                select new
                                 {
-                                    RoomId = room.RoomId,
-                                    Title = room.Title,
-                                    Description = room.Description,
-                                    PricePerNight = room.PricePerNight ?? 0,
-                                    MaxGuests = room.MaxGuests ?? 0,
-                                    HostId = room.HostId ?? 0,
-                                    HostName = user.Name,
-                                    CityName = city.CityName,
-                                    DistrictId = district.DistrictId,
-                                    DistrictName = district.DistrictName,
-                                    AddressLine = address.Street,
-                                    Geo = new GeoLocation { Lat = (double)address.Latitude, Lng = (double)address.Longitude },
-                                    CreatedAt = room.CreatedAt ?? DateTime.MinValue,
-                                    UpdatedAt = room.UpdatedAt ?? DateTime.MinValue,
-                                    // The following fields are placeholders.
-                                    // You need to implement the logic to populate them, likely with more joins.
-                                    RatingAvg = 0,
-                                    ReviewsCount = 0,
-                                    CoverBucket = "",
-                                    CoverObjectKey = "",
-                                    CoverContentType = "",
-                                    Amenities = new List<string>()
-                                }).FirstOrDefaultAsync();
-            return result;
+                                    room, user, address, district, city,
+                                    CoverPhoto = room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ??
+                                                 room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault()
+                                })
+                                .FirstOrDefaultAsync();
+
+            if (result == null) return null;
+
+            return new RoomListSearchDto
+            {
+                RoomId = result.room.RoomId,
+                Title = result.room.Title,
+                Description = result.room.Description,
+                PricePerNight = result.room.PricePerNight ?? 0,
+                MaxGuests = result.room.MaxGuests ?? 0,
+                HostId = result.room.HostId ?? 0,
+                HostName = result.user.Name,
+                CityName = result.city.CityName,
+                DistrictId = result.district.DistrictId,
+                DistrictName = result.district.DistrictName,
+                AddressLine = result.address.Street,
+                Geo = (result.address.Latitude != null && result.address.Longitude != null)
+                    ? new GeoLocation { Lat = (double)result.address.Latitude, Lng = (double)result.address.Longitude }
+                    : null,
+                //Geo = new GeoLocation { Lat = (double)result.address.Latitude, Lng = (double)result.address.Longitude },
+                CreatedAt = result.room.CreatedAt ?? DateTime.MinValue,
+                UpdatedAt = result.room.UpdatedAt ?? DateTime.MinValue,
+                RatingAvg = 0, // Placeholder
+                ReviewsCount = 0, // Placeholder
+                CoverBucket = result.CoverPhoto?.Bucket, // Populated
+                CoverObjectKey = result.CoverPhoto?.ObjectKey, // Populated
+                CoverContentType = result.CoverPhoto?.ContentType, // Populated
+                Amenities = new List<string>(), // Populated elsewhere
+                Status = result.room.Status,
+                IsDeleted = result.room.IsDeleted
+            };
         }
 
-        private async Task<List<RoomListSearchDto>> MapAllToDto()
+        private async Task<List<RoomListSearchDto>> GetRoomListDtosBatchAsync(int skip, int take)
         {
-            var result = await (from room in _dbContext.RoomLists
+            var result = await (from room in _dbContext.RoomLists.Include(r => r.RoomPhotos) // Include RoomPhotos
                                 join user in _dbContext.Users on room.HostId equals user.UserId
                                 join address in _dbContext.Addresses on room.AddressId equals address.AddressId
                                 join district in _dbContext.Districts on address.DistrictId equals district.DistrictId
                                 join city in _dbContext.Cities on district.CityId equals city.CityId
-                                select new RoomListSearchDto
+                                orderby room.RoomId // Order by a stable column for consistent pagination
+                                select new
                                 {
-                                    RoomId = room.RoomId,
-                                    Title = room.Title,
-                                    Description = room.Description,
-                                    PricePerNight = room.PricePerNight ?? 0,
-                                    MaxGuests = room.MaxGuests ?? 0,
-                                    HostId = room.HostId ?? 0,
-                                    HostName = user.Name,
-                                    CityName = city.CityName,
-                                    DistrictId = district.DistrictId,
-                                    DistrictName = district.DistrictName,
-                                    AddressLine = address.Street,
-                                    Geo = new GeoLocation { Lat = (double)address.Latitude, Lng = (double)address.Longitude },
-                                    CreatedAt = room.CreatedAt ?? DateTime.MinValue,
-                                    UpdatedAt = room.UpdatedAt ?? DateTime.MinValue,
-                                    // The following fields are placeholders.
-                                    // You need to implement the logic to populate them, likely with more joins.
-                                    RatingAvg = 0,
-                                    ReviewsCount = 0,
-                                    CoverBucket = "",
-                                    CoverObjectKey = "",
-                                    CoverContentType = "",
-                                    Amenities = new List<string>()
-                                }).ToListAsync();
-            return result;
+                                    room, user, address, district, city,
+                                    CoverPhoto = room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ??
+                                                 room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault()
+                                })
+                                .Skip(skip)
+                                .Take(take)
+                                .ToListAsync();
+
+            return result.Select(r => new RoomListSearchDto
+            {
+                RoomId = r.room.RoomId,
+                Title = r.room.Title,
+                Description = r.room.Description,
+                PricePerNight = r.room.PricePerNight ?? 0,
+                MaxGuests = r.room.MaxGuests ?? 0,
+                HostId = r.room.HostId ?? 0,
+                HostName = r.user.Name,
+                CityName = r.city.CityName,
+                DistrictId = r.district.DistrictId,
+                DistrictName = r.district.DistrictName,
+                AddressLine = r.address.Street,
+                Geo = (r.address.Latitude != null && r.address.Longitude != null)
+                    ? new GeoLocation { Lat = (double)r.address.Latitude, Lng = (double)r.address.Longitude }
+                    : null,
+                CreatedAt = r.room.CreatedAt ?? DateTime.MinValue,
+                UpdatedAt = r.room.UpdatedAt ?? DateTime.MinValue,
+                RatingAvg = 0, // Placeholder
+                ReviewsCount = 0, // Placeholder
+                CoverBucket = r.CoverPhoto?.Bucket, // Populated
+                CoverObjectKey = r.CoverPhoto?.ObjectKey, // Populated
+                CoverContentType = r.CoverPhoto?.ContentType, // Populated
+                Amenities = new List<string>(), // Populated elsewhere
+                Status = r.room.Status,
+                IsDeleted = r.room.IsDeleted
+            }).ToList();
         }
     }
 }

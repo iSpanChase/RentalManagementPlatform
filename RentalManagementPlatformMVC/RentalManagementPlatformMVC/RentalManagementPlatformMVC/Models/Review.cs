@@ -9,8 +9,6 @@ public partial class Review
 
     public int? BookingId { get; set; }
 
-    public int? HostId { get; set; }
-
     public int? ReviewerId { get; set; }
 
     public int? RoomId { get; set; }

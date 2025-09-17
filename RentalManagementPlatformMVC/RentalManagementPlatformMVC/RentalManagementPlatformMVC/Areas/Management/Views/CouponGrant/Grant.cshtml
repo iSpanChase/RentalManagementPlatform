@@ -1,0 +1,72 @@
+﻿@model RentalManagementPlatformMVC.Areas.Management.ViewModels.CouponGrantVm
+
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5"> <!-- ✅ 縮小寬度 -->
+
+            <!-- ✅ 成功訊息提示 -->
+            @if (ViewData["Message"] != null)
+            {
+                <div class="alert alert-success">
+                    @ViewData["Message"]
+                </div>
+            }
+
+            <!-- 🎯 發放優惠券表單 -->
+            <form asp-action="Grant" method="post" class="card shadow-sm p-4 mb-3">
+
+                <!-- 選擇優惠券 -->
+                <div class="mb-3">
+                    <label asp-for="SelectedCouponId" class="form-label fw-bold">選擇優惠券</label>
+                    <select asp-for="SelectedCouponId" asp-items="Model.Coupons" class="form-select">
+                        <option value="">請選擇優惠券</option>
+                    </select>
+                    <span asp-validation-for="SelectedCouponId" class="text-danger small"></span>
+                </div>
+
+                <!-- 選擇使用者（支援多選） -->
+                <div class="mb-3">
+                    <label asp-for="SelectedUserIds" class="form-label fw-bold">選擇使用者</label>
+                    <select asp-for="SelectedUserIds" asp-items="Model.Users" class="form-select" >
+                    </select>
+                    <span asp-validation-for="SelectedUserIds" class="text-danger small"></span>
+                </div>
+
+                <!-- 全域錯誤訊息 -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2">
+                        @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <!-- 按鈕區 -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> 發放優惠券
+                    </button>
+                </div>
+            </form>
+
+            <!-- 📜 發放紀錄按鈕（獨立表單） -->
+            <form asp-area="Management" asp-controller="CouponGuest" asp-action="Index" method="get" class="mb-2">
+                <button type="submit" class="btn btn-sm btn-outline-info w-100">
+                    <i class="bi bi-journal-text"></i> 查看發放紀錄
+                </button>
+            </form>
+            <form asp-area="Management" asp-controller="Coupon" asp-action="Index" method="get" class="mb-2">
+                <button type="submit" class="btn btn-sm btn-outline-info w-100">
+                    <i class="bi bi-journal-text"></i> 優惠券管理
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

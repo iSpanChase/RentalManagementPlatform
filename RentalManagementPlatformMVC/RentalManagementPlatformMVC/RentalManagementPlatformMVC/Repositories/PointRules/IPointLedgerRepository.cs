@@ -1,3 +1,4 @@
+using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.DTOs.PointRules;
 using RentalManagementPlatformMVC.Models;
 
@@ -6,7 +7,7 @@ namespace RentalManagementPlatformMVC.Repositories.PointRules
     public interface IPointLedgerRepository
     {
 		// 初始載入：取得所有PointLedger資料（支援分頁）
-		Task<(IEnumerable<PointLedger>, int)> GetPagedPointLedgersAsync(int pageIndex, int pageSize);
+		Task<PagedResult<PointLedger>> GetPagedPointLedgersAsync(int pageIndex, int pageSize);
 
 		// 詳細頁面：根據PointLedger的ID取得詳細資訊
 		//Task<PointLedger?> GetPointLedgerDetailByIdAsync(int ledgerId);

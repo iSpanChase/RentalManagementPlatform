@@ -53,7 +53,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">訂單管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
         </div>
     </div>
@@ -81,7 +81,6 @@
                         <label class="form-label">狀態</label>
                         <select name="Status" class="form-select">
                             <option value="">— 全部 —</option>
-
                             <option value="confirmed" selected="@(Model.Criteria.Status == "confirmed" ? "selected" : null)">已確認</option>
                             <option value="pending" selected="@(Model.Criteria.Status == "pending" ? "selected" : null)">待確認</option>
                             <option value="cancelled" selected="@(Model.Criteria.Status == "cancelled" ? "selected" : null)">已取消</option>
@@ -380,36 +379,56 @@
 @section Scripts {
     <script>
         document.addEventListener('click', async (e) => {
-          const btn = e.target.closest('.btn-detail');
-          if (!btn) return;
-          e.preventDefault();
+            const btn = e.target.closest('.btn-detail');
+            if (!btn) return;
 
-          const id = btn.dataset.id;
-          const content = document.getElementById('modal-detail-content');
+            e.preventDefault();
 
-          // 顯示載入中 & 開窗
-          btn.disabled = true;
-          content.innerHTML = '<div class="modal-body text-center py-5"><div class="spinner-border" role="status"></div><div class="mt-2">載入中…</div></div>';
-          const modalEl = document.getElementById('detailModal');
-          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-          modal.show();
+            const id = btn.dataset.id;
+            const content = document.getElementById('modal-detail-content');
 
-          try {
-            const url = '@Url.Action("Detail", "BookingHome", new { area = "Booking" })' + '?bookingId=' + encodeURIComponent(id);
-            const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            if (!resp.ok) {
-              const msg = resp.status === 404 ? '找不到這筆訂單'
-                      : resp.status === 403 ? '沒有權限檢視'
-                      : `載入失敗（${resp.status}）`;
-              throw new Error(msg);
+            // 顯示載入中狀態並開啟視窗
+            btn.disabled = true;
+            content.innerHTML = `
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2">載入中…</div>
+                </div>
+            `;
+
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            try {
+                const url = '@Url.Action("Detail", "BookingHome", new { area = "Booking" })'
+                          + '?bookingId=' + encodeURIComponent(id);
+
+                const resp = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!resp.ok) {
+                    const msg = resp.status === 404 ? '找不到這筆訂單'
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
+                    throw new Error(msg);
+                }
+
+                const html = await resp.text();
+                content.innerHTML = html; // 部分檢視含 modal-header + modal-body
+
+            } catch (err) {
+                content.innerHTML = `
+                    <div class="modal-body text-danger p-3">
+                        ${err.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
             }
-            const html = await resp.text();
-            content.innerHTML = html; // 部分檢視含 modal-header + modal-body
-          } catch (err) {
-            content.innerHTML = `<div class="modal-body text-danger p-3">${err.message}</div>`;
-          } finally {
-            btn.disabled = false;
-          }
         });
     </script>
 }

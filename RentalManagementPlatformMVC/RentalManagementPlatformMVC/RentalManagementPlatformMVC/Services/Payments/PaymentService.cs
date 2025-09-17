@@ -21,9 +21,9 @@ namespace RentalManagementPlatformMVC.Services.Payments
 		/// <returns>回傳包含付款資料清單及分頁資訊的 PagedResult 物件</returns>
 		public async Task<PagedResult<PaymentDto>> GetPagedPaymentsAsync(int pageIndex, int pageSize)
 		{
-			var (entities, totalCount) = await _paymentRepository.GetPagedPaymentsAsync(pageIndex, pageSize);
+			var pagedEntities = await _paymentRepository.GetPagedPaymentsAsync(pageIndex, pageSize);
 
-			var paymentDtos = entities.Select(p => new PaymentDto
+			var paymentDtos = pagedEntities.Items.Select(p => new PaymentDto
 			{
 				PaymentId = p.PaymentId,
 				OrderNumberSnapshot = p.OrderNumberSnapshot,
@@ -38,9 +38,9 @@ namespace RentalManagementPlatformMVC.Services.Payments
 			return new PagedResult<PaymentDto>
 			{
 				Items = paymentDtos,
-				PageIndex = pageIndex,
-				PageSize = pageSize,
-				TotalCount = totalCount
+				PageIndex = pagedEntities.PageIndex,
+				PageSize = pagedEntities.PageSize,
+				TotalCount = pagedEntities.TotalCount
 			};
 		}
 

@@ -1,13 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.SubscriptionPlan.ViewModels;
-using RentalManagementPlatformMVC.Services.SubscriptionPlans;
-using RentalManagementPlatformMVC.Exceptions;
 using RentalManagementPlatformMVC.DTOs.SubscriptionPlan;
+using RentalManagementPlatformMVC.Exceptions;
+using RentalManagementPlatformMVC.Services.SubscriptionPlans;
 
 namespace RentalManagementPlatformMVC.Areas.SubscriptionPlan.Controllers
 {
 	[Area("SubscriptionPlan")]
+	[Authorize]
 	public class SubscriptionPlanHomeController : Controller
 	{
 		private readonly ISubscriptionPlanService _subscriptionPlanService;
