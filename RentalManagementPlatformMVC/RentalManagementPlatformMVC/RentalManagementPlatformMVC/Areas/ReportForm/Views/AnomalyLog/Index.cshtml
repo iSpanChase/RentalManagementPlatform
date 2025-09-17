@@ -1,4 +1,6 @@
-﻿@model IEnumerable<RentalManagementPlatformMVC.Areas.ReportForm.Controllers.Log>
+﻿@using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly
+@using RentalManagementPlatformMVC.Areas.ReportForm.Controllers;
+@model PagedResult<Log>
 @{
 	ViewData["Title"] = "警示紀錄";
 	var map = (System.Collections.Generic.Dictionary<string, string>)ViewBag.TargetTypeMap;
@@ -33,7 +35,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						@foreach (var r in Model)
+						@foreach (var r in Model.Items)
 						{
 							<tr class="table-secondary">
 								<td>@r.RuleName</td>
@@ -51,6 +53,36 @@
 			</div>
 		</div>
 	</div>
+	<nav aria-label="頁碼" class="mt-3">
+		<ul class="pagination">
+			<li class="page-item @(Model.HasPrev ? "" : "disabled")">
+				<a class="page-link"
+				   asp-action="Index"
+				   asp-route-id="@Model.RuleIdFilter"
+				   asp-route-page="@(Model.Page - 1)"
+				   asp-route-pageSize="@Model.PageSize">上一頁</a>
+			</li>
+
+			@for (var p = 1; p <= Model.TotalPages; p++)
+			{
+				<li class="page-item @(p == Model.Page ? "active" : "")">
+					<a class="page-link"
+					   asp-action="Index"
+					   asp-route-id="@Model.RuleIdFilter"
+					   asp-route-page="@p"
+					   asp-route-pageSize="@Model.PageSize">@p</a>
+				</li>
+			}
+
+			<li class="page-item @(Model.HasNext ? "" : "disabled")">
+				<a class="page-link"
+				   asp-action="Index"
+				   asp-route-id="@Model.RuleIdFilter"
+				   asp-route-page="@(Model.Page + 1)"
+				   asp-route-pageSize="@Model.PageSize">下一頁</a>
+			</li>
+		</ul>
+	</nav>
 	@if (TempData["msg"] != null)
 	{
 		<div class="alert alert-success">@TempData["msg"]</div>

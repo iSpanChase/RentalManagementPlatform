@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly;
 using RentalManagementPlatformMVC.Models;
 using System.Threading.Tasks;
@@ -16,16 +18,23 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         // GET: /AnomalyRules
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
-            var items = await _context.AnomalyRules
+            var latestPerTargetQuery = _context.AnomalyRules;
+            var ordered = latestPerTargetQuery
                 .OrderByDescending(x => x.IsActive)
-                .ThenBy(x => x.TargetType)
-                .ThenBy(x => x.RuleName)
+                .ThenBy(x => x.RuleId)
+                .AsNoTracking();
+
+            var total = await ordered.CountAsync();
+            var items = await ordered
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             ViewBag.TargetTypeMap = RuleDictionaries.TargetTypes.ToDictionary(x => x.Value, x => x.Text);
-            return View(items);
+            var vm = new PagedResult<AnomalyRule>(items, page, pageSize, total);
+            return View(vm);
         }
 
         // GET: /AnomalyRules/Create

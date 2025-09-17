@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Presentation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels.Anomaly;
 using RentalManagementPlatformMVC.Models;
 
@@ -17,11 +18,13 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
         }
 
         // GET: /AnomalyRules
-        public async Task<IActionResult> Index(int? id)
+        public async Task<IActionResult> Index(int? id, int page = 1, int pageSize = 10)
         {
-            var queryable = id == null ? _context.AnomalyDetectionLogs  : _context.AnomalyDetectionLogs.Where(x=>x.RuleId==id);
+            var queryable = id == null
+                ? _context.AnomalyDetectionLogs
+                : _context.AnomalyDetectionLogs.Where(x => x.RuleId == id);
 
-            var items = await (
+            var latestPerTargetQuery = (
                  from adl in queryable
                  join maxCreated in (
                      from log in _context.AnomalyDetectionLogs
@@ -40,10 +43,22 @@ namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
                      CreateTime = adl.CreatedAt,
                      Solved = adl.EventType != "ALERT"
                  }
-             ).OrderBy(x=>x.Solved).ThenByDescending(x=>x.CreateTime).ThenBy(x => x.TargetId).ToListAsync();
+             );
+            var ordered = latestPerTargetQuery
+                .OrderBy(x => x.Solved)
+                .ThenByDescending(x => x.CreateTime)
+                .ThenBy(x => x.TargetId)
+                .AsNoTracking();
+
+            var total = await ordered.CountAsync();
+            var items = await ordered
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             ViewBag.TargetTypeMap = RuleDictionaries.TargetTypes.ToDictionary(x => x.Value, x => x.Text);
-            return View(items);
+            var vm = new PagedResult<Log>(items, page, pageSize, total, id);
+            return View(vm);
         }
     }
 
