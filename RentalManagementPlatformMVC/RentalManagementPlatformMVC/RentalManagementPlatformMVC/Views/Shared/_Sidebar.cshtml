@@ -1,0 +1,157 @@
+﻿<!--begin::Sidebar-->
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <!--begin::Sidebar Brand-->
+    <div class="sidebar-brand">
+        <!--begin::Brand Link-->
+        <a href="@Url.Action("Index", "ReportForm", new { area = "ReportForm" })" class="brand-link">
+            <!--begin::Brand Image-->
+			<img src="~/images/airnest_logo_white_02.png"
+                 alt="AirNest Logo"
+                 class="brand-image opacity-75 shadow" />
+            <!--end::Brand Image-->
+            <!--begin::Brand Text-->
+            <span class="brand-text fw-light fs-4">AirNest</span>
+            <!--end::Brand Text-->
+        </a>
+        <!--end::Brand Link-->
+    </div>
+    <!--end::Sidebar Brand-->
+    <!--begin::Sidebar Wrapper-->
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <!--begin::Sidebar Menu-->
+            <ul class="nav sidebar-menu flex-column"
+                data-lte-toggle="treeview"
+                role="navigation"
+                aria-label="Main navigation"
+                data-accordion="false"
+                id="navigation">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>
+                            會員管理
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "UserManagement", new { area = "UserManagement" })" class="nav-link">
+                                <i class="nav-icon bi bi-person-gear"></i>
+                                <p>會員管理</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "RolesManagement", new { area = "Roles" })" class="nav-link">
+                                <i class="nav-icon bi bi-person-badge"></i>
+                                <p>角色管理</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Permissions", new { area = "Permissions" })" class="nav-link">
+                                <i class="nav-icon bi bi-shield-check"></i>
+                                <p>權限管理</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="nav-icon bi bi-bar-chart"></i>
+                        <p>
+                            報表
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "ReportForm", new { area = "ReportForm" })" class="nav-link">
+                                <i class="nav-icon bi bi-graph-up"></i>
+                                <p>報表</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "AnomalyRules", new { area = "ReportForm" })" class="nav-link">
+                                <i class="nav-icon bi bi-exclamation-triangle"></i>
+                                <p>警示規則</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "AnomalyLog", new { area = "ReportForm" })" class="nav-link">
+                                <i class="nav-icon bi bi-bell"></i>
+                                <p>警示紀錄</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="nav-icon bi bi-house"></i>
+                        <p>
+                            房源管理
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "RoomLists", new { area = "Room_List" })" class="nav-link">
+                                <i class="nav-icon bi bi-house-door"></i>
+                                <p>房源列表</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "Search", new { area = "Room_List" })" class="nav-link">
+                                <i class="nav-icon bi bi-search"></i>
+                                <p>房源搜尋</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Coupon", new { area = "Management" })" class="nav-link">
+                        <i class="nav-icon bi bi-ticket-perforated"></i>
+                        <p>優惠券管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Post", new { area = "Management" })" class="nav-link">
+                        <i class="nav-icon bi bi-building-gear"></i>
+                        <p>物業管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Admin", new { area = "FAQ" })" class="nav-link">
+                        <i class="nav-icon bi bi-chat-dots"></i>
+                        <p>客服管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "BookingHome", new { area = "Booking" })" class="nav-link">
+                        <i class="nav-icon bi bi-receipt"></i>
+                        <p>訂單管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "PaymentsHome", new { area = "Payments" })" class="nav-link">
+                        <i class="nav-icon bi bi-calculator"></i>
+                        <p>帳務管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "SubscriptionPlanHome", new { area = "SubscriptionPlan" })" class="nav-link">
+                        <i class="nav-icon bi bi-credit-card"></i>
+                        <p>訂閱方案管理</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "PointRuleHome", new { area = "PointRules" })" class="nav-link">
+                        <i class="nav-icon bi bi-coin"></i>
+                        <p>點數方案管理</p>
+                    </a>
+                </li>
+            <!--end::Sidebar Menu-->
+        </nav>
+    </div>
+    <!--end::Sidebar Wrapper-->
+</aside>
+<!--end::Sidebar-->

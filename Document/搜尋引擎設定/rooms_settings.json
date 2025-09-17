@@ -1,0 +1,41 @@
+{
+  "searchableAttributes": [
+    "status",
+    "title",
+    "city_name",
+    "district_name",
+    "description",
+    "address_line",
+    "amenities",
+    "host_name"
+  ],
+  "filterableAttributes": [
+    "city_id",
+    "city_name",
+    "district_name",
+    "district_id",
+    "price_per_night",
+    "max_guests",
+    "amenities",
+    "host_name",
+    "is_deleted"
+  ],
+  "sortableAttributes": [
+    "price_per_night",
+    "rating_avg",
+    "reviews_count",
+    "created_at",
+    "updated_at"
+  ],
+  "rankingRules": [
+    "words",
+    "typo",
+    "proximity",
+    "attribute",
+    "sort",
+    "exactness"
+  ],
+  "displayedAttributes": [
+    "*"
+  ]
+}

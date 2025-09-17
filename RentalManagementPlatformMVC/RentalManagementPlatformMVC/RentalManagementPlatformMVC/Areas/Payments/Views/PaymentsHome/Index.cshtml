@@ -1,0 +1,465 @@
+﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.PaymentIndexViewModel
+@using Microsoft.AspNetCore.Routing
+@using RentalManagementPlatformMVC.DTOs
+
+@{
+    ViewData["Title"] = "帳務管理";
+
+    // 計算本頁顯示的起始與結束資料編號
+    var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
+    var endRecord = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+
+    // 計算每筆資料的序號
+    var index = startRecord;
+
+    // 計算當前頁數與總頁數
+    var currentPage = Model.PageIndex;
+    var totalPages = Model.TotalPages;
+    int range = 2; // 當前頁左右顯示的範圍
+
+    // 將目前條件轉為 Dictionary<string, string?>，供分頁/排序連結沿用
+    var routeBase = new Dictionary<string, string?>
+    {
+        ["OrderNumber"] = Model.Criteria?.OrderNumber,
+        ["PaymentRef"] = Model.Criteria?.PaymentRef,
+        ["TransactionRef"] = Model.Criteria?.TransactionRef,
+        ["Status"] = Model.Criteria?.Status,
+        ["GuestName"] = Model.Criteria?.GuestName,
+        ["RoomTitle"] = Model.Criteria?.RoomTitle,
+        ["PaidStartDate"] = Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd"),
+        ["PaidEndDate"] = Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd"),
+        ["MinAmount"] = Model.Criteria?.MinAmount?.ToString(),
+        ["MaxAmount"] = Model.Criteria?.MaxAmount?.ToString(),
+        ["SortBy"] = Model.Criteria?.SortBy,
+        ["IsDescending"] = (Model.Criteria?.IsDescending ?? true).ToString().ToLower()
+    };
+
+    <style>
+        .page-title {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #34495e;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+    </style>
+}
+
+<!-- 頁面標題 -->
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- 分頁導覽 Start -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "guest" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="PaymentsHome"
+                   asp-action="Index">
+                    <i class="fa-regular fa-user"></i> 房客帳務
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewData["ActiveTab"]?.ToString() == "host" ? "active" : "")"
+                   asp-area="Payments"
+                   asp-controller="HostPayoutHome"
+                   asp-action="Index">
+                    <i class="fa-solid fa-house-user"></i> 房東出款
+                </a>
+            </li>
+        </ul>
+        <!-- 分頁導覽 End -->
+
+        <!-- 搜尋條件卡片 Start -->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+
+                    <!-- 確保查詢時回到第一頁 -->
+                    <input type="hidden" name="pageIndex" value="1" />
+                    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
+                    <!-- 第一行 -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">訂單編號</label>
+                        <input name="OrderNumber" class="form-control" placeholder="例如：ORD20241201001" value="@(Model.Criteria?.OrderNumber ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">平台付款編號</label>
+                        <input name="PaymentRef" class="form-control" placeholder="例如：PAY20241201001" value="@(Model.Criteria?.PaymentRef ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">交易參考號</label>
+                        <input name="TransactionRef" class="form-control" placeholder="輸入第三方交易參考號" value="@(Model.Criteria?.TransactionRef ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">狀態</label>
+                        <select name="Status" class="form-select">
+                            <option value="">— 全部 —</option>
+                            <option value="paid" selected="@(Model.Criteria?.Status == "paid" ? "selected" : null)">已付款</option>
+                            <option value="pending" selected="@(Model.Criteria?.Status == "pending" ? "selected" : null)">付款中</option>
+                            <option value="refunded" selected="@(Model.Criteria?.Status == "refunded" ? "selected" : null)">已退款</option>
+                            <option value="failed" selected="@(Model.Criteria?.Status == "failed" ? "selected" : null)">付款失敗</option>
+                        </select>
+                    </div>
+
+                    <!-- 第二行 -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">訂房姓名</label>
+                        <input name="GuestName" class="form-control" placeholder="輸入房客姓名" value="@(Model.Criteria?.GuestName ?? "")" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label">房間名稱</label>
+                        <input name="RoomTitle" class="form-control" placeholder="輸入房間名稱關鍵字" value="@(Model.Criteria?.RoomTitle ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款起</label>
+                        <input type="date" name="PaidStartDate" class="form-control" placeholder="選擇起始日期" value="@(Model.Criteria?.PaidStartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">付款迄</label>
+                        <input type="date" name="PaidEndDate" class="form-control" placeholder="選擇結束日期" value="@(Model.Criteria?.PaidEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    </div>
+
+                    <!-- 第三行 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最低金額</label>
+                        <input type="number" name="MinAmount" class="form-control" step="1" placeholder="例如：1000" value="@(Model.Criteria?.MinAmount?.ToString() ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">最高金額</label>
+                        <input type="number" name="MaxAmount" class="form-control" step="1" placeholder="例如：50000" value="@(Model.Criteria?.MaxAmount?.ToString() ?? "")" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序欄位</label>
+                        <select name="SortBy" class="form-select">
+                            <option value="CreatedAt" selected="@(Model.Criteria?.SortBy == "CreatedAt" ? "selected" : null)">建立時間</option>
+                            <option value="PaidAt" selected="@(Model.Criteria?.SortBy == "PaidAt" ? "selected" : null)">付款時間</option>
+                            <option value="Amount" selected="@(Model.Criteria?.SortBy == "Amount" ? "selected" : null)">金額</option>
+                            <option value="OrderNumber" selected="@(Model.Criteria?.SortBy == "OrderNumber" ? "selected" : null)">訂單編號</option>
+                            <option value="PaymentRef" selected="@(Model.Criteria?.SortBy == "PaymentRef" ? "selected" : null)">平台付款編號</option>
+                            <option value="Status" selected="@(Model.Criteria?.SortBy == "Status" ? "selected" : null)">狀態</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">排序方式</label>
+                        <select name="IsDescending" class="form-select">
+                            <option value="true" selected="@(Model.Criteria?.IsDescending != false ? "selected" : null)">降冪（新→舊 / 高→低）</option>
+                            <option value="false" selected="@((Model.Criteria?.IsDescending == false) ? "selected" : null)">升冪（舊→新 / 低→高）</option>
+                        </select>
+                    </div>
+
+                    <!-- 按鈕 -->
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass me-1"></i>搜尋</button>
+                        <a class="btn btn-outline-secondary"
+                           asp-area="Payments"
+                           asp-controller="PaymentsHome"
+                           asp-action="Index">
+                            <i class="fa-solid fa-rotate-right me-1"></i>重設
+                       </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 搜尋條件卡片 End -->
+
+        <!-- 帳務列表卡片 Start -->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">房客帳務列表</h3>
+            </div>
+
+            <div class="card-body p-0">
+
+                <!-- 資料統計 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">@Model.TotalCount 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">顯示第 @startRecord - @endRecord 筆</span>
+                    </div>
+                </div>
+
+                <!-- 資料表格 -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>序號</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().OrderNumberSnapshot)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().Amount)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaymentRef)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayMethod)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().PaidAt)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().DisplayStatus)</th>
+                                <th>@Html.DisplayNameFor(model => model.Payments.First().CreatedAt)</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Payments != null && Model.Payments.Any())
+                            {
+                                foreach (var item in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>@Html.DisplayFor(m => item.OrderNumberSnapshot)</td>
+                                        <td>
+                                            @if (item.Amount.HasValue)
+                                            {
+                                                @($"NT$ {item.Amount.Value:N0}")
+                                            }
+                                        </td>
+                                        <td>@Html.DisplayFor(m => item.PaymentRef)</td>
+                                        <td>@Html.DisplayFor(m => item.DisplayMethod)</td>
+                                        <td>@Html.DisplayFor(m => item.PaidAt)</td>
+                                        <td>
+                                            <span class="badge py-2 px-3 @(item.Status?.ToLower() == "paid" ? "bg-success" :
+                                                                           item.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                                                                           item.Status?.ToLower() == "refunded" ? "bg-info text-dark" :
+                                                                           item.Status?.ToLower() == "failed" ? "bg-danger" : "bg-secondary")">
+                                                                         @Html.DisplayFor(m => item.DisplayStatus)
+                                            </span>
+                                        </td>
+                                        <td>@Html.DisplayFor(m => item.CreatedAt)</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-detail" data-id="@item.PaymentId">查看</button>
+                                        </td>
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">目前沒有資料</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">第 @currentPage 頁，共 @totalPages 頁</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-success btn-sm"
+                           asp-area="Payments"
+                           asp-controller="PaymentsHome"
+                           asp-action="ExportExcel"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-excel"></i>
+                            匯出 Excel
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="Payments"
+                           asp-controller="PaymentsHome"
+                           asp-action="ExportCsv"
+                           asp-all-route-data="routeBase"
+                           asp-route-pageIndex="@Model.PageIndex"
+                           asp-route-pageSize="@Model.PageSize">
+                            <i class="fa-solid fa-file-csv"></i>
+                            匯出 CSV
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3" 
+                                title="重新整理資料"
+                                style="border-radius: 6px;"
+                                onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>重新整理</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁器 (僅在需要時顯示) -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer clearfix">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                            <!-- 上一頁 -->
+                            <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="PaymentsHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage - 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <!-- 第一頁 -->
+                            @if (currentPage > range + 2)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="PaymentsHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="1"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        1
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+
+                            <!-- 中間範圍 -->
+                            @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="PaymentsHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@i"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 最後一頁 -->
+                            @if (currentPage < totalPages - (range + 1))
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       asp-area="Payments"
+                                       asp-controller="PaymentsHome"
+                                       asp-action="Index"
+                                       asp-all-route-data="routeBase"
+                                       asp-route-pageIndex="@totalPages"
+                                       asp-route-pageSize="@Model.PageSize">
+                                        @totalPages
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- 下一頁 -->
+                            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-area="Payments"
+                                   asp-controller="PaymentsHome"
+                                   asp-action="Index"
+                                   asp-all-route-data="routeBase"
+                                   asp-route-pageIndex="@(currentPage + 1)"
+                                   asp-route-pageSize="@Model.PageSize">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+        <!-- 帳務列表卡片 End -->
+
+    </div>
+</section>
+
+@section Modals
+{
+    <!-- 詳細資料 Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">付款詳細資料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-detail-content">
+                    <!-- AJAX 載入內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{
+    <script>
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-detail');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            const id = btn.dataset.id;
+            const content = document.getElementById('modal-detail-content');
+
+            // 載入中樣式 + 開窗
+            btn.disabled = true;
+            content.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status" aria-hidden="true"></div>
+                    <div class="mt-2">載入中…</div>
+                </div>
+            `;
+
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            try {
+                const url = '@Url.Action("Details", "PaymentsHome", new { area = "Payments" })' +
+                           '?paymentId=' + encodeURIComponent(id);
+
+                const resp = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!resp.ok) {
+                    const msg = resp.status === 404 ? '找不到這筆付款'
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
+                    throw new Error(msg);
+                }
+
+                const html = await resp.text();
+                content.innerHTML = html;
+
+            } catch (err) {
+                content.innerHTML = `
+                    <div class="text-danger p-3">
+                        ${err.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+}

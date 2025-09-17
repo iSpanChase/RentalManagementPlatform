@@ -1,0 +1,108 @@
+﻿@model RentalManagementPlatformMVC.Areas.Booking.ViewModels.BookingDetailViewModel
+
+<!-- Header -->
+<div class="modal-header border-0">
+    <div class="d-flex flex-column">
+        <div class="fs-5 fw-semibold">訂單詳細資料</div>
+        <div class="text-secondary small">
+            @Html.DisplayNameFor(m => m.OrderNumber)：
+            <span class="fw-semibold">@Html.DisplayFor(m => m.OrderNumber)</span>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<!-- Body -->
+<div class="modal-body pt-0">
+    <div class="row g-3">
+
+        <!-- 左半：日期/金額/狀態 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-calendar2-week me-1"></i> 基本資訊
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CheckIn)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.CheckIn)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CheckOut)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.CheckOut)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.TotalPrice)</div>
+                    <div class="col-7 fw-semibold text-end text-md-start">
+                        @Html.DisplayFor(m => m.TotalPrice)
+                    </div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Status)</div>
+                    <div class="col-7">
+                        <span class="badge rounded-pill
+                            @(Model.Status?.ToLower() == "confirmed" ? "bg-success" :
+                              Model.Status?.ToLower() == "pending" ? "bg-warning text-dark" :
+                              Model.Status?.ToLower() == "cancelled" ? "bg-danger" :
+                              Model.Status?.ToLower() == "completed" ? "bg-info" : "bg-secondary")">
+                            @Model.DisplayStatus
+                        </span>
+                    </div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.CreatedAt)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.CreatedAt)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右半：旅客/房間/點數 -->
+        <div class="col-12 col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted fw-semibold mb-2">
+                    <i class="bi bi-people me-1"></i> 旅客與訂房
+                </div>
+
+                <div class="row small gy-2">
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.GuestName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.GuestName)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Guests)</div>
+                    <div class="col-7">
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (Model.Guests?.Any() == true)
+                            {
+                                foreach (var g in Model.Guests)
+                                {
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border">
+                                        @g.GuestName
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Room)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.Room)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.Coupon)</div>
+                    <div class="col-7">@Html.DisplayFor(m => m.Coupon)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PointsEarned)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.PointsEarned)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.PointsRedeemed)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.PointsRedeemed)</div>
+
+                    <div class="col-5 text-secondary">@Html.DisplayNameFor(m => m.HostName)</div>
+                    <div class="col-7 fw-medium">@Html.DisplayFor(m => m.HostName)</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">關閉</button>
+</div>
