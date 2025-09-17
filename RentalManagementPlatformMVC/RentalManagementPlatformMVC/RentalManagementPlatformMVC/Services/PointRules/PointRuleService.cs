@@ -110,9 +110,8 @@ namespace RentalManagementPlatformMVC.Services.PointRules
 			if (rule.IsActive == true)
 				throw new InvalidOperationException("無法刪除啟用中的點數規則");
 
-			// 商業邏輯驗證：已啟用過的規則不能刪除（根據ActiveFrom是否已開始生效判斷）
-			var currentTime = DateTime.UtcNow;
-			if (rule.ActiveFrom.HasValue && rule.ActiveFrom <= currentTime)
+			// 商業邏輯驗證：已啟用過的規則不能刪除
+			if (rule.HasBeenActivated == true)
 				throw new PointRuleInUseException("無法刪除已啟用過的點數規則");
 
 			return await _pointRuleRepository.DeleteRuleAsync(ruleId);
@@ -190,6 +189,7 @@ namespace RentalManagementPlatformMVC.Services.PointRules
 
 			// 啟用指定的規則，並設置啟用時間（如果尚未設置）
 			rule.IsActive = true;
+			rule.HasBeenActivated = true;
 			if (!rule.ActiveFrom.HasValue)
 			{
 				rule.ActiveFrom = DateTime.UtcNow;
@@ -239,9 +239,8 @@ namespace RentalManagementPlatformMVC.Services.PointRules
 			if (rule == null || rule.IsActive == true)
 				return false;
 
-			// 商業邏輯：如果規則曾經啟用過（即有ActiveFrom日期且已經開始生效），就不能刪除
-			var currentTime = DateTime.UtcNow;
-			if (rule.ActiveFrom.HasValue && rule.ActiveFrom <= currentTime)
+			// 商業邏輯：如果規則曾經啟用過，就不能刪除
+			if (rule.HasBeenActivated == true)
 				return false;
 
 			return true;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.DTOs.Payments;
 using RentalManagementPlatformMVC.Models;
 
@@ -19,8 +20,11 @@ namespace RentalManagementPlatformMVC.Repositories.Payments
 		/// <param name="pageIndex">頁碼索引（從1開始）</param>
 		/// <param name="pageSize">每頁筆數</param>
 		/// <returns>回傳包含主機付款資料集合和總筆數的元組</returns>
-		public async Task<(IEnumerable<HostPayout>, int)> GetPagedHostPayoutsAsync(int pageIndex, int pageSize)
+		public async Task<PagedResult<HostPayout>> GetPagedHostPayoutsAsync(int pageIndex, int pageSize)
 		{
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : pageSize;
+
 			var query = _context.HostPayouts
 				.AsNoTracking()
 				.Include(p => p.Host)
@@ -33,7 +37,13 @@ namespace RentalManagementPlatformMVC.Repositories.Payments
 				.Take(pageSize)
 				.ToListAsync();
 
-			return (entities, totalCount);
+			return new PagedResult<HostPayout>
+			{
+				Items = entities,
+				PageIndex = pageIndex,
+				PageSize = pageSize,
+				TotalCount = totalCount
+			};
 		}
 
 		/// <summary>
@@ -105,14 +115,11 @@ namespace RentalManagementPlatformMVC.Repositories.Payments
 					: query.OrderBy(p => p.CreatedAt).ThenBy(p => p.PayoutId),
 			};
 
-			// 總筆數
 			var totalCount = await query.CountAsync();
 
-			// 分頁邊界修正
 			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
 			pageSize = pageSize <= 0 ? 20 : pageSize;
 
-			// 取當頁資料
 			var entities = await query
 				.Skip((pageIndex - 1) * pageSize)
 				.Take(pageSize)

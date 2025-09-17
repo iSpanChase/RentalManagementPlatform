@@ -24,17 +24,17 @@ namespace RentalManagementPlatformMVC.Services.PointRules
         /// <returns>分頁的點數帳本資料集合</returns>
         public async Task<PagedResult<PointLedgerDto>> GetPagedPointLedgersAsync(int pageIndex, int pageSize)
         {
-            var (entities, totalCount) = await _pointLedgerRepository.GetPagedPointLedgersAsync(pageIndex, pageSize);
+            var pagedEntities = await _pointLedgerRepository.GetPagedPointLedgersAsync(pageIndex, pageSize);
 
-            var pointLedgerDtos = _mapper.Map<List<PointLedgerDto>>(entities);
+            var pointLedgerDtos = _mapper.Map<List<PointLedgerDto>>(pagedEntities.Items);
 
             return new PagedResult<PointLedgerDto>
             {
-                Items = pointLedgerDtos,
-                PageIndex = pageIndex,
-                PageSize = pageSize,
-                TotalCount = totalCount
-            };
+				Items = pointLedgerDtos,
+				PageIndex = pagedEntities.PageIndex,
+				PageSize = pagedEntities.PageSize,
+				TotalCount = pagedEntities.TotalCount
+			};
         }
 
         /// <summary>

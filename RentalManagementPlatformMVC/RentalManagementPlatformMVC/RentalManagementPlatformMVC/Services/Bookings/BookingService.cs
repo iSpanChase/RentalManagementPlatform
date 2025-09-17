@@ -21,9 +21,9 @@ namespace RentalManagementPlatformMVC.Services.Bookings
 		/// <returns>包含分頁訂單資料的結果物件</returns>
 		public async Task<PagedResult<BookingDto>> GetPagedBookingsAsync(int pageIndex, int pageSize)
 		{
-			var (entities, totalCount) = await _bookingRepository.GetPagedBookingsAsync(pageIndex, pageSize);
+			var pagedEntities = await _bookingRepository.GetPagedBookingsAsync(pageIndex, pageSize);
 
-			var bookingDto = entities.Select(b => new BookingDto
+			var bookingDtos = pagedEntities.Items.Select(b => new BookingDto
 			{
 				BookingId = b.BookingId,
 				OrderNumber = b.OrderNumber,
@@ -37,10 +37,10 @@ namespace RentalManagementPlatformMVC.Services.Bookings
 
 			return new PagedResult<BookingDto>
 			{
-				Items = bookingDto,
-				PageIndex = pageIndex,
-				PageSize = pageSize,
-				TotalCount = totalCount
+				Items = bookingDtos,
+				PageIndex = pagedEntities.PageIndex,
+				PageSize = pagedEntities.PageSize,
+				TotalCount = pagedEntities.TotalCount
 			};
 		}
 

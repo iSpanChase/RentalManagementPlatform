@@ -16,16 +16,16 @@ namespace RentalManagementPlatformMVC.Services.SubscriptionPlans
 		}
 		public async Task<PagedResult<HostSubscriptionDto>> GetPagedHostSubscriptionsAsync(int pageIndex, int pageSize)
 		{
-			var (entities, totalCount) = await _hostSubscriptionRepository.GetPagedHostSubscriptionsAsync(pageIndex, pageSize);
+			var pagedEntities = await _hostSubscriptionRepository.GetPagedHostSubscriptionsAsync(pageIndex, pageSize);
 
-			var hostPlanDto = _mapper.Map<List<HostSubscriptionDto>>(entities);
+			var hostPlanDto = _mapper.Map<List<HostSubscriptionDto>>(pagedEntities);
 
 			return new PagedResult<HostSubscriptionDto>
 			{
 				Items = hostPlanDto,
-				PageIndex = pageIndex,
-				PageSize = pageSize,
-				TotalCount = totalCount
+				PageIndex = pagedEntities.PageIndex,
+				PageSize = pagedEntities.PageSize,
+				TotalCount = pagedEntities.PageSize
 			};
 		}
 
