@@ -50,7 +50,10 @@
         <td>
             @if (!string.IsNullOrEmpty(item.MainImageUrl))
             {
-                <img src="@item.MainImageUrl" style="max-width: 150px; max-height: 100px; object-fit: cover;" alt="Room Image"/>
+                <img src="@item.MainImageUrl" 
+                     style="width: 150px; height: 100px; object-fit: cover;" 
+                     alt="Room Image"/>
+
             }
         </td>
         <td>
