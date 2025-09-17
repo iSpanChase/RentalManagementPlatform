@@ -1,4 +1,5 @@
-﻿using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
+﻿using RentalManagementPlatformMVC.Areas.UserManagement.Module;
+using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
@@ -41,7 +42,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 		/// 刪除使用者。
 		/// </summary>
 		/// <param name="userId">使用者主鍵。</param>
-		Task DeleteAsync(int userId);
+		Task<OpResult> DeleteAsync(int userId, CancellationToken ct = default);
 
 		Task<AssignUserRolesVm> GetAssignRolesAsync(int userId);
 		Task AssignRolesAsync(int userId, int[] roleIds);

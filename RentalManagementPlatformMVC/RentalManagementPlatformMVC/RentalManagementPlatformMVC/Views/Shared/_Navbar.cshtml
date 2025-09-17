@@ -9,21 +9,21 @@
                     <i class="bi bi-list"></i>
                 </a>
             </li>
-            <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Home</a></li>
-            <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Contact</a></li>
+            @* <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Home</a></li>
+            <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Contact</a></li> *@
         </ul>
         <!--end::Start Navbar Links-->
         <!--begin::End Navbar Links-->
         <ul class="navbar-nav ms-auto">
             <!--begin::Navbar Search-->
-            <li class="nav-item">
+            @* <li class="nav-item">
                 <a class="nav-link" href="#" data-widget="navbar-search" role="button">
                     <i class="bi bi-search"></i>
                 </a>
-            </li>
+            </li> *@
             <!--end::Navbar Search-->
             <!--begin::Messages Dropdown Menu-->
-            <li class="nav-item dropdown">
+            @* <li class="nav-item dropdown">
                 <a class="nav-link" data-bs-toggle="dropdown" href="#">
                     <i class="bi bi-chat-text"></i>
                     <span class="navbar-badge badge text-bg-danger">3</span>
@@ -103,10 +103,10 @@
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
                 </div>
-            </li>
+            </li> *@
             <!--end::Messages Dropdown Menu-->
             <!--begin::Notifications Dropdown Menu-->
-            <li class="nav-item dropdown">
+            @* <li class="nav-item dropdown">
                 <a class="nav-link" data-bs-toggle="dropdown" href="#">
                     <i class="bi bi-bell-fill"></i>
                     <span class="navbar-badge badge text-bg-warning">15</span>
@@ -131,7 +131,7 @@
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item dropdown-footer"> See All Notifications </a>
                 </div>
-            </li>
+            </li> *@
             <!--end::Notifications Dropdown Menu-->
             <!--begin::Fullscreen Toggle-->
             <li class="nav-item">
@@ -142,7 +142,7 @@
             </li>
             <!--end::Fullscreen Toggle-->
             <!--begin::User Menu Dropdown-->
-            <li class="nav-item dropdown user-menu">
+            @* <li class="nav-item dropdown user-menu">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                     <img src="~/assets/img/user2-160x160.jpg"
                          class="user-image rounded-circle shadow"
@@ -179,20 +179,21 @@
                     </li>
                     <!--end::Menu Footer-->
                 </ul>
-            </li>
+            </li> *@
             <!--end::User Menu Dropdown-->
             <!--begin::Logout--><!--這一區是廷翊新增的登入/登出按鈕，整合時請勿刪除-->
-            <li class="nav-item">
+            <li class="nav-item d-flex align-items-center">
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
-                    <form class="d-inline" method="post" asp-area="Auth" asp-controller="Auth" asp-action="Logout">
+                    <form class="d-inline m-0" method="post" asp-area="Auth" asp-controller="Auth" asp-action="Logout">
                         @Html.AntiForgeryToken()
-                        <button class="btn btn-sm btn-outline-secondary">登出</button>
+                        <button class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> 登出</button>
                     </form>
                 }
                 else
                 {
-                    <a class="btn btn-sm btn-primary" asp-area="Auth" asp-controller="Auth" asp-action="Login">登入</a>
+                    <a class="btn btn-primary" asp-area="Auth" asp-controller="Auth" asp-action="Login"><i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        登入</a>
                 }
             </li>
             <!--end::Logout--><!--這一區是廷翊新增的登入/登出按鈕，整合時請勿刪除-->
