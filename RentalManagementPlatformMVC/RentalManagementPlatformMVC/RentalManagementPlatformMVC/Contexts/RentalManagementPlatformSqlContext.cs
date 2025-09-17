@@ -740,7 +740,6 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("comment");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.HostId).HasColumnName("host_id");
             entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.ReviewerId).HasColumnName("reviewer_id");
             entity.Property(e => e.RoomId).HasColumnName("room_id");
