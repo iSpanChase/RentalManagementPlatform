@@ -104,9 +104,15 @@ namespace RentalManagementPlatformMVC.Services
                 if (dtos.Any())
                 {
                     var index = _meiliClient.Index(IndexName);
-                    // Use RoomId as the primary key for Meilisearch
-                    var taskInfo = await index.AddDocumentsAsync(dtos, "RoomId");
-                    _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                    try
+                    {
+                        var taskInfo = await index.AddDocumentsAsync(dtos, "RoomId");
+                        _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send {Count} documents to Meilisearch for indexing.", dtos.Count);
+                    }
                 }
                 else
                 {

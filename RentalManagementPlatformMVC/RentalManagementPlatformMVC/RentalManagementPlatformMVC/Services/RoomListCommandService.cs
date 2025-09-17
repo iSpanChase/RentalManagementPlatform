@@ -106,7 +106,11 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                     UpdatedAt = roomDetails.UpdatedAt,
                     Status = roomDetails.Status,
                     IsDeleted = roomDetails.IsDeleted,
-                    Amenities = roomDetails.Amenities
+                    Amenities = roomDetails.Amenities,
+                    CoverBucket = roomDetails.CoverBucket,
+                    CoverObjectKey = roomDetails.CoverObjectKey,
+                    CoverContentType = roomDetails.CoverContentType,
+                    CoverImageUrl = roomDetails.PhotoUrls.FirstOrDefault()
                 };
 
                 var index = _meilisearchClient.Index("rooms");

@@ -21,7 +21,7 @@ namespace RentalManagementPlatformMVC.Services
         {
             string? objectKey = null;
 
-                        // TODO: 當您在 RoomPhoto 資料表和 C# 類別中加入 PhotoType 欄位後，請取消此區塊的註解。
+                        
             if (entityType == "Room")
             {
                 objectKey = await _context.RoomPhotos

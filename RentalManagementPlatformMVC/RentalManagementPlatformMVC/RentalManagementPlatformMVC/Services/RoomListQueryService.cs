@@ -85,6 +85,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 }
             }
 
+            var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+
             var roomDetails = new RoomDetailsViewModel
             {
                 RoomId = rawData.room.RoomId,
@@ -104,9 +106,9 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
                 RatingAvg = 0,
                 ReviewsCount = 0,
-                CoverBucket = null,
-                CoverObjectKey = null,
-                CoverContentType = null,
+                CoverBucket = mainPhoto?.Bucket,
+                CoverObjectKey = mainPhoto?.ObjectKey,
+                CoverContentType = mainPhoto?.ContentType,
                 CreatedAt = rawData.room.CreatedAt ?? System.DateTime.MinValue,
                 UpdatedAt = rawData.room.UpdatedAt ?? System.DateTime.MinValue,
                 PhotoUrls = photoUrls,
@@ -152,6 +154,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 }
             }
 
+            var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+
             var roomDetails = new RoomDetailsViewModel
             {
                 RoomId = rawData.room.RoomId,
@@ -171,9 +175,9 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
                 RatingAvg = 0,
                 ReviewsCount = 0,
-                CoverBucket = null,
-                CoverObjectKey = null,
-                CoverContentType = null,
+                CoverBucket = mainPhoto?.Bucket,
+                CoverObjectKey = mainPhoto?.ObjectKey,
+                CoverContentType = mainPhoto?.ContentType,
                 CreatedAt = rawData.room.CreatedAt ?? System.DateTime.MinValue,
                 UpdatedAt = rawData.room.UpdatedAt ?? System.DateTime.MinValue,
                 PhotoUrls = photoUrls,
