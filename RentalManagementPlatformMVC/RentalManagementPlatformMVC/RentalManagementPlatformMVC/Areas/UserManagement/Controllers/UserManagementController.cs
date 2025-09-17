@@ -217,6 +217,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <param name="id">使用者主鍵。</param>
 		/// <returns>AssignRoles 視圖。</returns>
 		[HttpGet]
+		[Authorize(Policy = AppPermissions.Users.AssignRoles)]
 		public async Task<IActionResult> AssignRoles(int id)
 		{
 			var vm = await _svc.GetAssignRolesAsync(id);
@@ -230,6 +231,7 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		/// <returns>成功導回清單；失敗則回填表單。</returns>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Policy = AppPermissions.Users.AssignRoles)]
 		public async Task<IActionResult> AssignRoles(AssignUserRolesVm vm)
 		{
 			await _svc.AssignRolesAsync(vm.UserId, vm.SelectedRoleIds ?? Array.Empty<int>());
