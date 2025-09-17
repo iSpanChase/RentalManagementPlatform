@@ -99,25 +99,35 @@ namespace RentalManagementPlatformMVC.Services
             try
             {
                 _logger.LogInformation("Starting to index all room lists.");
-                var dtos = await MapAllToDto();
+                var index = _meiliClient.Index(IndexName);
+                const int batchSize = 1000; // Define your batch size
+                int totalRooms = await _dbContext.RoomLists.CountAsync();
 
-                if (dtos.Any())
+                _logger.LogInformation("Total rooms to index: {TotalRooms}", totalRooms);
+
+                for (int skip = 0; skip < totalRooms; skip += batchSize)
                 {
-                    var index = _meiliClient.Index(IndexName);
-                    try
+                    _logger.LogInformation("Processing batch: Skip {Skip}, Take {Take}", skip, batchSize);
+                    var dtos = await GetRoomListDtosBatchAsync(skip, batchSize);
+
+                    if (dtos.Any())
                     {
-                        var taskInfo = await index.AddDocumentsAsync(dtos, "RoomId");
-                        _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                        try
+                        {
+                            var taskInfo = await index.AddDocumentsAsync(dtos);
+                            _logger.LogInformation("Successfully sent {Count} documents to Meilisearch. Task ID: {TaskId}", dtos.Count, taskInfo.TaskUid);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to send {Count} documents to Meilisearch for indexing in batch (Skip: {Skip}, Take: {Take}).", dtos.Count, skip, batchSize);
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogError(ex, "Failed to send {Count} documents to Meilisearch for indexing.", dtos.Count);
+                        _logger.LogInformation("No documents found in batch (Skip: {Skip}, Take: {Take}).", skip, batchSize);
                     }
                 }
-                else
-                {
-                    _logger.LogInformation("No room lists found to index.");
-                }
+                _logger.LogInformation("Finished indexing all room lists.");
             }
             catch (Exception ex)
             {
@@ -137,7 +147,7 @@ namespace RentalManagementPlatformMVC.Services
                 }
 
                 var index = _meiliClient.Index(IndexName);
-                await index.AddDocumentsAsync(new[] { dto }, "RoomId");
+                await index.AddDocumentsAsync(new[] { dto });
                 _logger.LogInformation("Successfully indexed document for Room ID {RoomId}.", roomId);
             }
             catch (Exception ex)
@@ -191,7 +201,10 @@ namespace RentalManagementPlatformMVC.Services
                 DistrictId = result.district.DistrictId,
                 DistrictName = result.district.DistrictName,
                 AddressLine = result.address.Street,
-                Geo = new GeoLocation { Lat = (double)result.address.Latitude, Lng = (double)result.address.Longitude },
+                Geo = (result.address.Latitude != null && result.address.Longitude != null)
+                    ? new GeoLocation { Lat = (double)result.address.Latitude, Lng = (double)result.address.Longitude }
+                    : null,
+                //Geo = new GeoLocation { Lat = (double)result.address.Latitude, Lng = (double)result.address.Longitude },
                 CreatedAt = result.room.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = result.room.UpdatedAt ?? DateTime.MinValue,
                 RatingAvg = 0, // Placeholder
@@ -205,19 +218,22 @@ namespace RentalManagementPlatformMVC.Services
             };
         }
 
-        private async Task<List<RoomListSearchDto>> MapAllToDto()
+        private async Task<List<RoomListSearchDto>> GetRoomListDtosBatchAsync(int skip, int take)
         {
             var result = await (from room in _dbContext.RoomLists.Include(r => r.RoomPhotos) // Include RoomPhotos
                                 join user in _dbContext.Users on room.HostId equals user.UserId
                                 join address in _dbContext.Addresses on room.AddressId equals address.AddressId
                                 join district in _dbContext.Districts on address.DistrictId equals district.DistrictId
                                 join city in _dbContext.Cities on district.CityId equals city.CityId
+                                orderby room.RoomId // Order by a stable column for consistent pagination
                                 select new
                                 {
                                     room, user, address, district, city,
                                     CoverPhoto = room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ??
                                                  room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault()
                                 })
+                                .Skip(skip)
+                                .Take(take)
                                 .ToListAsync();
 
             return result.Select(r => new RoomListSearchDto
@@ -233,7 +249,9 @@ namespace RentalManagementPlatformMVC.Services
                 DistrictId = r.district.DistrictId,
                 DistrictName = r.district.DistrictName,
                 AddressLine = r.address.Street,
-                Geo = new GeoLocation { Lat = (double)r.address.Latitude, Lng = (double)r.address.Longitude },
+                Geo = (r.address.Latitude != null && r.address.Longitude != null)
+                    ? new GeoLocation { Lat = (double)r.address.Latitude, Lng = (double)r.address.Longitude }
+                    : null,
                 CreatedAt = r.room.CreatedAt ?? DateTime.MinValue,
                 UpdatedAt = r.room.UpdatedAt ?? DateTime.MinValue,
                 RatingAvg = 0, // Placeholder

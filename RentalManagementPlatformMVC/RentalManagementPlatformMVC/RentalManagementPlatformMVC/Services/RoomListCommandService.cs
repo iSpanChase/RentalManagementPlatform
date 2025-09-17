@@ -97,6 +97,9 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                     PricePerNight = roomDetails.PricePerNight,
                     MaxGuests = roomDetails.MaxGuests,
                     HostId = roomDetails.HostId,
+                    RatingAvg=roomDetails.RatingAvg,
+                    ReviewsCount=roomDetails.ReviewsCount,
+                    HostName = roomDetails.Host?.HostName, // Added this line
                     CityName = roomDetails.CityName,
                     DistrictId = roomDetails.DistrictId,
                     DistrictName = roomDetails.DistrictName,
