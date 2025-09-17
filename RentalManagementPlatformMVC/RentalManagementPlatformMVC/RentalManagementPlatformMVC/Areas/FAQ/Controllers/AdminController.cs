@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RentalManagementPlatformMVC.Areas.FAQ.Controllers
 {
     [Area("FAQ")]
+    [Authorize]
     public class AdminController : Controller
     {
         private readonly IAntiforgery _af;
