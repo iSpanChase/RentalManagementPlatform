@@ -1,5 +1,6 @@
 ﻿using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Areas.UserManagement.Module;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
@@ -152,11 +153,21 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 			await _uow.SaveChangesAsync();
 		}
 
-		public async Task DeleteAsync(int userId)
+		public async Task<OpResult> DeleteAsync(int userId, CancellationToken ct = default)
 		{
 			var user = await _userRepo.GetByIdAsync(userId) ?? throw new KeyNotFoundException("User not found");
+
+
+			// 2) 檢查是否仍有角色關聯（USER_ROLES 多對多）
+			//var hasRoles = await _uow.UserRoles.AnyAsync(ur => ur.UserId == userId, ct);
+			//if (hasRoles)
+			//	return OpResult.Fail("HasRoles", "無法刪除該帳號，請先刪除其角色權限。");
+
+			// 3) 安全刪除
 			_userRepo.Remove(user);
 			await _uow.SaveChangesAsync();
+
+			return OpResult.Ok();
 		}
 
 
