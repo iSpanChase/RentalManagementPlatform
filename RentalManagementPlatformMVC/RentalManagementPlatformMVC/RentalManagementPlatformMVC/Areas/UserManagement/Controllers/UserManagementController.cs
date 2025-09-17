@@ -197,10 +197,21 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		[Authorize(Policy = AppPermissions.Users.Delete)]
-		public async Task<IActionResult> Delete(int id)
+		public async Task<IActionResult> Delete(int id, CancellationToken ct)
 		{
-			await _svc.DeleteAsync(id);
-			TempData["ok"] = "刪除成功";
+			var result = await _svc.DeleteAsync(id, ct);
+			if (!result.Succeeded)
+			{
+				// 帶出要顯示在前端的警示內容
+				TempData["AlertType"] = "warning"; // warning | danger | success | info
+				TempData["AlertTitle"] = "刪除失敗";
+				TempData["AlertMessage"] = result.Message ?? "刪除發生錯誤。";
+				return RedirectToAction(nameof(Index));
+			}
+
+			TempData["AlertType"] = "success";
+			TempData["AlertTitle"] = "刪除成功";
+			TempData["AlertMessage"] = "帳號已刪除。";
 			return RedirectToAction(nameof(Index));
 		}
 

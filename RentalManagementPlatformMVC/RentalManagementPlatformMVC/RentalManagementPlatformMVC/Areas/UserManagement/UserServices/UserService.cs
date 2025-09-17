@@ -155,17 +155,20 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.UserServices
 
 		public async Task<OpResult> DeleteAsync(int userId, CancellationToken ct = default)
 		{
-			var user = await _userRepo.GetByIdAsync(userId) ?? throw new KeyNotFoundException("User not found");
-
+			// 1) 先查是否存在
+			var user = await _userRepo.GetByIdAsync(userId);
+			if (user == null)
+				return OpResult.Fail("NotFound", "找不到該帳號。");
 
 			// 2) 檢查是否仍有角色關聯（USER_ROLES 多對多）
-			//var hasRoles = await _uow.UserRoles.AnyAsync(ur => ur.UserId == userId, ct);
-			//if (hasRoles)
-			//	return OpResult.Fail("HasRoles", "無法刪除該帳號，請先刪除其角色權限。");
+			//    透過既有的通用 repo 查關聯表 UserRole（用 predicate 篩選）
+			var roleLinks = await _userRoleRepo.ListAsync(ur => ur.UserId == userId);
+			if (roleLinks.Count > 0)
+				return OpResult.Fail("HasRoles", "無法刪除該帳號，請先刪除其角色權限。");
 
-			// 3) 安全刪除
+			// 3) 安全刪除 + 提交
 			_userRepo.Remove(user);
-			await _uow.SaveChangesAsync();
+			await _uow.SaveChangesAsync(ct);
 
 			return OpResult.Ok();
 		}

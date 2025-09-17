@@ -15,6 +15,24 @@
     var pageSize = Model.PageSize;
     int range = 2; // 頁碼範圍
 }
+@{
+    var alertMsg = TempData["AlertMessage"] as string;
+    var alertType = (TempData["AlertType"] as string) ?? "info"; // success/info/warning/danger
+    var alertTitle = (TempData["AlertTitle"] as string) ?? "訊息";
+}
+
+@if (!string.IsNullOrWhiteSpace(alertMsg))
+{
+    <div class="alert alert-@(
+         alertType == "danger" ? "danger" :
+         alertType == "warning" ? "warning" :
+         alertType == "success" ? "success" : "info"
+        ) alert - dismissible fade show" role="alert">
+    <strong>@alertTitle：</strong> @alertMsg
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+}
+
 
 @functions {
     string NextDir(string col, string? current, string? dir)
