@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
+using RentalManagementPlatformMVC.Areas.Auth.Data;
+using RentalManagementPlatformMVC.Areas.Auth.Repositories;
+using RentalManagementPlatformMVC.Areas.Auth.Services;
 using RentalManagementPlatformMVC.Areas.Management.Repository;
 using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.Services;
@@ -71,6 +74,11 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.AddScoped<IRolesRepository, RolesRepository>();   // �M�� Roles Repo :contentReference[oaicite:24]{index=24} :contentReference[oaicite:25]{index=25}
 			builder.Services.AddScoped<IRolesService, RolesService>();         // �s�W�� Service
+
+			builder.Services.AddScoped<IAuthService, AuthService>();
+
+			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+			builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
