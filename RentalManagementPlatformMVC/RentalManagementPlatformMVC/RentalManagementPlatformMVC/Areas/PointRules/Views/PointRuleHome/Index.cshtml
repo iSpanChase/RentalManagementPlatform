@@ -36,7 +36,7 @@
     <div class="container-fluid">
         <div class="row mb-2 align-items-center">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">點數方案管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
             <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
                 <button class="btn btn-primary d-flex align-items-center gap-2 ms-auto"
@@ -146,8 +146,8 @@
                                                             data-max-points="@rule.MaxPointsPerOrder"
                                                             data-expiry-months="@rule.ExpiryMonths"
                                                             data-redeem-rate="@rule.RedeemRateNtdPerPt"
-                                                            data-active-from="@rule.ActiveFrom?.ToString("yyyy-MM-ddTHH")"
-                                                            data-active-to="@rule.ActiveTo?.ToString("yyyy-MM-ddTHH")"
+                                                            data-active-from="@rule.ActiveFrom?.ToString("yyyy-MM-ddTHH:mm")"
+                                                            data-active-to="@rule.ActiveTo?.ToString("yyyy-MM-ddTHH:mm")"
                                                             style="padding: 6px 6px; font-size: 12px;">
                                                         <i class="fas fa-edit me-1"></i>編輯
                                                     </button>
@@ -356,13 +356,11 @@
                 const activeTo = btn.getAttribute('data-active-to');
 
                 if (activeFrom) {
-                    const fromDate = new Date(activeFrom);
-                    document.getElementById('activeFrom').value = fromDate.toISOString().slice(0, 16);
+                    document.getElementById('activeFrom').value = activeFrom;
                 }
 
                 if (activeTo) {
-                    const toDate = new Date(activeTo);
-                    document.getElementById('activeTo').value = toDate.toISOString().slice(0, 16);
+                    document.getElementById('activeTo').value = activeTo;
                 }
             }
         });
