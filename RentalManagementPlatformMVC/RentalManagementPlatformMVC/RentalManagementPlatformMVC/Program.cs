@@ -87,11 +87,18 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddScoped<IPermissionsService, PermissionsService>();
 			builder.Services.AddScoped<IPermissionsRepository, PermissionsRepository>();
 
+			builder.Services.AddHttpContextAccessor();
+
 			builder.Services.AddAuthorization(options =>
 			{
+				// 將 AppPermissions.AllCodes() 中的每一個 code 都註冊成 Policy
 				foreach (var code in AppPermissions.AllCodes())
+				{
 					options.AddPolicy(code, p => p.Requirements.Add(new PermissionRequirement(code)));
+				}
 			});
+
+			// 註冊授權處理器
 			builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
