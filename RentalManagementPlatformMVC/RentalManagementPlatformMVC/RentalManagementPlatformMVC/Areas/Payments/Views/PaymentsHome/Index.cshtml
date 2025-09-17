@@ -3,7 +3,7 @@
 @using RentalManagementPlatformMVC.DTOs
 
 @{
-    ViewData["Title"] = "房客帳務";
+    ViewData["Title"] = "帳務管理";
 
     // 計算本頁顯示的起始與結束資料編號
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
@@ -53,7 +53,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">帳務管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
         </div>
     </div>
@@ -436,13 +436,15 @@
                            '?paymentId=' + encodeURIComponent(id);
 
                 const resp = await fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
                 });
 
                 if (!resp.ok) {
-                    const msg = resp.status === 404 ? '找不到這筆付款' :
-                               resp.status === 403 ? '沒有權限檢視' :
-                               `載入失敗（${resp.status}）`;
+                    const msg = resp.status === 404 ? '找不到這筆付款'
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
                     throw new Error(msg);
                 }
 
@@ -450,7 +452,11 @@
                 content.innerHTML = html;
 
             } catch (err) {
-                content.innerHTML = `<div class="text-danger p-3">${err.message}</div>`;
+                content.innerHTML = `
+                    <div class="text-danger p-3">
+                        ${err.message}
+                    </div>
+                `;
             } finally {
                 btn.disabled = false;
             }

@@ -1,0 +1,159 @@
+﻿@model List<RentalManagementPlatformMVC.Areas.Management.ViewModels.PostQueryVm>
+
+@{
+    int totalPages = (int)Math.Ceiling((double)ViewBag.TotalCount / ViewBag.PageSize);
+    int currentPage = ViewBag.PageIndex;
+    string titleFilter = ViewBag.TitleFilter as string ?? "";
+    string usernameFilter = ViewBag.UsernameFilter as string ?? "";
+    string districtFilter = ViewBag.DistrictFilter as string ?? "";
+    string statusFilter = ViewBag.StatusFilter as string ?? "";
+}
+
+<div class="content-wrapper">
+    <div class="container">
+        <div class="mx-auto mt-3" style="max-width: 1200px;">
+<h2>物業管理紀錄</h2>
+
+<!-- 搜尋表單： method=get 保證分頁連結為 query string -->
+<form method="get" asp-action="Index" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="title" value="@titleFilter" class="form-control" placeholder="標題" />
+    </div>
+    <div class="col-auto">
+        <input type="text" name="username" value="@usernameFilter" class="form-control" placeholder="使用者" />
+    </div>
+    <div class="col-auto">
+        <input type="text" name="district" value="@districtFilter" class="form-control" placeholder="地區" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> 搜尋</button>
+    </div>
+</form>
+
+<!-- 你的資料表格：示意 -->
+<table class="table table-striped table-bordered table-sm text-nowrap" style="font-size: 0.85rem;">
+    <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>標題</th>
+            <th>使用者</th>
+            <th>地區</th>
+            <th>內容</th>
+            <th>建立時間</th>
+            <th>狀態</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.PostsId</td>
+            <td>@item.Title</td>
+            <td>@item.Name</td>
+            <td>@item.DistrictName</td>
+            <td>@item.Content</td>
+            <td>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+            <td>
+                  <form method="post" asp-action="UpdateStatus" asp-controller="Post" class="d-flex align-items-center gap-2 mb-0">
+                  <input type="hidden" name="postId" value="@item.PostsId" />
+                 <select name="newStatus" class="form-select form-select-sm" style="width: auto;">
+                 <option value="@item.Status" selected>@item.Status</option>
+                 @foreach (var s in item.StatusOptions.Where(s => s != item.Status))
+                     {
+                         <option value="@s">@s</option>
+                     }
+                 </select>
+                 <button type="submit" class="btn btn-sm btn-primary">更新</button>
+                 </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@{
+    int maxVisiblePages = 5; // 最多顯示 5 個頁碼
+    int startPage = Math.Max(1, currentPage - maxVisiblePages / 2);
+    int endPage = Math.Min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages)
+    {
+        startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+    }
+}
+
+<!-- Bootstrap 分頁器（保留所有搜尋參數） -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+
+  
+        <!-- 上一頁 -->
+        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+            <a class="page-link"
+               asp-action="Index"
+               asp-route-pageIndex="@(currentPage - 1)"
+               asp-route-pageSize="@ViewBag.PageSize"
+               asp-route-title="@ViewBag.TitleFilter"
+               asp-route-username="@ViewBag.UsernameFilter"
+               asp-route-district="@ViewBag.DistrictFilter"
+               asp-route-status="@ViewBag.StatusFilter">
+               上一頁 </a>
+        </li>
+
+        <!-- 前置 ... -->
+        @if (startPage > 1)
+        {
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+        }
+
+        <!-- 中間頁碼 -->
+         @for (int i = startPage; i <= endPage; i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pageIndex="@i"
+                   asp-route-pageSize="@ViewBag.PageSize"
+                   asp-route-title="@ViewBag.TitleFilter"
+                   asp-route-username="@ViewBag.UsernameFilter"
+                   asp-route-district="@ViewBag.DistrictFilter"
+                   asp-route-status="@ViewBag.StatusFilter">
+                    @i </a>
+            </li>
+        }
+
+        <!-- 後置 ... 與最後一頁 -->
+        @if (endPage < totalPages)
+        {
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            <li class="page-item @(totalPages == currentPage ? "active" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pageIndex="@totalPages"
+                   asp-route-pageSize="@ViewBag.PageSize"
+                   asp-route-title="@ViewBag.TitleFilter"
+                   asp-route-username="@ViewBag.UsernameFilter"
+                   asp-route-district="@ViewBag.DistrictFilter"
+                   asp-route-status="@ViewBag.StatusFilter">
+                    @totalPages
+                </a>
+            </li>
+        }
+
+        <!-- 下一頁 -->
+        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+            <a class="page-link"
+               asp-action="Index"
+               asp-route-pageIndex="@(currentPage + 1)"
+               asp-route-pageSize="@ViewBag.PageSize"
+               asp-route-title="@ViewBag.TitleFilter"
+               asp-route-username="@ViewBag.UsernameFilter"
+               asp-route-district="@ViewBag.DistrictFilter"
+               asp-route-status="@ViewBag.StatusFilter">
+               下一頁 </a>
+        </li>
+    </ul>
+</nav>
+        </div>
+    </div>
+    </div>

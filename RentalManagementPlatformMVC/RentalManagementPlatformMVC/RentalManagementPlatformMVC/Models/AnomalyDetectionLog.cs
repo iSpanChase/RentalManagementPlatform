@@ -16,4 +16,6 @@ public partial class AnomalyDetectionLog
     public decimal? ExpectedValue { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public string? EventType { get; set; }
 }

@@ -3,115 +3,69 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>@ViewData["Title"] - RentalManagementPlatformMVC</title>
 
-    <!-- Bootstrap / Icons / Apexcharts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <!--begin::Accessibility Features-->
+    <meta name="supported-color-schemes" content="light dark" />
+    <link rel="preload" href="~/css/adminlte.css" as="style" />
+    <!--end::Accessibility Features-->
 
-    <style>
-        body { min-height: 100vh; display: flex; flex-direction: column; }
-        .app-wrapper { display: flex; flex: 1; }
-        .app-sidebar { width: 240px; min-height: 100vh; }
-        .sidebar-header { font-weight: bold; font-size: 1.2rem; padding: 1rem; }
-        .nav-treeview { padding-left: 1rem; }
-        main { background: #f8f9fa; }
-    </style>
+    <!--begin::Fonts-->
+    <link rel="stylesheet"
+
+          integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
+          crossorigin="anonymous"
+          media="print"
+          onload="this.media='all'" />
+    <!--end::Fonts-->
+
+    <!--begin::Third Party Plugin(OverlayScrollbars)-->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
+          crossorigin="anonymous" />
+    <!--end::Third Party Plugin(OverlayScrollbars)-->
+
+    <!--begin::Third Party Plugin(Bootstrap Icons)-->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+          crossorigin="anonymous" />
+    <!--end::Third Party Plugin(Bootstrap Icons)-->
+
+    <!--begin::Required Plugin(AdminLTE)-->
+    <link rel="stylesheet" href="~/css/adminlte.css" />
+    <!--end::Required Plugin(AdminLTE)-->
+
+    <!-- apexcharts -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
+          integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0="
+          crossorigin="anonymous" />
+
+    <!-- FontAwesome -->
+    <link href="~/font-awesome/css/all.min.css" rel="stylesheet" />
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <a class="navbar-brand ps-3" href="#">AdminLTE 風格</a>
-        
-        <!-- Navbar Search -->
-        <form class="d-none d-md-inline-block ms-3">
-            <div class="input-group input-group-sm">
-                <input class="form-control" type="text" placeholder="Search..." />
-                <button class="btn btn-light"><i class="bi bi-search"></i></button>
-            </div>
-        </form>
-
-        <ul class="navbar-nav ms-auto">
-            <!-- Notifications -->
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-bs-toggle="dropdown" href="#">
-                    <i class="bi bi-bell-fill"></i>
-                    <span class="badge bg-warning">3</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li class="dropdown-header">3 Notifications</li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="#">New user registered</a></li>
-                    <li><a class="dropdown-item" href="#">Server rebooted</a></li>
-                    <li><a class="dropdown-item" href="#">3 messages pending</a></li>
-                </ul>
-            </li>
-
-            <!-- User Menu -->
-            <li class="nav-item dropdown ms-2">
-                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
-                    <img src="~/assets/img/user2-160x160.jpg" class="rounded-circle" width="32" /> Alexander
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#">Profile</a></li>
-                    <li><a class="dropdown-item" href="#">Sign out</a></li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-
+<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
     <div class="app-wrapper">
-        <!-- Sidebar -->
-        <aside class="app-sidebar bg-dark text-white p-3">
-            <div class="sidebar-header">主選單</div>
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link text-white" href="#"><i class="bi bi-speedometer"></i> Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#"><i class="bi bi-people-fill"></i> Users</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#"><i class="bi bi-file-earmark-text"></i> Reports</a></li>
-
-                <!-- 多層 Dropdown -->
-                <li class="nav-item mt-2">
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu1">
-                        <span><i class="bi bi-box-seam-fill"></i> Widgets</span> <i class="bi bi-chevron-down"></i>
-                    </a>
-                    <ul class="nav collapse flex-column" id="submenu1">
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Small Box</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Info Box</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Cards</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-            <!-- Sidebar Widget -->
-            <div class="mt-4 p-2 bg-secondary rounded">
-                <h6>Online Users</h6>
-                <div class="d-flex flex-wrap">
-                    <img src="~/assets/img/user1-128x128.jpg" class="rounded-circle m-1" width="32" />
-                    <img src="~/assets/img/user2-128x128.jpg" class="rounded-circle m-1" width="32" />
-                    <img src="~/assets/img/user3-128x128.jpg" class="rounded-circle m-1" width="32" />
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <main class="flex-grow-1 p-4">
+        <partial name="_Navbar" />
+        <partial name="_Sidebar" />
+        <main role="main" class="pb-3">
             @RenderBody()
         </main>
+        <partial name="_Footerbar" />
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white text-center p-2 mt-auto">
-        &copy; 2025 RentalManagementPlatformMVC
-    </footer>
-
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js"
+            crossorigin="anonymous"></script>
 
+
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js"
+            crossorigin="anonymous"></script>
+
+    <script src="~/js/adminlte.js"></script>
+
+    @await RenderSectionAsync("Modals", required: false)
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

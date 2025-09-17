@@ -1,10 +1,11 @@
-﻿//定義CouponGuest的Repository層ICouponGuestReadRepository介面
-using RentalManagementPlatformMVC.Models;
+﻿using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces
 {
+	//repository介面:定義資料存取方法
 	public interface ICouponGuestRepository
 	{
-		IQueryable <CouponGuest> Query();
+		//回傳CouponGuest資料表IQueryable
+		IQueryable<CouponGuest> Query();
 	}
 }

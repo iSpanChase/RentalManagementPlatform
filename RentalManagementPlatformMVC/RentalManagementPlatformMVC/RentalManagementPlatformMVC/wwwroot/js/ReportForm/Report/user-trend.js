@@ -7,6 +7,7 @@
         endpoint,
         base = '/ReportForm/ReportForm/',
         defaultType = 'bar',
+        cardKind,
         timePolicy, 
     }) {
         ns.register(id, {
@@ -14,6 +15,7 @@
             defaultType,
             base,
             endpoint,
+            cardKind,
             timePolicy, 
 
             buildFilterUI(container) {
@@ -103,12 +105,14 @@
         id: 'UserCountTrend',
         title: '使用者總數趨勢',
         endpoint: 'UserCountTrend',
+        cardKind: 'chart',
     });
 
     registerReportFilter({
         id: 'UserCreateCountTrend',
         title: '使用者創建數趨勢',
         endpoint: 'UserCreateCountTrend',
+        cardKind: 'chart',
     });
     registerReportFilter({
         id: 'UserRoleComposition',
@@ -116,5 +120,6 @@
         endpoint: 'UserRoleComposition',
         defaultType: 'pie',
         timePolicy: 'none', 
+        cardKind: 'chart',
     });
 })();
