@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Presentation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
@@ -9,6 +10,7 @@ using RentalManagementPlatformMVC.Models;
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
     [Area("ReportForm")]
+    [Authorize]
     public class AnomalyLogController : Controller
     {
         private readonly RentalManagementPlatformSqlContext _context;
