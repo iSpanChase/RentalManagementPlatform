@@ -1,0 +1,218 @@
+﻿@model RentalManagementPlatformMVC.Areas.Permissions.ViewModels.PermissionsIndexVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "權限管理";
+    var totalPages = (int)Math.Ceiling((Model.Pagination.Total * 1.0) / Math.Max(1, Model.Pagination.PageSize));
+    int cur = Math.Max(1, Model.Pagination.Page);
+}
+
+@{
+    // 小工具：切換排序方向
+    string SortLink(string field)
+    {
+        bool isCur = string.Equals(Model.Query.SortBy, field, StringComparison.OrdinalIgnoreCase);
+        bool desc = isCur ? !Model.Query.Desc : false; // 如果已經在該欄，就翻轉，否則預設升冪
+        var qs = new
+        {
+            Keyword = Model.Query.Keyword,
+            Module = Model.Query.Module,
+            Action = Model.Query.Action,
+            PageSize = Model.Query.PageSize,
+            Page = 1, // 點表頭時回到第1頁
+            SortBy = field,
+            Desc = desc
+        };
+        return Url.Action("Index", qs)!;
+    }
+}
+
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    權限管理
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="content">
+    <div class="container-fluid">
+        <!--搜尋條件卡片Start-->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+        <div class="card-body">
+                <form method="get" asp-area="Permissions" asp-controller="Permissions" asp-action="Index">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">關鍵字查詢</label>
+                            <input class="form-control" type="text" name="Keyword" value="@Model.Query.Keyword" placeholder="關鍵字：code/name/module/action" />
+                        </div>
+                <div class="col-md-3">
+                    <label class="form-label">權限模組</label>
+                    <select class="form-select" name="Module">
+                        <option value="">-- 模組 (全部) --</option>
+                        @foreach (var m in Model.Modules)
+                        {
+                            <option value="@m" selected="@(m == Model.Query.Module)">@m</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">權限動作</label>
+                    <select class="form-select" name="Action">
+                        <option value="">-- 動作 (全部) --</option>
+                        @foreach (var a in Model.Actions)
+                        {
+                            <option value="@a" selected="@(a == Model.Query.Action)">@a</option>
+                        }
+                    </select>
+                </div>
+                @* <div class="col-md-2">
+                    <select class="form-select" name="SortBy">
+                        @{
+                            string[] opts = new[] { "code", "name", "module", "action", "created" };
+                        }
+                        <option value="">排序：module, action, code</option>
+                        @foreach (var s in opts)
+                        {
+                            <option value="@s" selected="@(string.Equals(Model.Query.SortBy, s, StringComparison.OrdinalIgnoreCase))">@s</option>
+                        }
+                    </select>
+                </div> *@
+                <div class="col-md-3">
+                    <label class="form-label">分頁顯示數量</label>
+                    <select class="form-select" name="PageSize">
+                        @{
+                            int[] sizes = new[] { 10, 20, 50, 100 };
+                        }
+                        @foreach (var s in sizes)
+                        {
+                            <option value="@s" selected="@(Model.Query.PageSize == s)">@s / page</option>
+                        }
+                    </select>
+                </div>
+                @* <div class="col-md-1 form-check d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" name="Desc" value="true" @(Model.Query.Desc ? "checked" : null) />
+                    <label class="form-check-label">Desc</label>
+                </div> *@
+                <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                            <a class="btn btn-outline-secondary" asp-area="Permissions" asp-controller="Permissions" asp-action="Index"><i class="fa-solid fa-rotate-right"></i>重設</a>
+                </div>
+                    </div>
+                    <!-- 保留目前頁面狀態 -->
+                    <input type="hidden" name="SortBy" value="@Model.Query.SortBy" />
+                    <input type="hidden" name="Desc" value="@Model.Query.Desc" />
+                    <input type="hidden" name="Page" value="1" />
+                    <input type="hidden" name="PageSize" value="@Model.Query.PageSize" />
+            </form>
+            </div>
+        </div>
+        <!--搜尋條件卡片End-->
+		<!--權限列表卡片Start-->
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                    <h3 class="card-title" style="font-weight: bold;">權限列表</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">共 @Model.Total 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">
+                            顯示第 @Model.StartRecord - @Model.EndRecord 筆
+                        </span>
+                    </div>
+                </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                    <thead class="thead-light">
+                        <tr>
+                            <th><a href="@SortLink("code")">權限代碼 @(Model.Query.SortBy == "code" ? (Model.Query.Desc ? "▼" : "▲") : "")</a></th>
+                            <th><a href="@SortLink("name")">權限名稱 @(Model.Query.SortBy == "name" ? (Model.Query.Desc ? "▼" : "▲") : "")</a></th>
+                            <th><a href="@SortLink("module")">權限模組 @(Model.Query.SortBy == "module" ? (Model.Query.Desc ? "▼" : "▲") : "")</a></th>
+                            <th><a href="@SortLink("action")">權限動作 @(Model.Query.SortBy == "action" ? (Model.Query.Desc ? "▼" : "▲") : "")</a></th>
+                            <th><a href="@SortLink("created")">建立時間 @(Model.Query.SortBy == "created" ? (Model.Query.Desc ? "▼" : "▲") : "")</a></th>
+                            <th style="width: 160px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted">沒有資料</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.PermCode</td>
+                                    <td>@item.PermName</td>
+                                    <td>@item.Module</td>
+                                    <td>@item.Action</td>
+                                    <td>@item.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td class="text-nowrap">
+                                            <a class="btn btn-sm btn-secondary" asp-area="Permissions" asp-controller="Permissions" asp-action="Details" asp-route-id="@item.PermissionId">詳細資訊</a>
+                                        <a class="btn btn-sm btn-info" asp-area="Permissions" asp-controller="Permissions" asp-action="UsedByRoles" asp-route-id="@item.PermissionId">使用中角色</a>
+                                            <a class="btn btn-sm btn-primary" asp-area="Permissions" asp-controller="Permissions" asp-action="Edit" asp-route-id="@item.PermissionId">編輯</a>
+                                        <form class="d-inline" method="post" asp-area="Permissions" asp-controller="Permissions" asp-action="Delete" asp-route-id="@item.PermissionId">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('確認刪除？')">刪除</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                <div>
+                    <span class="text-muted">
+                        第 @Model.Page 頁，共 @Model.TotalPages 頁
+                    </span>
+                </div>
+                <a class="btn btn-primary" asp-area="Permissions" asp-controller="Permissions" asp-action="Create">新增權限</a>
+            </div>
+
+            <!-- 簡易分頁 -->
+            <div class="card-footer clearfix">
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm m-0 justify-content-center">
+                        @{
+                            int start = Math.Max(1, cur - 2);
+                            int end = Math.Min(totalPages, cur + 2);
+                            string MakeQS(int page) =>
+                            $"?Keyword={Model.Query.Keyword}&Module={Model.Query.Module}&Action={Model.Query.Action}&SortBy={Model.Query.SortBy}&Desc={Model.Query.Desc}&PageSize={Model.Query.PageSize}&Page={page}";
+                        }
+                        <li class="page-item @(cur == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@MakeQS(cur - 1)">«</a>
+                        </li>
+                        @for (int p = start; p <= end; p++)
+                        {
+                            <li class="page-item @(p == cur ? "active" : "")">
+                                <a class="page-link" href="@MakeQS(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(cur == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@MakeQS(cur + 1)">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            </div>
+            </div>
+            <!--權限列表卡片End-->
+        </div>
+    </div>
+</section>

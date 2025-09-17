@@ -26,19 +26,29 @@ namespace RentalManagementPlatformMVC.Areas.Auth.Services
 			var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, password);
 			if (result == PasswordVerificationResult.Failed) return false;
 
-			// 取角色代碼（之後可用 [Authorize(Roles="ADMIN")]）
+			// 1) 取角色代碼（可用 [Authorize(Roles="ADMIN")]）
 			var roleCodes = await (from ur in _db.UserRoles
 								   join r in _db.Roles on ur.RoleId equals r.RoleId
 								   where ur.UserId == user.UserId
 								   select r.RoleCode).ToListAsync();
+			// 2) 取該使用者透過角色得到的 perm_code
+			var permCodes = await (from ur in _db.UserRoles
+								   join rp in _db.RolePermissions on ur.RoleId equals rp.RoleId
+								   join p in _db.Permissions on rp.PermissionId equals p.PermissionId
+								   where ur.UserId == user.UserId
+								   select p.PermCode)
+								  .Distinct()
+								  .ToListAsync();
 
+			// 3) 建立 Claims：基本 + 角色 + 權限
 			var claims = new List<Claim>
-		{
-			new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-			new(ClaimTypes.Name, user.Username),
-			new(ClaimTypes.Email, user.Email ?? "")
-		};
+			{
+				new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+				new(ClaimTypes.Name, user.Username),
+				new(ClaimTypes.Email, user.Email ?? "")
+			};
 			claims.AddRange(roleCodes.Select(rc => new Claim(ClaimTypes.Role, rc)));
+			claims.AddRange(permCodes.Select(pc => new Claim("permission", pc))); // ★ 核心：把 perm_code 灌進來
 
 			var id = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 			var principal = new ClaimsPrincipal(id);

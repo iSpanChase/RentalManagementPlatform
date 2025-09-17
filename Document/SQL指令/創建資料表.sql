@@ -140,7 +140,6 @@ GO
 CREATE TABLE [REVIEW] (
   [review_id] int PRIMARY KEY NOT NULL,
   [booking_id] int,
-  [host_id] int,
   [reviewer_id] int,
   [room_id] int,
   [comment] nvarchar(512),
@@ -159,7 +158,8 @@ CREATE TABLE [ROOM_LIST] (
   [price_per_night] decimal,
   [status] nvarchar(512),
   [created_at] DATETIME2,
-  [updated_at] DATETIME2
+  [updated_at] DATETIME2,
+  [is_deleted] bit NOT NULL
 )
 GO
 
@@ -169,8 +169,12 @@ CREATE TABLE [ROOM_PHOTO] (
   [sort_order] int,
   [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
   [object_key] NVARCHAR(512) NOT NULL,
-  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg'
+  [content_type] NVARCHAR(64) NOT NULL DEFAULT N'image/jpeg',
+  [photo_type] NVARCHAR(20) NOT NULL
 )
+
+CREATE INDEX IX_ROOM_PHOTO_Room_Type_Sort
+  ON dbo.ROOM_PHOTO(room_id, photo_type, sort_order, photo_id);
 GO
 
 CREATE TABLE [ROLES] (
@@ -238,14 +242,14 @@ CREATE TABLE [HOST_PAYOUT_ITEM] (
 GO
 
 CREATE TABLE [SUBSCRIPTION_PLAN] (
-  [plan_id] int IDENTITY(1,1) PRIMARY KEY,
-  [plan_name] nvarchar(512),
-  [monthly_fee] decimal,
-  [commission_rate] decimal,
-  [perk_priority] BIT,
-  [perk_analytics] BIT,
-  [is_active] BIT,
-  [created_at] DATETIME2
+  [plan_id] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  [plan_name] nvarchar(512) NOT NULL,
+  [monthly_fee] decimal NOT NULL,
+  [commission_rate] decimal(18,4) NOT NULL,
+  [perk_priority] BIT NOT NULL,
+  [perk_analytics] BIT NOT NULL,
+  [is_active] BIT NOT NULL,
+  [created_at] DATETIME2 NOT NULL
 )
 GO
 
@@ -274,13 +278,14 @@ GO
 
 CREATE TABLE [POINT_RULE] (
   [rule_id] int IDENTITY(1,1) PRIMARY KEY,
-  [earn_rate_per_ntd] decimal,
+  [earn_rate_per_ntd] decimal(18,4),
   [max_points_per_order] int,
   [expiry_months] int,
   [redeem_rate_ntd_per_pt] decimal,
   [active_from] DATETIME2,
   [active_to] DATETIME2,
   [is_active] BIT,
+  [has_been_activated] BIT,
   [created_at] DATETIME2
 )
 GO
@@ -417,7 +422,7 @@ CREATE TABLE [USER_FAVORITE_REPORT] (
 GO
 
 CREATE TABLE [ANOMALY_RULE] (
-  [rule_id] int PRIMARY KEY NOT NULL,
+  [rule_id] int PRIMARY KEY IDENTITY(1,1) NOT NULL,
   [rule_name] nvarchar(100),
   [target_type] nvarchar(50),
   [condition_expression] nvarchar(512),
@@ -428,12 +433,13 @@ CREATE TABLE [ANOMALY_RULE] (
 GO
 
 CREATE TABLE [ANOMALY_DETECTION_LOG] (
-  [log_id] int PRIMARY KEY NOT NULL,
+  [log_id] int PRIMARY KEY IDENTITY(1,1) NOT NULL,
   [rule_id] int,
   [target_id] int,
   [detected_value] decimal(18,2),
   [expected_value] decimal(18,2),
-  [created_at] DATETIME2
+  [created_at] DATETIME2,
+  [event_type] nvarchar(20)
 )
 GO
 
@@ -1021,14 +1027,6 @@ EXEC sp_addextendedproperty
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'REVIEW',
 @level2type = N'Column', @level2name = 'booking_id';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
-@value = '房東 ID (FK)',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'REVIEW',
-@level2type = N'Column', @level2name = 'host_id';
 GO
 
 EXEC sp_addextendedproperty

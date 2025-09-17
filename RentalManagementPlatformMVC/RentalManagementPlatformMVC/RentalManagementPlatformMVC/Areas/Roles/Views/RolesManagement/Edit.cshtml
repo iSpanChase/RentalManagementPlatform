@@ -39,8 +39,20 @@
                         <textarea asp-for="Description" class="form-control"></textarea>
                     </div>
                     <div class="mt-3 text-end">
-                        <a asp-action="AssignUsers" asp-route-id="@roleId" class="btn btn-outline-primary me-2">指派使用者</a>
-                        <a asp-action="AssignPermissions" asp-route-id="@roleId" class="btn btn-outline-secondary me-2">指派權限</a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           asp-area="Roles"
+                           asp-controller="RolesManagement"
+                           asp-action="AssignUsers"
+                           asp-route-id="@Model.RoleId">
+                            指派使用者
+                        </a>
+                        <a class="btn btn-outline-info btn-sm"
+                           asp-area="Roles"
+                           asp-controller="RolesManagement"
+                           asp-action="AssignPermissions"
+                           asp-route-id="@Model.RoleId">
+                            指派權限
+                        </a>
                         <button type="submit" class="btn btn-primary me-2">更新</button>
                         <a asp-area="Roles" asp-controller="RolesManagement" asp-action="Index" class="btn btn-secondary">返回</a>
                     </div>

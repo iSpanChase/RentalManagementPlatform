@@ -72,11 +72,6 @@ ALTER TABLE [REVIEW] --not repeatable
 GO
 
 ALTER TABLE [REVIEW] 
-    ADD CONSTRAINT FK_REVIEW_host_id_USER_user_id 
-    FOREIGN KEY ([host_id]) REFERENCES [USER] ([user_id]);
-GO
-
-ALTER TABLE [REVIEW] 
     ADD CONSTRAINT FK_REVIEW_reviewer_id_USER_user_id 
     FOREIGN KEY ([reviewer_id]) REFERENCES [USER] ([user_id]);
 GO
