@@ -7,6 +7,7 @@ using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
 using RentalManagementPlatformMVC.Models;
+using System.Security.Claims;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 {
@@ -19,13 +20,18 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 	public class UserManagementController : Controller
 	{
 		private readonly IUserService _svc; // MVC Facade
+		private readonly Auth.Services.IAuthService _auth; // 用來刷新 Claims
 		private const int DefaultPageSize = 10;
 
 		/// <summary>
 		/// 以 DI 注入使用者服務。
 		/// </summary>
 		/// <param name="svc">使用者服務介面（Facade）。</param>
-		public UserManagementController(IUserService svc) => _svc = svc;
+		public UserManagementController(IUserService svc, Auth.Services.IAuthService auth)
+		{
+			_svc = svc;
+			_auth = auth;
+		}
 
 		/// <summary>
 		/// 使用者清單頁。支援關鍵字查詢與分頁。
@@ -184,6 +190,13 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 				Isverified = vm.Isverified,     
 				ProfileImageurl = vm.ProfileImageurl
 			});
+
+			// ★ 這裡重新刷新 Cookie，讓 Claims 立刻更新
+			var currentIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (int.TryParse(currentIdStr, out var currentId) && currentId == vm.UserId)
+			{
+				await _auth.RefreshClaimsAsync(HttpContext, currentId);
+			}
 
 			TempData["ok"] = "更新成功";
 			return RedirectToAction(nameof(Index));
