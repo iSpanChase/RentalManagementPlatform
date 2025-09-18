@@ -1,4 +1,13 @@
-﻿<!--begin::Header-->
+﻿@using System.Security.Claims
+@{
+    var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "未登入";
+    var avatar = User.FindFirst("ProfileImageUrl")?.Value;  // key 要對齊
+    if (string.IsNullOrWhiteSpace(avatar))
+    {
+        avatar = Url.Content("~/assets/img/defaultimg.png");
+    }
+}
+<!--begin::Header-->
 <nav class="app-header navbar navbar-expand bg-body">
     <!--begin::Container-->
     <div class="container-fluid">
@@ -133,6 +142,25 @@
                 </div>
             </li> *@
             <!--end::Notifications Dropdown Menu-->
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="@avatar" alt="頭像"
+                             referrerpolicy="no-referrer"
+                             style="width:32px;height:32px;object-fit:cover;border-radius:50%;margin-right:8px;" />
+                        <span>@userName</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li>
+                            <a class="dropdown-item"
+                               asp-area="UserManagement" asp-controller="UserManagement" asp-action="Edit"
+                               asp-route-id="@User.FindFirst(ClaimTypes.NameIdentifier)?.Value">個人資料</a>
+                        </li>
+                    </ul>
+                </li>
+            }
             <!--begin::Fullscreen Toggle-->
             <li class="nav-item">
                 <a class="nav-link" href="#" data-lte-toggle="fullscreen">

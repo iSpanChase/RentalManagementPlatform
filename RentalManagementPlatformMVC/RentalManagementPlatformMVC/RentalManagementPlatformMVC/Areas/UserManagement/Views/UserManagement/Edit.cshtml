@@ -79,7 +79,24 @@
 
                         <div class="mb-3">
                             <label asp-for="ProfileImageurl" class="form-label">大頭貼 URL（選填）</label>
-                            <input class="form-control" asp-for="ProfileImageurl" />
+                            <input class="form-control" asp-for="ProfileImageurl" id="profileUrlInput" />
+
+                                @* 如果已有 URL，顯示預覽 *@
+                                @if (!string.IsNullOrEmpty(Model.ProfileImageurl))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@Model.ProfileImageurl"
+                                             alt="大頭貼預覽"
+                                             style="width:100px; height:100px; object-fit:cover; border-radius:50%;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mt-2">
+                                        <img src="~/assets/img/defaultimg.png" alt="預設大頭貼"
+                                             style="width:100px; height:100px; object-fit:cover; border-radius:50%;" />
+                                    </div>
+                                }
                         </div>
                     </div>
                 </div>
@@ -96,4 +113,18 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // 即時預覽功能
+        document.getElementById("profileUrlInput")
+            .addEventListener("input", function () {
+                let preview = document.getElementById("profilePreview");
+                if (!preview) {
+                    preview = document.createElement("img");
+                    preview.id = "profilePreview";
+                    preview.style.cssText = "margin-top:8px;width:100px;height:100px;object-fit:cover;border-radius:50%;";
+                    this.insertAdjacentElement("afterend", preview);
+                }
+                preview.src = this.value;
+            });
+    </script>
 }
