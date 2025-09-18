@@ -7,9 +7,9 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                <h2 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
                     編輯角色
-                </h1>
+                </h2>
             </div>
         </div>
     </div>
@@ -43,14 +43,14 @@
                            asp-area="Roles"
                            asp-controller="RolesManagement"
                            asp-action="AssignUsers"
-                           asp-route-id="@Model.RoleId">
+                           asp-route-roleId="@Model.RoleId">
                             指派使用者
                         </a>
                         <a class="btn btn-outline-info btn-sm"
                            asp-area="Roles"
                            asp-controller="RolesManagement"
                            asp-action="AssignPermissions"
-                           asp-route-id="@Model.RoleId">
+                           asp-route-roleId="@Model.RoleId">
                             指派權限
                         </a>
                         <button type="submit" class="btn btn-primary me-2">更新</button>

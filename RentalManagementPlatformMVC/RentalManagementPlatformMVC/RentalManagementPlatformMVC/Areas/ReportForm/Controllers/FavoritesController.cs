@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.ReportForm.Controllers;
 using RentalManagementPlatformMVC.Models;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace RentalManagementPlatformMVC.Controllers
 {
@@ -40,7 +41,12 @@ namespace RentalManagementPlatformMVC.Controllers
         }
 
         // 先用假資料取使用者 Id；你有登入系統時改成實際 UserId 來源（例如 HttpContext.User）
-        private int GetCurrentUserId() => 1;
+        private int GetCurrentUserId()
+        {
+            int userId=1;
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier),out userId);
+            return userId;
+        }
 
         /// <summary>列出目前使用者的所有最愛（下拉用）</summary>
         [HttpPost]

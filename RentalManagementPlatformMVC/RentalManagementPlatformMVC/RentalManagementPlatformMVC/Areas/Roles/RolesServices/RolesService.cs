@@ -151,6 +151,11 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesServices
 			};
 		}
 
+		public async Task<List<int>> GetUserIdsInRoleAsync(int roleId)
+		{
+			return await _repo.GetUserIdsInRoleAsync(roleId);
+		}
+
 		public async Task SaveAssignUsersAsync(AssignUsersVm vm)
 		{
 			var role = await _repo.GetByIdAsync(vm.RoleId) ?? throw new KeyNotFoundException("Role not found");
@@ -218,6 +223,11 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesServices
 			};
 		}
 
+		public async Task<List<int>> GetPermissionIdsInRoleAsync(int roleId)
+		{
+			return await _repo.GetPermissionIdsInRoleAsync(roleId);
+		}
+
 		public async Task SaveAssignPermissionsAsync(AssignPermissionsVm vm)
 		{
 			var role = await _repo.GetByIdAsync(vm.RoleId) ?? throw new KeyNotFoundException("Role not found");
@@ -251,6 +261,115 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesServices
 			}
 
 			await _uow.SaveChangesAsync();
+		}
+
+		public async Task<string> GetRoleNameAsync(int roleId)
+	=> await _repo.Query().Where(r => r.RoleId == roleId)
+		   .Select(r => r.RoleName)
+		   .FirstOrDefaultAsync() ?? "(Unknown)";
+
+		public async Task<PagedResult<AssignableUserListItemDto>> QueryAssignableUsersAsync(AssignUsersQueryInput input)
+		{
+			var sort = (input.SortBy ?? "Name").ToLowerInvariant();
+			var desc = input.Desc;
+
+			// 第一步：只查欄位 (EF 能翻譯)
+			var baseQ = _db.Users
+				.Select(u => new { u.UserId, u.Username, u.Name, u.Email });
+
+			if (!string.IsNullOrEmpty(input.Keyword))
+			{
+				baseQ = baseQ.Where(u =>
+					(u.Name != null && u.Name.Contains(input.Keyword)) ||
+					(u.Username != null && u.Username.Contains(input.Keyword)) ||
+					(u.Email != null && u.Email.Contains(input.Keyword)));
+			}
+
+			// 第二步：EF 排序 (用原生欄位，不用 DTO)
+			IOrderedQueryable<dynamic> ordered = sort switch
+			{
+				"username" => desc ? baseQ.OrderByDescending(x => x.Username) : baseQ.OrderBy(x => x.Username),
+				"email" => desc ? baseQ.OrderByDescending(x => x.Email) : baseQ.OrderBy(x => x.Email),
+				_ => desc ? baseQ.OrderByDescending(x => x.Name) : baseQ.OrderBy(x => x.Name),
+			};
+
+			var total = await ordered.CountAsync();
+
+			// 第三步：取出資料，再轉 DTO
+			var itemsRaw = await ordered
+				.Skip((input.Page - 1) * input.PageSize)
+				.Take(input.PageSize)
+				.ToListAsync();
+
+			var userIds = itemsRaw.Select(x => x.UserId).ToList();
+			var selectedIds = await _db.UserRoles
+				.Where(ur => ur.RoleId == input.RoleId && userIds.Contains(ur.UserId))
+				.Select(ur => ur.UserId)
+				.ToListAsync();
+
+			var items = itemsRaw
+				.Select(x => new AssignableUserListItemDto(
+					x.UserId,
+					x.Username,
+					string.IsNullOrEmpty(x.Name) ? x.Username : x.Name,
+					x.Email ?? "",
+					selectedIds.Contains(x.UserId)))
+				.ToList();
+
+			return new PagedResult<AssignableUserListItemDto> { Total = total, Items = items };
+		}
+
+		public async Task<PagedResult<AssignablePermissionListItemDto>> QueryAssignablePermissionsAsync(AssignPermissionsQueryInput input)
+		{
+			var sort = (input.SortBy ?? "Code").ToLowerInvariant();
+			var desc = input.Desc;
+
+			// 第一步：先查欄位
+			var baseQ = _db.Permissions
+				.Select(p => new { p.PermissionId, p.Module, p.Action, p.PermName, p.PermCode });
+
+			if (!string.IsNullOrEmpty(input.Keyword))
+			{
+				baseQ = baseQ.Where(p =>
+					(p.PermName != null && p.PermName.Contains(input.Keyword)) ||
+					(p.Module != null && p.Module.Contains(input.Keyword)) ||
+					(p.Action != null && p.Action.Contains(input.Keyword)) ||
+					(p.PermCode != null && p.PermCode.Contains(input.Keyword)));
+			}
+
+			// 第二步：排序
+			IOrderedQueryable<dynamic> ordered = sort switch
+			{
+				"module" => desc ? baseQ.OrderByDescending(x => x.Module) : baseQ.OrderBy(x => x.Module),
+				"action" => desc ? baseQ.OrderByDescending(x => x.Action) : baseQ.OrderBy(x => x.Action),
+				"name" => desc ? baseQ.OrderByDescending(x => x.PermName) : baseQ.OrderBy(x => x.PermName),
+				_ => desc ? baseQ.OrderByDescending(x => x.PermCode) : baseQ.OrderBy(x => x.PermCode),
+			};
+
+			var total = await ordered.CountAsync();
+
+			var itemsRaw = await ordered
+				.Skip((input.Page - 1) * input.PageSize)
+				.Take(input.PageSize)
+				.ToListAsync();
+
+			var permIds = itemsRaw.Select(x => x.PermissionId).ToList();
+			var selectedIds = await _db.RolePermissions
+				.Where(rp => rp.RoleId == input.RoleId && permIds.Contains(rp.PermissionId))
+				.Select(rp => rp.PermissionId)
+				.ToListAsync();
+
+			var items = itemsRaw
+				.Select(x => new AssignablePermissionListItemDto(
+					x.PermissionId,
+					x.Module ?? "",
+					x.Action ?? "",
+					x.PermName ?? "",
+					x.PermCode ?? "",
+					selectedIds.Contains(x.PermissionId)))
+				.ToList();
+
+			return new PagedResult<AssignablePermissionListItemDto> { Total = total, Items = items };
 		}
 	}
 }

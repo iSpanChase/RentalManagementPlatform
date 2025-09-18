@@ -37,20 +37,6 @@ using RentalManagementPlatformMVC.Services.Payments;
 using RentalManagementPlatformMVC.Services.Bookings;
 using RentalManagementPlatformMVC.DTOs;
 using Minio;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserRepositories;
-using RentalManagementPlatformMVC.CommonRepos;
-using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
-using RentalManagementPlatformMVC.Areas.Roles.RolesRepositories;
-using RentalManagementPlatformMVC.Areas.Roles.RolesServices;
-using RentalManagementPlatformMVC.Areas.Auth.Services;
-using RentalManagementPlatformMVC.Areas.Auth.Data;
-using RentalManagementPlatformMVC.Areas.Auth.Repositories;
-using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Services;
-using RentalManagementPlatformMVC.Areas.Management.Repository.Interfaces;
-using RentalManagementPlatformMVC.Areas.Management.Repository;
-using RentalManagementPlatformMVC.Areas.Room_List.Services;
-using Meilisearch;
 using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
 
 namespace RentalManagementPlatformMVC
@@ -137,6 +123,7 @@ namespace RentalManagementPlatformMVC
 
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 			builder.Services.AddScoped<IEmailSender, MailKitEmailSender>();
+			builder.Services.AddSession();
 
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IBookingService, BookingService>();
@@ -212,13 +199,13 @@ namespace RentalManagementPlatformMVC
 
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
-
-            app.UseRouting();
+			
+			app.UseRouting();
 
 			app.UseAuthentication();
 			app.UseAuthorization();
-
-            app.MapControllerRoute(
+			app.UseSession();
+			app.MapControllerRoute(
                 name: "areas",
                 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
