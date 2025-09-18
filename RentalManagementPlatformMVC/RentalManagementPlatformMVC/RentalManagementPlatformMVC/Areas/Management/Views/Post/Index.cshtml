@@ -1,6 +1,7 @@
 ﻿@model List<RentalManagementPlatformMVC.Areas.Management.ViewModels.PostQueryVm>
 
 @{
+    ViewData["Title"] = "物業管理";
     int totalPages = (int)Math.Ceiling((double)ViewBag.TotalCount / ViewBag.PageSize);
     int currentPage = ViewBag.PageIndex;
     string titleFilter = ViewBag.TitleFilter as string ?? "";
