@@ -51,7 +51,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">訂閱方案管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
         </div>
     </div>
@@ -384,6 +384,7 @@
         document.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-detail');
             if (!btn) return;
+
             e.preventDefault();
 
             const id = btn.dataset.id;
@@ -391,24 +392,43 @@
 
             // 顯示載入中 & 開窗
             btn.disabled = true;
-            content.innerHTML = '<div class="modal-body text-center py-5"><div class="spinner-border" role="status"></div><div class="mt-2">載入中…</div></div>';
+            content.innerHTML = `
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2">載入中…</div>
+                </div>
+            `;
+
             const modalEl = document.getElementById('detailModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
 
             try {
-                const url = '@Url.Action("Details", "HostSubscriptionHome", new { area = "SubscriptionPlan" })' + '?id=' + encodeURIComponent(id);
-                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const url = '@Url.Action("Details", "HostSubscriptionHome", new { area = "SubscriptionPlan" })' +
+                           '?id=' + encodeURIComponent(id);
+
+                const resp = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
                 if (!resp.ok) {
                     const msg = resp.status === 404 ? '找不到這筆訂閱'
-                            : resp.status === 403 ? '沒有權限檢視'
-                            : `載入失敗（${resp.status}）`;
+                              : resp.status === 403 ? '沒有權限檢視'
+                              : `載入失敗（${resp.status}）`;
                     throw new Error(msg);
                 }
+
                 const html = await resp.text();
                 content.innerHTML = html; // 部分檢視含 modal-header + modal-body
+
             } catch (err) {
-                content.innerHTML = `<div class="modal-body text-danger p-3">${err.message}</div>`;
+                content.innerHTML = `
+                    <div class="modal-body text-danger p-3">
+                        ${err.message}
+                    </div>
+                `;
             } finally {
                 btn.disabled = false;
             }

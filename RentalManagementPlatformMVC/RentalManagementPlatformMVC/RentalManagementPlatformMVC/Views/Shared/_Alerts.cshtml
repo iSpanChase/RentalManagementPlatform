@@ -1,0 +1,14 @@
+﻿@* Views/Shared/_Alerts.cshtml *@
+@{
+    var type = TempData["AlertType"]?.ToString();
+    var title = TempData["AlertTitle"]?.ToString();
+    var message = TempData["AlertMessage"]?.ToString();
+}
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div id="server-alert"
+         data-type="@type"
+         data-title="@title"
+         data-message="@message"></div>
+}

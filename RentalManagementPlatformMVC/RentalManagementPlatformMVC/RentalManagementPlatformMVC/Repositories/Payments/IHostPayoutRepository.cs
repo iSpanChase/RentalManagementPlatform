@@ -1,4 +1,5 @@
-﻿using RentalManagementPlatformMVC.DTOs.Payments;
+﻿using RentalManagementPlatform.Common.Pagination;
+using RentalManagementPlatformMVC.DTOs.Payments;
 using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Repositories.Payments
@@ -6,7 +7,7 @@ namespace RentalManagementPlatformMVC.Repositories.Payments
 	public interface IHostPayoutRepository
 	{
 		// 初始載入：取得所有HostPayout資料（支援分頁）
-		Task<(IEnumerable<HostPayout>, int)> GetPagedHostPayoutsAsync(int pageIndex, int pageSize);
+		Task<PagedResult<HostPayout>> GetPagedHostPayoutsAsync(int pageIndex, int pageSize);
 
 		// 詳細頁面：根據HostPayout的ID取得詳細資訊
 		Task<HostPayout?> GetHostPayoutDetailByIdAsync(int hostPayoutId);

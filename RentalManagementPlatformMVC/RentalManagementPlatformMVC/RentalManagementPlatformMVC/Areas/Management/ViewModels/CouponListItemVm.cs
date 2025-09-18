@@ -1,6 +1,8 @@
 ﻿//ViewModel是作為View與Controller之間的溝通橋樑
 //主要目的是為了view的呈現需求
 //可以加入格式化屬性與顯示邏輯
+using System.ComponentModel.DataAnnotations;
+
 namespace RentalManagementPlatformMVC.Areas.Management.ViewModels 
 {
 	public class CouponListItemVm//提供View要呈現的需求,取得所要顯示的欄位

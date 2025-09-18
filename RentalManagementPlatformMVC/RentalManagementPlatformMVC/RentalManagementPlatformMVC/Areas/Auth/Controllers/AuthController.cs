@@ -5,6 +5,7 @@ using RentalManagementPlatformMVC.Areas.Auth.Repositories;
 using RentalManagementPlatformMVC.Areas.Auth.Services;
 using RentalManagementPlatformMVC.Areas.Auth.ViewModels;
 
+
 namespace RentalManagementPlatformMVC.Areas.Auth.Controllers
 {
     [Area("Auth")]
@@ -85,8 +86,8 @@ namespace RentalManagementPlatformMVC.Areas.Auth.Controllers
                 await _email.SendAsync(vm.Email, "重設密碼", $"請點擊以下連結重設密碼：{Request.Scheme}://{Request.Host}{url}");
 
             // 開發測試用：把連結放 TempData 方便點擊
-            if (!string.IsNullOrWhiteSpace(url))
-                TempData["ResetLink"] = url;
+            //if (!string.IsNullOrWhiteSpace(url))
+            //    TempData["ResetLink"] = url;
 
             return RedirectToAction(nameof(ForgotPasswordSent));
         }

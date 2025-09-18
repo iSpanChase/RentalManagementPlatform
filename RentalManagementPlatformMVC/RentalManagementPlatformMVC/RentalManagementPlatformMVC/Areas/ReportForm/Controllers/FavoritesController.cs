@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.ReportForm.Controllers;
 using RentalManagementPlatformMVC.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RentalManagementPlatformMVC.Controllers
 {
@@ -19,6 +20,7 @@ namespace RentalManagementPlatformMVC.Controllers
     /// </summary>
     [ApiController]
     [Route("ReportForm/ReportForm/[action]")]
+    [Authorize]
     public class FavoritesController : ControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _db;

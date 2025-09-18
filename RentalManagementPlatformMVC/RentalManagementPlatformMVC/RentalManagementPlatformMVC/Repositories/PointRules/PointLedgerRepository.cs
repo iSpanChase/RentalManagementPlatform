@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.DTOs.PointRules;
 using RentalManagementPlatformMVC.Models;
 
@@ -10,32 +11,41 @@ namespace RentalManagementPlatformMVC.Repositories.PointRules
         private readonly RentalManagementPlatformSqlContext _context;
 
 		public PointLedgerRepository(RentalManagementPlatformSqlContext context)
-        {
-            _context = context;
+		{
+			_context = context;
 		}
 
-        /// <summary>
-        /// 以分頁方式取得點數帳本資料清單
-        /// </summary>
-        /// <param name="pageIndex">頁面索引（從1開始）</param>
-        /// <param name="pageSize">每頁顯示的項目數量</param>
-        /// <returns>包含點數帳本資料集合和總筆數的元組</returns>
-        public async Task<(IEnumerable<PointLedger>, int)> GetPagedPointLedgersAsync(int pageIndex, int pageSize)
+		/// <summary>
+		/// 以分頁方式取得點數帳本資料清單
+		/// </summary>
+		/// <param name="pageIndex">頁面索引（從1開始）</param>
+		/// <param name="pageSize">每頁顯示的項目數量</param>
+		/// <returns>包含點數帳本資料集合和總筆數的元組</returns>
+		public async Task<PagedResult<PointLedger>> GetPagedPointLedgersAsync(int pageIndex, int pageSize)
         {
-            var query = _context.PointLedgers
-                .AsNoTracking()
-                .Include(pl => pl.Guest)
-				.OrderByDescending(pl => pl.OccurredAt);
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : pageSize;
 
-            var totalCount = await query.CountAsync();
+			var query = _context.PointLedgers
+		        .AsNoTracking()
+		        .Include(pl => pl.Guest)
+		        .OrderByDescending(pl => pl.OccurredAt);
 
-            var entities = await query
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+			var totalCount = await query.CountAsync();
 
-            return (entities, totalCount);
-        }
+			var entities = await query
+				.Skip((pageIndex - 1) * pageSize)
+				.Take(pageSize)
+				.ToListAsync();
+
+			return new PagedResult<PointLedger>
+			{
+				Items = entities,
+				PageIndex = pageIndex,
+				PageSize = pageSize,
+				TotalCount = totalCount
+			};
+		}
 
         /// <summary>
         /// 動態條件查詢：根據篩選條件查詢點數帳本
@@ -138,7 +148,10 @@ namespace RentalManagementPlatformMVC.Repositories.PointRules
                 _ => criteria.IsDescending ? query.OrderByDescending(pl => pl.OccurredAt) : query.OrderBy(pl => pl.OccurredAt)
             };
 
-            var totalCount = await query.CountAsync();
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : pageSize;
+
+			var totalCount = await query.CountAsync();
 
             var entities = await query
                 .Skip((pageIndex - 1) * pageSize)

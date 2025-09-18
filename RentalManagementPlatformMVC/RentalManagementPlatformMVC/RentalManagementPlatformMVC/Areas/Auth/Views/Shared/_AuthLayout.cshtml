@@ -85,18 +85,25 @@
 
 
 @* Views/Shared/_AuthLayout.cshtml *@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@ViewData["Title"] - 系統</title>
 
-    <!-- 參考你專案實際路徑：AdminLTE 4 + Bootstrap -->
+    <!-- Bootstrap 與 AdminLTE -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/admin-lte/dist/css/adminlte.min.css" />
 
+    <!-- 先渲染其他 View 的自訂樣式 -->
     @RenderSection("Styles", required: false)
+
+    <!-- 其他套件 -->
+    <link href="~/font-awesome/css/all.min.css" rel="stylesheet" />
+
+    <!-- 最後一定要放 site.css -->
+	<link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body class="hold-transition login-page">
     <main class="container py-4">
@@ -108,14 +115,4 @@
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-
-
-
-@* @if (User?.Identity?.IsAuthenticated ?? false)
-{
-    <form class="d-inline" method="post" asp-area="Auth" asp-action="Logout">
-        @Html.AntiForgeryToken()
-        <button class="btn btn-sm btn-outline-secondary">登出</button>
-    </form>
-} *@
 

@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Services;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
 {
     [Area("Room_List")]
+    [Authorize]
     public class IndexingController : Controller
     {
         private readonly MeilisearchService _meilisearchService;
@@ -24,7 +26,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
             // This is intentionally not awaited in the request context
             // because indexing can be a long-running process.
             // We trigger it and let it run in the background.
-            _ = _meilisearchService.IndexAllRoomListsAsync();
+            await _meilisearchService.IndexAllRoomListsAsync();
 
             string message = "Meilisearch indexing process has been started. <br>" +
                              "Please check your application's console logs to see the progress. <br>" +

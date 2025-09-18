@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.Areas.Payments.ViewModels;
@@ -10,6 +11,7 @@ using System.Text;
 namespace RentalManagementPlatformMVC.Areas.Payments.Controllers
 {
 	[Area("Payments")]
+	[Authorize]
 	public class PaymentsHomeController : Controller
 	{
 		private readonly IPaymentService _paymentService;

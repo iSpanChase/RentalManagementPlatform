@@ -1,7 +1,7 @@
 ﻿@model RentalManagementPlatformMVC.Areas.Payments.ViewModels.HostPayoutIndexViewModel
 
 @{
-    ViewData["Title"] =  "房東出款";
+    ViewData["Title"] =  "帳務管理";
 
     // 計算本頁顯示的起始與結束資料編號
     var startRecord = (Model.PageIndex - 1) * Model.PageSize + 1;
@@ -48,7 +48,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="page-title m-0">帳務管理</h1>
+                <h1 class="page-title m-0">@ViewData["Title"]</h1>
             </div>
         </div>
     </div>

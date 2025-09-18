@@ -21,9 +21,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+    <PackageReference Include="Minio" Version="6.0.5" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\ReportForm\Views\Shared\" />
     <ProjectReference Include="..\RentalManagementPlatform.Common\RentalManagementPlatform.Common.csproj" />
 
     <Folder Include="Areas\Management\Data\" />

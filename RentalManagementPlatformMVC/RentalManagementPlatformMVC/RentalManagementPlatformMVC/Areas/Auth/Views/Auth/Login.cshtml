@@ -2,10 +2,97 @@
 @{
     ViewData["Title"] = "登入";
 }
+
+<div class="d-flex flex-column justify-content-center align-items-center min-vh-100" style="padding-bottom: 25vh">
+    <!-- Title -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="d-flex flex-column justify-content-start align-items-center">
+                    @* <h1 class="m-0 login-title"
+                        style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+                               font-weight: 700;
+                               letter-spacing: 1px;
+                               color: #2c3e50;">
+                        AirNest
+                    </h1> *@
+                    <img src="~/images/airnest_logo_white.png" width="512px" height="256px" class="float-image" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="row justify-content-center w-100">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header text-center"><strong>登入</strong></div>
+                <div class="card-body">
+                    <form method="post" asp-area="Auth" asp-action="Login">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="UsernameOrEmail" class="form-label"></label>
+                            <input asp-for="UsernameOrEmail" class="form-control" autocomplete="username" />
+                            <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" type="password" autocomplete="current-password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="ReturnUrl" />
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a asp-area="Auth" asp-action="ForgotPassword" class="me-3 text-dark">忘記密碼？</a>
+                                <a asp-area="Auth" asp-action="Register" class="text-dark">建立帳號</a>
+                            </div>
+                            <button type="submit" class="btn btn-light text-dark">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> 登入
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.body.style.overflow = 'hidden';
+    </script>
+}
+
+
+
+@* @model LoginVm
+@{
+    ViewData["Title"] = "登入";
+}
+
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row justify-content-center mt-4">
+            <div class="d-flex flex-column justify-content-start align-items-center ">
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    AirNest
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row justify-content-center mt-4">
     <div class="col-md-5">
         <div class="card shadow-sm">
-            <div class="card-header"><strong>登入</strong></div>
+            <div class="card-header text-center"><strong>登入</strong></div>
             <div class="card-body">
                 <form method="post" asp-area="Auth" asp-action="Login">
                     @Html.AntiForgeryToken()
@@ -36,7 +123,7 @@
                             <a asp-area="Auth" asp-action="ForgotPassword" class="me-3">忘記密碼？</a>
                             <a asp-area="Auth" asp-action="Register">建立帳號</a>
                         </div>
-                        <button type="submit" class="btn btn-primary">登入</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-arrow-right-to-bracket"></i> 登入</button>
                     </div>
                 </form>
             </div>
@@ -46,5 +133,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
+} *@
+
 

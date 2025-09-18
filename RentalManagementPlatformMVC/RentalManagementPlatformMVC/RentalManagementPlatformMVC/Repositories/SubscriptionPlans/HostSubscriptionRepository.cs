@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatform.Common.Pagination;
 using RentalManagementPlatformMVC.DTOs.SubscriptionPlans;
 using RentalManagementPlatformMVC.Models;
 
@@ -19,8 +21,11 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 		/// <param name="pageIndex">頁面索引（從1開始）</param>
 		/// <param name="pageSize">每頁顯示的項目數量</param>
 		/// <returns>包含主機訂閱資料集合和總筆數的元組</returns>
-		public async Task<(IEnumerable<HostSubscription>, int)> GetPagedHostSubscriptionsAsync(int pageIndex, int pageSize)
+		public async Task<PagedResult<HostSubscription>> GetPagedHostSubscriptionsAsync(int pageIndex, int pageSize)
 		{
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : pageSize;
+
 			var query = _context.HostSubscriptions
 				.AsNoTracking()
 				.Include(hs => hs.Host)
@@ -34,7 +39,13 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 				.Take(pageSize)
 				.ToListAsync();
 
-			return (entities, totalCount);
+			return new PagedResult<HostSubscription>
+			{
+				Items = entities,
+				PageIndex = pageIndex,
+				PageSize = pageSize,
+				TotalCount = totalCount
+			};
 		}
 
 		/// <summary>
@@ -147,6 +158,9 @@ namespace RentalManagementPlatformMVC.Repositories.SubscriptionPlans
 				"status" => criteria.IsDescending ? query.OrderByDescending(hs => hs.Status) : query.OrderBy(hs => hs.Status),
 				_ => criteria.IsDescending ? query.OrderByDescending(hs => hs.CreatedAt) : query.OrderBy(hs => hs.CreatedAt)
 			};
+
+			pageIndex = pageIndex <= 0 ? 1 : pageIndex;
+			pageSize = pageSize <= 0 ? 20 : pageSize;
 
 			var totalCount = await query.CountAsync();
 

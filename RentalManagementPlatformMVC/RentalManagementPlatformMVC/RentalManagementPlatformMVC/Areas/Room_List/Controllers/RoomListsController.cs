@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Room_List.Models;
 using RentalManagementPlatformMVC.Services.Interfaces;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
 {
     [Area("Room_List")]
+    [Authorize]
     public class RoomListsController : Controller
     {
         private readonly IRoomListQueryService _queryService;

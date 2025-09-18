@@ -140,7 +140,6 @@ GO
 CREATE TABLE [REVIEW] (
   [review_id] int PRIMARY KEY NOT NULL,
   [booking_id] int,
-  [host_id] int,
   [reviewer_id] int,
   [room_id] int,
   [comment] nvarchar(512),
@@ -286,6 +285,7 @@ CREATE TABLE [POINT_RULE] (
   [active_from] DATETIME2,
   [active_to] DATETIME2,
   [is_active] BIT,
+  [has_been_activated] BIT,
   [created_at] DATETIME2
 )
 GO
@@ -422,7 +422,7 @@ CREATE TABLE [USER_FAVORITE_REPORT] (
 GO
 
 CREATE TABLE [ANOMALY_RULE] (
-  [rule_id] int PRIMARY KEY NOT NULL,
+  [rule_id] int PRIMARY KEY IDENTITY(1,1) NOT NULL,
   [rule_name] nvarchar(100),
   [target_type] nvarchar(50),
   [condition_expression] nvarchar(512),
@@ -433,12 +433,13 @@ CREATE TABLE [ANOMALY_RULE] (
 GO
 
 CREATE TABLE [ANOMALY_DETECTION_LOG] (
-  [log_id] int PRIMARY KEY NOT NULL,
+  [log_id] int PRIMARY KEY IDENTITY(1,1) NOT NULL,
   [rule_id] int,
   [target_id] int,
   [detected_value] decimal(18,2),
   [expected_value] decimal(18,2),
-  [created_at] DATETIME2
+  [created_at] DATETIME2,
+  [event_type] nvarchar(20)
 )
 GO
 
@@ -1026,14 +1027,6 @@ EXEC sp_addextendedproperty
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'REVIEW',
 @level2type = N'Column', @level2name = 'booking_id';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
-@value = '房東 ID (FK)',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'REVIEW',
-@level2type = N'Column', @level2name = 'host_id';
 GO
 
 EXEC sp_addextendedproperty
