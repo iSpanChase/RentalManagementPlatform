@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.FAQ.Controllers;
 using RentalManagementPlatformMVC.Models;
@@ -7,6 +8,7 @@ using System.Text.RegularExpressions;
 namespace RentalManagementPlatform.Areas.FAQ.Controllers;
 
 [Area("FAQ")]
+[Authorize]
 [Route("FAQ/Admin/[controller]/[action]")]
 public class CategoriesController : Controller
 {
@@ -28,6 +30,7 @@ public class CategoriesController : Controller
 
     // 子分類清單（可帶 parentId；不帶則全部）
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Children(int? parentId)
     {
         var q = _db.FaqCategories.AsQueryable().Where(c => c.ParentId != null);
@@ -87,6 +90,7 @@ public class CategoriesController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     //[ValidateAntiForgeryToken]
     [Produces("application/json")]
     public async Task<IActionResult> Upsert([FromBody] UpsertCategoryDto dto)
@@ -154,6 +158,7 @@ public class CategoriesController : Controller
 
     // 刪除分類（父分類需沒有子與文章；子分類需沒有文章）
     [HttpDelete]
+    [Authorize]
     //[ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
