@@ -7,6 +7,7 @@ using RentalManagementPlatformMVC.Areas.UserManagement.UserDTOs;
 using RentalManagementPlatformMVC.Areas.UserManagement.UserServices;
 using RentalManagementPlatformMVC.Areas.UserManagement.ViewModels;
 using RentalManagementPlatformMVC.Models;
+using System.Security.Claims;
 
 namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 {
@@ -191,7 +192,11 @@ namespace RentalManagementPlatformMVC.Areas.UserManagement.Controllers
 			});
 
 			// ★ 這裡重新刷新 Cookie，讓 Claims 立刻更新
-			await _auth.RefreshClaimsAsync(HttpContext, vm.UserId);
+			var currentIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (int.TryParse(currentIdStr, out var currentId) && currentId == vm.UserId)
+			{
+				await _auth.RefreshClaimsAsync(HttpContext, currentId);
+			}
 
 			TempData["ok"] = "更新成功";
 			return RedirectToAction(nameof(Index));

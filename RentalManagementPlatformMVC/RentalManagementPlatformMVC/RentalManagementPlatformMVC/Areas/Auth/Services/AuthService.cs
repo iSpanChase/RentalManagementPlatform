@@ -139,6 +139,14 @@ namespace RentalManagementPlatformMVC.Areas.Auth.Services
 		}
 		public async Task RefreshClaimsAsync(HttpContext http, int userId)
 		{
+			// ★★★ 安全防護：只有「編輯自己」時才允許刷新 Cookie ★★★
+			var currentIdStr = http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (!int.TryParse(currentIdStr, out var currentId) || currentId != userId)
+			{
+				// 不是本人，直接略過（避免把自己變成其他帳號）
+				return;
+			}
+
 			var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
 			if (user is null) return;
 
