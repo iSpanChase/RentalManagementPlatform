@@ -48,16 +48,6 @@
         <partial name="_Footerbar" />
     </div>
 
-    <!-- jQuery 必須在 jquery.validate* 之前 -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
-
-    <!-- Bootstrap（如果有用） -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-
-    <!-- 驗證腳本（必須在 jQuery 之後） -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js" crossorigin="anonymous"></script>
-
     <!--begin::Script-->
     <!--begin::Third Party Plugin(OverlayScrollbars)-->
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js"
@@ -79,8 +69,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-
-@* <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
-<script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script> *@
 

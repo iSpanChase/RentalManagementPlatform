@@ -44,8 +44,9 @@ namespace RentalManagementPlatformMVC.Areas.Auth.Services
 			var claims = new List<Claim>
 			{
 				new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-				new(ClaimTypes.Name, user.Username),
-				new(ClaimTypes.Email, user.Email ?? "")
+				new(ClaimTypes.Name, user.Name ?? user.Username),
+				new(ClaimTypes.Email, user.Email ?? ""),
+				new("ProfileImageUrl", user.ProfileImageurl ?? "")
 			};
 			claims.AddRange(roleCodes.Select(rc => new Claim(ClaimTypes.Role, rc)));
 			claims.AddRange(permCodes.Select(pc => new Claim("permission", pc))); // ★ 核心：把 perm_code 灌進來
@@ -135,6 +136,49 @@ namespace RentalManagementPlatformMVC.Areas.Auth.Services
 
 			await _db.SaveChangesAsync();
 			return true;
+		}
+		public async Task RefreshClaimsAsync(HttpContext http, int userId)
+		{
+			var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+			if (user is null) return;
+
+			// 取角色代碼
+			var roleCodes = await (from ur in _db.UserRoles
+								   join r in _db.Roles on ur.RoleId equals r.RoleId
+								   where ur.UserId == user.UserId
+								   select r.RoleCode).ToListAsync();
+
+			// 取權限代碼（你目前使用的 perm_code 或 Module.Action 皆可）
+			var permCodes = await (from ur in _db.UserRoles
+								   join rp in _db.RolePermissions on ur.RoleId equals rp.RoleId
+								   join p in _db.Permissions on rp.PermissionId equals p.PermissionId
+								   select p.PermCode)
+								  .Distinct()
+								  .ToListAsync();
+
+			var claims = new List<Claim>
+			{
+				new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+				new(ClaimTypes.Name, user.Name ?? user.Username),
+				new(ClaimTypes.Email, user.Email ?? ""),
+				new("ProfileImageUrl", user.ProfileImageurl ?? "")
+			};
+			claims.AddRange(roleCodes.Select(rc => new Claim(ClaimTypes.Role, rc)));
+			claims.AddRange(permCodes.Select(pc => new Claim("permission", pc)));
+
+			var id = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+			var principal = new ClaimsPrincipal(id);
+
+			// 這裡用一個保守的 Cookie 設定；如果你要沿用「記住我」行為，可先讀現有 cookie 的到期日再設定。
+			var props = new AuthenticationProperties
+			{
+				IsPersistent = true,
+				ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+			};
+
+			// 先登出、再登入，確保覆蓋舊 Claims
+			await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+			await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
 		}
 	}
 }
