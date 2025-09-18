@@ -18,6 +18,22 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesRepositories
 			return _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
 		}
 
+		public async Task<List<int>> GetUserIdsInRoleAsync(int roleId)
+		{
+			return await _db.UserRoles
+				.Where(ur => ur.RoleId == roleId)
+				.Select(ur => ur.UserId)
+				.ToListAsync();
+		}
+
+		public async Task<List<int>> GetPermissionIdsInRoleAsync(int roleId)
+		{
+			return await _db.RolePermissions
+				.Where(rp => rp.RoleId == roleId)
+				.Select(rp => rp.PermissionId)
+				.ToListAsync();
+		}
+
 		public Task<bool> ExistsByRoleNameAsync(string roleName)
 		{
 			return _db.Roles.AnyAsync(r => r.RoleName == roleName);

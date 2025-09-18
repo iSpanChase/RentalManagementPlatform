@@ -22,14 +22,14 @@ body {
 }
 
 /* 讓登入頁有背景圖與遮罩： */
-body.login-page {
-    min-height: 100vh; /* 撐滿視窗高度 */
-    position: relative; /* 讓偽元素能定位 */
-    overflow-x: hidden; /* 防止背景位移時的橫向捲動 */
+    body.login-page {
+        min-height: 100vh; /* 撐滿視窗高度 */
+        position: relative; /* 讓偽元素能定位 */
+        overflow-x: hidden; /* 防止背景位移時的橫向捲動 */
 
-    min-height: 100vh;
-    background: url("/images/LoginPic.jpg") center center / cover no-repeat fixed !important;
-}
+        min-height: 100vh;
+        background: url("/images/LoginPic.jpg") center center / cover no-repeat fixed !important;
+    }
 
 /* 建議：讓登入卡片更清楚一點的小樣式（可選） */
     body.login-page .card {

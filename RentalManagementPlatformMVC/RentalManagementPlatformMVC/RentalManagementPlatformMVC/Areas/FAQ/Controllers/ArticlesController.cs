@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.FAQ.Controllers;
 using RentalManagementPlatformMVC.Models;
@@ -7,7 +8,9 @@ using System.Text.RegularExpressions;
 namespace RentalManagementPlatform.Areas.FAQ.Controllers;
 
 [Area("FAQ")]
+[Authorize]
 [Route("FAQ/Admin/[controller]/[action]")]
+
 public class ArticlesController : Controller
 {
     private readonly RentalManagementPlatformSqlContext _db;
@@ -44,6 +47,7 @@ public class ArticlesController : Controller
 
     // GET: /FAQ/Admin/Articles/List
     [HttpGet]
+    [Authorize]
     [Produces("application/json")]
     public async Task<IActionResult> List()
     {
@@ -76,6 +80,7 @@ public class ArticlesController : Controller
 
     // GET: /FAQ/Admin/Articles/Get?id=123
     [HttpGet]
+    [Authorize]
     [Produces("application/json")]
     public async Task<IActionResult> Get(int id)
     {
@@ -104,6 +109,7 @@ public class ArticlesController : Controller
 
     // POST: /FAQ/Admin/Articles/Upsert
     [HttpPost]
+    [Authorize]
     [Produces("application/json")]
     // [ValidateAntiForgeryToken] // 確認流程 OK 再打開
     public async Task<IActionResult> Upsert([FromBody] UpsertArticleDto? dto)
@@ -172,6 +178,7 @@ public class ArticlesController : Controller
 
     // DELETE: /FAQ/Admin/Articles/Delete?id=123
     [HttpDelete]
+    [Authorize]
     [Produces("application/json")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -200,6 +207,7 @@ public class ArticlesController : Controller
 
     // 提供給前端載入「所有子分類」下拉
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> AllChildrenForDropdown()
     {
         var data = await _db.FaqCategories
@@ -212,6 +220,7 @@ public class ArticlesController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> AllParentsForDropdown()
     {
         var data = await _db.FaqCategories

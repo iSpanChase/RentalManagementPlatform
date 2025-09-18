@@ -4,64 +4,78 @@
     ViewData["Title"] = "Used by Roles";
 }
 
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">擁有此權限的角色</h3>
-        <div class="card-tools">
-            <a class="btn btn-sm btn-secondary" asp-area="Permissions" asp-controller="Permissions" asp-action="Details" asp-route-id="@Model.PermissionId">返回 Permission</a>
-        </div>
-    </div>
-
-    <div class="card-body">
-        <div class="mb-3">
-            <strong>Permission：</strong> @Model.PermCode (@Model.PermName)
-            <span class="ms-2 badge bg-light text-dark">@Model.Module</span>
-            <span class="ms-1 badge bg-light text-dark">@Model.Action</span>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 15%">RoleId</th>
-                        <th style="width: 25%">RoleCode</th>
-                        <th style="width: 40%">RoleName</th>
-                        <th style="width: 20%"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Roles.Count == 0)
-                    {
-                        <tr><td colspan="4" class="text-center text-muted">目前沒有任何角色擁有此權限</td></tr>
-                    }
-                    else
-                    {
-                        foreach (var r in Model.Roles)
-                        {
-                            <tr>
-                                <td>@r.RoleId</td>
-                                <td>@r.RoleCode</td>
-                                <td>@r.RoleName</td>
-                                <td class="text-nowrap">
-                                    <!-- 導向 Roles 模組做指派/調整 -->
-                                    <a class="btn btn-sm btn-outline-primary"
-                                       asp-area="Roles"
-                                       asp-controller="RolesManagement"
-                                       asp-action="Edit"
-                                       asp-route-id="@r.RoleId">管理此角色</a>
-
-                                    <a class="btn btn-sm btn-outline-info"
-                                       asp-area="Roles"
-                                       asp-controller="RolesManagement"
-                                       asp-action="AssignPermissions"
-                                       asp-route-id="@r.RoleId">調整權限</a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h2 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    擁有此權限的角色
+                </h2>
+            </div>
         </div>
     </div>
 </div>
+
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Permission：</strong> @Model.PermCode (@Model.PermName)
+                    <span class="ms-2 badge bg-light text-dark">@Model.Module</span>
+                    <span class="ms-1 badge bg-light text-dark">@Model.Action</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">RoleId</th>
+                                <th style="width: 25%">RoleCode</th>
+                                <th style="width: 40%">RoleName</th>
+                                <th style="width: 20%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Roles.Count == 0)
+                            {
+                                <tr><td colspan="4" class="text-center text-muted">目前沒有任何角色擁有此權限</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var r in Model.Roles)
+                                {
+                                    <tr>
+                                        <td>@r.RoleId</td>
+                                        <td>@r.RoleCode</td>
+                                        <td>@r.RoleName</td>
+                                        <td class="text-nowrap">
+                                            <!-- 導向 Roles 模組做指派/調整 -->
+                                            <a class="btn btn-sm btn-outline-primary"
+                                               asp-area="Roles"
+                                               asp-controller="RolesManagement"
+                                               asp-action="Edit"
+                                               asp-route-id="@r.RoleId">管理此角色</a>
+
+                                            <a class="btn btn-sm btn-outline-info"
+                                               asp-area="Roles"
+                                               asp-controller="RolesManagement"
+                                               asp-action="AssignPermissions"
+                                               asp-route-id="@r.RoleId">調整權限</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                    <div class="text-end gap-2">
+                        <a class="btn btn-secondary" asp-area="Permissions" asp-controller="Permissions" asp-action="Index" asp-route-id="@Model.PermissionId">返回清單</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 

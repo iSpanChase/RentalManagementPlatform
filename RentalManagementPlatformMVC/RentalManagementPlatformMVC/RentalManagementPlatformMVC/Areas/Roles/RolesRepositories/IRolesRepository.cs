@@ -15,6 +15,14 @@ namespace RentalManagementPlatformMVC.Areas.Roles.RolesRepositories
 		/// <returns>角色（可能為 null）。</returns>
 		Task<RolesEntity?> GetByRoleNameAsync(string roleName);
 		/// <summary>
+		/// 依會員 ID 取得角色（可能為 null）。
+		/// </summary>
+		/// <param name="roleId"></param>
+		/// <returns></returns>
+		Task<List<int>> GetUserIdsInRoleAsync(int roleId);
+		Task<List<int>> GetPermissionIdsInRoleAsync(int roleId);
+
+		/// <summary>
 		/// 指定角色是否已存在。
 		/// </summary>
 		Task<bool> ExistsByRoleNameAsync(string roleName);
