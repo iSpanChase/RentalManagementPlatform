@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Areas.Management.Services.Interfaces;
 using RentalManagementPlatformMVC.Areas.Management.ViewModels;
 
 namespace RentalManagementPlatformMVC.Areas.Management.Controllers
 {
 	[Area("Management")]//指定controller屬於Management區域
+	[Authorize]
 	public class CouponGuestController : Controller
 	{
 		private readonly ICouponGuestQueryService _service;
