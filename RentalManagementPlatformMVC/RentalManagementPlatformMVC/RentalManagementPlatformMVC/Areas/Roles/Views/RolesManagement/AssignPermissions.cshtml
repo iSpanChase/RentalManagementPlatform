@@ -1,98 +1,253 @@
-﻿@model RentalManagementPlatformMVC.Areas.Roles.ViewModels.AssignPermissionsVm
+﻿@using RentalManagementPlatformMVC.Areas.Roles.RolesDTOs
+@model (string RoleName, AssignPermissionsQueryInput Query, PagedResult<AssignablePermissionListItemDto> Result)
+
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "指派權限";
-    // 建議你在建立 SelectListItem 時，Text 走「Module.Action - PermName」格式（和 Index 觀感一致）
-    var rows = Model.AllPermissions.Select(s => new
+    var q = Model.Query;
+    var totalPages = (int)Math.Ceiling((double)(Model.Result?.Total ?? 0) / Math.Max(1, q.PageSize));
+    var start = (Model.Result?.Total ?? 0) == 0 ? 0 : (q.Page - 1) * q.PageSize + 1;
+    var end = (Model.Result?.Total ?? 0) == 0 ? 0 : Math.Min(q.Page * q.PageSize, Model.Result!.Total);
+
+    string SortUrl(string col) => Url.Action("AssignPermissions", "RolesManagement", new
     {
-        Id = int.TryParse(s.Value, out var id) ? id : 0,
-        Text = s.Text,
-        Selected = s.Selected
-    }).OrderBy(x => x.Text).ToList();
+        area = "Roles",
+        RoleId = q.RoleId,
+        Keyword = q.Keyword,
+        SortBy = col,
+        Desc = (q.SortBy == col ? !q.Desc : false),
+        Page = 1,
+        PageSize = q.PageSize
+    })!;
 }
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">指派權限給角色：@Model.RoleName</h3>
-        <div class="card-tools">
-            <a class="btn btn-sm btn-secondary"
-               asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">
-                返回角色編輯
-            </a>
+<div class="content-header mt-3">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0" style="font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif; font-weight: 700; letter-spacing: 1px; color: #2c3e50;">
+                    指派權限給角色：@Model.RoleName
+                </h1>
+            </div>
         </div>
-    </div>
-
-    <div class="card-body">
-        <form method="post" asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignPermissions">
-            @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="RoleId" />
-
-            <div class="row g-2 mb-3">
-                <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm" id="permFilter" placeholder="搜尋 Module/Action/名稱">
-                </div>
-                <div class="col-auto d-flex gap-2">
-                    <button type="button" id="btnSelectAll" class="btn btn-sm btn-outline-primary">全選</button>
-                    <button type="button" id="btnClear" class="btn btn-sm btn-outline-secondary">清除</button>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-striped align-middle" id="permTable">
-                    <thead>
-                        <tr>
-                            <th style="width:42px"><input type="checkbox" id="chkAll" /></th>
-                            <th>Permission</th>
-                            <th class="text-muted small">PermissionId</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var r in rows)
-                        {
-                            <tr>
-                                <td>
-                                    <input class="form-check-input row-check"
-                                           type="checkbox"
-                                           name="SelectedPermissionIds"
-                                           value="@r.Id"
-                                           @(r.Selected ? "checked" : null) />
-                                </td>
-                                <td>@r.Text</td>
-                                <td class="text-muted">@r.Id</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">儲存</button>
-                <a class="btn btn-secondary"
-                   asp-area="Roles" asp-controller="RolesManagement" asp-action="Edit" asp-route-id="@Model.RoleId">取消</a>
-            </div>
-        </form>
     </div>
 </div>
 
+<section class="content">
+    <div class="container-fluid">
+        <!--搜尋條件卡片Start-->
+        <div class="card card-primary card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">搜尋條件</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignPermissions" class="row g-2">
+                    <input type="hidden" name="RoleId" value="@q.RoleId" />
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label class="form-label">關鍵字（Module/Action/Name/Code）</label>
+                            <input class="form-control" type="text" name="Keyword" value="@q.Keyword" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">每頁筆數</label>
+                            <select class="form-select" name="PageSize" onchange="this.form.submit()">
+                                @foreach (var size in new[] { 10, 20, 50, 100 })
+                                {
+                                    <option value="@size" selected="@(q.PageSize == size)">@size</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i>搜尋</button>
+                        <a class="btn btn-secondary"
+                           asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignPermissions"
+                           asp-route-RoleId="@q.RoleId"><i class="fa-solid fa-rotate-right"></i>重設</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--搜尋條件卡片End-->
+        <!--角色列表卡片Start-->
+         <form method="post" asp-area="Roles" asp-controller="RolesManagement" asp-action="AssignPermissions">
+            @Html.AntiForgeryToken()
+            <!-- 保留目前頁面狀態 -->
+            <input type="hidden" name="RoleId" value="@q.RoleId" />
+            <input type="hidden" name="Keyword" value="@q.Keyword" />
+            <input type="hidden" name="SortBy" value="@q.SortBy" />
+            <input type="hidden" name="Desc" value="@q.Desc" />
+            <input type="hidden" name="Page" value="@q.Page" />
+            <input type="hidden" name="PageSize" value="@q.PageSize" />
+
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title" style="font-weight: bold;">權限清單</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">共 @Model.Result.Total 筆資料</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">
+                            顯示第 @start - @end 筆
+                        </span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width:48px"><input type="checkbox" id="chkAll" /></th>
+                                <th><a href="@SortUrl("Module")">權限模組</a>@(q.SortBy == "Module" ? (q.Desc ? " ⬇" : " ⬆") : "")</th>
+                                <th><a href="@SortUrl("Action")">權限動作</a>@(q.SortBy == "Action" ? (q.Desc ? " ⬇" : " ⬆") : "")</th>
+                                <th><a href="@SortUrl("Name")">權限名稱</a>@(q.SortBy == "Name" ? (q.Desc ? " ⬇" : " ⬆") : "")</th>
+                                <th><a href="@SortUrl("Code")">權限代碼</a>@(q.SortBy == "Code" ? (q.Desc ? " ⬇" : " ⬆") : "")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permTable">
+                            @if (Model.Result.Items.Count == 0)
+                            {
+                                <tr><td colspan="5" class="text-center text-muted">查無資料</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var p in Model.Result.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input class="form-check-input"
+                                                type="checkbox"
+                                                name="SelectedPermissionIds"
+                                                value="@p.PermissionId"
+                                                @(p.Selected ? "checked" : null) />
+                                            <input type="hidden" name="CurrentPageIds" value="@p.PermissionId" />
+                                        </td>
+                                        <td>@p.Module</td>
+                                        <td>@p.Action</td>
+                                        <td>@p.Name</td>
+                                        <td>@p.Code</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="text-muted">
+                            第 @q.Page 頁，共 @totalPages 頁
+                        </span>
+                    </div>
+                        <!-- 儲存指派（預設 action=AssignUsers） -->
+                        <button type="submit" class="btn btn-primary">儲存指派</button>
+                        <a asp-area="Roles" asp-controller="RolesManagement" asp-action="CancelAssignPermissions"
+                           asp-route-roleId="@Model.Query.RoleId" class="btn btn-outline-dark">
+                        回上一頁
+                    </a>
+                </div>
+                <div class="card-footer clearfix">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm m-0 justify-content-center">
+                                @{
+                                    var prevDisabled = Model.Query.Page <= 1 ? "disabled" : "";
+                                    var nextDisabled = Model.Query.Page >= totalPages ? "disabled" : "";
+                                }
+
+                                <li class="page-item @prevDisabled">
+                                    <button type="submit"
+                                            class="page-link"
+                                            formaction="@(Url.Action("RememberAssignPermissionsPage", "RolesManagement", new { area = "Roles" }))"
+                                            name="targetPage"
+                                            value="@(Model.Query.Page - 1)"
+                                            formmethod="post">
+                                        &laquo;
+                                    </button>
+                                </li>
+
+                                @for (var i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.Query.Page ? "active" : "")">
+                                        <button type="submit"
+                                                class="page-link"
+                                                formaction="@(Url.Action("RememberAssignPermissionsPage", "RolesManagement", new { area = "Roles" }))"
+                                                name="targetPage"
+                                                value="@i"
+                                                formmethod="post">
+                                            @i
+                                        </button>
+                                    </li>
+                                }
+
+                                <li class="page-item @nextDisabled">
+                                    <button type="submit"
+                                            class="page-link"
+                                            formaction="@(Url.Action("RememberAssignPermissionsPage", "RolesManagement", new { area = "Roles" }))"
+                                            name="targetPage"
+                                            value="@(Model.Query.Page + 1)"
+                                            formmethod="post">
+                                        &raquo;
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                </div>
+            </div>
+        </div>
+        <!--角色列表卡片End-->
+        </form>
+    </div>
+</section>
+
 @section Scripts {
     <script>
-        const chkAll = document.getElementById('chkAll');
-        const btnSelectAll = document.getElementById('btnSelectAll');
-        const btnClear = document.getElementById('btnClear');
-        const filter = document.getElementById('permFilter');
+        (function(){
+          const table = document.getElementById('permTable');
+          const chkAll = document.getElementById('chkAll');
 
-        function rows(){ return Array.from(document.querySelectorAll('#permTable tbody tr')); }
-        function checks(){ return Array.from(document.querySelectorAll('#permTable .row-check')); }
+          // 取得本頁所有使用者勾選框
+          const rowChecks = () => Array.from(
+            table.querySelectorAll('input[type="checkbox"][name="SelectedPermissionIds"]')
+          );
 
-        chkAll?.addEventListener('change', ()=> checks().forEach(c=> c.checked = chkAll.checked));
-        btnSelectAll?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = true); chkAll.checked = true; });
-        btnClear?.addEventListener('click', ()=> { checks().forEach(c=> c.checked = false); chkAll.checked = false; });
-        filter?.addEventListener('input', ()=>{
-          const q = filter.value.toLowerCase().trim();
-          rows().forEach(tr=>{
-            const text = tr.children[1].innerText.toLowerCase();
-            tr.style.display = text.includes(q) ? '' : 'none';
+          // 點表頭全選：同步勾/取消所有列
+          chkAll?.addEventListener('change', () => {
+            rowChecks().forEach(c => c.checked = chkAll.checked);
+            // 取消半選狀態
+            chkAll.indeterminate = false;
           });
-        });
+
+          // 單列變動：更新表頭全選/半選狀態
+          table?.addEventListener('change', (e) => {
+            const target = e.target;
+            if (target && target.matches('input[type="checkbox"][name="SelectedPermissionIds"]')) {
+              const checks = rowChecks();
+              const total = checks.length;
+              const checked = checks.filter(c => c.checked).length;
+
+              if (checked === 0) {
+                chkAll.checked = false;
+                chkAll.indeterminate = false;
+              } else if (checked === total) {
+                chkAll.checked = true;
+                chkAll.indeterminate = false;
+              } else {
+                chkAll.checked = false;
+                chkAll.indeterminate = true; // 半選顯示
+              }
+            }
+          });
+
+          // 初始同步一次（依目前頁面狀態）
+          (function init(){
+            const checks = rowChecks();
+            if (!chkAll || checks.length === 0) return;
+            const total = checks.length;
+            const checked = checks.filter(c => c.checked).length;
+            if (checked === 0){ chkAll.checked = false; chkAll.indeterminate = false; }
+            else if (checked === total){ chkAll.checked = true; chkAll.indeterminate = false; }
+            else { chkAll.checked = false; chkAll.indeterminate = true; }
+          })();
+        })();
     </script>
 }

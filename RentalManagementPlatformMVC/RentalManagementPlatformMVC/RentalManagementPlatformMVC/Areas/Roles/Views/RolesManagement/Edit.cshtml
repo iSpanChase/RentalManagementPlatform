@@ -43,14 +43,14 @@
                            asp-area="Roles"
                            asp-controller="RolesManagement"
                            asp-action="AssignUsers"
-                           asp-route-id="@Model.RoleId">
+                           asp-route-roleId="@Model.RoleId">
                             指派使用者
                         </a>
                         <a class="btn btn-outline-info btn-sm"
                            asp-area="Roles"
                            asp-controller="RolesManagement"
                            asp-action="AssignPermissions"
-                           asp-route-id="@Model.RoleId">
+                           asp-route-roleId="@Model.RoleId">
                             指派權限
                         </a>
                         <button type="submit" class="btn btn-primary me-2">更新</button>
