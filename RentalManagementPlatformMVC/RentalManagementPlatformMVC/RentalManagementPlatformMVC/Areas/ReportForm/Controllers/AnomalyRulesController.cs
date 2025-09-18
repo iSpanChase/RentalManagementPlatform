@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.Anomaly;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
     [Area("ReportForm")]
+    [Authorize]
     public class AnomalyRulesController : Controller
     {
         private readonly RentalManagementPlatformSqlContext _context;

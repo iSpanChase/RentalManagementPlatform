@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using RentalManagementPlatformMVC.Areas.Management.Services;
 using RentalManagementPlatformMVC.Areas.Management.ViewModels;
@@ -7,6 +8,7 @@ using RentalManagementPlatformMVC.Models;
 namespace RentalManagementPlatformMVC.Areas.Management.Controllers
 {
 	[Area("Management")]
+	[Authorize]
 	public class CouponGrantController : Controller
 	{
 		private readonly CouponGrantService _grantService;

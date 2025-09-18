@@ -20,3 +20,31 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* 讓登入頁有背景圖與遮罩： */
+    body.login-page {
+        min-height: 100vh; /* 撐滿視窗高度 */
+        position: relative; /* 讓偽元素能定位 */
+        overflow-x: hidden; /* 防止背景位移時的橫向捲動 */
+
+        min-height: 100vh;
+        background: url("/images/LoginPic.jpg") center center / cover no-repeat fixed !important;
+    }
+
+/* 建議：讓登入卡片更清楚一點的小樣式（可選） */
+    body.login-page .card {
+        background-color: rgba(170, 170, 170, 0.95);
+        /*backdrop-filter: saturate(120%) blur(0px);*/ /* 支援時讓底色更溫和 */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        color: rgba(0,0,0,0.6) !important;
+    }
+
+/* 建議：標題在圖片上更醒目（可選） */
+.login-title {
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.card-body {
+    background-color: rgba(255, 255, 255, 0.5);
+}

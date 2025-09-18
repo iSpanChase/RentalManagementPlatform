@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Areas.ReportForm.Helpers;
 using RentalManagementPlatformMVC.Areas.ReportForm.ViewModels;
@@ -7,6 +8,7 @@ using RentalManagementPlatformMVC.Models;
 namespace RentalManagementPlatformMVC.Areas.ReportForm.Controllers
 {
     [Area("ReportForm")]
+    [Authorize]
     public partial class ReportFormController : Controller
     {
         private readonly RentalManagementPlatformSqlContext _context;

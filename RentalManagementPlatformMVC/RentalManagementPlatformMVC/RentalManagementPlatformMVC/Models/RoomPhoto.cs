@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RentalManagementPlatformMVC.Models;
 
@@ -19,7 +18,4 @@ public partial class RoomPhoto
     public string ContentType { get; set; } = null!;
 
     public string PhotoType { get; set; } = null!;
-    
-    [ForeignKey("RoomId")]
-    public virtual RoomList RoomList { get; set; }
 }

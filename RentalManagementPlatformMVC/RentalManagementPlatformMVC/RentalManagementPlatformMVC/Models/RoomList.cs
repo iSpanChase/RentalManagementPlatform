@@ -26,5 +26,4 @@ public partial class RoomList
     public DateTime? UpdatedAt { get; set; }
 
     public bool IsDeleted { get; set; }
-    public virtual ICollection<RoomPhoto> RoomPhotos { get; set; } = new List<RoomPhoto>();
 }

@@ -77,10 +77,35 @@
     <!--end::Script-->
     @await RenderSectionAsync("Modals", required: false)
     @await RenderSectionAsync("Scripts", required: false)
+    <partial name="~/Views/Shared/_Alerts.cshtml" />
 </body>
 </html>
 
-@* <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
-<script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script> *@
+<!--這是alert要用的程式碼片段-->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function () {
+            const el = document.getElementById('server-alert');
+            if (!el) return;
+
+            const type = el.dataset.type || 'info';
+            const title = el.dataset.title || '訊息';
+            const message = el.dataset.message || '';
+
+            // 對應 SweetAlert2 圖示
+            let icon = 'info';
+            if (type === 'success') icon = 'success';
+            if (type === 'warning') icon = 'warning';
+            if (type === 'danger') icon = 'error';
+
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: message,
+                confirmButtonText: '了解'
+            });
+        })();
+    </script>
+}
 
