@@ -8,6 +8,9 @@
     var totalPages = (int)Math.Ceiling((double)(Model.Result?.Total ?? 0) / Math.Max(1, q.PageSize));
     var start = (Model.Result?.Total ?? 0) == 0 ? 0 : (q.Page - 1) * q.PageSize + 1;
     var end = (Model.Result?.Total ?? 0) == 0 ? 0 : Math.Min(q.Page * q.PageSize, Model.Result!.Total);
+    var currentPage = q.Page;
+    var pageSize = q.PageSize;
+    var range = 2; // 中間左右各顯示幾頁
 
     string SortUrl(string col) => Url.Action("AssignUsers", "RolesManagement", new
     {
@@ -138,53 +141,82 @@
                         回上一頁
                     </a>
                 </div>
-                <div class="card-footer clearfix">
-                        <!-- 分頁按鈕用 formaction 送到 RememberAssignUsersPage -->
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm m-0 justify-content-center">
-                                @{
-                                    var prevDisabled = Model.Query.Page <= 1 ? "disabled" : "";
-                                    var nextDisabled = Model.Query.Page >= totalPages ? "disabled" : "";
-                                }
+                    @if (totalPages > 1)
+                    {
+                        <div class="card-footer clearfix">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm m-0 justify-content-center">
 
-                                <li class="page-item @prevDisabled">
-                                    <button type="submit"
-                                            class="page-link"
-                                            formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
-                                            name="targetPage"
-                                            value="@(Model.Query.Page - 1)"
-                                            formmethod="post">
-                                        &laquo;
-                                    </button>
-                                </li>
-
-                                @for (var i = 1; i <= totalPages; i++)
-                                {
-                                    <li class="page-item @(i == Model.Query.Page ? "active" : "")">
+                                    <!-- 上一頁 -->
+                                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
                                         <button type="submit"
                                                 class="page-link"
                                                 formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
                                                 name="targetPage"
-                                                value="@i"
-                                                formmethod="post">
-                                            @i
+                                                value="@(currentPage - 1)"
+                                                formmethod="post"
+                                                @(currentPage <= 1 ? "disabled" : null)>
+                                            &laquo;
                                         </button>
                                     </li>
-                                }
 
-                                <li class="page-item @nextDisabled">
-                                    <button type="submit"
-                                            class="page-link"
-                                            formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
-                                            name="targetPage"
-                                            value="@(Model.Query.Page + 1)"
-                                            formmethod="post">
-                                        &raquo;
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
-                </div>
+                                    <!-- 第一頁 + 前省略號 -->
+                                    @if (currentPage > range + 2)
+                                    {
+                                        <li class="page-item">
+                                            <button type="submit"
+                                                    class="page-link"
+                                                    formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
+                                                    name="targetPage" value="1" formmethod="post">
+                                                1
+                                            </button>
+                                        </li>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+
+                                    <!-- 中間範圍 -->
+                                    @for (int i = Math.Max(1, currentPage - range); i <= Math.Min(totalPages, currentPage + range); i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <button type="submit"
+                                                    class="page-link"
+                                                    formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
+                                                    name="targetPage" value="@i" formmethod="post">
+                                                @i
+                                            </button>
+                                        </li>
+                                    }
+
+                                    <!-- 後省略號 + 最後一頁 -->
+                                    @if (currentPage < totalPages - (range + 1))
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        <li class="page-item">
+                                            <button type="submit"
+                                                    class="page-link"
+                                                    formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
+                                                    name="targetPage" value="@totalPages" formmethod="post">
+                                                @totalPages
+                                            </button>
+                                        </li>
+                                    }
+
+                                    <!-- 下一頁 -->
+                                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                        <button type="submit"
+                                                class="page-link"
+                                                formaction="@(Url.Action("RememberAssignUsersPage", "RolesManagement", new { area = "Roles" }))"
+                                                name="targetPage"
+                                                value="@(currentPage + 1)"
+                                                formmethod="post"
+                                                @(currentPage >= totalPages ? "disabled" : null)>
+                                            &raquo;
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
             </div>
         </div>
         <!--會員列表卡片End-->
