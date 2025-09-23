@@ -63,6 +63,7 @@
 					@if (!item.IsDeleted)
 					{
 						<a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.RoomId">編輯</a>
+						<a class="btn btn-sm btn-outline-success" asp-action="Upload" asp-route-id="@item.RoomId">上傳圖片</a>
 					}
 					<a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@item.RoomId">詳細</a>
 					@if (!item.IsDeleted)

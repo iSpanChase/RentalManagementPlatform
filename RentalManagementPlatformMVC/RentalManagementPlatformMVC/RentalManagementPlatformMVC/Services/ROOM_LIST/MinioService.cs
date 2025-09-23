@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using RentalManagementPlatformMVC.DTOs;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace RentalManagementPlatformMVC.Services
 {
@@ -19,22 +20,28 @@ namespace RentalManagementPlatformMVC.Services
                 .Build();
         }
 
-        public async Task<string> UploadFileAsync(Stream stream, string fileName, string contentType)
+        public async Task<string> UploadFileAsync(Stream stream, string fileName)
         {
             try
             {
                 var bucketName = _minioSettings.BucketName;
 
-                // Check if the bucket exists, create it if not.
+                // 確保 bucket 存在
                 var beArgs = new BucketExistsArgs().WithBucket(bucketName);
-                bool found = await _minioClient.BucketExistsAsync(beArgs);
-                if (!found)
+                if (!await _minioClient.BucketExistsAsync(beArgs))
                 {
                     var mbArgs = new MakeBucketArgs().WithBucket(bucketName);
                     await _minioClient.MakeBucketAsync(mbArgs);
                 }
 
-                // Upload the file
+                // 自動推斷 Content-Type
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(fileName, out var contentType))
+                {
+                    contentType = "application/octet-stream"; // 預設
+                }
+
+                // 上傳
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(bucketName)
                     .WithObject(fileName)
@@ -44,13 +51,10 @@ namespace RentalManagementPlatformMVC.Services
 
                 await _minioClient.PutObjectAsync(putObjectArgs);
 
-                // For simplicity, we'll just return the object name. 
-                // In a real app, you might return the full URL.
                 return fileName;
             }
             catch (Exception ex)
             {
-                // In a real app, you'd want to log this exception.
                 Console.WriteLine($"Error uploading to MinIO: {ex.Message}");
                 throw;
             }
