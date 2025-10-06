@@ -4,6 +4,41 @@ networks:
   backend: {}
 
 services:
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    container_name: rabbitmq
+    ports:
+      - 127.0.0.1:5672:5672     # MQ 主要通信 port
+      - 127.0.0.1:15672:15672   # RabbitMQ Web UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:1.29.1
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro   # 放你的站點設定檔
+      - ./nginx/certs:/etc/nginx/certs:ro     # 如果要 TLS
+      - ./frontend/dist:/usr/share/nginx/html:ro  # 如果要部署前端靜態檔
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - meilisearch
+    networks:
+      - backend
+      
   postgres:
     image: postgis/postgis:16-3.4
     container_name: postgres
@@ -66,3 +101,4 @@ volumes:
   minio_data: {}
   postgres_data: {}
   redis_data: {}
+  rabbitmq_data: {}
