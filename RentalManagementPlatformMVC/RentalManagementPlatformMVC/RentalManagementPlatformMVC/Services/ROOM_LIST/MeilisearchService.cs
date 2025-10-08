@@ -39,18 +39,27 @@ namespace RentalManagementPlatformMVC.Services
             _minioService = minioService;
         }
 
-        public async Task<IEnumerable<RoomListSearchDto>> SearchAsync(string query)
+        public async Task<IEnumerable<RoomListSearchDto>> SearchAsync(string query,string ? status=null)
         {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return Enumerable.Empty<RoomListSearchDto>();
-            }
+            var filters = new List<string>();
+            
 
+            
+            if (!string.IsNullOrWhiteSpace(status))
+                filters.Add($"status = \"{status}\"");
+            
+           
+            
             try
             {
                 _logger.LogInformation("Searching Meilisearch index '{IndexName}' with query: '{Query}'.", IndexName, query);
                 var index = _meiliClient.Index(IndexName);
-                var searchResult = await index.SearchAsync<RoomListSearchDto>(query, new SearchQuery { Limit = 200 });
+                var searchResult = await index.SearchAsync<RoomListSearchDto>(query,new SearchQuery
+                {
+                    Filter = filters.Count > 0 ? string.Join(" AND ", filters) : null,
+               
+                    Limit = 200,
+                });
 
                 _logger.LogInformation("Meilisearch raw response: {RawResponse}", System.Text.Json.JsonSerializer.Serialize(searchResult));
 

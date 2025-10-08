@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "房源搜尋";
     var currentQuery = ViewData["CurrentQuery"] as string;
+    var currentStatus = Context.Request.Query["status"].ToString();
 }
 
 <h1>房源搜尋</h1>
@@ -16,9 +17,26 @@
                     <button type="submit" class="btn btn-primary" style="display: none;">搜尋</button>
                 </div>
             </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="">全部狀態</option>
+                    <option value="待審核" selected="@(currentStatus=="待審核")">待審核</option>
+                    <option value="上架中" selected="@(currentStatus=="上架中")">上架中</option>
+                    <option value="已下架" selected="@(currentStatus=="已下架")">已下架</option>
+                    <option value="已通過" selected="@(currentStatus=="已通過")">已通過</option>
+                    <option value="已刪除" selected="@(currentStatus=="已刪除")">已刪除</option>
+                    <option value="已拒絕" selected="@(currentStatus=="已拒絕")">已拒絕</option>
+                </select>
+            </div>
+            
         </form>
     </div>
 </div>
+
+
+
+
+
 
 <hr />
 
@@ -30,9 +48,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.querySelector('input[name="query"]');
+            const statusSelect = document.querySelector('select[name="status"]');
             const resultsContainer = document.getElementById('searchResultsContainer');
             const searchForm = document.getElementById('searchForm');
-            const initialQuery = searchInput.value;
 
             // 防止使用者快速輸入造成每個字都發請求，會 延遲 300ms 才真的送出查詢。
             function debounce(func, delay) {
@@ -44,9 +62,10 @@
                 };
             }
 
-            function performSearch(query) {
-                if (query === null || query.trim() === '') {
-                    resultsContainer.innerHTML = ''; // Clear results
+            function performSearch(query, status) {
+                // We can search even with an empty query if a status is selected
+                if ((query === null || query.trim() === '') && (status === null || status.trim() === '')) {
+                    resultsContainer.innerHTML = ''; // Clear results only if both are empty
                     return;
                 }
                 
@@ -54,7 +73,8 @@
                 
                 // Build URL safely
                 const url = new URL('@Url.Action("Ajax", "Search", new { Area = "Room_List" })', window.location.origin);
-                url.searchParams.append('query', query);
+                url.searchParams.set('query', query || '');
+                url.searchParams.set('status', status || '');
 
                 fetch(url)
                     .then(response => {
@@ -72,15 +92,18 @@
                     });
             }
 
-            const debouncedSearch = debounce(performSearch, 300);
+            const debouncedSearch = debounce(function() {
+                const query = searchInput.value;
+                const status = statusSelect.value;
+                performSearch(query, status);
+            }, 300);
 
-            if (initialQuery) {
-                performSearch(initialQuery);
-            }
+            // Initial search on page load with current values
+            debouncedSearch();
 
-            searchInput.addEventListener('input', function () {
-                debouncedSearch(this.value);
-            });
+            // Add listeners to both controls
+            searchInput.addEventListener('input', debouncedSearch);
+            statusSelect.addEventListener('change', debouncedSearch);
 
             searchForm.addEventListener('submit', function (e) {
                 e.preventDefault(); 
