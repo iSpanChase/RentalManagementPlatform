@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore
-# Edit at https://www.toptal.com/developers/gitignore?templates=csharp,aspnetcore
+# Created by https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,vue
+# Edit at https://www.toptal.com/developers/gitignore?templates=csharp,aspnetcore,vue
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -523,7 +523,15 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 
-# End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore
-.env
-/RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/Models/RentalManagementPlatformSqlContext.cs
-/RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/appsettings.json
+### Vue ###
+# gitignore template for Vue.js projects
+#
+# Recommended template: Node.gitignore
+
+# TODO: where does this rule come from?
+docs/_book
+
+# TODO: where does this rule come from?
+test/
+
+# End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,vue
