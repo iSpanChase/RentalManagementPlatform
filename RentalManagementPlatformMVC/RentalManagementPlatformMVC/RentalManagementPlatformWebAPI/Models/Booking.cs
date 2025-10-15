@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RentalManagementPlatformMVC.Models;
 
 public partial class Booking
 {
-    public int BookingId { get; set; }
+	[Key]
+	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+	public int BookingId { get; set; }
 
     public int? CouponId { get; set; }
 

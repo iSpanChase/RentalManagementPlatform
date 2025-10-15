@@ -159,7 +159,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("BOOKING");
 
             entity.Property(e => e.BookingId)
-                .ValueGeneratedNever()
+				.ValueGeneratedOnAdd()
                 .HasColumnName("booking_id");
             entity.Property(e => e.CheckIn).HasColumnName("check_in");
             entity.Property(e => e.CheckOut).HasColumnName("check_out");

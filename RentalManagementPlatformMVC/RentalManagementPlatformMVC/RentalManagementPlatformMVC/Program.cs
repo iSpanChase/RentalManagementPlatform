@@ -166,9 +166,9 @@ namespace RentalManagementPlatformMVC
 			builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 	.AddCookie(o =>
 	{
-		o.LoginPath = "/Auth/Login";
-		o.LogoutPath = "/Auth/Logout";
-		o.AccessDeniedPath = "/Auth/AccessDenied";
+		o.LoginPath = "/Auth/Auth/Login";
+		o.LogoutPath = "/Auth/Auth/Logout";
+		o.AccessDeniedPath = "/Auth/Auth/AccessDenied";
 		o.SlidingExpiration = true;
 		o.ExpireTimeSpan = TimeSpan.FromHours(8);
 		// o.Cookie.HttpOnly = true; o.Cookie.SecurePolicy = CookieSecurePolicy.Always; // �G�p https �ɫ�ĳ�}
