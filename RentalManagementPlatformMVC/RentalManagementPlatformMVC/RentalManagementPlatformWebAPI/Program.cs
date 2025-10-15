@@ -1,3 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.Mappings;
+using RentalManagementPlatformWebAPI.Middlewares;
+using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Interface;
+using RentalManagementPlatformWebAPI.Services;
+using System;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -7,17 +15,38 @@ namespace RentalManagementPlatformWebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+			// 業務資料庫連線註冊
+			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
+				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
+			// Controllers + 解決JSON循環參照問題
+			builder.Services.AddControllers()
+				.AddJsonOptions(options =>
+				{
+					options.JsonSerializerOptions.ReferenceHandler =
+						System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+				});
+
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            var app = builder.Build();
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+			builder.Services.AddProblemDetails(); // �ҥ� ProblemDetails �榡�䴩
+
+			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
+
+			var app = builder.Build();
+
+			app.UseExceptionHandler(); // �ҥΥ���ҥ~�B�z
+
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
@@ -26,7 +55,6 @@ namespace RentalManagementPlatformWebAPI
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
