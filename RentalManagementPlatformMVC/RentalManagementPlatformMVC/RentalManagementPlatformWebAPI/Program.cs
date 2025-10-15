@@ -15,11 +15,11 @@ namespace RentalManagementPlatformWebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-			// �[�J��Ʈw�s�u�r��
+			// 業務資料庫連線註冊
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			// Controllers + JSON �`���ޥγB�z
+			// Controllers + 解決JSON循環參照問題
 			builder.Services.AddControllers()
 				.AddJsonOptions(options =>
 				{
