@@ -17,6 +17,7 @@ namespace RentalManagementPlatformWebAPI.Repositories
 		public async Task<IEnumerable<Booking>> GetAllBookingsAsync()
 		{
 			return await _context.Bookings
+				.AsNoTracking()
 				.Include(b => b.Guest)
 				.Include(b => b.Room)
 				.Include(b => b.Coupon)
@@ -33,6 +34,7 @@ namespace RentalManagementPlatformWebAPI.Repositories
 		public async Task<Booking?> GetBookingByIdAsync(int bookingId)
 		{
 			return await _context.Bookings
+				.AsNoTracking()
 				.Include(b => b.Guest)
 				.Include(b => b.Room)
 				.Include(b => b.Coupon)
@@ -40,9 +42,16 @@ namespace RentalManagementPlatformWebAPI.Repositories
 				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
 		}
 
+		public async Task<Booking?> GetBookingByIdSimpleAsync(int bookingId)
+		{
+			return await _context.Bookings
+				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
+		}
+
 		public async Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId)
 		{
 			return await _context.Bookings
+				.AsNoTracking()
 				.Where(b => b.GuestId == userId)
 				.Include(b => b.Guest)
 				.Include(b => b.Room)
@@ -55,10 +64,17 @@ namespace RentalManagementPlatformWebAPI.Repositories
 		public async Task<string?> GetLastBookingNumberByDateAsync(string datePrefix)
 		{
 			return await _context.Bookings
+				.AsNoTracking()
 				.Where(b => b.OrderNumber != null && b.OrderNumber.StartsWith($"ORD{datePrefix}"))
 				.OrderByDescending(b => b.OrderNumber)
 				.Select(b => b.OrderNumber)
 				.FirstOrDefaultAsync();
+		}
+
+		public async Task CancelBookingByIdAsync(Booking booking)
+		{
+			_context.Bookings.Update(booking);
+			await _context.SaveChangesAsync();
 		}
 	}
 }
