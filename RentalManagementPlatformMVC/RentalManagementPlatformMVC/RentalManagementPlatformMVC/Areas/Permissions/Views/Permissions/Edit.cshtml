@@ -1,7 +1,7 @@
 ﻿@model RentalManagementPlatformMVC.Areas.Permissions.ViewModels.PermissionFormVm
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "Edit Permission";
+    ViewData["Title"] = "編輯權限";
 }
 
 <div class="content-header mt-3">
@@ -26,32 +26,32 @@
                     <input type="hidden" asp-for="PermissionId" />
 
                     <div class="mb-3">
-                        <label class="form-label">Perm Code</label>
+                        <label class="form-label">權限代碼</label>
                         <input asp-for="PermCode" class="form-control" />
                         <span asp-validation-for="PermCode" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Perm Name</label>
+                        <label class="form-label">權限名稱</label>
                         <input asp-for="PermName" class="form-control" />
                         <span asp-validation-for="PermName" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Module</label>
+                            <label class="form-label">權限模組</label>
                             <input asp-for="Module" class="form-control" />
                             <span asp-validation-for="Module" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Action</label>
+                            <label class="form-label">權限動作</label>
                             <input asp-for="Action" class="form-control" />
                             <span asp-validation-for="Action" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
+                        <label class="form-label">權限描述</label>
                         <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
