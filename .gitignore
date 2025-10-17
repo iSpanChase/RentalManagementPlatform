@@ -535,6 +535,12 @@ docs/_book
 test/
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,vue
+<<<<<<< HEAD
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/appsettings.json
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI/appsettings.json
 RentalManagementPlatformMVC/RentalManagementPlatformVue/vue.config.js
+=======
+RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI/appsettings.json
+RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/appsettings.json
+RentalManagementPlatformMVC/RentalManagementPlatformVue/vite.config.ts
+>>>>>>> 08094242623316116882f720746ba352577fe19d
