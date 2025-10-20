@@ -5,7 +5,7 @@ using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
-using System;
+using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -34,16 +34,18 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
             builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-			builder.Services.AddProblemDetails(); // �ҥ� ProblemDetails �榡�䴩
+			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
 
 			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
 			var app = builder.Build();
 
-			app.UseExceptionHandler(); // �ҥΥ���ҥ~�B�z
+			app.UseExceptionHandler(); // 全域異常處理中介軟體
 
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())

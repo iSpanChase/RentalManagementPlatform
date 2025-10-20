@@ -1,7 +1,6 @@
-﻿using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.DTOs;
+﻿using RentalManagementPlatformWebAPI.DTOs;
 
-namespace RentalManagementPlatformWebAPI.Services
+namespace RentalManagementPlatformWebAPI.Services.Interface
 {
 	public interface IBookingService
 	{
@@ -10,5 +9,6 @@ namespace RentalManagementPlatformWebAPI.Services
 		Task<BookingDto> CreateBookingAsync(CreateBookingDto dto);
 		Task<BookingDto?> GetBookingByIdAsync(int bookingId);
 		Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int userId);
+		Task<BookingDto?> CancelBookingByIdAsync(int bookingId);
 	}
 }
