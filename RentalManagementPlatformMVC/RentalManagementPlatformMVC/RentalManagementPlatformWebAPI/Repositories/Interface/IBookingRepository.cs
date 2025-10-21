@@ -10,5 +10,7 @@ namespace RentalManagementPlatformWebAPI.Repositories.Interface
 		Task<Booking?> GetBookingByIdAsync(int bookingId);
 		Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId);
 		Task<string?> GetLastBookingNumberByDateAsync(string datePrefix);
+		Task CancelBookingByIdAsync(Booking booking);
+		Task<Booking?> GetBookingByIdSimpleAsync(int bookingId);
 	}
 }

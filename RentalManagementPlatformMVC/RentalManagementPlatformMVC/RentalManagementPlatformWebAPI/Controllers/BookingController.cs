@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs;
-using RentalManagementPlatformWebAPI.Services;
+using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {
@@ -12,14 +11,14 @@ namespace RentalManagementPlatformWebAPI.Controllers
 	{
 		private readonly IBookingService _bookingService;
 
-		public BookingController(IBookingService bookingService)
+		public BookingController(IBookingService bookingService, RentalManagementPlatformSqlContext context)
 		{
 			_bookingService = bookingService;
 		}
 
 		// 取得所有訂單(測試用)
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Booking>>> GetAllBookings()
+		public async Task<ActionResult<IEnumerable<Booking>>> GetAllBookingsAsync()
 		{
 			var bookings = await _bookingService.GetAllBookingsAsync();
 			return Ok(bookings);
@@ -36,9 +35,9 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			var createdBooking = await _bookingService.CreateBookingAsync(dto);
 
 			return CreatedAtAction(
-				nameof(GetBookingById), // 對應的查詢方法
-				new { bookingId = createdBooking.BookingId }, // 路由參數
-				createdBooking // 回傳的內容
+				nameof(GetBookingById),
+				new { bookingId = createdBooking.BookingId },
+				createdBooking
 			);
 		}
 
@@ -56,7 +55,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		}
 
 		[HttpGet("~/api/users/{userId:int}/bookings")]
-		public async Task<ActionResult<IEnumerable<Booking>>> GetBookingByUser(int userId)
+		public async Task<ActionResult<IEnumerable<Booking>>> GetBookingByUserAsync(int userId)
 		{
 			var bookings = await _bookingService.GetBookingsByUserAsync(userId);
 
@@ -66,6 +65,13 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			}
 
 			return Ok(bookings);
+		}
+
+		[HttpPut("{bookingId:int}/cancel")]
+		public async Task<ActionResult<BookingDto>> CancelBookingAsync(int bookingId)
+		{
+			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
+			return Ok(result);
 		}
 	}
 }
