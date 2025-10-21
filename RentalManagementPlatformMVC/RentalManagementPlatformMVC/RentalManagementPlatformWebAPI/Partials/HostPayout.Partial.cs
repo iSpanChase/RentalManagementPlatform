@@ -1,4 +1,4 @@
-﻿namespace RentalManagementPlatformMVC.Models
+﻿namespace RentalManagementPlatformWebAPI.Models
 {
 	public partial class HostPayout
 	{

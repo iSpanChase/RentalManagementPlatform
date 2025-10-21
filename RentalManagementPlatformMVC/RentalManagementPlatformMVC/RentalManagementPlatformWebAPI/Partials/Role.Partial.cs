@@ -1,4 +1,6 @@
-﻿namespace RentalManagementPlatformMVC.Models
+﻿using RentalManagementPlatformWebAPI.Models;
+
+namespace RentalManagementPlatformMVC.Models
 {
 	public partial class Role
 	{

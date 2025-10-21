@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RentalManagementPlatformMVC.Models
+namespace RentalManagementPlatformWebAPI.Models
 {
     public partial class FaqArticle
     {
