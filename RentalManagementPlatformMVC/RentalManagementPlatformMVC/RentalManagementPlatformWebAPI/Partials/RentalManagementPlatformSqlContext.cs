@@ -159,5 +159,50 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				  .OnDelete(DeleteBehavior.Cascade)           // 刪文章時連動刪回饋（你DB就是這樣）
 				  .HasConstraintName("FK_FaqFeedback_Article");
 		});
+
+		modelBuilder.Entity<Role>(e =>
+		{
+			e.HasIndex(x => x.RoleCode).IsUnique();
+			e.Property(x => x.RoleCode).HasMaxLength(64).IsRequired();
+			e.Property(x => x.RoleName).HasMaxLength(128).IsRequired();
+
+			e.HasMany(x => x.RolePermissions)
+			 .WithOne(x => x.Role)
+			 .HasForeignKey(x => x.RoleId)
+			 .OnDelete(DeleteBehavior.Cascade);
+
+			e.HasMany(x => x.UserRoles)
+			 .WithOne(x => x.Role)
+			 .HasForeignKey(x => x.RoleId)
+			 .OnDelete(DeleteBehavior.Restrict); // 視需求：避免刪除角色時把使用者關聯全刪
+		});
+
+		modelBuilder.Entity<Permission>(e =>
+		{
+			e.HasIndex(x => x.PermCode).IsUnique();
+			e.Property(x => x.PermCode).HasMaxLength(128).IsRequired();
+			e.Property(x => x.PermName).HasMaxLength(128).IsRequired();
+
+			e.HasMany(x => x.RolePermissions)
+			 .WithOne(x => x.Permission)
+			 .HasForeignKey(x => x.PermissionId)
+			 .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		modelBuilder.Entity<UserRole>(e =>
+		{
+			e.HasIndex(x => new { x.UserId, x.RoleId }).IsUnique();
+			e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+			e.HasOne(x => x.User)
+			 .WithMany(u => u.UserRoles)
+			 .HasForeignKey(x => x.UserId)
+			 .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		modelBuilder.Entity<RolePermission>(e =>
+		{
+			e.HasIndex(x => new { x.RoleId, x.PermissionId }).IsUnique();
+			e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+		});
 	}
 }
