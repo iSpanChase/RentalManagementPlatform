@@ -1,10 +1,14 @@
 <script setup>
 import { ref } from 'vue'
-const message = ref('Hello')
+import BookingSummaryCard from '../components/BookingSummaryCard.vue';
+const text = ref('Hello from BookingConfirmView.vue')
 </script>
 
 <template>
-  <div>{{ message }}</div>
+  <div>
+    <h3>{{ text }}</h3>
+  </div>
+  <BookingSummaryCard />
 </template>
 
 <style lang="scss" scoped>

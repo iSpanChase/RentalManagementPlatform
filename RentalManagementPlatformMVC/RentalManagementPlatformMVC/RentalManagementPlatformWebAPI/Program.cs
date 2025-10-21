@@ -7,7 +7,6 @@ using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
 using RentalManagementPlatformWebAPI.Services.Interface;
-using IBookingService = RentalManagementPlatformWebAPI.Services.IBookingService;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -16,6 +15,17 @@ namespace RentalManagementPlatformWebAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+			// 加入 CORS 服務
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowVue", policy =>
+				{
+					policy.WithOrigins("http://localhost:5173")  // Vue 前端的網址
+						  .AllowAnyHeader()
+						  .AllowAnyMethod();
+				});
+			});
 
 			// 業務資料庫連線註冊
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
@@ -56,7 +66,9 @@ namespace RentalManagementPlatformWebAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+			app.UseHttpsRedirection();
+
+			app.UseCors("AllowVue");
 
             app.UseAuthorization();
 

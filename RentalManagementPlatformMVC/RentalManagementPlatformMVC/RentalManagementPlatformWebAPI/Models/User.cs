@@ -33,9 +33,9 @@ public partial class User
 
     public DateTime? UpdatedAt { get; set; }
 
-    public string Provider { get; set; } = null!;
+    //public string Provider { get; set; } = null!;
 
-    public string? ProviderSubject { get; set; }
+    //public string? ProviderSubject { get; set; }
 
-    public DateTime? LastLoginAt { get; set; }
+    //public DateTime? LastLoginAt { get; set; }
 }

@@ -28,18 +28,31 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[HttpPost]
 		public async Task<ActionResult<BookingDto>> CreateBookingAsync([FromBody] CreateBookingDto dto)
 		{
-			if (!ModelState.IsValid)
+			try
 			{
-				return BadRequest(ModelState);
+				if (!ModelState.IsValid)
+				{
+					return BadRequest(ModelState);
+				}
+
+				var createdBooking = await _bookingService.CreateBookingAsync(dto);
+
+				return CreatedAtAction(
+					nameof(GetBookingById),
+					new { bookingId = createdBooking.BookingId },
+					createdBooking
+				);
 			}
-
-			var createdBooking = await _bookingService.CreateBookingAsync(dto);
-
-			return CreatedAtAction(
-				nameof(GetBookingById),
-				new { bookingId = createdBooking.BookingId },
-				createdBooking
-			);
+			catch (Exception ex)
+			{
+				// ⭐ 詳細錯誤訊息
+				return StatusCode(500, new
+				{
+					message = ex.Message,
+					innerException = ex.InnerException?.Message,
+					stackTrace = ex.StackTrace  // 開發環境才用
+				});
+			}
 		}
 
 		[HttpGet("{bookingId:int}")]

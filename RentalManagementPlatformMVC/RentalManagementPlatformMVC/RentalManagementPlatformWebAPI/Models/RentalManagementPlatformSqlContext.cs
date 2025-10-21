@@ -161,8 +161,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("BOOKING");
 
             entity.Property(e => e.BookingId)
-                .ValueGeneratedNever()
-                .HasColumnName("booking_id");
+                .ValueGeneratedOnAdd()
+				.HasColumnName("booking_id");
             entity.Property(e => e.CheckIn).HasColumnName("check_in");
             entity.Property(e => e.CheckOut).HasColumnName("check_out");
             entity.Property(e => e.CommissionRateSnapshot)
@@ -642,8 +642,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("POINT_RULE");
 
-            entity.Property(e => e.RuleId).HasColumnName("rule_id");
-            entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
+            entity.Property(e => e.RuleId).HasColumnName("rule_id")
+			    .ValueGeneratedNever();
+			entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
             entity.Property(e => e.ActiveTo).HasColumnName("active_to");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.EarnRatePerNtd)
@@ -965,7 +966,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("gender");
             entity.Property(e => e.Isverified).HasColumnName("isverified");
-            entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            //entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
             entity.Property(e => e.Name)
                 .HasMaxLength(512)
                 .HasColumnName("name");
@@ -977,13 +978,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.ProfileImageurl)
                 .HasMaxLength(512)
                 .HasColumnName("profile_imageurl");
-            entity.Property(e => e.Provider)
-                .HasMaxLength(20)
-                .HasDefaultValue("Local")
-                .HasColumnName("provider");
-            entity.Property(e => e.ProviderSubject)
-                .HasMaxLength(100)
-                .HasColumnName("provider_subject");
+            //entity.Property(e => e.Provider)
+            //    .HasMaxLength(20)
+            //    .HasDefaultValue("Local")
+            //    .HasColumnName("provider");
+            //entity.Property(e => e.ProviderSubject)
+            //    .HasMaxLength(100)
+            //    .HasColumnName("provider_subject");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Username)
                 .HasMaxLength(512)
