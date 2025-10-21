@@ -8,6 +8,7 @@
       <RouterLink class="col-2" to="/exampleA">ExampleA</RouterLink>
       <RouterLink class="col-2" to="/exampleB">ExampleB</RouterLink>
       <RouterLink class="col-2" to="/reportForm">ReportForm</RouterLink>
+      <RouterLink class="col-2" to="/booking">BookingConfirm</RouterLink>
     </div>
   </div>
 </template>

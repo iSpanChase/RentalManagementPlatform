@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import exampleARouter from './modules/exampleA/router'
 import exampleBRouter from './modules/exampleB/router'
 import ReportFormRouter from './modules/ReportForm/router'
+import BookingRouter from './modules/booking/router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,6 +11,7 @@ const router = createRouter({
     ...exampleARouter,
     ...exampleBRouter,
     ...ReportFormRouter,
+    ...BookingRouter,
     {
       path: '/',
       name: 'home',
