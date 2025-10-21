@@ -7,6 +7,7 @@ using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
 using RentalManagementPlatformWebAPI.Services.Interface;
+using IBookingService = RentalManagementPlatformWebAPI.Services.IBookingService;
 
 namespace RentalManagementPlatformWebAPI
 {
