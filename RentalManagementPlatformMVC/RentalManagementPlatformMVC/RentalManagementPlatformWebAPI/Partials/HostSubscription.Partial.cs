@@ -1,6 +1,4 @@
-﻿using RentalManagementPlatformMVC.Models;
-
-namespace RentalManagementPlatformMVC.Models
+﻿namespace RentalManagementPlatformWebAPI.Models
 {
 	public partial class HostSubscription
 	{

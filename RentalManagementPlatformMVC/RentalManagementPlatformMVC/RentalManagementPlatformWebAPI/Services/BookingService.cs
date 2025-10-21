@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services.Interface;
 

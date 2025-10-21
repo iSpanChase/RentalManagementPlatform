@@ -13,7 +13,7 @@ public partial class User
 
     public string Name { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string? PasswordHash { get; set; }
 
     public string Gender { get; set; } = null!;
 
@@ -32,4 +32,10 @@ public partial class User
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public string Provider { get; set; } = null!;
+
+    public string? ProviderSubject { get; set; }
+
+    public DateTime? LastLoginAt { get; set; }
 }
