@@ -1,0 +1,362 @@
+
+/* RTL Css */
+
+
+.rtl {
+	direction: rtl;
+	text-align: right;
+}
+
+.rtl .owl-carousel {
+	direction: ltr;
+}
+
+.rtl .main-menu .navigation>li {
+    margin-right: 0;
+    margin-left: 35px;
+}
+
+.rtl .main-menu .navigation>li>ul {
+    left: auto;
+    right: 0;
+    text-align: right;
+}
+
+.rtl .main-menu .navigation>li>ul>li>ul {
+    left: auto;
+    right: 100%;
+    text-align: right;
+}
+
+.rtl .main-menu .navigation>li>ul>li>a {
+    text-align: right;
+}
+
+.rtl .main-menu .navigation>li>ul>li:after {
+    right: auto;
+    left: 0;
+}
+
+.rtl .main-menu .navigation>li>ul>li.dropdown>a:after {
+    right: auto;
+    left: 0;
+}
+
+.rtl .main-menu .navigation>li>ul>li>ul>li>a {
+    text-align: right;
+}
+
+@media only screen and (max-width:1600px) {
+
+    .rtl .main-menu .navigation>li:nth-last-child(-n+3)>ul>li>ul {
+        right: auto;
+        left: 100%;
+    }
+    .rtl .main-menu .navigation > li:nth-last-child(-n+2) > ul {
+        right: auto;
+        left: 0;
+    }
+    .rtl .main-menu .navigation > li:nth-last-child(-n+2) > ul > li > ul {
+        right: auto;
+        left: 100%;
+    }   
+}
+
+.rtl .banner-section .banner-slider-nav {
+    direction: ltr;
+}
+
+.rtl .welcome-section .image-one:before {
+    left: auto;
+    right: -70px;
+}
+
+.rtl .testimonials-section .testimonial-thumbs {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.rtl .testimonials-section .icon-box .icon {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .newsletter-section .icon-box {
+    padding-left: 0;
+    padding-right: 95px;
+}
+
+.rtl .newsletter-section .icon {
+    left: auto;
+    right: 0;
+}
+
+.rtl .news-widget .image {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+@media only screen and (min-width: 992px) {
+	.rtl .links-widget {
+		position: relative;
+		left: 0;
+		right: 70px;
+	}
+}
+
+.rtl .main-header.header-style-two .header-upper .link-box {
+    margin-right: 0;
+    margin-left: -61px;
+}
+
+.rtl .banner-section.style-two .content-box .inner {
+    padding-right: 40px;
+    padding-left: 0;
+}
+
+.rtl .banner-section.style-two .content-box .inner:before {
+    left: auto;
+    right: 0;
+}
+
+.rtl .styled-pagination li span:before {transform: rotate(180deg);display: inline-block;}
+
+.rtl .sidebar-page-container .author-box {
+    padding-left: 60px;
+    padding-right: 260px;
+}
+
+.rtl .sidebar-page-container .author-box .image {
+    left: auto;
+    right: 60px;
+}
+
+.rtl .comments-area .comment-box .reply-comment-btn {
+    right: auto;
+    left: 0;
+}
+
+.rtl .comments-area .comment {
+    padding-left: 0;
+    padding-right: 170px;
+}
+
+.rtl .comments-area .comment-box .author-thumb {
+    right: 0;
+    left: auto;
+}
+
+.rtl .header-top ul.contact-info li {
+    padding-right: 0;
+    margin-right: 0;
+    padding-left: 20px;
+    margin-left: 20px;
+}
+
+.rtl .main-header .header-upper .navbar-right {
+    margin-right: 50px;
+    margin-left: 0;
+}
+
+.rtl .sec-title h4:before {
+    left: auto;
+    right: 0;
+}
+
+.rtl .about-section .icon_box i {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .about-section .image_box img {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .about-section .image_box h4 {
+    text-align: right;
+}
+
+.rtl .sec-title.text-center h4:before {
+    right: auto;
+}
+
+.rtl .service-block-1 .icon {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl section.experience-section {
+    direction: ltr;
+}
+
+.rtl .progress-levels .progress-box.animated .bar .bar-fill {
+    left: auto;
+    right: 0;
+}
+
+.rtl section.appointment-section .icon {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .news-block-one ul.post-mate li {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .news-block-one ul.post-mate li i {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.rtl .text-widget {
+    margin-left: 0;
+}
+
+.rtl .banner-section.style-two .swiper-slide:before {
+    left: auto;
+    right: 0;
+}
+
+.rtl .banner-section .content-box {
+    text-align: right;
+}
+
+.rtl .banner-section .content-box .inner {
+    text-align: right;
+}
+
+.rtl .banner-section.style-two .banner-slider-nav {
+    right: auto;
+    left: 120px;
+}
+
+.rtl .feature-block .inner-box {
+    padding-left: 45px;
+    padding-right: 140px;
+}
+
+.rtl .feature-block .iocn {
+    left: auto;
+    right: 62px;
+}
+
+.rtl section.introduction-section .ul li i {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.rtl section.introduction-section .image-two {
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .course-block-two .image {
+    margin-right: 0;
+    margin-left: 120px;
+}
+
+.rtl .course-block-two h4:before {
+    left: auto;
+}
+
+.rtl .course-details .text-block-two ul li i {
+    margin-right: 0;
+    margin-left: 10px;
+}
+
+.rtl .accordion-box .block .icon-outer {
+    right: auto;
+    left: 20px;
+}
+
+.rtl .service-widget ul li.current a {
+    padding-right: 22px;
+    padding-left: 0;
+}
+
+.rlt .service-widget ul li a:after {
+    left: auto;
+    right: 0;
+}
+
+.rlt .news-block-three .post-meta li {
+    margin-right: 0;
+    margin-left: 10px;
+}
+
+.rlt .news-block-three .post-meta li i {
+    margin-right: 0;
+    margin-left: 3px;
+}
+
+.rlt .news-widget-two .post {
+    padding-left: 0;
+    padding-right: 90px;
+}
+
+.rlt .news-widget-two .post .post-thumb {
+    left: auto;
+    right: 0;
+}
+
+.rlt .news-widget-two .comment i {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.rlt .sidebar .search-box .form-group button {
+    right: auto;
+    left: 0;
+}
+
+.rtl .page-title .bread-crumb li {
+    margin-right: 0;
+    margin-left: 15px;
+    padding-right: 0;
+    padding-left: 20px;
+}
+
+.rtl .page-title .bread-crumb li:before {
+    right: auto;
+    left: 0;
+}
+
+.rtl .offset-lg-2 {
+    margin-left: 0;
+    margin-right: 16.6666666667%;
+}
+
+.rtl section.contact-info-section .icon_box .inner-box {
+    padding-left: 40px;
+    padding-right: 105px;
+}
+
+.rtl section.contact-info-section .icon_box .icon {
+    left: auto;
+    right: 40px;
+}
+
+.rtl .main-header .header-upper .contact-info {
+    margin-left: 30px;
+    padding-left: 30px;
+    border-left: 1px solid #eee;
+    margin-right: 0;
+    padding-right: 0;
+    border-right: none;
+}
+
+.rtl.main-header .header-upper .contact-info .icon {
+    margin-right: 0;
+    margin-left: 15px;
+}
+
+
+
+
+
+
+
+
+
