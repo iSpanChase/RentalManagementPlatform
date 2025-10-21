@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.Models;
 using System.Runtime;
 
 namespace RentalManagementPlatformWebAPI.Mappings
