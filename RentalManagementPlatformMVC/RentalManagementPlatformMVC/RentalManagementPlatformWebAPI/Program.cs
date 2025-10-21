@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
+using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;

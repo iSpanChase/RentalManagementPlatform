@@ -1,4 +1,5 @@
 ﻿using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.Models;
 
 namespace RentalManagementPlatformWebAPI.Repositories.Interface
 {

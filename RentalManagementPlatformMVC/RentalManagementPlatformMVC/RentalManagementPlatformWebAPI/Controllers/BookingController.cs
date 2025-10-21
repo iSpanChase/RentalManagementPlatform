@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI.Controllers

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.Models;
 using System;
 
 [ApiController]
