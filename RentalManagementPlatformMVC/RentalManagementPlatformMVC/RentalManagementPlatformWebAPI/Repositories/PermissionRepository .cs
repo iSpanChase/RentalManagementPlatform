@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Models;
 
 namespace RentalManagementPlatformWebAPI.Repositories

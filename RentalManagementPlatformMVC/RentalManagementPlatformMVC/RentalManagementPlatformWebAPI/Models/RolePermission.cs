@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RentalManagementPlatformMVC.Models;
+namespace RentalManagementPlatformWebAPI.Models;
 
 public partial class RolePermission
 {

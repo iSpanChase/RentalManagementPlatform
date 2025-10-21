@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RentalManagementPlatformMVC.Models
+namespace RentalManagementPlatformWebAPI.Models
 {
     // ✅ 不動你原本的 FaqCategory.cs，這裡用 partial 只補導覽屬性
     public partial class FaqCategory

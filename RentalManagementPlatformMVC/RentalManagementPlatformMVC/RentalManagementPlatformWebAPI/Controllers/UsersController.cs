@@ -29,7 +29,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
 		[HttpPost("me/avatar")]
 		[Authorize]
-		public async Task<ActionResult<string>> UploadAvatar([FromForm] IFormFile file)
+		public async Task<ActionResult<string>> UploadAvatar(IFormFile file)
 			=> Ok(await _svc.UploadAvatarAsync(User, file));
 	}
 }
