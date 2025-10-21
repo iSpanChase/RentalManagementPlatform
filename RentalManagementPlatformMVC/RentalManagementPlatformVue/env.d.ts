@@ -5,6 +5,11 @@ declare module '*.vue' {
     const component: DefineComponent<{}, {}, any>
     export default component
 }
+// src/types/shims-js.d.ts
+declare module '*.js' {
+    const value: any;
+    export default value;
+}
 
 // 這一行可順便加上 Vite types（可選，但建議）
 /// <reference types="vite/client" />
