@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace RentalManagementPlatformMVC.Models;
+namespace RentalManagementPlatformWebAPI.Models;
 
 public partial class RentalManagementPlatformSqlContext : DbContext
 {
