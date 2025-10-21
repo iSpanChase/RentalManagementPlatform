@@ -24,7 +24,7 @@ CREATE TABLE [ADDRESS] (
 GO
 
 CREATE TABLE [BOOKING] (
-  [booking_id] int PRIMARY KEY NOT NULL,
+  [booking_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [coupon_id] int,
   [guest_id] int,
   [room_id] int,

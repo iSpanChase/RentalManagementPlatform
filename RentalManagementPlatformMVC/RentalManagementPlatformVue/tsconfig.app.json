@@ -10,15 +10,12 @@
     "src/**/__tests__/*"
   ],
   "compilerOptions": {
+    "allowJs": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "vite/client"
-    ], // <-- 新增：讓 Vite 全域型別生效
+    "types": ["vite/client"], // <-- 新增：讓 Vite 全域型別生效
     "skipLibCheck": true // <-- 可選：避免第三方型別檢查噪音
   }
 }

@@ -525,8 +525,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT");
 
             entity.Property(e => e.PaymentId)
-                .ValueGeneratedNever()
-                .HasColumnName("payment_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("payment_id");
             entity.Property(e => e.Amount)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("amount");
@@ -554,8 +554,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT_TRANSACTION");
 
             entity.Property(e => e.TransactionId)
-                .ValueGeneratedNever()
-                .HasColumnName("transaction_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("transaction_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.PaymentId).HasColumnName("payment_id");
             entity.Property(e => e.Provider)
