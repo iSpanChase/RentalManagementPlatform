@@ -10,11 +10,11 @@ using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var builder = WebApplication.CreateBuilder(args);
 
 			// 加入 CORS 服務
 			builder.Services.AddCors(options =>
@@ -70,11 +70,84 @@ namespace RentalManagementPlatformWebAPI
 
 			app.UseCors("AllowVue");
 
-            app.UseAuthorization();
+			// DI�GDomain Services
+			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IRoleService, RoleService>();
+			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
             app.MapControllers();
 
-            app.Run();
-        }
-    }
+				// �קK���P�R�W�Ŷ��P�W���O�y�� Schema �Ĭ�
+				c.CustomSchemaIds(t => t.FullName);
+
+				// JWT �w���w�q
+				c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+				{
+					Name = "Authorization",
+					Type = SecuritySchemeType.Http,
+					Scheme = "bearer",
+					BearerFormat = "JWT",
+					In = ParameterLocation.Header,
+					Description = "��J: Bearer {your token}"
+				});
+				c.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "Bearer"
+							}
+						},
+						Array.Empty<string>()
+					}
+				});
+
+				// �Y�M�רϥ� DateOnly/TimeOnly
+				c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
+				c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
+
+				// �i��G�۰ʸ��J XML ���ѡ]�s�b�~���^
+				var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+				var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
+				if (File.Exists(xmlPath))
+				{
+					c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+				}
+			});
+
+			var app = builder.Build();
+
+			// �b�}�o������ܧ���ҥ~���A��K�ݨ� /swagger/v1/swagger.json �����|
+			if (app.Environment.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+			}
+
+			// ��ĳ���������ҳ��} Swagger�]���צn�A��^�u�b Dev �}�^
+			app.UseSwagger();
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "RentalManagementPlatformWebAPI v1");
+				c.RoutePrefix = "swagger";
+			});
+
+			app.UseHttpsRedirection();
+			app.UseCors("spa");
+
+			app.UseAuthentication();
+			app.UseAuthorization();
+
+			app.MapControllers();
+
+			app.Run();
+		}
+	}
 }
