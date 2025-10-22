@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import VueEasyLightbox from 'vue-easy-lightbox';
+import { ref, computed } from 'vue';
+import { VuePhotoswipe, VuePhotoswipeGallery } from 'vue-photoswipe'; // Changed import
+import 'photoswipe/dist/photoswipe.css'; // Import PhotoSwipe CSS
 
 const emit = defineEmits(['close-sidebar']);
 
@@ -8,26 +9,34 @@ const closeSidebar = () => {
     emit('close-sidebar');
 };
 
-// Lightbox logic
-const images = ref([
+// Lightbox logic adapted for VuePhotoswipe
+// PhotoSwipe expects an array of objects with src, w, h
+// For now, we'll use dummy w and h, as we don't have actual image dimensions
+const rawImages = ref([
     '../assets/images/news/news-ins-2.jpg',
-    './assets/images/news/news-ins-3.jpg',
-    './assets/images/news/news-ins-4.jpg',
-    './assets/images/news/news-ins-5.jpg',
-    './assets/images/news/news-ins-6.jpg',
-    './assets/images/news/news-ins-7.jpg',
-    './assets/images/news/news-ins-8.jpg',
-    './assets/images/news/news-ins-9.jpg',
-    './assets/images/news/news-ins.jpg',
+    '../assets/images/news/news-ins-3.jpg',
+    '../assets/images/news/news-ins-4.jpg',
+    '../assets/images/news/news-ins-5.jpg',
+    '../assets/images/news/news-ins-6.jpg',
+    '../assets/images/news/news-ins-7.jpg',
+    '../assets/images/news/news-ins-8.jpg',
+    '../assets/images/news/news-ins-9.jpg',
+    '../assets/images/news/news-ins.jpg',
 ]);
-const visibleRef = ref(false);
-const indexRef = ref(0); // default 0
 
-const onHide = () => (visibleRef.value = false);
+const images = computed(() => rawImages.value.map(src => ({
+    src,
+    w: 1200, // Dummy width, ideally fetch actual dimensions
+    h: 900,  // Dummy height, ideally fetch actual dimensions
+    alt: 'Instagram Image',
+})));
+
+const pswpGallery = ref(null); // Ref to the gallery component
 
 const showImg = (index: number) => {
-    indexRef.value = index;
-    visibleRef.value = true;
+    if (pswpGallery.value) {
+        (pswpGallery.value as any).open(index); // Cast to any to access open method
+    }
 };
 </script>
 
@@ -55,12 +64,7 @@ const showImg = (index: number) => {
                                 </div>
                             </div>
                         </div><!-- /.gallery-wrapper -->
-                        <VueEasyLightbox
-                            :visible="visibleRef"
-                            :imgs="images"
-                            :index="indexRef"
-                            @hide="onHide"
-                        ></VueEasyLightbox>
+                        <VuePhotoswipeGallery :items="images" ref="pswpGallery" />
                     </div>
                 </div>
                 <div class="widget contact-widget">
