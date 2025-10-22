@@ -53,7 +53,7 @@ const isDropdownActive = (paths: string[]) => {
     });
 };
 
-const isHomeDropdownActive = isDropdownActive(['/', '/index-2', '/index-3']); // Assuming these are sub-pages for Home
+const isHomeDropdownActive  = isDropdownActive(['/', '/index-2', '/index-3']); // Assuming these are sub-pages for Home
 const isRoomsDropdownActive = isDropdownActive(['/room-grid', '/room-list', '/room-details']);
 const isPagesDropdownActive = isDropdownActive(['/services', '/restaurant', '/gallery', '/offers', '/menu', '/places']);
 const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
@@ -107,7 +107,7 @@ const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
                         <nav ref="navRef" class="main-menu navbar-expand-md navbar-light">
                             <div class="collapse navbar-collapse show clearfix" id="navbarSupportedContent">
                                 <ul class="navigation">
-                                    <li class="dropdown" :class="{'current': isHomeDropdownActive.value}"><a href="index.html" @click.prevent="toggleDropdown(0)">Home</a>
+                                    <li class="dropdown" :class="{'current': isHomeDropdownActive}"><a href="index.html" @click.prevent="toggleDropdown(0)">Home</a>
                                         <ul v-show="activeDropdown === 0">
                                             <li><a href="index.html">Home One</a></li>
                                             <li><a href="index-2.html">Home Two</a></li>
@@ -115,7 +115,7 @@ const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
                                         </ul>
                                     </li>
                                     <li><RouterLink to="/about" active-class="current">About Us </RouterLink></li>
-                                    <li class="dropdown" :class="{'current': isRoomsDropdownActive.value}"><a href="#" @click.prevent="toggleDropdown(1)">Rooms</a>
+                                    <li class="dropdown" :class="{'current': isRoomsDropdownActive}"><a href="#" @click.prevent="toggleDropdown(1)">Rooms</a>
                                         <ul v-show="activeDropdown === 1">
                                             <li><a href="room-grid.html">Room Grid Style</a>
                                             </li>
@@ -123,7 +123,7 @@ const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
                                             <li><a href="room-details.html">Room Details</a></li>
                                         </ul>
                                     </li>
-                                    <li class="dropdown" :class="{'current': isPagesDropdownActive.value}"><a href="#" @click.prevent="toggleDropdown(2)">Pages</a>
+                                    <li class="dropdown" :class="{'current': isPagesDropdownActive}"><a href="#" @click.prevent="toggleDropdown(2)">Pages</a>
                                         <ul v-show="activeDropdown === 2">
                                             <li><a href="services.html">Services</a></li>
                                             <li><a href="restaurant.html">Restaurant</a></li>
@@ -133,7 +133,7 @@ const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
                                             <li><a href="places.html">Places</a></li>
                                         </ul>
                                     </li>
-                                    <li class="dropdown" :class="{'current': isBlogDropdownActive.value}"><a href="#" @click.prevent="toggleDropdown(3)">Blog</a>
+                                    <li class="dropdown" :class="{'current': isBlogDropdownActive}"><a href="#" @click.prevent="toggleDropdown(3)">Blog</a>
                                         <ul v-show="activeDropdown === 3">
                                             <li><a href="blog.html">Blog</a></li>
                                             <li><a href="blog-details.html">Blog Details</a></li>
@@ -179,7 +179,9 @@ const isBlogDropdownActive = isDropdownActive(['/blog', '/blog-details']);
         </div>
         <!-- End Sticky Menu -->
 
-        <TheMobileMenu />
+        <!--
+            <TheMobileMenu />
+        -->
 
         <TheNavOverlay />
     </header>

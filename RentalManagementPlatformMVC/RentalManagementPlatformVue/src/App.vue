@@ -18,7 +18,14 @@ const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, 
         <ThePreloader />
 
 
-        <TheHeader @toggle-search="handleToggleSearch" @toggle-sidebar="handleToggleSidebar" @toggle-mobile-menu="handleToggleMobileMenu" />
+        <TheHeader
+            :isSearchPopupOpen="isSearchPopupOpen"
+            :isSidebarOpen="isSidebarOpen"
+            :isMobileMenuOpen="isMobileMenuOpen"
+            @toggle-search="handleToggleSearch"
+            @toggle-sidebar="handleToggleSidebar"
+            @toggle-mobile-menu="handleToggleMobileMenu"
+        />
 
         <TheHiddenSidebar v-if="isSidebarOpen" @close-sidebar="handleToggleSidebar" />
         <SearchPopup v-if="isSearchPopupOpen" @close-search="handleToggleSearch" />
