@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { VuePhotoswipe, VuePhotoswipeGallery } from 'vue-photoswipe'; // Changed import
-import 'photoswipe/dist/photoswipe.css'; // Import PhotoSwipe CSS
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import PhotoSwipeLightbox from 'photoswipe/lightbox'; // Import PhotoSwipeLightbox
+import 'photoswipe/photoswipe.css'; // Import PhotoSwipe CSS
 
 const emit = defineEmits(['close-sidebar']);
 
@@ -9,9 +9,7 @@ const closeSidebar = () => {
     emit('close-sidebar');
 };
 
-// Lightbox logic adapted for VuePhotoswipe
-// PhotoSwipe expects an array of objects with src, w, h
-// For now, we'll use dummy w and h, as we don't have actual image dimensions
+// Lightbox logic adapted for direct PhotoSwipe
 const rawImages = ref([
     '../assets/images/news/news-ins-2.jpg',
     '../assets/images/news/news-ins-3.jpg',
@@ -24,19 +22,39 @@ const rawImages = ref([
     '../assets/images/news/news-ins.jpg',
 ]);
 
+// PhotoSwipe expects an array of objects with src, w, h
+// For now, we'll use dummy w and h, as we don't have actual image dimensions
 const images = computed(() => rawImages.value.map(src => ({
     src,
-    w: 1200, // Dummy width, ideally fetch actual dimensions
-    h: 900,  // Dummy height, ideally fetch actual dimensions
+    width: 1200, // PhotoSwipe uses 'width' and 'height'
+    height: 900,
     alt: 'Instagram Image',
 })));
 
-const pswpGallery = ref(null); // Ref to the gallery component
+let lightbox: PhotoSwipeLightbox | null = null;
 
-const showImg = (index: number) => {
-    if (pswpGallery.value) {
-        (pswpGallery.value as any).open(index); // Cast to any to access open method
+onMounted(() => {
+    lightbox = new PhotoSwipeLightbox({
+        gallery: '#instagram-gallery', // ID of the gallery container
+        children: '.image a', // Selector for gallery items
+        pswpModule: () => import('photoswipe'),
+    });
+    lightbox.init();
+});
+
+onUnmounted(() => {
+    if (lightbox) {
+        lightbox.destroy();
+        lightbox = null;
     }
+});
+
+// showImg now just triggers the click on the element
+const showImg = (index: number) => {
+    // PhotoSwipeLightbox handles opening on click of children selector
+    // We just need to ensure the click is propagated or trigger it
+    // For now, the template's a tag will handle the click, PhotoSwipeLightbox will intercept
+    // If we need programmatic open, we'd use lightbox.loadAndOpen(index)
 };
 </script>
 
@@ -54,17 +72,16 @@ const showImg = (index: number) => {
                 <div class="instagram-widget widget">
                     <h4>Instagram Feeds</h4>
                     <div class="inner-box">
-                        <div class="wrapper-box">
+                        <div class="wrapper-box" id="instagram-gallery">
                             <div class="image" v-for="(img, index) in images" :key="index">
-                                <img :src="img" alt="">
+                                <img :src="img.src" :alt="img.alt">
                                 <div class="overlay-link">
-                                    <a href="#" class="lightbox-image" @click.prevent="showImg(index)">
+                                    <a :href="img.src" class="lightbox-image" :data-pswp-width="img.width" :data-pswp-height="img.height" :data-pswp-srcset="img.src" @click.prevent="showImg(index)">
                                         <span class="fa fa-plus"></span>
                                     </a>
                                 </div>
                             </div>
                         </div><!-- /.gallery-wrapper -->
-                        <VuePhotoswipeGallery :items="images" ref="pswpGallery" />
                     </div>
                 </div>
                 <div class="widget contact-widget">
