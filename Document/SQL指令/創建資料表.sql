@@ -24,7 +24,7 @@ CREATE TABLE [ADDRESS] (
 GO
 
 CREATE TABLE [BOOKING] (
-  [booking_id] int PRIMARY KEY NOT NULL,
+  [booking_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [coupon_id] int,
   [guest_id] int,
   [room_id] int,
@@ -45,7 +45,7 @@ CREATE TABLE [USER] (
   [username] nvarchar(512) NOT NULL,
   [email] nvarchar(512) NOT NULL,
   [name] nvarchar(512) NOT NULL,
-  [password_hash] nvarchar(512) NOT NULL,
+  [password_hash] nvarchar(MAX) NULL,
   [gender] nvarchar(512) NOT NULL,
   [birth_date] DATETIME2 NOT NULL,
   [phone] nvarchar(512),
@@ -54,8 +54,17 @@ CREATE TABLE [USER] (
   [point] int,
   [isverified] bit NOT NULL,
   [created_at] DATETIME2,
-  [updated_at] DATETIME2
+  [updated_at] DATETIME2,
+  [provider] NVARCHAR(20) NOT NULL CONSTRAINT DF_User_Provider DEFAULT ('Local'),
+  [provider_subject] NVARCHAR(100) NULL,
+  [last_login_at] DATETIME2 NULL
 )
+GO
+
+CREATE UNIQUE INDEX UX_User_Email ON dbo.[User]([Email]);
+GO
+
+CREATE UNIQUE INDEX UX_User_Username ON dbo.[User]([Username]);
 GO
 
 CREATE TABLE [BOOKING_GUEST] (
@@ -187,6 +196,9 @@ CREATE TABLE [ROLES] (
 )
 GO
 
+CREATE UNIQUE INDEX UX_Roles_RoleCode ON [ROLES]([role_code]);
+GO
+
 CREATE TABLE [PERMISSIONS] (
   [permission_id] INT IDENTITY(1,1) PRIMARY KEY,
   [perm_code] NVARCHAR(100) UNIQUE NOT NULL,
@@ -199,6 +211,9 @@ CREATE TABLE [PERMISSIONS] (
 )
 GO
 
+CREATE UNIQUE INDEX UX_Permissions_PermCode ON [Permissions]([perm_code]);
+GO
+
 CREATE TABLE [ROLE_PERMISSIONS] (
   [role_permission_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [role_id] INT NOT NULL,
@@ -207,12 +222,18 @@ CREATE TABLE [ROLE_PERMISSIONS] (
 )
 GO
 
+CREATE UNIQUE INDEX UX_RolePermissions_RoleId_PermissionId ON [ROLE_PERMISSIONS]([role_id], [permission_id]);
+GO
+
 CREATE TABLE [USER_ROLES] (
   [user_role_id] INT PRIMARY KEY NOT NULL IDENTITY(1,1),
   [user_id] INT NOT NULL,
   [role_id] INT NOT NULL,
   [created_at] DATETIME2 NOT NULL DEFAULT (SYSDATETIME())
 )
+GO
+
+CREATE UNIQUE INDEX UX_UserRoles_UserId_RoleId ON [USER_ROLES]([user_id], [role_id]);
 GO
 
 CREATE TABLE [HOST_PAYOUT] (
@@ -454,6 +475,26 @@ GO
 CREATE INDEX [POSTS_index_0] ON [POSTS] ("status", "region_id", "created_at")
 GO
 
+CREATE TABLE [REFRESH_TOKENS] (
+  [refresh_token_id] UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID() NOT NULL,
+  [user_id] INT NOT NULL,
+  [token] NVARCHAR(200) NOT NULL,
+  [expires_at] DATETIME2(7) NOT NULL,
+  [revoked] BIT NOT NULL DEFAULT(0),
+  [created_at] DATETIME2(7) NOT NULL DEFAULT(SYSUTCDATETIME())
+);
+GO
+
+CREATE UNIQUE INDEX UX_REFRESH_token ON [REFRESH_TOKENS]([token]);
+GO
+
+CREATE INDEX IX_REFRESH_user ON [REFRESH_TOKENS]([user_id]);
+GO
+
+CREATE INDEX IX_REFRESH_active ON [REFRESH_TOKENS]([user_id], [expires_at])
+WHERE [revoked] = 0;
+GO
+
 EXEC sp_addextendedproperty
 @name = N'Column_Description',
 @value = '地址 ID',
@@ -584,14 +625,6 @@ GO
 
 EXEC sp_addextendedproperty
 @name = N'Column_Description',
-@value = '使用者 ID',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'USER',
-@level2type = N'Column', @level2name = 'user_id';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
 @value = '使用者登入帳號',
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'USER',
@@ -623,26 +656,10 @@ GO
 
 EXEC sp_addextendedproperty
 @name = N'Column_Description',
-@value = '雜湊密碼，禁止明碼存放',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'USER',
-@level2type = N'Column', @level2name = 'password_hash';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
 @value = '性別',
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'USER',
 @level2type = N'Column', @level2name = 'gender';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
-@value = '生日',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'USER',
-@level2type = N'Column', @level2name = 'birth_date';
 GO
 
 EXEC sp_addextendedproperty
@@ -1275,14 +1292,6 @@ GO
 
 EXEC sp_addextendedproperty
 @name = N'Column_Description',
-@value = '使用者 ID (FK)',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'USER_FAVORITE_REPORT',
-@level2type = N'Column', @level2name = 'user_id';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
 @value = '報表類型，例如：OrderRevenue, RoomStats',
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'USER_FAVORITE_REPORT',
@@ -1375,14 +1384,6 @@ EXEC sp_addextendedproperty
 @level0type = N'Schema', @level0name = 'dbo',
 @level1type = N'Table',  @level1name = 'ANOMALY_DETECTION_LOG',
 @level2type = N'Column', @level2name = 'rule_id';
-GO
-
-EXEC sp_addextendedproperty
-@name = N'Column_Description',
-@value = '檢測目標 ID，依 target_type 可對應 RoomId / user_id',
-@level0type = N'Schema', @level0name = 'dbo',
-@level1type = N'Table',  @level1name = 'ANOMALY_DETECTION_LOG',
-@level2type = N'Column', @level2name = 'target_id';
 GO
 
 EXEC sp_addextendedproperty
