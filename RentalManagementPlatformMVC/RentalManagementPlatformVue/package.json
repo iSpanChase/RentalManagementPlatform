@@ -14,8 +14,27 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-brands-svg-icons": "^7.1.0",
+    "@fortawesome/free-regular-svg-icons": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/vue-fontawesome": "^3.1.2",
+    "@tanstack/vue-query": "^5.90.5",
+    "@vueuse/core": "^13.9.0",
+    "axios": "^1.12.2",
+    "dayjs": "^1.11.18",
+    "leaflet": "^1.9.4",
+    "lodash-es": "^4.17.21",
+    "photoswipe": "^5.4.4",
+    "pinia": "^3.0.3",
+    "swiper": "^12.0.3",
+    "uppy": "^5.1.7",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.22",
-    "vue-router": "^4.5.1"
+    "vue-datepicker-next": "^1.0.3",
+    "vue-leaflet": "^0.1.0",
+    "vue-router": "^4.5.1",
+    "vue-swiper": "^0.5.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
