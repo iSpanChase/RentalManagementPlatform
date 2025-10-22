@@ -1,57 +1,53 @@
 <template>
   <div class="booking-layout">
-    <!-- 訂單專用的導航 -->
-    <nav class="booking-nav">
-      <div class="nav-content">
-        <h2>訂單管理系統</h2>
-        <div class="nav-links">
-          <router-link to="/booking/list">我的訂單</router-link>
-          <router-link to="/">返回首頁</router-link>
-        </div>
-      </div>
-    </nav>
+    <header class="booking-header">
+      <router-link to="/">
+        <img src="../../../assets/images/logo.png" alt="logo">
+      </router-link>
+    </header>
 
-    <!-- 主要內容（訂單頁面會顯示在這裡） -->
     <main class="booking-main">
       <router-view />
     </main>
 
-    <!-- 訂單專用的頁尾 -->
     <footer class="booking-footer">
       <p>© 2025 訂單管理系統</p>
+      <span class="separator">·</span>
+      <nav class="footer-nav">
+        <a href="#">隱私</a>
+        <span class="separator">·</span>
+        <a href="#">相關條款</a>
+      </nav>
     </footer>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-weight: normal;
+}
+
 .booking-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.booking-nav {
-  background: #2c3e50;
+.booking-header {
+  background: #222222;
   color: white;
-  padding: 20px;
-}
-
-.nav-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 10px 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.nav-links {
-  display: flex;
   gap: 20px;
-}
 
-.nav-links a {
-  color: white;
-  text-decoration: none;
+  img {
+    height: 2.5rem;
+    margin-left: 1rem;
+  }
 }
 
 .booking-main {
@@ -60,9 +56,33 @@
 }
 
 .booking-footer {
-  background: #34495e;
+  background: #BE9A78;
   color: white;
   text-align: center;
   padding: 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  p {
+    margin: 0;
+  }
+
+  .separator {
+    margin: 0 5px;
+  }
+
+  .footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    a {
+      color: white;
+      text-decoration: none;
+    }
+  }
 }
 </style>

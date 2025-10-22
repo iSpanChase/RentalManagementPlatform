@@ -96,7 +96,7 @@
                 <div class="logo"><img src="../../assets/images/resource/image-18.png" alt="" /></div>
                 <div class="logo"><img src="../../assets/images/resource/image-19.png" alt="" /></div>
                 <div class="logo"><img src="../../assets/images/resource/image-20.png" alt="" /></div>
-                <div class="logo"><img src="../..assets/images/resource/image-21.png" alt="" /></div>
+                <div class="logo"><img src="../../assets/images/resource/image-21.png" alt="" /></div>
               </div>
             </div>
           </div>

@@ -45,7 +45,6 @@ import './assets/js/active.js';
     <!-- <RouterLink class="col-2" to="/">Home</RouterLink> -->
     <RouterView />
   </div>
-  <!--End pagewrapper-->
 
   <!--Scroll to top-->
   <div class="scroll-to-top scroll-to-target" data-target="html">

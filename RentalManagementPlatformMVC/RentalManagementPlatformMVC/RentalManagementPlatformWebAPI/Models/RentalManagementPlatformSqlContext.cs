@@ -966,7 +966,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("gender");
             entity.Property(e => e.Isverified).HasColumnName("isverified");
-            //entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
             entity.Property(e => e.Name)
                 .HasMaxLength(512)
                 .HasColumnName("name");
@@ -978,13 +978,13 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.ProfileImageurl)
                 .HasMaxLength(512)
                 .HasColumnName("profile_imageurl");
-            //entity.Property(e => e.Provider)
-            //    .HasMaxLength(20)
-            //    .HasDefaultValue("Local")
-            //    .HasColumnName("provider");
-            //entity.Property(e => e.ProviderSubject)
-            //    .HasMaxLength(100)
-            //    .HasColumnName("provider_subject");
+            entity.Property(e => e.Provider)
+                .HasMaxLength(20)
+                .HasDefaultValue("Local")
+                .HasColumnName("provider");
+            entity.Property(e => e.ProviderSubject)
+                .HasMaxLength(100)
+                .HasColumnName("provider_subject");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Username)
                 .HasMaxLength(512)

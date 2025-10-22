@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
@@ -7,6 +8,7 @@ using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
 using RentalManagementPlatformWebAPI.Services.Interface;
+using System.Reflection;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -41,51 +43,12 @@ namespace RentalManagementPlatformWebAPI
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
-            builder.Services.AddScoped<IBookingService, BookingService>();
-			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
-
-			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
-
-			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
-
-			var app = builder.Build();
-
-			app.UseExceptionHandler(); // 全域異常處理中介軟體
-
-			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-			app.UseHttpsRedirection();
-
-			app.UseCors("AllowVue");
-
-			// DI�GDomain Services
-			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
-									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
-			builder.Services.AddScoped<IAuthService, AuthService>();
-			builder.Services.AddScoped<IUserService, UserService>();
-			builder.Services.AddScoped<IRoleService, RoleService>();
-			builder.Services.AddScoped<IPermissionService, PermissionService>();
-			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
-
-            app.MapControllers();
-
-				// �קK���P�R�W�Ŷ��P�W���O�y�� Schema �Ĭ�
+			builder.Services.AddSwaggerGen(c =>
+			{
+				// 避免因重複名稱而產生相同名稱 Schema 的問題
 				c.CustomSchemaIds(t => t.FullName);
 
-				// JWT �w���w�q
+				// JWT 驗證定義
 				c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 				{
 					Name = "Authorization",
@@ -93,7 +56,7 @@ namespace RentalManagementPlatformWebAPI
 					Scheme = "bearer",
 					BearerFormat = "JWT",
 					In = ParameterLocation.Header,
-					Description = "��J: Bearer {your token}"
+					Description = "輸入: Bearer {your token}"
 				});
 				c.AddSecurityRequirement(new OpenApiSecurityRequirement
 				{
@@ -110,11 +73,11 @@ namespace RentalManagementPlatformWebAPI
 					}
 				});
 
-				// �Y�M�רϥ� DateOnly/TimeOnly
+				// 特殊型別的 DateOnly/TimeOnly
 				c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
 				c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
 
-				// �i��G�۰ʸ��J XML ���ѡ]�s�b�~���^
+				// 可選：自動載入 XML 註解（不存在不報錯）
 				var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 				var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
 				if (File.Exists(xmlPath))
@@ -123,24 +86,46 @@ namespace RentalManagementPlatformWebAPI
 				}
 			});
 
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
+
+			// DI：Domain Services
+			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IRoleService, RoleService>();
+			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
+
+			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
+
+			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
+
 			var app = builder.Build();
 
-			// �b�}�o������ܧ���ҥ~���A��K�ݨ� /swagger/v1/swagger.json �����|
+			app.UseExceptionHandler(); // 全域異常處理中介軟體
+
+			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
-				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI();
 			}
 
-			// ��ĳ���������ҳ��} Swagger�]���צn�A��^�u�b Dev �}�^
-			app.UseSwagger();
-			app.UseSwaggerUI(c =>
-			{
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "RentalManagementPlatformWebAPI v1");
-				c.RoutePrefix = "swagger";
-			});
-
 			app.UseHttpsRedirection();
-			app.UseCors("spa");
+
+			app.UseCors("AllowVue");
 
 			app.UseAuthentication();
 			app.UseAuthorization();

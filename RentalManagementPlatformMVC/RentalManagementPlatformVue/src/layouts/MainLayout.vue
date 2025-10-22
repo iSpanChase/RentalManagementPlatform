@@ -35,7 +35,6 @@ import MainFooter from '@/components/layout/MainFooter.vue';
                     ></a>
                   </div>
                 </div>
-                <!-- 其他圖片保持不變 -->
               </div>
             </div>
           </div>
@@ -79,7 +78,7 @@ import MainFooter from '@/components/layout/MainFooter.vue';
       </div>
     </div>
 
-    <!-- 4. 主要內容區域（重要！） -->
+    <!-- 4. Main Content -->
     <RouterView />
 
     <!-- 5. Footer -->
