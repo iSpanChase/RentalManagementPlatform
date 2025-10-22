@@ -1,89 +1,121 @@
-<!-- src/modules/ReportForm/pages/IndexView.vue -->
+
 <template>
-<div>
-<h1>Report Form Index</h1>
-<router-link :to="{ name: 'ReportForm.OtherView' }">Other</router-link>
-<router-view />
-</div class="container">
-<div class="row">
-    <BaseCardComponent class="col-4" title="地區收益熱力（示意）" :loading="false">
-        <template #header-extra>
-            <select v-model="range">
-                <option value="mtd">本月</option>
-                <option value="last30">近30天</option>
-            </select>
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">動態報表（可自定義卡片）</h3>
+      <button class="btn btn-primary" @click="onAdd">新增</button>
+    </div>
+
+    <div class="row">
+      <BaseCardComponent
+        v-for="c in cards"
+        :key="c.id"
+        :title="c.title"
+        :subtitle="c.subtitle"
+        :loading="loadingIds.has(c.id)"
+        @edit="onEdit(c.id)"
+        @remove="onRemove(c.id)"
+      >
+        <template #default>
+          <component :is="cardBody(c)" :card="c" :data="c.data" />
         </template>
-
-        <!-- MapHeatmapCard 內建 280px 高度，即使父層沒高度也會顯示 -->
-        <MapHeatmapCardComponent :points="demoPoints" />
-
         <template #footer>
-            <small>最後更新：{{ updatedAt }}</small>
+          <small class="text-muted">最後更新：{{ updatedAt }}</small>
         </template>
-    </BaseCardComponent>
-    <BaseCardComponent class="col-4" title="地區收益熱力（示意）" :loading="false">
-        <template #header-extra>
-            <select v-model="range">
-                <option value="mtd">本月</option>
-                <option value="last30">近30天</option>
-            </select>
-        </template>
+      </BaseCardComponent>
+    </div>
 
-        <!-- MapHeatmapCard 內建 280px 高度，即使父層沒高度也會顯示 -->
-        <MapHeatmapCardComponent :points="demoPoints" />
-
-        <template #footer>
-            <small>最後更新：{{ updatedAt }}</small>
-        </template>
-    </BaseCardComponent>
-    <BaseCardComponent class="col-4" title="地區收益熱力（示意）" :loading="false">
-        <template #header-extra>
-            <select v-model="range">
-                <option value="mtd">本月</option>
-                <option value="last30">近30天</option>
-            </select>
-        </template>
-
-        <!-- MapHeatmapCard 內建 280px 高度，即使父層沒高度也會顯示 -->
-        <MapHeatmapCardComponent :points="demoPoints" />
-
-        <template #footer>
-            <small>最後更新：{{ updatedAt }}</small>
-        </template>
-    </BaseCardComponent>
-    <BaseCardComponent class="col-4" title="地區收益熱力（示意）" :loading="false">
-        <template #header-extra>
-            <select v-model="range">
-                <option value="mtd">本月</option>
-                <option value="last30">近30天</option>
-            </select>
-        </template>
-
-        <!-- MapHeatmapCard 內建 280px 高度，即使父層沒高度也會顯示 -->
-        <MapHeatmapCardComponent :points="demoPoints" />
-
-        <template #footer>
-            <small>最後更新：{{ updatedAt }}</small>
-        </template>
-    </BaseCardComponent>
-</div>
-    
+    <!-- Config Panel -->
+    <ConfigPanelComponent
+      v-model:visible="panelVisible"
+      v-model="draft"
+      @confirm="onConfirm"
+      @cancel="onCancel"
+    />
+  </div>
 </template>
 
+<script setup lang="ts">
+import { computed, reactive, ref } from 'vue'
+import BaseCardComponent from '../components/BaseCardComponent.vue'
+import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
+import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
+import { createCard, updateCard, refetchCardData, type Card, type CardDraft } from '../api/reportForm'
 
-<script setup>
-import BaseCardComponent from '../components/BaseCardComponent.vue';
-import MapHeatmapCardComponent from '../components/MapHeatmapCardComponent.vue';
-
-import { ref } from 'vue'
-const range = ref('mtd')
+// ---------- state ----------
+const cards = reactive<Card[]>([])
+const loadingIds = reactive(new Set<string>())
+const panelVisible = ref(false)
+const editingId = ref<string|null>(null)
+const draft = ref<CardDraft|null>(null)
 const updatedAt = new Date().toLocaleString()
 
-// 你可以改這裡的數值，很容易看到顏色變化
-const demoPoints = [
-  { x: 0, y: 42, weight: 26000 },
-  { x: 53, y: 61, weight: 12000 },
-  { x: 72, y: 33, weight: 4000  },
-  { x: 41, y: 76, weight: 8000  },
-]
+// ---------- body component chooser ----------
+const cardBody = (c: Card) => {
+  if (c.type === 'heatmap') return MapHeatmapCardComponent
+  // fallback simple display
+  return {
+    props: ['card','data'],
+    template: `<div><pre class="small mb-0">{{ JSON.stringify(data, null, 2) }}</pre></div>`
+  } as any
+}
+
+// ---------- actions ----------
+function onAdd(){
+  editingId.value = null
+  draft.value = null // panel will init default draft
+  panelVisible.value = true
+}
+
+function onEdit(id: string){
+  const found = cards.find(x => x.id === id)
+  if(!found) return
+  editingId.value = id
+  draft.value = {
+    type: found.type,
+    title: found.title,
+    subtitle: found.subtitle,
+    config: JSON.parse(JSON.stringify(found.config))
+  }
+  panelVisible.value = true
+}
+
+async function onConfirm(d: CardDraft){
+  if (editingId.value === null){
+    // create
+    const created = await createCard(d)
+    cards.unshift(created)
+  } else {
+    // update that one card only
+    const id = editingId.value
+    loadingIds.add(id)
+    try {
+      const updated = await updateCard(id, d)
+      const idx = cards.findIndex(x => x.id === id)
+      if (idx >= 0) cards[idx] = updated
+    } finally {
+      loadingIds.delete(id)
+    }
+  }
+}
+
+function onCancel(){
+  // just close panel; nothing else to do
+}
+
+function onRemove(id: string){
+  const idx = cards.findIndex(x => x.id === id)
+  if (idx >= 0) cards.splice(idx, 1)
+}
+
+// (optional) example: add one default card for demo
+(async () => {
+  const created = await createCard({
+    type: 'heatmap',
+    title: '地區收益熱力（示意）',
+    subtitle: '本月',
+    config: { propertyIds: [], center: { lat: 25.0330, lng: 121.5654 }, zoom: 10 } as any
+  })
+  cards.push(created)
+})()
 </script>
