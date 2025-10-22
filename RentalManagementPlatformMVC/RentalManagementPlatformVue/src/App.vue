@@ -1,53 +1,43 @@
 <script setup lang="ts">
+import { useAppToggle } from './composables/useAppToggle';
+import TheFooter from './components/TheFooter.vue';
+import TheHeader from './components/TheHeader.vue';
+import ThePreloader from './components/ThePreloader.vue';
+import TheHiddenSidebar from './components/TheHiddenSidebar.vue';
+import SearchPopup from './components/SearchPopup.vue';
+import ScrollToTopButton from './components/ScrollToTopButton.vue';
 import TempNavComponent from './components/TempNavComponent.vue';
-import './assets/js/jquery.js';
-import './assets/js/bootstrap.bundle.min.js';
-import './assets/js/jquery.fancybox.js';
-import './assets/js/isotope.js';
-import './assets/js/owl.js';
-import './assets/js/appear.js';
-import './assets/js/wow.js';
-import './assets/js/scrollbar.js';
-import './assets/js/TweenMax.min.js';
-import './assets/js/swiper.min.js';
-import './assets/js/jquery.ajaxchimp.min.js';
-import './assets/js/parallax-scroll.js';
-import './assets/js/jquery-ui-1.9.2.custom.min.js';
-import './assets/js/jquery.nice-select.min.js';
-import './assets/js/active.js';
+
+
+const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <!-- preloader -->
-    <div id="preloader" class="preloader">
-      <div class="animation-preloader">
-        <div class="spinner"></div>
-      </div>
-      <div class="loader">
-        <div class="row">
-          <div class="col-3 loader-section section-left">
-            <div class="bg"></div>
-          </div>
-          <div class="col-3 loader-section section-left">
-            <div class="bg"></div>
-          </div>
-          <div class="col-3 loader-section section-right">
-            <div class="bg"></div>
-          </div>
-          <div class="col-3 loader-section section-right">
-            <div class="bg"></div>
-          </div>
-        </div>
-      </div>
+    <div class="page-wrapper" :class="{'mobile-menu-visible': isMobileMenuOpen}">
+
+        <ThePreloader />
+
+
+        <!-- <TheHeader
+            :isSearchPopupOpen="isSearchPopupOpen"
+            :isSidebarOpen="isSidebarOpen"
+            :isMobileMenuOpen="isMobileMenuOpen"
+            @toggle-search="handleToggleSearch"
+            @toggle-sidebar="handleToggleSidebar"
+            @toggle-mobile-menu="handleToggleMobileMenu"
+        /> -->
+
+        <!-- <TheHiddenSidebar v-if="isSidebarOpen" @close-sidebar="handleToggleSidebar" />
+        <SearchPopup v-if="isSearchPopupOpen" @close-search="handleToggleSearch" />
+        <TheMobileMenu v-if="isMobileMenuOpen" @close-mobile-menu="handleToggleMobileMenu" /> -->
+
+        <!-- <TempNavComponent></TempNavComponent> -->
+        <!-- <RouterLink class="col-2" to="/">Home</RouterLink> -->
+        <RouterView />
+
+        <!-- <TheFooter /> -->
+
     </div>
 
-    <!-- <RouterLink class="col-2" to="/">Home</RouterLink> -->
-    <RouterView />
-  </div>
-
-  <!--Scroll to top-->
-  <div class="scroll-to-top scroll-to-target" data-target="html">
-    <span class="fas fa-arrow-up"></span>
-  </div>
+    <ScrollToTopButton />
 </template>

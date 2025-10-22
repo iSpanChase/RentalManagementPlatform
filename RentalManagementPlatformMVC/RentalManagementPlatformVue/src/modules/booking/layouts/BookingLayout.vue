@@ -1,3 +1,7 @@
+<script setup>
+let thisYear = new Date().getFullYear()
+</script>
+
 <template>
   <div class="booking-layout">
     <header class="booking-header">
@@ -11,7 +15,7 @@
     </main>
 
     <footer class="booking-footer">
-      <p>© 2025 訂單管理系統</p>
+      <p>© {{ thisYear }} KING HOTEL</p>
       <span class="separator">·</span>
       <nav class="footer-nav">
         <a href="#">隱私</a>
@@ -52,7 +56,7 @@
 
 .booking-main {
   flex: 1;
-  padding: 40px 20px;
+  padding: 20px 20px;
 }
 
 .booking-footer {
