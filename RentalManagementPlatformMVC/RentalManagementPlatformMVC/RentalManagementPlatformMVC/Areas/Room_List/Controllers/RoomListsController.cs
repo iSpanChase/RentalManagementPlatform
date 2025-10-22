@@ -5,6 +5,8 @@ using RentalManagementPlatformMVC.Areas.Room_List.Models;
 using RentalManagementPlatformMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using RentalManagementPlatformMVC.Services;
 
 namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
 {
@@ -14,11 +16,13 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
     {
         private readonly IRoomListQueryService _queryService;
         private readonly IRoomListCommandService _commandService;
+        private readonly IMinioService _minioService;
 
-        public RoomListsController(IRoomListQueryService queryService, IRoomListCommandService commandService)
+        public RoomListsController(IRoomListQueryService queryService, IRoomListCommandService commandService , IMinioService minioService)
         {
             _queryService = queryService;
             _commandService = commandService;
+            _minioService = minioService;
         }
 
         // GET: Room_List/RoomLists
@@ -139,5 +143,55 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Controllers
             await _commandService.DeleteRoomAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: Room_List/RoomLists/Upload/5
+        public async Task<IActionResult> Upload(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = await _queryService.GetRoomForEditAsync(id.Value);
+            if (viewModel == null)
+            {
+                return NotFound();
+            }
+
+            return View("Upload", viewModel);
+        }
+
+        // POST: Room_List/RoomLists/UploadImage/5
+         [HttpPost]
+         [ValidateAntiForgeryToken]
+         public async Task<IActionResult> UploadImage(int id, IFormFile imageFile)
+         {
+             if (imageFile != null && imageFile.Length > 0)
+             {
+                 // TODO: Add your Minio upload logic here.
+                 // You might want to inject a service for this, e.g., IMinioService
+                 //
+                 // Example:
+                 // var imageUrl = await _minioService.UploadFileAsync(imageFile, "room-images");
+                 // await _commandService.UpdateRoomImageUrlAsync(id, imageUrl);
+
+                 await _minioService.UploadFileAsync(imageFile.OpenReadStream(), imageFile.FileName);
+
+                 TempData["SuccessMessage"] = "Image uploaded successfully!";
+                 return RedirectToAction(nameof(Index));
+             }
+
+             ViewData["ErrorMessage"] = "Please select a file to upload.";
+
+             // Repopulate the view model if the upload fails to render the page again
+             var viewModel = await _queryService.GetRoomForEditAsync(id);
+             if (viewModel == null)
+             {
+                 return NotFound();
+             }
+
+             return View("Upload", viewModel);
+         }
+       
     }
 }
