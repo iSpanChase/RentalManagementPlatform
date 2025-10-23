@@ -20,6 +20,20 @@ export const useBookingStore = defineStore('booking', () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   });
 
+  // 計算可退款日期
+  const refundableDate = computed(() => {
+    if (!bookingDraft.value.checkIn) return null;
+
+    const checkInDate = new Date(bookingDraft.value.checkIn);
+    checkInDate.setDate(checkInDate.getDate() - 7); // 入住前7天
+
+    return checkInDate.toLocaleDateString('zh-TW', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  });
+
   // 計算小計
   const subtotal = computed(() => {
     if (!bookingDraft.value) return 0;
@@ -72,6 +86,7 @@ export const useBookingStore = defineStore('booking', () => {
     // Getters
     hasBookingDraft,
     nights,
+    refundableDate,
     subtotal,
     totalPrice,
 
