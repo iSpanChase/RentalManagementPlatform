@@ -4,7 +4,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services;
+using Meilisearch;
+using Minio;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using System.Reflection;
 using System.Text;
 
@@ -20,7 +25,21 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			// CORS¡]¨Ì¹ê»Ú«eºÝºô°ì½Õ¾ã¡^
+            // Meilisearch Configuration
+            builder.Services.AddSingleton<MeilisearchClient>(provider =>
+            {
+                var meilisearchHost = builder.Configuration["Meilisearch:url"] ?? throw new InvalidOperationException("Missing Meilisearch:Host");
+                var meilisearchApiKey = builder.Configuration["Meilisearch:ApiKey"] ?? throw new InvalidOperationException("Missing Meilisearch:ApiKey");
+                return new MeilisearchClient(meilisearchHost, meilisearchApiKey);
+            });
+
+            // Minio Configuration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+            builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+
+			// CORSï¿½]ï¿½Ì¹ï¿½Ú«eï¿½Ýºï¿½ï¿½ï¿½Õ¾ï¿½^
 			builder.Services.AddCors(opt =>
 			{
 				opt.AddPolicy("spa", p => p
@@ -49,7 +68,7 @@ namespace RentalManagementPlatformWebAPI
 					};
 				});
 
-			// Controllers + JSON¡]Á×§KÂù¦V¾É¯è¾É­P´`Àô°Ñ¦Ò§â Swagger ¬µ±¼¡^
+			// Controllers + JSONï¿½]ï¿½×§Kï¿½ï¿½ï¿½Vï¿½É¯ï¿½É­Pï¿½`ï¿½ï¿½ï¿½Ñ¦Ò§ï¿½ Swagger ï¿½ï¿½ï¿½ï¿½ï¿½^
 			builder.Services.AddControllers()
 				.AddJsonOptions(opt =>
 				{
@@ -57,14 +76,14 @@ namespace RentalManagementPlatformWebAPI
 						System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 				});
 
-			// Authorization¡]¥ýµù¥U°ò¥»µ¦²¤¡GAdminOnly¡^
-			// °ÊºAÅv­­«ØÄ³§ï¬°¦Û­q IAuthorizationPolicyProvider¡F¥ý¤£­n¦b±Ò°Ê®É³s DB¡C
+			// Authorizationï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½Uï¿½ò¥»µï¿½ï¿½ï¿½ï¿½GAdminOnlyï¿½^
+			// ï¿½ÊºAï¿½vï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¬°ï¿½Û­q IAuthorizationPolicyProviderï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½nï¿½bï¿½Ò°Ê®É³s DBï¿½C
 			builder.Services.AddAuthorization(options =>
 			{
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
 			});
 
-			// DI¡GDomain Services
+			// DIï¿½GDomain Services
 			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
@@ -74,22 +93,29 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
-			// DI¡GRepositories
+			// DIï¿½GRepositories
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+            builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+            builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+            builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<MeilisearchService>();
+            builder.Services.AddSingleton<IMinioService, MinioService>();
 
-			// Swagger¡]¸É Schema Id / JWT / DateOnly/TimeOnly ¹ïÀ³¡^
+			// Swaggerï¿½]ï¿½ï¿½ Schema Id / JWT / DateOnly/TimeOnly ï¿½ï¿½ï¿½ï¿½ï¿½^
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
 			{
 				c.SwaggerDoc("v1", new OpenApiInfo { Title = "RentalManagementPlatformWebAPI", Version = "v1" });
 
-				// Á×§K¤£¦P©R¦WªÅ¶¡¦P¦WÃþ§O³y¦¨ Schema ½Ä¬ð
+				// ï¿½×§Kï¿½ï¿½ï¿½Pï¿½Rï¿½Wï¿½Å¶ï¿½ï¿½Pï¿½Wï¿½ï¿½ï¿½Oï¿½yï¿½ï¿½ Schema ï¿½Ä¬ï¿½
 				c.CustomSchemaIds(t => t.FullName);
 
-				// JWT ¦w¥þ©w¸q
+				// JWT ï¿½wï¿½ï¿½ï¿½wï¿½q
 				c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 				{
 					Name = "Authorization",
@@ -97,7 +123,7 @@ namespace RentalManagementPlatformWebAPI
 					Scheme = "bearer",
 					BearerFormat = "JWT",
 					In = ParameterLocation.Header,
-					Description = "¿é¤J: Bearer {your token}"
+					Description = "ï¿½ï¿½J: Bearer {your token}"
 				});
 				c.AddSecurityRequirement(new OpenApiSecurityRequirement
 				{
@@ -114,11 +140,11 @@ namespace RentalManagementPlatformWebAPI
 					}
 				});
 
-				// ­Y±M®×¨Ï¥Î DateOnly/TimeOnly
+				// ï¿½Yï¿½Mï¿½×¨Ï¥ï¿½ DateOnly/TimeOnly
 				c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
 				c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
 
-				// ¥i¿ï¡G¦Û°Ê¸ü¤J XML µù¸Ñ¡]¦s¦b¤~¸ü¡^
+				// ï¿½iï¿½ï¿½Gï¿½Û°Ê¸ï¿½ï¿½J XML ï¿½ï¿½ï¿½Ñ¡]ï¿½sï¿½bï¿½~ï¿½ï¿½ï¿½^
 				var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 				var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
 				if (File.Exists(xmlPath))
@@ -129,13 +155,13 @@ namespace RentalManagementPlatformWebAPI
 
 			var app = builder.Build();
 
-			// ¦b¶}µoÀô¹ÒÅã¥Ü§¹¾ã¨Ò¥~­¶¡A¤è«K¬Ý¨ì /swagger/v1/swagger.json ªº°ïÅ|
+			// ï¿½bï¿½}ï¿½oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü§ï¿½ï¿½ï¿½Ò¥~ï¿½ï¿½ï¿½Aï¿½ï¿½Kï¿½Ý¨ï¿½ /swagger/v1/swagger.json ï¿½ï¿½ï¿½ï¿½ï¿½|
 			if (app.Environment.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();
 			}
 
-			// «ØÄ³¥ý¤£¤ÀÀô¹Ò³£¶} Swagger¡]µ¥­×¦n¦A§ï¦^¥u¦b Dev ¶}¡^
+			// ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò³ï¿½ï¿½} Swaggerï¿½]ï¿½ï¿½ï¿½×¦nï¿½Aï¿½ï¿½^ï¿½uï¿½b Dev ï¿½}ï¿½^
 			app.UseSwagger();
 			app.UseSwaggerUI(c =>
 			{
