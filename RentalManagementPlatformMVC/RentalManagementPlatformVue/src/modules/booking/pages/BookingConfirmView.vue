@@ -33,25 +33,57 @@ const goHome = () => {
 
 <style lang="scss" scoped>
 .booking-confirm-page {
-  max-width: 1024px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 10px 20px;
+  padding: 20px;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
   h1 {
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 24px;
+    color: #222;
+
+    @media (max-width: 768px) {
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
   }
 }
 
 .container {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 80px;
-}
+  grid-template-columns: 600px 400px;
+  gap: 40px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
 
-@media (max-width: 768px) {
-  .container {
+  @media (max-width: 1200px) {
+    gap: 24px;
+    grid-template-columns: 550px 380px;
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: 500px 350px;
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  // 確保子組件不會溢出
+  > * {
+    min-width: 0;
+    overflow: hidden;
   }
 }
 </style>
