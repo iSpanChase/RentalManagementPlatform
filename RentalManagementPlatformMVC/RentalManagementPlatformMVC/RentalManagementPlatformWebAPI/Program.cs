@@ -75,8 +75,15 @@ namespace RentalManagementPlatformWebAPI
             builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
             builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
             builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            // Meilisearch Client and Service registration
+            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
             builder.Services.AddScoped<MeilisearchService>();
+
+            // MinIO Client and Service registration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
             builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
 
 			// Swagger�]�� Schema Id / JWT / DateOnly/TimeOnly �����^
 			builder.Services.AddEndpointsApiExplorer();
