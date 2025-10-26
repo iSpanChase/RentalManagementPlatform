@@ -1,42 +1,35 @@
+
 <template>
-  <div class="base-card-component">
-    <div class="card-header">
-      <div class="title">
-        <h3>{{ title }}</h3>
-        <p v-if="subtitle">{{ subtitle }}</p>
+  <div class="col-12 col-md-6 col-xl-4 py-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center bg-light border-0">
+        <div class="d-flex flex-column">
+          <h5 class="mb-0 fw-semibold">{{ title }}</h5>
+          <small v-if="subtitle" class="text-muted">{{ subtitle }}</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <slot name="header-extra"></slot>
+          <button v-if="!loading" class="btn btn-sm btn-outline-primary" @click="$emit('edit')">修改</button>
+          <button v-if="!loading" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">刪除</button>
+        </div>
       </div>
-      <div class="actions">
-        <slot name="header-extra"></slot>
-        <button v-for="a in actions" :key="a.key" @click="emitAction(a.key)">{{ a.label }}</button>
-        <button v-if="collapsible" @click="collapsed = !collapsed">
-          <font-awesome-icon v-if="collapsed" :icon="['fas','chevron-down']" />
-          <font-awesome-icon v-else :icon="['fas','chevron-up']" />
-        </button>
+
+      <div v-if="loading" class="p-4 text-center text-muted">載入中...</div>
+      <div v-else class="card-body">
+        <slot></slot>
       </div>
-    </div>
-
-    <div v-if="loading" class="card-loading">Loading...</div>
-
-    <div v-else v-show="!collapsed" class="card-body">
-      <slot></slot>
-    </div>
-
-    <div class="card-footer">
-      <slot name="footer"></slot>
+      <div class="card-footer bg-white border-0">
+        <slot name="footer"></slot>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-defineProps({
-  title: String,
-  subtitle: String,
-  loading: { type: Boolean, default: false },
-  actions: { type: Array, default: () => [] },
-  collapsible: { type: Boolean, default: true },
-});
-const collapsed = ref(false);
-const emit = defineEmits(['update:config', 'remove', 'clicked']);
-function emitAction(key){ emit('clicked', key); }
+<script setup lang="ts">
+defineProps<{
+  title: string
+  subtitle?: string
+  loading?: boolean
+}>()
+defineEmits(['edit','remove'])
 </script>

@@ -160,7 +160,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("BOOKING");
 
-            entity.Property(e => e.BookingId).HasColumnName("booking_id");
+            entity.Property(e => e.BookingId)
+                .ValueGeneratedOnAdd()
+				.HasColumnName("booking_id");
             entity.Property(e => e.CheckIn).HasColumnName("check_in");
             entity.Property(e => e.CheckOut).HasColumnName("check_out");
             entity.Property(e => e.CommissionRateSnapshot)
@@ -525,8 +527,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT");
 
             entity.Property(e => e.PaymentId)
-                .ValueGeneratedNever()
-                .HasColumnName("payment_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("payment_id");
             entity.Property(e => e.Amount)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("amount");
@@ -554,8 +556,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT_TRANSACTION");
 
             entity.Property(e => e.TransactionId)
-                .ValueGeneratedNever()
-                .HasColumnName("transaction_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("transaction_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.PaymentId).HasColumnName("payment_id");
             entity.Property(e => e.Provider)
@@ -640,8 +642,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("POINT_RULE");
 
-            entity.Property(e => e.RuleId).HasColumnName("rule_id");
-            entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
+            entity.Property(e => e.RuleId).HasColumnName("rule_id")
+			    .ValueGeneratedNever();
+			entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
             entity.Property(e => e.ActiveTo).HasColumnName("active_to");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.EarnRatePerNtd)

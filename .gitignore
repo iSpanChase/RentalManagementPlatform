@@ -538,3 +538,4 @@ test/
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI/appsettings.json
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/appsettings.json
 RentalManagementPlatformMVC/RentalManagementPlatformVue/vite.config.ts
+/.env
