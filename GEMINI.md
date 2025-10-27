@@ -124,7 +124,7 @@ Pinia：狀態管理（取代 Vuex）。
 
 Axios：HTTP 請求客戶端。
 
-@tanstack/vue-query：伺服器資料快取與請求狀態管理。
+"@tanstack/vue-query"：伺服器資料快取與請求狀態管理。
 
 🔹 UI 與樣式
 
@@ -142,7 +142,7 @@ Lodash-ES：陣列／物件資料處理。
 
 Day.js：日期時間處理。
 
-@vueuse/core：常用 Composition API 工具集。
+"@vueuse/core"：常用 Composition API 工具集。
 
 🔹 地圖功能
 
