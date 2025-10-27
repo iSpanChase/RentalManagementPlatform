@@ -1,4 +1,6 @@
 
+import axios from 'axios';
+
 // src/modules/ReportForm/api/reportForm.ts
 export type CardType = 'revenue' | 'occupancy' | 'heatmap';
 
@@ -9,7 +11,7 @@ export interface BaseDraft {
 }
 
 export interface RevenueConfig {
-  propertyIds: string[];
+  propertyIds: number[];
   range: { start: string; end: string };
   groupBy: 'day' | 'week' | 'month';
   chartType: 'line' | 'bar' | 'pie';
@@ -78,32 +80,52 @@ export async function refetchCardData(card: Card): Promise<Card> {
   return delay({ ...card, data }, 200);
 }
 
-// ---- Mock data builders per card type ----
+// ---- Data fetching logic ----
 export async function fetchCardData(type: CardType, config: CardConfig): Promise<any> {
   if (type === 'revenue') {
-    // return points for a chart
-    const points = Array.from({ length: 12 }, (_, i) => ({
-      Date: `2025-${String(i + 1).padStart(2, '0')}-01`,
-      Revenue: Math.round(Math.random() * 50000 + 5000)
-    }));
-    return { points };
+    const revenueConfig = config as RevenueConfig;
+    const requestDto = {
+        RoomIds: revenueConfig.propertyIds,
+        StartDate: revenueConfig.range.start,
+        EndDate: revenueConfig.range.end,
+        GroupBy: revenueConfig.groupBy
+    };
+    
+    try {
+        const response = await axios.post('/api/ReportForm/Revenue/GetRevenue', requestDto);
+        // The backend returns an array of { Date, Revenue }, wrap it in a 'points' property
+        return { points: response.data };
+    } catch (error) {
+        console.error('Error fetching revenue data:', error);
+        // Return empty points on error
+        return { points: [] };
+    }
   }
+  
   if (type === 'occupancy') {
+    // Mock data for occupancy
     const slices = [
       { label: '單人房', value: Math.round(Math.random() * 40 + 20) },
       { label: '雙人房', value: Math.round(Math.random() * 40 + 20) },
       { label: '家庭房', value: Math.round(Math.random() * 20 + 10) },
     ];
-    return { slices };
+    return delay({ slices });
   }
-  // heatmap
-  const points = Array.from({ length: 20 }, () => ({
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    weight: Math.round(Math.random() * 20000 + 2000)
-  }));
-  return { points };
+
+  if (type === 'heatmap') {
+    // Mock data for heatmap
+    const points = Array.from({ length: 20 }, () => ({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        weight: Math.round(Math.random() * 20000 + 2000)
+    }));
+    return delay({ points });
+  }
+
+  // Fallback for unknown types
+  return Promise.resolve({});
 }
+
 
 // Trivial id generator
 function cryptoRandomId(): string {

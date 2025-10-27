@@ -5,7 +5,7 @@
 
     const props = defineProps({
         label: { String, default: ""},
-        data: Array,
+        data: Object, // Change to Object, as it contains the 'points' array
         chartType: { type: String, default: "line" },
     });
 
@@ -15,22 +15,33 @@
     onMounted(() => drawChart());
 
     watch(
-        () => props.data,//要監聽的值
-        () => drawChart(),//值改變時要執行的函式
-        { deep: true }//可設定內容，此為"深層監聽"，如果僅props.data裡面單屬性改變，也會觸發 watch
+        () => props.data,
+        () => drawChart(),
+        { deep: true }
     );
 
     function drawChart() {
         if (chartInstance)
             chartInstance.destroy();
 
+        // Access the 'points' array from props.data
+        const chartDataPoints = props.data && props.data.points ? props.data.points : [];
+
+        console.log("Chart Data Points:", chartDataPoints); // Debug log
+        console.log("Chart Canvas Element:", chartCanvas.value); // Debug log
+
+        if (!chartCanvas.value) {
+            console.error("Canvas element not found for chart initialization.");
+            return; // Exit if canvas is not ready
+        }
+
         chartInstance = new Chart(chartCanvas.value, {
             type: props.chartType,
             data: {
-                labels: props.data.map(d => d.Date),
+                labels: chartDataPoints.map(d => d.Date),
                 datasets: [{
                     label: props.label,
-                    data: props.data.map(d => d.Revenue),
+                    data: chartDataPoints.map(d => d.Revenue),
                     borderWidth: 2,
                 }]
             },

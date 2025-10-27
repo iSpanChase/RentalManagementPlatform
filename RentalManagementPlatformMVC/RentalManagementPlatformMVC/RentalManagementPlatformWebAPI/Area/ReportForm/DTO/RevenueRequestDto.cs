@@ -1,9 +1,12 @@
-﻿namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO
+﻿using System;
+using System.Collections.Generic;
+
+namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO
 {
     public class RevenueRequestDto
     {
-        public Guid PropertyId { get; set; }
-        public DateTime StartDate { get; set; }
+        public List<int> RoomIds { get; set; } = new List<int>();
+        public DateTime StartDate { get; set; } 
         public DateTime EndDate { get; set; }
         public string GroupBy { get; set; } = "day"; // day, week, month
     }
