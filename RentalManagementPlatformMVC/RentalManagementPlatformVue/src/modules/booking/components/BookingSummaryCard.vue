@@ -1,10 +1,15 @@
 <script setup>
-import { ref } from 'vue'
-import { Modal } from 'bootstrap'
+import { ref, computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
+import { Modal } from 'bootstrap'
 
 // ==================== Store ====================
 const bookingStore = useBookingStore()
+
+// ==================== 計算屬性：檢查是否有訂房資料 ====================
+const hasBookingData = computed(() => {
+  return bookingStore.hasBookingDraft && bookingStore.bookingDraft !== null
+})
 
 // ==================== 日期相關 ====================
 const newCheckIn = ref('')
@@ -13,6 +18,7 @@ const dateError = ref('')
 
 // 格式化日期
 const formatDate = (dateStr) => {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
   return date.toLocaleDateString('zh-TW', {
     year: 'numeric',
@@ -23,21 +29,23 @@ const formatDate = (dateStr) => {
 
 // 初始化日期選擇器
 const initDatePickers = () => {
-  newCheckIn.value = bookingStore.bookingDraft.check_in
-  newCheckOut.value = bookingStore.bookingDraft.check_out
+  if (!hasBookingData.value) return
+
+  newCheckIn.value = bookingStore.bookingDraft.checkIn
+  newCheckOut.value = bookingStore.bookingDraft.checkOut
   dateError.value = ''
 }
 
 // 處理變更日期
 const handleChangeDates = () => {
   if (newCheckIn.value && newCheckOut.value) {
-    bookingStore.bookingDraft.check_in = newCheckIn.value
-    bookingStore.bookingDraft.check_out = newCheckOut.value
+    bookingStore.bookingDraft.checkIn = newCheckIn.value
+    bookingStore.bookingDraft.checkOut = newCheckOut.value
     dateError.value = ''
 
     // 關閉 modal
     const modal = Modal.getInstance(document.getElementById('dateChangeModal'))
-    modal.hide()
+    if (modal) modal.hide()
   } else {
     dateError.value = '請選擇有效的入住和退房日期'
   }
@@ -55,17 +63,19 @@ const newGuests = ref(1)
 
 // 初始化客人選擇器
 const initGuestsPicker = () => {
-  newGuests.value = bookingStore.bookingDraft.guest_count
+  if (!hasBookingData.value) return
+
+  newGuests.value = bookingStore.bookingDraft.guestCount || 1
 }
 
 // 處理變更客人
 const handleChangeGuests = () => {
   if (newGuests.value > 0) {
-    bookingStore.bookingDraft.guest_count = newGuests.value
+    bookingStore.bookingDraft.guestCount = newGuests.value
 
     // 關閉 modal
     const modal = Modal.getInstance(document.getElementById('guestsChangeModal'))
-    modal.hide()
+    if (modal) modal.hide()
   }
 }
 
@@ -80,18 +90,41 @@ const decreaseGuests = () => {
     newGuests.value--
   }
 }
+
+// ==================== 開發測試：自動載入資料 ====================
+onMounted(() => {
+  // 設定訂房草稿
+  bookingStore.setBookingDraft({
+    roomId: 1,
+    guestId: 1,
+    couponId: null,
+    checkIn: '2025-12-31',
+    checkOut: '2026-01-02',
+    guestCount: 2,
+    roomTitle: '🏠Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
+    roomImage: 'https://picsum.photos/120/90',
+    pricePerNight: 3598,
+    coupon: {
+      discountAmount: 200,
+    }
+  })
+
+  console.log('測試訂房資料已載入')
+  console.log('bookingDraft:', bookingStore.bookingDraft)
+})
 </script>
 
 <template>
   <div class="right-section">
-    <div class="summary-card">
+    <!-- 有訂房資料時顯示完整卡片 -->
+    <div v-if="hasBookingData" class="summary-card">
       <!-- ==================== 房源資訊 ==================== -->
       <div class="property-info">
         <router-link>
-          <img :src="bookingStore.bookingDraft.room_image" alt="房源圖片">
+          <img :src="bookingStore.bookingDraft.roomImage" alt="房源圖片">
         </router-link>
         <div>
-          <h4>{{ bookingStore.bookingDraft.room_title }}</h4>
+          <h4>{{ bookingStore.bookingDraft.roomTitle }}</h4>
         </div>
       </div>
 
@@ -129,8 +162,8 @@ const decreaseGuests = () => {
         </button>
       </div>
       <div class="date-info">
-        {{ formatDate(bookingStore.bookingDraft.check_in) }} 至
-        {{ formatDate(bookingStore.bookingDraft.check_out) }}
+        {{ formatDate(bookingStore.bookingDraft.checkIn) }} 至
+        {{ formatDate(bookingStore.bookingDraft.checkOut) }}
       </div>
 
       <hr>
@@ -148,7 +181,7 @@ const decreaseGuests = () => {
           變更
         </button>
       </div>
-      <div>{{ bookingStore.bookingDraft.guest_count }} 名成人</div>
+      <div>{{ bookingStore.bookingDraft.guestCount }} 名成人</div>
 
       <hr>
 
@@ -157,7 +190,7 @@ const decreaseGuests = () => {
         <h4>價格詳情</h4>
 
         <div class="price-row">
-          <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.price_per_night.toLocaleString() }} TWD</span>
+          <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
           <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
         </div>
 
@@ -184,11 +217,21 @@ const decreaseGuests = () => {
 
       <!-- ==================== 特別優惠 ==================== -->
       <div class="special-offer" v-if="bookingStore.discountAmount > 0">
-        <span class="icon">⏰</span>
+        <span class="icon"><i class="fa-solid fa-alarm-clock"></i></span>
         <p>
           特別優惠：節省 ${{ bookingStore.discountAmount.toLocaleString() }} TWD。
           這位房東為新 3 筆預訂提供折扣。
         </p>
+      </div>
+    </div>
+
+    <!-- 沒有訂房資料時顯示載入中 -->
+    <div v-else class="summary-card placeholder-card">
+      <div class="placeholder-content">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">載入中...</span>
+        </div>
+        <p class="mt-3 text-muted">處理訂單中...</p>
       </div>
     </div>
   </div>
@@ -298,7 +341,7 @@ const decreaseGuests = () => {
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">變更客人人數</h5>
+            <h5 class="modal-title">變更入住人數</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
@@ -383,7 +426,7 @@ const decreaseGuests = () => {
             <div class="mb-3 d-flex align-items-center justify-content-between">
               <div>
                 <div><span>寵物</span></div>
-                <div><small class="text-decoration-underline">攜帶服務性動物？</small></div>
+                <div><small>需要帶服務性動物嗎？</small></div>
               </div>
               <div class="d-flex align-items-center gap-3">
                 <button
@@ -404,14 +447,14 @@ const decreaseGuests = () => {
               </div>
             </div>
 
-            <!-- 說明文字 -->
+            <!-- 客人限制說明 -->
             <div class="guest-limit-text">
-              <small>此房源最多可容納 2 名客人，不包含嬰幼兒在內。不允許攜帶寵物入住。</small>
+              <small>此住宿地點最多可容納 4 名房客 (未含嬰幼兒)。不允許攜帶寵物。</small>
             </div>
           </div>
 
           <div class="modal-footer">
-            <div class="customer-clear" data-bs-dismiss="modal">取消</div>
+            <div class="customer-clear" @click="initGuestsPicker">清除</div>
             <button type="button" class="btn customer-save" @click="handleChangeGuests">儲存</button>
           </div>
         </div>
@@ -427,25 +470,20 @@ const decreaseGuests = () => {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
-          <div class="modal-body">
+          <div class="modal-body" v-if="hasBookingData">
             <div class="price-row">
-              <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.price_per_night.toLocaleString() }} TWD</span>
+              <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
               <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
             </div>
 
-            <div class="price-row">
-              <span>KING HOTEL服務費</span>
-              <span>$0 TWD</span>
-            </div>
-
-            <div class="price-row" v-if="bookingStore.discountAmount > 0">
+            <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
               <span>特別優惠</span>
-              <span class="text-success">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
+              <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
             </div>
 
             <hr>
 
-            <div class="price-row">
+            <div class="price-row total">
               <strong>總計 TWD</strong>
               <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
             </div>
@@ -468,6 +506,23 @@ const decreaseGuests = () => {
   border: 1px solid #ddd;
   border-radius: 25px;
   padding: 24px;
+}
+
+// 佔位卡片樣式
+.placeholder-card {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .placeholder-content {
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
 }
 
 // ==================== 房源資訊 ====================

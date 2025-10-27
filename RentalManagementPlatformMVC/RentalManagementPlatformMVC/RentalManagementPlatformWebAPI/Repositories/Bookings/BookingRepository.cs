@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Models;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Repositories
+namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 {
 	public class BookingRepository : IBookingRepository
 	{

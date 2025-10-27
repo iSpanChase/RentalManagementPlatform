@@ -1,20 +1,21 @@
+using Meilisearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Minio;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Bookings;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
-using RentalManagementPlatformWebAPI.Services.Interfaces;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
-using Meilisearch;
-using Minio;
-using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Services.Bookings;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System.Reflection;
+using System.Text.Json;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -39,12 +40,19 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			// Controllers + 解決JSON循環參照問題
+			// JSON 設定
 			builder.Services.AddControllers()
 				.AddJsonOptions(options =>
 				{
+					// 1. 避免循環參考造成序列化錯誤
 					options.JsonSerializerOptions.ReferenceHandler =
 						System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+
+					// 2. 忽略大小寫
+					options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+
+					// 3. JSON 統一用 camelCase
+					options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 				});
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -149,6 +157,7 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IRoleService, RoleService>();
 			builder.Services.AddScoped<IPermissionService, PermissionService>();
 			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddScoped<ECPayService>();
 			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
 import { getData } from 'country-list'
 
@@ -20,11 +20,12 @@ const stepCompleted = ref({
 const selectedPaymentTiming = ref('full')
 
 // ==================== 表單資料 ====================
-// 信用卡資訊
-const cardInfo = ref({
-  cardNumber: '',
-  expiry: '',
-  cvv: ''
+// 聯絡資訊
+const billingInfo = ref({
+  name: '',
+  email: '',
+  phone: '',
+  notes: ''
 })
 
 // 帳單地址
@@ -45,193 +46,20 @@ const countries = ref(
   }))
 )
 
-// ==================== 表單驗證 ====================
-const formErrors = ref({
-  cardNumber: '',
-  expiry: '',
-  cvv: '',
-  street: '',
-  city: '',
-  zipCode: ''
-})
-
+// ==================== 工具函數 ====================
 /**
- * 驗證信用卡號碼（簡單驗證長度）
+ * 格式化日期
+ * @param {string} dateStr - ISO 日期字串
+ * @returns {string} 格式化後的日期
  */
-const validateCardNumber = () => {
-  const numbers = cardInfo.value.cardNumber.replace(/\s/g, '')
-  if (numbers.length !== 16) {
-    formErrors.value.cardNumber = '請輸入完整的16位卡號'
-    return false
-  }
-  formErrors.value.cardNumber = ''
-  return true
-}
-
-/**
- * 驗證到期日
- */
-const validateExpiry = () => {
-  const expiry = cardInfo.value.expiry
-  if (!expiry || expiry.length !== 5) {
-    formErrors.value.expiry = '請輸入有效的到期日'
-    return false
-  }
-
-  const [month, year] = expiry.split('/')
-  const currentYear = new Date().getFullYear() % 100
-  const currentMonth = new Date().getMonth() + 1
-
-  if (parseInt(month) < 1 || parseInt(month) > 12) {
-    formErrors.value.expiry = '月份必須在 01-12 之間'
-    return false
-  }
-
-  if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-    formErrors.value.expiry = '卡片已過期'
-    return false
-  }
-
-  formErrors.value.expiry = ''
-  return true
-}
-
-/**
- * 驗證 CVV
- */
-const validateCvv = () => {
-  if (cardInfo.value.cvv.length !== 3) {
-    formErrors.value.cvv = '請輸入3位數的安全碼'
-    return false
-  }
-  formErrors.value.cvv = ''
-  return true
-}
-
-/**
- * 驗證必填欄位
- */
-const validateRequiredFields = () => {
-  let isValid = true
-
-  if (!billingAddress.value.street.trim()) {
-    formErrors.value.street = '請輸入街道地址'
-    isValid = false
-  } else {
-    formErrors.value.street = ''
-  }
-
-  if (!billingAddress.value.city.trim()) {
-    formErrors.value.city = '請輸入城市'
-    isValid = false
-  } else {
-    formErrors.value.city = ''
-  }
-
-  if (!billingAddress.value.zipCode.trim()) {
-    formErrors.value.zipCode = '請輸入郵遞區號'
-    isValid = false
-  } else {
-    formErrors.value.zipCode = ''
-  }
-
-  return isValid
-}
-
-/**
- * 驗證所有表單
- */
-const validateAllForms = () => {
-  const isCardValid = validateCardNumber()
-  const isExpiryValid = validateExpiry()
-  const isCvvValid = validateCvv()
-  const areFieldsValid = validateRequiredFields()
-
-  return isCardValid && isExpiryValid && isCvvValid && areFieldsValid
-}
-
-// ==================== 格式化函數 ====================
-/**
- * 格式化信用卡號碼：每 4 位數字加一個空格
- * @param {string} value - 輸入的卡號
- * @returns {string} 格式化後的卡號 (例如: 1234 5678 9012 3456)
- */
-const formatCardNumber = (value) => {
-  const numbers = value.replace(/\D/g, '')
-  const limited = numbers.slice(0, 16)
-  const parts = []
-
-  for (let i = 0; i < limited.length; i += 4) {
-    parts.push(limited.slice(i, i + 4))
-  }
-
-  return parts.join(' ')
-}
-
-/**
- * 格式化到期日：自動加入斜線
- * @param {string} value - 輸入的到期日
- * @returns {string} 格式化後的到期日 (例如: 12/25)
- */
-const formatExpiry = (value) => {
-  const numbers = value.replace(/\D/g, '')
-
-  if (numbers.length <= 2) {
-    return numbers
-  }
-
-  return numbers.slice(0, 2) + '/' + numbers.slice(2, 4)
-}
-
-// ==================== 輸入處理函數 ====================
-/**
- * 處理信用卡號碼輸入
- */
-const handleCardNumberInput = (event) => {
-  cardInfo.value.cardNumber = formatCardNumber(event.target.value)
-  if (formErrors.value.cardNumber) {
-    validateCardNumber()
-  }
-}
-
-/**
- * 處理到期日輸入
- */
-const handleExpiryInput = (event) => {
-  cardInfo.value.expiry = formatExpiry(event.target.value)
-  if (formErrors.value.expiry) {
-    validateExpiry()
-  }
-}
-
-/**
- * 處理 CVV 輸入 (只允許 3 位數字)
- */
-const handleCvvInput = (event) => {
-  const numbers = event.target.value.replace(/\D/g, '')
-  cardInfo.value.cvv = numbers.slice(0, 3)
-  if (formErrors.value.cvv) {
-    validateCvv()
-  }
-}
-
-// ==================== 計算屬性 ====================
-/**
- * 計算應顯示的總金額
- */
-const displayAmount = computed(() => {
-  return bookingStore.totalPrice.toLocaleString('zh-TW', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
-})
-
-/**
- * 計算延後付款的收費日期
- */
-const laterPaymentDate = computed(() => {
-  return bookingStore.refundableDate || '12月23日'
-})
+}
 
 // ==================== 步驟控制函數 ====================
 /**
@@ -246,9 +74,14 @@ const handleContinue = () => {
  * Step 2 繼續按鈕：完成 Step 2 並進入 Step 3
  */
 const handleStep2Continue = () => {
-  // 驗證表單
-  if (!validateAllForms()) {
-    alert('請完整填寫所有必填欄位')
+  // 簡單驗證
+  if (!billingInfo.value.name || !billingInfo.value.email || !billingInfo.value.phone) {
+    alert('請填寫完整的聯絡資訊')
+    return
+  }
+
+  if (!billingAddress.value.street || !billingAddress.value.city || !billingAddress.value.zipCode) {
+    alert('請填寫完整的帳單地址')
     return
   }
 
@@ -273,21 +106,108 @@ const handleBack = () => {
 }
 
 /**
- * 最終確認並付款
+ * 確認並付款
  */
-const handleConfirmPayment = () => {
-  // 這裡可以呼叫 bookingStore.createBooking()
-  console.log('確認付款', {
-    paymentTiming: selectedPaymentTiming.value,
-    cardInfo: cardInfo.value,
-    billingAddress: billingAddress.value
-  })
+const handleConfirmPayment = async () => {
+  try {
+    if (!bookingStore.hasBookingDraft) {
+      alert('訂房資料不完整，請先載入測試資料')
+      return
+    }
 
-  // 呼叫後端 API
-  // await bookingStore.createBooking()
+    console.log('準備送出訂單...')
 
-  alert('訂房成功！')
+    const paymentData = {
+      paymentTiming: selectedPaymentTiming.value,
+      billingInfo: {
+        name: billingInfo.value.name,
+        email: billingInfo.value.email,
+        phone: billingInfo.value.phone,
+        notes: billingInfo.value.notes || ''
+      },
+      billingAddress: {
+        country: billingAddress.value.country,
+        street: billingAddress.value.street,
+        apartment: billingAddress.value.apartment || '',
+        city: billingAddress.value.city,
+        state: billingAddress.value.state || '',
+        zipCode: billingAddress.value.zipCode
+      }
+    }
+
+    // 呼叫 Store 的方法建立訂單
+    const result = await bookingStore.createBooking(paymentData)
+
+    console.log('訂單建立成功！')
+    console.log('訂單編號：', result.orderNumber)
+    console.log('綠界表單 HTML：', result.ecpayFormHtml)
+
+    // 將綠界付款表單插入頁面
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = result.ecpayFormHtml
+    document.body.appendChild(tempDiv)
+
+    console.log('表單已插入 DOM')
+
+    // 自動找到表單並提交
+    const form = tempDiv.querySelector('form')
+
+    if (form) {
+      console.log('找到綠界表單')
+      console.log('表單 action:', form.action)
+      console.log('表單 method:', form.method)
+
+      // 延遲提交（確保表單已插入 DOM）
+      setTimeout(() => {
+        console.log('提交表單到綠界...')
+        form.submit()
+        console.log('表單已提交！')
+      }, 500)  // 延長到 500ms
+
+    } else {
+      console.error('找不到表單！')
+      console.log('tempDiv.innerHTML:', tempDiv.innerHTML)
+      alert('無法找到付款表單，請聯繫客服')
+    }
+
+  } catch (error) {
+    console.error('建立訂單失敗', error)
+
+    if (error.response) {
+      const errorMessage = error.response.data?.message || '訂單建立失敗'
+      alert(`錯誤：${errorMessage}`)
+    } else if (error.request) {
+      alert('網路連線失敗，請檢查網路後再試')
+    } else {
+      alert('訂單建立失敗，請稍後再試')
+    }
+  }
 }
+
+// ==================== 開發測試：自動載入資料 ====================
+onMounted(() => {
+  // 設定聯絡資訊
+  billingInfo.value = {
+    name: '王小明',
+    email: 'test@example.com',
+    phone: '0912-345-678',
+    notes: '提早入住'
+  }
+
+  // 設定帳單地址
+  billingAddress.value = {
+    country: 'TW',
+    street: '信義路五段7號',
+    apartment: '10樓之1',
+    city: '台北市',
+    state: '台北市',
+    zipCode: '110'
+  }
+
+  console.log('測試房客資料已載入')
+  console.log('billingInfo:', billingInfo.value)
+  console.log('billingAddress:', billingAddress.value)
+})
 </script>
 
 <template>
@@ -308,7 +228,7 @@ const handleConfirmPayment = () => {
           v-if="stepCompleted.step1 && currentStep !== 1"
           type="button"
           class="btn-change"
-          @click="stepCompleted.step1 = false; stepCompleted.step2 = false ; currentStep = 1"
+          @click="currentStep = 1; stepCompleted.step1 = false"
         >
           更改
         </button>
@@ -326,7 +246,7 @@ const handleConfirmPayment = () => {
             v-model="selectedPaymentTiming"
           >
           <label for="full">
-            <div>立即支付 ${{ displayAmount }} TWD</div>
+            <div>立即支付 ${{ bookingStore.totalPrice.toFixed(2) }} TWD</div>
           </label>
         </div>
 
@@ -342,7 +262,7 @@ const handleConfirmPayment = () => {
           <label for="partial">
             <div>立即支付 $0 TWD</div>
             <small>
-              將於 {{ laterPaymentDate }} 收取 ${{ displayAmount }} TWD。無須支付額外費用。
+              將於 {{ bookingStore.refundableDate }} 收取 ${{ bookingStore.totalPrice.toFixed(2) }} TWD。無須支付額外費用。
               <a href="#">更多資訊</a>
             </small>
           </label>
@@ -357,15 +277,15 @@ const handleConfirmPayment = () => {
       <!-- 已完成：顯示摘要 -->
       <div v-else-if="stepCompleted.step1" class="step-summary">
         <p v-if="selectedPaymentTiming === 'full'">
-          立即支付 ${{ displayAmount }} TWD
+          立即支付 ${{ bookingStore.totalPrice.toFixed(2) }} TWD
         </p>
         <p v-else>
-          已於{{ laterPaymentDate }}收取 ${{ displayAmount }} TWD。無須支付額外費用。
+          已於12月23日收取 ${{ bookingStore.totalPrice.toFixed(2) }} TWD。無須支付額外費用。
         </p>
       </div>
     </div>
 
-    <!-- ==================== Step 2: 新增付款方式 ==================== -->
+    <!-- ==================== Step 2: 付款資訊 ==================== -->
     <div
       class="step-card"
       :class="{
@@ -376,7 +296,7 @@ const handleConfirmPayment = () => {
     >
       <!-- 步驟標題 -->
       <div class="step-header">
-        <h3>2。新增付款方式</h3>
+        <h3>2。付款資訊</h3>
         <button
           v-if="stepCompleted.step2 && currentStep !== 2"
           type="button"
@@ -390,98 +310,113 @@ const handleConfirmPayment = () => {
       <!-- 進行中：顯示完整表單 -->
       <div v-if="currentStep === 2" class="payment-form">
 
-        <!-- 付款方式標題 -->
+        <!-- 付款方式說明 -->
         <div class="payment-method-header">
           <div class="payment-icon"><i class="fa-solid fa-credit-card"></i></div>
           <div>
-            <strong>信用卡或簽帳卡</strong>
-            <div class="card-brands">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
-                alt="VISA"
-                class="card-logo"
-              >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
-                alt="Mastercard"
-                class="card-logo"
-              >
+            <strong>信用卡付款</strong>
+            <div class="payment-description">
+              <p class="text-muted">
+                點擊「繼續」後，您將被導向綠界安全付款頁面完成信用卡付款
+              </p>
+              <div class="security-badges">
+                <span class="badge"><i class="fa-solid fa-lock"></i> SSL 安全加密</span>
+                <span class="badge"><i class="fa-solid fa-check"></i> PCI DSS 認證</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 信用卡表單 -->
-        <form class="credit-card-form" @submit.prevent>
+        <!-- 支援的信用卡 -->
+        <div class="supported-cards">
+          <span class="label">支援卡別：</span>
+          <div class="card-logos">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="VISA">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="AMEX">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/JCB_logo.svg/320px-JCB_logo.svg.png" alt="JCB">
+          </div>
+        </div>
 
-          <!-- 卡號 -->
+        <!-- 表單內容 -->
+        <form class="billing-form">
+
+          <!-- 聯絡資訊區塊 -->
+          <h4>
+            <i class="fa-solid fa-user"></i>
+            聯絡資訊
+          </h4>
+
           <div class="form-group">
-            <label>卡號 <i class="fa-solid fa-lock"></i></label>
+            <label>姓名 <span class="required">*</span></label>
             <input
               type="text"
-              :value="cardInfo.cardNumber"
-              @input="handleCardNumberInput"
-              @blur="validateCardNumber"
-              placeholder="1234 5678 9012 3456"
-              maxlength="19"
-              :class="{ 'error': formErrors.cardNumber }"
+              v-model="billingInfo.name"
+              placeholder="請輸入姓名"
+              required
             >
-            <span v-if="formErrors.cardNumber" class="error-message">
-              {{ formErrors.cardNumber }}
-            </span>
           </div>
 
-          <!-- 到期日 & 安全碼 -->
           <div class="form-row">
             <div class="form-group">
-              <label>到期日</label>
+              <label>Email <span class="required">*</span></label>
               <input
-                type="text"
-                :value="cardInfo.expiry"
-                @input="handleExpiryInput"
-                @blur="validateExpiry"
-                placeholder="MM/YY"
-                maxlength="5"
-                :class="{ 'error': formErrors.expiry }"
+                type="email"
+                v-model="billingInfo.email"
+                placeholder="example@email.com"
+                required
               >
-              <span v-if="formErrors.expiry" class="error-message">
-                {{ formErrors.expiry }}
-              </span>
             </div>
             <div class="form-group">
-              <label>安全碼</label>
+              <label>電話 <span class="required">*</span></label>
               <input
-                type="text"
-                :value="cardInfo.cvv"
-                @input="handleCvvInput"
-                @blur="validateCvv"
-                placeholder="CVV"
-                maxlength="3"
-                :class="{ 'error': formErrors.cvv }"
+                type="tel"
+                v-model="billingInfo.phone"
+                placeholder="0912-345-678"
+                required
               >
-              <span v-if="formErrors.cvv" class="error-message">
-                {{ formErrors.cvv }}
-              </span>
             </div>
           </div>
 
           <!-- 帳單地址區塊 -->
-          <h4>帳單地址</h4>
+          <h4>
+            <i class="fa-solid fa-location-dot"></i>
+            帳單地址
+          </h4>
 
-          <!-- 街道地址 -->
+          <div class="form-group">
+            <label>國家 / 地區 <span class="required">*</span></label>
+            <select v-model="billingAddress.country" required>
+              <option
+                v-for="country in countries"
+                :key="country.code"
+                :value="country.code"
+              >
+                {{ country.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>城市 <span class="required">*</span></label>
+            <input
+              type="text"
+              v-model="billingAddress.city"
+              placeholder="請輸入城市"
+              required
+            >
+          </div>
+
           <div class="form-group">
             <label>街道地址 <span class="required">*</span></label>
             <input
               type="text"
               v-model="billingAddress.street"
               placeholder="請輸入街道地址"
-              :class="{ 'error': formErrors.street }"
+              required
             >
-            <span v-if="formErrors.street" class="error-message">
-              {{ formErrors.street }}
-            </span>
           </div>
 
-          <!-- 公寓或套房號碼 -->
           <div class="form-group">
             <label>公寓或套房號碼</label>
             <input
@@ -491,21 +426,6 @@ const handleConfirmPayment = () => {
             >
           </div>
 
-          <!-- 城市 -->
-          <div class="form-group">
-            <label>城市 <span class="required">*</span></label>
-            <input
-              type="text"
-              v-model="billingAddress.city"
-              placeholder="請輸入城市"
-              :class="{ 'error': formErrors.city }"
-            >
-            <span v-if="formErrors.city" class="error-message">
-              {{ formErrors.city }}
-            </span>
-          </div>
-
-          <!-- 省份 & 郵遞區號 -->
           <div class="form-row">
             <div class="form-group">
               <label>省份 / 直轄市 / 州</label>
@@ -521,28 +441,47 @@ const handleConfirmPayment = () => {
                 type="text"
                 v-model="billingAddress.zipCode"
                 placeholder="郵遞區號"
-                :class="{ 'error': formErrors.zipCode }"
+                required
               >
-              <span v-if="formErrors.zipCode" class="error-message">
-                {{ formErrors.zipCode }}
-              </span>
             </div>
           </div>
 
-          <!-- 國家 / 地區 -->
+          <!-- 特殊需求 -->
           <div class="form-group">
-            <label>國家 / 地區</label>
-            <select v-model="billingAddress.country">
-              <option
-                v-for="country in countries"
-                :key="country.code"
-                :value="country.code"
-              >
-                {{ country.name }}
-              </option>
-            </select>
+            <label>
+              <i class="fa-solid fa-comment"></i>
+              特殊需求或備註（選填）
+            </label>
+            <textarea
+              v-model="billingInfo.notes"
+              placeholder="例如：提早入住、加床服務等"
+              rows="3"
+              style="resize: none;"
+            ></textarea>
           </div>
         </form>
+
+        <!-- 重要提醒 -->
+        <div class="info-box">
+          <div class="info-icon"><i class="fa-solid fa-circle-info"></i></div>
+          <div class="info-content">
+            <strong>付款流程說明</strong>
+            <ul>
+              <li>下一步將導向綠界金流安全付款頁面</li>
+              <li>請準備您的信用卡資訊</li>
+              <li>完成付款後將自動返回訂單確認頁面</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 取消政策提醒 -->
+        <div class="cancellation-reminder">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>
+            <strong>取消政策：</strong>
+            {{ formatDate(bookingStore.bookingDraft.checkIn) }} 前可免費取消
+          </span>
+        </div>
 
         <!-- 按鈕組 -->
         <div class="button-group">
@@ -557,10 +496,11 @@ const handleConfirmPayment = () => {
 
       <!-- 已完成：顯示摘要 -->
       <div v-else-if="stepCompleted.step2" class="step-summary">
-        <div class="summary-icon"><i class="fa-solid fa-credit-card"></i></div>
+        <div class="summary-icon"><i class="fa-solid fa-check"></i></div>
         <div>
-          <p><strong>Credit Card</strong></p>
-          <p class="text-muted">•••• {{ cardInfo.cardNumber.slice(-4) }}</p>
+          <p><strong>{{ billingInfo.name }}</strong></p>
+          <p class="text-muted">{{ billingInfo.email }}</p>
+          <p class="text-muted">{{ billingAddress.city }}, {{ billingAddress.country }}</p>
         </div>
       </div>
     </div>
@@ -576,21 +516,28 @@ const handleConfirmPayment = () => {
       <h3>3。查看預訂</h3>
 
       <!-- 進行中：顯示確認內容 -->
-      <div v-if="currentStep === 3" class="check-payment">
+      <div v-if="currentStep === 3">
         <label>
           <small>
-            點選該按鈕，即代表我同意
+            點選該按鈕,即代表我同意
             <a href="#">《預訂條款》</a>。
           </small>
         </label>
 
         <!-- 按鈕組 -->
         <div class="button-group">
-          <button type="button" class="btn-back" @click="handleBack">
+          <button type="button" class="btn-back" @click="handleBack" :disabled="bookingStore.isLoading">
             返回
           </button>
-          <button type="button" class="btn-continue" @click="handleConfirmPayment">
-            確認並付款
+          <button
+            type="button"
+            class="btn-continue"
+            @click="handleConfirmPayment"
+            :disabled="bookingStore.isLoading"
+          >
+            <span v-if="bookingStore.isLoading" class="loading-spinner-btn"></span>
+            <span v-if="bookingStore.isLoading">處理中...</span>
+            <span v-else>確認並付款</span>
           </button>
         </div>
       </div>
@@ -730,6 +677,7 @@ const handleConfirmPayment = () => {
 .summary-icon {
   font-size: 24px;
   flex-shrink: 0;
+  color: #4caf50;
 }
 
 /* ==================== 付款選項 ==================== */
@@ -786,7 +734,7 @@ const handleConfirmPayment = () => {
 /* 付款方式標題區塊 */
 .payment-method-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
   margin-bottom: 20px;
   padding: 16px;
@@ -796,28 +744,90 @@ const handleConfirmPayment = () => {
 
   .payment-icon {
     font-size: 24px;
+    flex-shrink: 0;
   }
 
-  .card-brands {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
-
-  .card-logo {
-    height: 20px;
-    width: auto;
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
   }
 }
 
-/* 信用卡表單 */
-.credit-card-form {
-  h4 {
-    margin: 24px 0 16px 0;
-    color: #333;
-    font-size: 18px;
-    font-weight: 600;
+.payment-description {
+  .text-muted {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 8px;
   }
+}
+
+.security-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+/* 支援的信用卡 */
+.supported-cards {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  .label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .card-logos {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    img {
+      height: 24px;
+      width: auto;
+    }
+  }
+}
+
+/* 表單標題 */
+.billing-form h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 28px 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+
+  i {
+    color: #666;
+  }
+}
+
+/* 必填標記 */
+.required {
+  color: #e53e3e;
+  margin-left: 4px;
 }
 
 /* 表單欄位組 */
@@ -831,20 +841,22 @@ const handleConfirmPayment = () => {
     color: #333;
     font-size: 14px;
 
-    .required {
-      color: #e74c3c;
-      margin-left: 4px;
+    i {
+      margin-right: 4px;
+      color: #666;
     }
   }
 
   input,
-  select {
+  select,
+  textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.2s;
+    font-family: inherit;
 
     &:focus {
       outline: none;
@@ -855,37 +867,15 @@ const handleConfirmPayment = () => {
     &::placeholder {
       color: #999;
     }
-
-    &.error {
-      border-color: #e74c3c;
-    }
   }
 
   select {
     cursor: pointer;
   }
 
-  .error-message {
-    display: block;
-    color: #e74c3c;
-    font-size: 12px;
-    margin-top: 4px;
-  }
-}
-
-.check-payment {
-  small {
-    color: #666;
-    line-height: 1.4;
-
-    a {
-      color: #222;
-      text-decoration: underline;
-
-      &:hover {
-        color: #000;
-      }
-    }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
   }
 }
 
@@ -897,6 +887,72 @@ const handleConfirmPayment = () => {
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 資訊提示框 */
+.info-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 8px;
+  margin: 24px 0;
+
+  .info-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    flex: 1;
+
+    strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #1976d2;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+
+      li {
+        color: #555;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 4px;
+      }
+    }
+  }
+}
+
+/* 取消政策提醒 */
+.cancellation-reminder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  margin-bottom: 16px;
+
+  i {
+    color: #ff9800;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  span {
+    font-size: 14px;
+    color: #856404;
+    line-height: 1.5;
+  }
+
+  strong {
+    font-weight: 600;
   }
 }
 
@@ -932,10 +988,41 @@ const handleConfirmPayment = () => {
     background: #222;
     color: white;
     border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: #000;
     }
+
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
   }
+
+  .btn-back:disabled {
+    background: #f7f7f7;
+    color: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+/* 按鈕內的 loading spinner */
+.loading-spinner-btn {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

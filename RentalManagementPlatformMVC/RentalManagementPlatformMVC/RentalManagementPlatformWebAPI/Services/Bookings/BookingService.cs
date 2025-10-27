@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Services
+namespace RentalManagementPlatformWebAPI.Services.Bookings
 {
 	public class BookingService : IBookingService
 	{
@@ -13,13 +13,15 @@ namespace RentalManagementPlatformWebAPI.Services
 		private readonly IRoomRepository _roomRepository;
 		private readonly ICouponRepository _couponRepository;
 		private readonly IMapper _mapper;
+		private readonly ECPayService _ecpayService;
 
-		public BookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository, ICouponRepository couponRepository, IMapper mapper)
+		public BookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository, ICouponRepository couponRepository, IMapper mapper, ECPayService ecpayService)
 		{
 			_bookingRepository = bookingRepository;
 			_roomRepository = roomRepository;
 			_couponRepository = couponRepository;
 			_mapper = mapper;
+			_ecpayService = ecpayService;
 		}
 
 		// 取得所有訂單(測試用)
@@ -29,12 +31,15 @@ namespace RentalManagementPlatformWebAPI.Services
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
-		// 建立訂單，計算總價並應用優惠券等邏輯
-		public async Task<BookingDto> CreateBookingAsync(CreateBookingDto dto)
+		/// <summary>
+		/// 建立訂單並產生綠界付款表單
+		/// </summary>
+		public async Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto)
 		{
+			// 1. 驗證資料
 			if (dto.CheckIn >= dto.CheckOut)
 			{
-				throw new ArgumentException("退房日期必須晚於住宿日期");
+				throw new ArgumentException("退房日期必須晚於入住日期");
 			}
 
 			var room = await _roomRepository.GetByIdAsync(dto.RoomId)
@@ -90,43 +95,64 @@ namespace RentalManagementPlatformWebAPI.Services
 			// 回饋點數
 			int pointsEarned = (int)Math.Floor(totalPrice * 0.01m);
 
-			// 生成訂單編號
+			// 2. 生成訂單編號
 			string orderNumber = await GenerateBookingNumberAsync();
 
-			// 建立訂單物件 
+			// 3. 建立訂單
 			var booking = new Booking
 			{
+				// 基本資料
 				GuestId = dto.GuestId,
 				RoomId = dto.RoomId,
 				CouponId = dto.CouponId,
 				CheckIn = dto.CheckIn,
 				CheckOut = dto.CheckOut,
-				PointsRedeemed = dto.PointsRedeemed,
-				PointsEarned = pointsEarned,
-				TotalPrice = totalPrice,
+				TotalPrice = dto.TotalPrice,
 				OrderNumber = orderNumber,
-				Status = "Pending",
+				Status = "Pending",  // 等待付款
 				CreatedAt = DateTime.Now,
 				CommissionRateSnapshot = 0.15m,
+
+				// 住宿資訊
+				GuestCount = dto.GuestCount,
+				PaymentTiming = dto.PaymentTiming,
+
+				// 聯絡人資訊
+				ContactName = dto.BillingInfo.Name,
+				ContactEmail = dto.BillingInfo.Email,
+				ContactPhone = dto.BillingInfo.Phone,
+				ContactNotes = dto.BillingInfo.Notes,
+
+				// 帳單地址
+				BillingCountry = dto.BillingAddress.Country,
+				BillingStreet = dto.BillingAddress.Street,
+				BillingApartment = dto.BillingAddress.Apartment,
+				BillingCity = dto.BillingAddress.City,
+				BillingState = dto.BillingAddress.State,
+				BillingZipCode = dto.BillingAddress.ZipCode,
+
+				// 點數
+				PointsRedeemed = dto.PointsRedeemed,
+				PointsEarned = (int)Math.Floor(dto.TotalPrice * 0.01m)  // 1% 回饋
 			};
 
+			// 4. 儲存訂單到資料庫
 			await _bookingRepository.CreateBookingAsync(booking);
 
-			// 回傳 DTO
-			return new BookingDto
+			// 5. 產生綠界付款表單
+			string itemName = $"{room.Title} ({dto.Nights}晚)";
+			string ecpayFormHtml = _ecpayService.GeneratePaymentForm(
+				orderNumber,
+				dto.TotalPrice,
+				itemName
+			);
+
+			// 6. 回傳結果
+			return new CreateOrderAndPayResponseDto
 			{
 				BookingId = booking.BookingId,
-				GuestId = booking.GuestId,
-				RoomId = booking.RoomId,
-				CouponId = booking.CouponId,
-				CheckIn = booking.CheckIn,
-				CheckOut = booking.CheckOut,
-				PointsRedeemed = booking.PointsRedeemed,
-				TotalPrice = booking.TotalPrice,
-				OrderNumber = booking.OrderNumber,
-				Status = booking.Status,
-				CreatedAt = booking.CreatedAt,
-				Room = room.Title,
+				OrderNumber = orderNumber,
+				EcpayFormHtml = ecpayFormHtml
 			};
 		}
 

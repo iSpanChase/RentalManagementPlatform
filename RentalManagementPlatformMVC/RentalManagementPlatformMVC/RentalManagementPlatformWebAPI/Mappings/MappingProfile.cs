@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using System.Runtime;
 

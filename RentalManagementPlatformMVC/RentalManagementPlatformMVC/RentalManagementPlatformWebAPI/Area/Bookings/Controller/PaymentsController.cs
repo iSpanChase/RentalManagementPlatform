@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using RentalManagementPlatformWebAPI.DTOs;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Controllers
+namespace RentalManagementPlatformWebAPI.Area.Bookings.Controller
 {
 	[Route("api/[controller]")]
 	[ApiController]

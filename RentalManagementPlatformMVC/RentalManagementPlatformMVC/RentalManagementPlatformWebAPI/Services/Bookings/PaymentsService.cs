@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Services
+namespace RentalManagementPlatformWebAPI.Services.Bookings
 {
 	public class PaymentsService : IPaymentsService
 	{

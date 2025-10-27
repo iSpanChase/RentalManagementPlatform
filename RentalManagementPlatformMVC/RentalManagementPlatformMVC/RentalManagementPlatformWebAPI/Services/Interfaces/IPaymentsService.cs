@@ -1,6 +1,6 @@
-﻿using RentalManagementPlatformWebAPI.DTOs;
+﻿using RentalManagementPlatformWebAPI.DTOs.Bookings;
 
-namespace RentalManagementPlatformWebAPI.Services.Interface
+namespace RentalManagementPlatformWebAPI.Services.Interfaces
 {
 	public interface IPaymentsService
 	{

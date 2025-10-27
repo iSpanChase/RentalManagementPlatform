@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Controllers
+namespace RentalManagementPlatformWebAPI.Area.Bookings.Controller
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class BookingController : ControllerBase
+	public class BookingsController : ControllerBase
 	{
 		private readonly IBookingService _bookingService;
 
-		public BookingController(IBookingService bookingService, RentalManagementPlatformSqlContext context)
+		public BookingsController(IBookingService bookingService, RentalManagementPlatformSqlContext context)
 		{
 			_bookingService = bookingService;
 		}
@@ -25,8 +25,12 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			return Ok(bookings);
 		}
 
-		[HttpPost]
-		public async Task<ActionResult<BookingDto>> CreateBookingAsync([FromBody] CreateBookingDto dto)
+		/// <summary>
+		/// 建立訂單並產生綠界付款表單
+		/// </summary>
+		[HttpPost("create-and-pay")]
+		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
+			[FromBody] CreateBookingWithPaymentDto dto)
 		{
 			try
 			{
@@ -35,22 +39,21 @@ namespace RentalManagementPlatformWebAPI.Controllers
 					return BadRequest(ModelState);
 				}
 
-				var createdBooking = await _bookingService.CreateBookingAsync(dto);
+				var result = await _bookingService.CreateBookingWithPaymentAsync(dto);
 
-				return CreatedAtAction(
-					nameof(GetBookingById),
-					new { bookingId = createdBooking.BookingId },
-					createdBooking
-				);
+				return Ok(result);
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(new { message = ex.Message });
 			}
 			catch (Exception ex)
 			{
-				// ⭐ 詳細錯誤訊息
 				return StatusCode(500, new
 				{
-					message = ex.Message,
-					innerException = ex.InnerException?.Message,
-					stackTrace = ex.StackTrace  // 開發環境才用
+					message = "建立訂單失敗",
+					error = ex.Message,
+					innerException = ex.InnerException?.Message
 				});
 			}
 		}

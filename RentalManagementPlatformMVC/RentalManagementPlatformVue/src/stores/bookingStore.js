@@ -7,10 +7,11 @@ export const useBookingStore = defineStore('booking', () => {
   // 訂房草稿（前端建立訂單前的暫存資料）
   const bookingDraft = ref(null);
 
-  /// ==================== Getters ====================
-  const hasBookingDraft = computed(() => {
-    return bookingDraft.value !== null;
-  });
+  // 載入狀態
+  const isLoading = ref(false);
+
+  // ==================== Getters ====================
+  const hasBookingDraft = computed(() => bookingDraft.value !== null);
 
   // 計算住宿天數
   const nights = computed(() => {
@@ -24,7 +25,7 @@ export const useBookingStore = defineStore('booking', () => {
 
   // 計算可退款日期（入住前7天）
   const refundableDate = computed(() => {
-    if (!bookingDraft.value.checkIn) return null;
+    if (!bookingDraft.value?.checkIn) return null;
 
     const checkInDate = new Date(bookingDraft.value.checkIn);
     checkInDate.setDate(checkInDate.getDate() - 7); // 入住前7天
@@ -42,36 +43,37 @@ export const useBookingStore = defineStore('booking', () => {
     return bookingDraft.value.pricePerNight * nights.value;
   });
 
-  // 計算折扣金額 (根據coupon)
+  // 計算折扣金額（根據 coupon）
   const discountAmount = computed(() => {
     if (!bookingDraft.value?.coupon) return 0;
-    return bookingDraft.value.coupon.discount_amount || 0;
+    return bookingDraft.value.coupon.discountAmount || 0;
   });
 
-  // 計算總價（含折扣）
+  // 計算總價
   const totalPrice = computed(() => {
     if (!bookingDraft.value) return 0;
     return subtotal.value - discountAmount.value;
   });
 
-  // Actions - 設定訂房資料
+  // ==================== Actions ====================
+  // 設定訂房草稿（從房源頁面傳入）
   const setBookingDraft = (data) => {
     bookingDraft.value = {
-      // 資料庫欄位
-      room_id: data.room_id,                    // 對應 room_id
-      guest_id: data.guest_id || null,          // 對應 guest_id（登入用戶的ID）
-      coupon_id: data.coupon_id || null,        // 對應 coupon_id
-      check_in: data.check_in,                  // 對應 check_in
-      check_out: data.check_out,                // 對應 check_out
-      guest_count: data.guest_count || 1,       // 客人數量（這個不在資料庫，僅前端使用）
+      // 訂單基本資料
+      roomId: data.roomId,
+      guestId: data.guestId,
+      couponId: data.couponId || null,
+      checkIn: data.checkIn,
+      checkOut: data.checkOut,
+      guestCount: data.guestCount || 1,
 
-      // 房源資訊（從 ROOM 表查詢來的）
-      room_title: data.room_title,              // 房源標題
-      room_image: data.room_image,              // 房源圖片
-      price_per_night: data.price_per_night,    // 每晚價格
+      // 房源資訊
+      roomTitle: data.roomTitle,
+      roomImage: data.roomImage,
+      pricePerNight: data.pricePerNight,
 
-      // 優惠券資訊（從 COUPON 表查詢來的，可選）
-      coupon: data.coupon || null,              // { discount_amount: 808, ... }
+      // 優惠券資訊
+      coupon: data.coupon || null, // { discountAmount: 808, ... }
     };
   };
 
@@ -79,67 +81,79 @@ export const useBookingStore = defineStore('booking', () => {
   const clearBookingDraft = () => {
     bookingDraft.value = null;
   };
-0
-  // 建立訂單 (送到後端)
-  const createBooking = async () => {
+
+  // 建立訂單並取得綠界付款表單
+  const createBooking = async (paymentData) => {
     if (!bookingDraft.value) {
       throw new Error('沒有訂房資料');
-    };
+    }
+
+    isLoading.value = true;
 
     try {
-      // 準備送到後端的資料
-      const bookingData = {
-        room_id: bookingDraft.value.room_id,
-        guest_id: bookingDraft.value.guest_id,
-        coupon_id: bookingDraft.value.coupon_id,
-        check_in: bookingDraft.value.check_in,
-        check_out: bookingDraft.value.check_out,
-        total_price: totalPrice.value,
-        // order_number, status, created_at 等由後端自動生成
-      }
+      // 準備送到後端的完整資料
+      const orderData = {
+        // 訂房基本資料
+        roomId: bookingDraft.value.roomId,
+        guestId: bookingDraft.value.guestId,
+        couponId: bookingDraft.value.couponId,
+        checkIn: bookingDraft.value.checkIn,
+        checkOut: bookingDraft.value.checkOut,
+        guestCount: bookingDraft.value.guestCount,
 
-      // 呼叫 API 送到後端
-      const response = await axios.post('/api/bookings', bookingData);
+        // 價格資訊
+        nights: nights.value,
+        pricePerNight: bookingDraft.value.pricePerNight,
+        subtotal: subtotal.value,
+        discountAmount: discountAmount.value,
+        totalPrice: totalPrice.value,
 
-      // 後端回傳完整的訂單資料 (包含導覽屬性)
-      const booking = response.data;
+        // 付款資訊
+        paymentTiming: paymentData.paymentTiming,
+        billingInfo: paymentData.billingInfo,
+        billingAddress: paymentData.billingAddress,
 
-      // 清除草稿
-      clearBookingDraft();
+        // 點數
+        pointsRedeemed: 0,
+      };
 
-      // 回傳訂單資料
-      return booking;
+      console.log('送出到後端的資料：', orderData);
+
+      // 呼叫後端 API
+      const response = await axios.post(
+        'https://localhost:7230/api/bookings/create-and-pay',
+        orderData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+
+      console.log('後端回應：', response.data);
+
+      // 後端回傳的資料
+      const { bookingId, orderNumber, ecpayFormHtml } = response.data;
+
+      // 回傳結果
+      return {
+        bookingId,
+        orderNumber,
+        ecpayFormHtml,
+      };
     } catch (error) {
-      console.error('建立訂單失敗:', error);
+      console.error('建立訂單失敗：', error);
+      console.error('錯誤詳情：', error.response?.data);
       throw error;
-    };
-  }
-
-  // 測試用：設定假資料
-  const setMockData = () => {
-    bookingDraft.value = {
-      room_id: 123,
-      guest_id: 456,
-      coupon_id: 789,
-      check_in: '2025-12-31',
-      check_out: '2026-01-01',
-      guest_count: 2,
-
-      // 房源資訊
-      room_title: '🏠Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
-      room_image: 'https://picsum.photos/120/90',
-      price_per_night: 4598,
-
-      // 優惠券資訊
-      coupon: {
-        discount_amount: 808,
-      },
-    };
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   return {
     // State
     bookingDraft,
+    isLoading,
 
     // Getters
     hasBookingDraft,
@@ -153,6 +167,5 @@ export const useBookingStore = defineStore('booking', () => {
     setBookingDraft,
     clearBookingDraft,
     createBooking,
-    setMockData,
   };
 });
