@@ -74,13 +74,13 @@
 
 ### 🔹 專用工具庫
 
-| 類別 | 技術 | 用途 |
-| :--- | :--- | :--- |
+| 類別 | 技術 | 
+| :--- | :--- | 
 | **表單驗證** | Vee-Validate |
 | **地理功能** | Leaflet + Vue-Leaflet | 
 | **媒體管理** | Uppy / PhotoSwipe / Swiper |
 | **日期處理** | Day.js / Vue-Datepicker-Next | 
-| **其他** | Lodash-ES / @vueuse/core | 
+| **其他** | Lodash-ES / @vueuse/core /tanstack table| 
 
 ---
 
