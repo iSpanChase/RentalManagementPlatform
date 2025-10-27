@@ -1,12 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Services;
+using Meilisearch;
+using Minio;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Services.Interface;
 using System.Reflection;
 
@@ -42,6 +48,44 @@ namespace RentalManagementPlatformWebAPI
 				});
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			// Authorization�]�����U�򥻵����GAdminOnly�^
+			// �ʺA�v����ĳ�אּ�ۭq IAuthorizationPolicyProvider�F�����n�b�Ұʮɳs DB�C
+			builder.Services.AddAuthorization(options =>
+			{
+				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
+			});
+
+			// DI�GDomain Services
+			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IRoleService, RoleService>();
+			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
+
+			// DI�GRepositories
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+            builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+            builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+            builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            // Meilisearch Client and Service registration
+            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+            builder.Services.AddScoped<MeilisearchService>();
+
+            // MinIO Client and Service registration
+            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+            builder.Services.AddSingleton<IMinioService, MinioService>();
+            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+
+			// Swagger�]�� Schema Id / JWT / DateOnly/TimeOnly �����^
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
 			{
