@@ -18,9 +18,9 @@
 
 📁 專案位置與結構
 模組	位置	說明
-前台（Vue 應用）	RentalManagementPlatform/RentalManagementPlatformMVC/RentalManagementPlatformVue	採 Vue 3 + Vite 架構。
-後台（MVC）	RentalManagementPlatform/RentalManagementPlatformMVC/RentalManagementPlatformMVC	傳統 ASP.NET Core MVC 架構。
-前台專用 Web API	RentalManagementPlatform/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI	純 RESTful API，供 Vue 前端呼叫。
+前台（Vue 應用）	RentalManagementPlatformMVC/RentalManagementPlatformVue	採 Vue 3 + Vite 架構。
+後台（MVC）	RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC	傳統 ASP.NET Core MVC 架構。
+前台專用 Web API	RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI	純 RESTful API，供 Vue 前端呼叫。
 
 🎯 目前開發焦點：完成 前端 (Vue) 與 Web API 整合。
 
