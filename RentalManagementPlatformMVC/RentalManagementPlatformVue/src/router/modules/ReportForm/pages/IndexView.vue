@@ -42,6 +42,7 @@ import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
 import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
 import ChartCardComponent from '../components/ChartCardComponent.vue'
 import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
+import PieChartCardComponent from '../components/cardInfos/PieChartCardComponent.vue'
 import { createCard, updateCard, refetchCardData, type Card, type CardDraft } from '../api/reportForm'
 
 // ---------- state ----------
@@ -57,6 +58,7 @@ const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
   if (c.type === 'revenue' || c.type === 'occupancy') return ChartCardComponent
   if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
+  if (c.type === 'revenue_source') return PieChartCardComponent
   
   return {
     props: ['card','data'],
@@ -88,6 +90,11 @@ const getComponentProps = (c: Card) => {
             dataKey: 'totalRevenue',
             label: '總收益',
             unit: 'currency'
+        };
+    }
+    if (type === 'revenue_source') {
+        return {
+            data: c.data
         };
     }
     // Default props for heatmap or fallback
