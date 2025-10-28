@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch, nextTick } from 'vue'
 import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
@@ -108,27 +108,22 @@ const localDraft = reactive<CardDraft>({
   config: defaultByType('revenue')
 })
 
-watch(() => props.visible, (v) => {
+watch([() => props.visible, () => props.modelValue], ([v, mv]) => {
   if (v) {
-    if (props.modelValue) {
-      // edit
-      Object.assign(localDraft, JSON.parse(JSON.stringify(props.modelValue)))
-    } else {
-      // add default
-      Object.assign(localDraft, {
-        type: 'revenue',
-        title: '新卡片',
-        subtitle: '',
-        config: defaultByType('revenue')
-      })
-    }
+    nextTick(() => {
+      if (props.modelValue) {
+        Object.assign(localDraft, JSON.parse(JSON.stringify(props.modelValue)))
+      } else {
+        Object.assign(localDraft, {
+          type: 'revenue',
+          title: '新卡片',
+          subtitle: '',
+          config: defaultByType('revenue')
+        })
+      }
+    })
   }
-}, { immediate: true })
-
-watch(() => localDraft.type, (t) => {
-  // When type switched, reset config to sensible defaults
-  localDraft.config = defaultByType(t as CardType)
-})
+}, { immediate: true, deep: true })
 
 
 function onCancel(){
