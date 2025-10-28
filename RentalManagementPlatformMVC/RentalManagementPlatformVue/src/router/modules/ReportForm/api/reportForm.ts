@@ -12,15 +12,16 @@ export interface BaseDraft {
 
 export interface RevenueConfig {
   propertyIds: number[];
-  range: { start: string; end: string };
+  startDate: string;
+  endDate: string;
   groupBy: 'day' | 'week' | 'month';
-  chartType: 'line' | 'bar' | 'pie';
 }
 
 export interface OccupancyConfig {
-  propertyIds: string[];
-  range: { start: string; end: string };
-  breakdownBy?: 'roomType' | 'channel';
+  propertyIds: number[];
+  startDate: string;
+  endDate: string;
+  groupBy: 'day' | 'week' | 'month';
 }
 
 export interface HeatmapConfig {
@@ -86,8 +87,8 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     const revenueConfig = config as RevenueConfig;
     const requestDto = {
         RoomIds: revenueConfig.propertyIds,
-        StartDate: revenueConfig.range.start,
-        EndDate: revenueConfig.range.end,
+        StartDate: revenueConfig.startDate,
+        EndDate: revenueConfig.endDate,
         GroupBy: revenueConfig.groupBy
     };
     
@@ -103,13 +104,21 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
   }
   
   if (type === 'occupancy') {
-    // Mock data for occupancy
-    const slices = [
-      { label: '單人房', value: Math.round(Math.random() * 40 + 20) },
-      { label: '雙人房', value: Math.round(Math.random() * 40 + 20) },
-      { label: '家庭房', value: Math.round(Math.random() * 20 + 10) },
-    ];
-    return delay({ slices });
+    const occupancyConfig = config as OccupancyConfig;
+    const requestDto = {
+        RoomIds: occupancyConfig.propertyIds,
+        StartDate: occupancyConfig.startDate,
+        EndDate: occupancyConfig.endDate,
+        GroupBy: occupancyConfig.groupBy
+    };
+
+    try {
+        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancy', requestDto);
+        return { points: response.data };
+    } catch (error) {
+        console.error('Error fetching occupancy data:', error);
+        return { points: [] };
+    }
   }
 
   if (type === 'heatmap') {

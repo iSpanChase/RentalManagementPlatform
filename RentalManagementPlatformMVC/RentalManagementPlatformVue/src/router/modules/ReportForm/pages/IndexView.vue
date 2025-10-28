@@ -17,7 +17,7 @@
         @remove="onRemove(c.id)"
       >
         <template #default>
-          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" />
+          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" :y-axis-data-key="c.type === 'revenue' ? 'revenue' : 'occupancyRate'" />
         </template>
         <template #footer>
           <small class="text-muted">最後更新：{{ updatedAt }}</small>
@@ -54,7 +54,8 @@ const updatedAt = new Date().toLocaleString()
 // ---------- body component chooser ----------
 const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
-  if (c.type === 'revenue') return ChartCardComponent // Add this line for revenue cards
+  if (c.type === 'revenue') return ChartCardComponent
+  if (c.type === 'occupancy') return ChartCardComponent // Add this line for occupancy cards // Add this line for revenue cards
   // fallback simple display
   return {
     props: ['card','data'],

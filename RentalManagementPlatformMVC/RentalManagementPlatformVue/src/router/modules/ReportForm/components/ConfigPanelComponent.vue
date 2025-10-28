@@ -77,7 +77,8 @@ const defaultByType = (type: CardType): any => {
   if (type === 'revenue') {
     const cfg: RevenueConfig = {
       propertyIds: [],
-      range: { start: '2025-09-01', end: '2025-10-23' },
+      startDate: '2025-09-01',
+      endDate: '2025-10-23',
       groupBy: 'month',
       chartType: 'line'
     }
@@ -86,8 +87,9 @@ const defaultByType = (type: CardType): any => {
   if (type === 'occupancy') {
     const cfg: OccupancyConfig = {
       propertyIds: [],
-      range: { start: '2025-09-01', end: '2025-10-23' },
-      breakdownBy: 'roomType'
+      startDate: '2025-09-01',
+      endDate: '2025-10-23',
+      groupBy: 'month',
     }
     return cfg
   }

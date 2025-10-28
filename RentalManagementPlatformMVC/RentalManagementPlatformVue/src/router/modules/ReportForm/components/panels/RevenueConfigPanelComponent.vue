@@ -31,13 +31,6 @@ function updateField(key: keyof RevenueConfig, value: any) {
   emit('update:modelValue', { ...props.modelValue, [key]: value });
 }
 
-function updateRange(field: 'start' | 'end', value: string) {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    range: { ...props.modelValue.range, [field]: value }
-  });
-}
-
 </script>
 
 <template>
@@ -58,8 +51,8 @@ function updateRange(field: 'start' | 'end', value: string) {
         <div class="mb-2">
             <label>日期區間</label>
             <div class="d-flex gap-2">
-                <input type="date" class="form-control" :value="modelValue.range.start" @change="(e) => updateRange('start', (e.target as HTMLInputElement).value)" />
-                <input type="date" class="form-control" :value="modelValue.range.end" @change="(e) => updateRange('end', (e.target as HTMLInputElement).value)" />
+                <input type="date" class="form-control" :value="modelValue.startDate" @change="(e) => updateField('startDate', (e.target as HTMLInputElement).value)" />
+                <input type="date" class="form-control" :value="modelValue.endDate" @change="(e) => updateField('endDate', (e.target as HTMLInputElement).value)" />
             </div>
         </div>
 
