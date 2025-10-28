@@ -38,7 +38,7 @@
 ### 🔹 資料庫與 ORM
 
 * **資料庫：** SQL Server 2022。
-* **ORM：** Entity Framework Core 8（採 Code-First 與 Migration）。
+* **ORM：** Entity Framework Core 8（DATABASE-First）。
     * 所有 DB 操作封裝於 `Repository` 層，全面採 `Async` 方法。
 
 ### 🔹 跨服務組件與策略
