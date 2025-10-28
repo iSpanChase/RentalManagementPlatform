@@ -17,7 +17,7 @@
         @remove="onRemove(c.id)"
       >
         <template #default>
-          <component :is="cardBody(c)" :card="c" :data="c.data" />
+          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" />
         </template>
         <template #footer>
           <small class="text-muted">最後更新：{{ updatedAt }}</small>
@@ -40,6 +40,7 @@ import { computed, reactive, ref } from 'vue'
 import BaseCardComponent from '../components/BaseCardComponent.vue'
 import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
 import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
+import ChartCardComponent from '../components/ChartCardComponent.vue' // Import ChartCardComponent
 import { createCard, updateCard, refetchCardData, type Card, type CardDraft } from '../api/reportForm'
 
 // ---------- state ----------
@@ -53,6 +54,7 @@ const updatedAt = new Date().toLocaleString()
 // ---------- body component chooser ----------
 const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
+  if (c.type === 'revenue') return ChartCardComponent // Add this line for revenue cards
   // fallback simple display
   return {
     props: ['card','data'],

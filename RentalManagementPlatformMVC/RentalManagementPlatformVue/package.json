@@ -26,6 +26,8 @@
     "bootstrap": "^5.3.8",
     "chart.js": "^4.5.1",
     "country-list": "^2.4.1",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "leaflet": "^1.9.4",
     "lodash-es": "^4.17.21",
