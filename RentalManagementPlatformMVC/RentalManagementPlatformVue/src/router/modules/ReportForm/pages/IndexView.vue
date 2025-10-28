@@ -17,7 +17,7 @@
         @remove="onRemove(c.id)"
       >
         <template #default>
-          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" :y-axis-data-key="c.type === 'revenue' ? 'revenue' : 'occupancyRate'" />
+          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" :y-axis-data-key="c.type === 'revenue' ? 'revenue' : 'occupancyRate'" :chart-type="c.config.chartType" />
         </template>
         <template #footer>
           <small class="text-muted">最後更新：{{ updatedAt }}</small>

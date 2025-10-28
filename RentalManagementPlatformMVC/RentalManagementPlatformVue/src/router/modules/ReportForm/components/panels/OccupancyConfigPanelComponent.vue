@@ -63,5 +63,14 @@ function updateField(key: keyof OccupancyConfig, value: any) {
                 <option value="month">每月</option>
             </select>
         </div>
+
+        <div class="mb-2">
+            <label>圖表類型</label>
+            <select class="form-select" :value="modelValue.chartType" @change="(e) => updateField('chartType', (e.target as HTMLInputElement).value)">
+                <option value="line">折線圖</option>
+                <option value="bar">長條圖</option>
+                <option value="pie">圓餅圖</option>
+            </select>
+        </div>
     </div>
 </template>

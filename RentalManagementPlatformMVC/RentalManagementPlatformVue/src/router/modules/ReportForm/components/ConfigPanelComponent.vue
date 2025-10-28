@@ -90,6 +90,7 @@ const defaultByType = (type: CardType): any => {
       startDate: '2025-09-01',
       endDate: '2025-10-23',
       groupBy: 'month',
+      chartType: 'line',
     }
     return cfg
   }
