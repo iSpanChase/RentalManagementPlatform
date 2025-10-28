@@ -17,7 +17,7 @@
         @remove="onRemove(c.id)"
       >
         <template #default>
-          <component :is="cardBody(c)" :card="c" :data="c.data" />
+          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" />
         </template>
         <template #footer>
           <small class="text-muted">最後更新：{{ updatedAt }}</small>
