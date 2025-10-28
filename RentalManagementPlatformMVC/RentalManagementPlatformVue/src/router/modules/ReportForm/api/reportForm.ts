@@ -66,6 +66,59 @@ export interface Card {
   data: any;
 }
 
+// ---- Favorite Report Types ----
+export interface FavoriteReport {
+    id: number;
+    name: string;
+}
+
+export interface FavoriteReportDetail extends FavoriteReport {
+    content: string;
+    createdAt: string;
+}
+
+// ---- Favorite Report API ----
+export async function getFavoriteReports(): Promise<FavoriteReport[]> {
+    try {
+        const response = await axios.get('/api/ReportForm/FavoriteReports');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching favorite reports:', error);
+        return [];
+    }
+}
+
+export async function loadFavoriteReport(id: number): Promise<FavoriteReportDetail | null> {
+    try {
+        const response = await axios.get(`/api/ReportForm/FavoriteReports/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error loading favorite report ${id}:`, error);
+        return null;
+    }
+}
+
+export async function saveFavoriteReport(name: string, content: string): Promise<FavoriteReport | null> {
+    try {
+        const response = await axios.post('/api/ReportForm/FavoriteReports', { name, content });
+        return response.data;
+    } catch (error) {
+        console.error('Error saving favorite report:', error);
+        return null;
+    }
+}
+
+export async function deleteFavoriteReport(id: number): Promise<boolean> {
+    try {
+        await axios.delete(`/api/ReportForm/FavoriteReports/${id}`);
+        return true;
+    } catch (error) {
+        console.error(`Error deleting favorite report ${id}:`, error);
+        return false;
+    }
+}
+
+
 // ---- Mock AJAX helpers ----
 function delay<T>(val: T, ms = 300): Promise<T> {
   return new Promise(res => setTimeout(() => res(val), ms));
