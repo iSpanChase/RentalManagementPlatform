@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // src/modules/ReportForm/api/reportForm.ts
-export type CardType = 'revenue' | 'occupancy' | 'heatmap';
+export type CardType = 'revenue' | 'occupancy' | 'heatmap' | 'occupancy_kpi';
 
 export interface BaseDraft {
   type: CardType;
@@ -25,13 +25,18 @@ export interface OccupancyConfig {
   chartType: 'line' | 'bar' | 'pie';
 }
 
+export interface OccupancyKpiConfig {
+    propertyIds: number[];
+    lastDays: number;
+}
+
 export interface HeatmapConfig {
   propertyIds: string[];
   center: { lat: number; lng: number };
   zoom: number;
 }
 
-export type CardConfig = RevenueConfig | OccupancyConfig | HeatmapConfig;
+export type CardConfig = RevenueConfig | OccupancyConfig | HeatmapConfig | OccupancyKpiConfig;
 
 export interface CardDraft extends BaseDraft {
   config: CardConfig;
@@ -119,6 +124,22 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     } catch (error) {
         console.error('Error fetching occupancy data:', error);
         return { points: [] };
+    }
+  }
+
+  if (type === 'occupancy_kpi') {
+    const kpiConfig = config as OccupancyKpiConfig;
+    const requestDto = {
+        RoomIds: kpiConfig.propertyIds,
+        Days: kpiConfig.lastDays
+    };
+
+    try {
+        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancyKpi', requestDto);
+        return response.data; // e.g., { occupancyRate: 85.5 }
+    } catch (error) {
+        console.error('Error fetching occupancy KPI data:', error);
+        return { occupancyRate: 0 };
     }
   }
 

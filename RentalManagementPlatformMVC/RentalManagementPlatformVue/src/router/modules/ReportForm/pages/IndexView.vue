@@ -41,6 +41,7 @@ import BaseCardComponent from '../components/BaseCardComponent.vue'
 import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
 import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
 import ChartCardComponent from '../components/ChartCardComponent.vue' // Import ChartCardComponent
+import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
 import { createCard, updateCard, refetchCardData, type Card, type CardDraft } from '../api/reportForm'
 
 // ---------- state ----------
@@ -55,7 +56,8 @@ const updatedAt = new Date().toLocaleString()
 const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
   if (c.type === 'revenue') return ChartCardComponent
-  if (c.type === 'occupancy') return ChartCardComponent // Add this line for occupancy cards // Add this line for revenue cards
+  if (c.type === 'occupancy') return ChartCardComponent
+  if (c.type === 'occupancy_kpi') return KpiCardComponent
   // fallback simple display
   return {
     props: ['card','data'],

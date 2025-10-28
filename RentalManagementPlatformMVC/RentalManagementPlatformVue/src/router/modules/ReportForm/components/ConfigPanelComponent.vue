@@ -13,6 +13,7 @@
           <select class="form-select" v-model="localDraft.type">
             <option value="revenue">收益分析</option>
             <option value="occupancy">入住率</option>
+            <option value="occupancy_kpi">入住率KPI</option>
             <option value="heatmap">收益熱力</option>
           </select>
         </div>
@@ -37,6 +38,10 @@
           v-else-if="localDraft.type === 'occupancy'"
           v-model="(localDraft.config as OccupancyConfig)"
         />
+        <OccupancyKpiConfigPanelComponent
+          v-else-if="localDraft.type === 'occupancy_kpi'"
+          v-model="(localDraft.config as OccupancyKpiConfig)"
+        />
         <HeatmapConfigPanelComponent
           v-else
           v-model="(localDraft.config as HeatmapConfig)"
@@ -54,10 +59,10 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig } from '../api/reportForm'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
-import HeatmapConfigPanelComponent from './panels/HeatmapConfigPanelComponent.vue'
+import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -80,7 +85,6 @@ const defaultByType = (type: CardType): any => {
       startDate: '2025-09-01',
       endDate: '2025-10-23',
       groupBy: 'month',
-      chartType: 'line'
     }
     return cfg
   }
@@ -93,6 +97,13 @@ const defaultByType = (type: CardType): any => {
       chartType: 'line',
     }
     return cfg
+  }
+  if (type === 'occupancy_kpi') {
+      const cfg: OccupancyKpiConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
   }
   const cfg: HeatmapConfig = {
     propertyIds: [],

@@ -198,5 +198,69 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                     return Ok(monthlyOccupancyData.OrderBy(d => d.date));
             }
         }
+
+        [HttpPost("GetOccupancyKpi")]
+        public async Task<IActionResult> GetOccupancyKpi([FromBody] OccupancyKpiRequestDto req)
+        {
+            // TODO: 之後需從登入資訊取得 HostId
+            int hostId = 47;
+
+            List<int> roomIdsToQuery;
+
+            // If no RoomId is provided, query all rooms for the host
+            if (req.RoomIds == null || !req.RoomIds.Any())
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId)
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Otherwise, use the provided RoomIds, but verify they belong to the host
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new { occupancyRate = 0 });
+            }
+
+            var endDate = DateTime.Today;
+            var startDate = endDate.AddDays(-req.Days);
+
+            // Total available nights for the selected rooms over the period
+            int totalAvailableNights = roomIdsToQuery.Count * req.Days;
+            if (totalAvailableNights == 0)
+            {
+                return Ok(new { occupancyRate = 0 });
+            }
+
+            // Get bookings that overlap with the date range
+            var bookings = await _context.Bookings
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => (b.Status == "Completed" || b.Status == "Confirmed"))
+                .Where(b => b.CheckIn.Value < endDate && b.CheckOut.Value > startDate)
+                .ToListAsync();
+
+            double totalOccupiedNights = 0;
+
+            foreach (var booking in bookings)
+            {
+                var bookingStart = booking.CheckIn.Value < startDate ? startDate : booking.CheckIn.Value;
+                var bookingEnd = booking.CheckOut.Value > endDate ? endDate : booking.CheckOut.Value;
+                totalOccupiedNights += (bookingEnd - bookingStart).TotalDays;
+            }
+
+            decimal occupancyRate = (totalAvailableNights > 0)
+                ? ((decimal)totalOccupiedNights / totalAvailableNights) * 100
+                : 0;
+
+            return Ok(new { occupancyRate = Math.Round(occupancyRate, 2) });
+        }
     }
+            
 }
