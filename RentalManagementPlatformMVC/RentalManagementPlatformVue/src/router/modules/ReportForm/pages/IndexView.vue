@@ -17,7 +17,7 @@
         @remove="onRemove(c.id)"
       >
         <template #default>
-          <component :is="cardBody(c)" :card="c" :data="c.data" :time-unit="c.config.groupBy" :y-axis-data-key="c.type === 'revenue' ? 'revenue' : 'occupancyRate'" :chart-type="c.config.chartType" />
+          <component :is="cardBody(c)" v-bind="getComponentProps(c)" />
         </template>
         <template #footer>
           <small class="text-muted">最後更新：{{ updatedAt }}</small>
@@ -40,7 +40,7 @@ import { computed, reactive, ref } from 'vue'
 import BaseCardComponent from '../components/BaseCardComponent.vue'
 import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
 import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
-import ChartCardComponent from '../components/ChartCardComponent.vue' // Import ChartCardComponent
+import ChartCardComponent from '../components/ChartCardComponent.vue'
 import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
 import { createCard, updateCard, refetchCardData, type Card, type CardDraft } from '../api/reportForm'
 
@@ -52,18 +52,48 @@ const editingId = ref<string|null>(null)
 const draft = ref<CardDraft|null>(null)
 const updatedAt = new Date().toLocaleString()
 
-// ---------- body component chooser ----------
+// ---------- component chooser and props generator ----------
 const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
-  if (c.type === 'revenue') return ChartCardComponent
-  if (c.type === 'occupancy') return ChartCardComponent
-  if (c.type === 'occupancy_kpi') return KpiCardComponent
-  // fallback simple display
+  if (c.type === 'revenue' || c.type === 'occupancy') return ChartCardComponent
+  if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
+  
   return {
     props: ['card','data'],
     template: `<div><pre class="small mb-0">{{ JSON.stringify(data, null, 2) }}</pre></div>`
   } as any
 }
+
+const getComponentProps = (c: Card) => {
+    const type = c.type;
+    if (type === 'revenue' || type === 'occupancy') {
+        return {
+            data: c.data,
+            timeUnit: c.config.groupBy,
+            yAxisDataKey: type === 'revenue' ? 'revenue' : 'occupancyRate',
+            chartType: c.config.chartType
+        };
+    }
+    if (type === 'occupancy_kpi') {
+        return {
+            data: c.data,
+            dataKey: 'occupancyRate',
+            label: '入住率',
+            unit: 'percentage'
+        };
+    }
+    if (type === 'revenue_kpi') {
+        return {
+            data: c.data,
+            dataKey: 'totalRevenue',
+            label: '總收益',
+            unit: 'currency'
+        };
+    }
+    // Default props for heatmap or fallback
+    return { card: c, data: c.data };
+}
+
 
 // ---------- actions ----------
 function onAdd(){

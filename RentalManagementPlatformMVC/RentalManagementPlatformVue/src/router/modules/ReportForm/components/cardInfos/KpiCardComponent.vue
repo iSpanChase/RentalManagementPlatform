@@ -1,10 +1,10 @@
 <template>
   <div class="kpi-card text-center">
     <div class="kpi-value display-4 fw-bold">
-      {{ formattedRate }}
+      {{ formattedValue }}
     </div>
     <div class="kpi-label text-muted">
-      入住率
+      {{ label }}
     </div>
   </div>
 </template>
@@ -13,12 +13,21 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  data: { occupancyRate: number };
+  data: Record<string, number>;
+  dataKey: string;
+  label: string;
+  unit: 'percentage' | 'currency';
 }>();
 
-const formattedRate = computed(() => {
-  const rate = props.data?.occupancyRate ?? 0;
-  return `${rate.toFixed(1)}%`;
+const formattedValue = computed(() => {
+  const value = props.data?.[props.dataKey] ?? 0;
+  if (props.unit === 'percentage') {
+    return `${value.toFixed(1)}%`;
+  }
+  if (props.unit === 'currency') {
+    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+  }
+  return value;
 });
 </script>
 

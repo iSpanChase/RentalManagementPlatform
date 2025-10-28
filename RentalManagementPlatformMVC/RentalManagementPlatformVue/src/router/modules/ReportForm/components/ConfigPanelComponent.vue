@@ -14,6 +14,7 @@
             <option value="revenue">收益分析</option>
             <option value="occupancy">入住率</option>
             <option value="occupancy_kpi">入住率KPI</option>
+            <option value="revenue_kpi">收益KPI</option>
             <option value="heatmap">收益熱力</option>
           </select>
         </div>
@@ -42,6 +43,10 @@
           v-else-if="localDraft.type === 'occupancy_kpi'"
           v-model="(localDraft.config as OccupancyKpiConfig)"
         />
+        <RevenueKpiConfigPanelComponent
+          v-else-if="localDraft.type === 'revenue_kpi'"
+          v-model="(localDraft.config as RevenueKpiConfig)"
+        />
         <HeatmapConfigPanelComponent
           v-else
           v-model="(localDraft.config as HeatmapConfig)"
@@ -59,10 +64,11 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig } from '../api/reportForm'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
 import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
+import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -100,6 +106,13 @@ const defaultByType = (type: CardType): any => {
   }
   if (type === 'occupancy_kpi') {
       const cfg: OccupancyKpiConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
+  }
+  if (type === 'revenue_kpi') {
+      const cfg: RevenueKpiConfig = {
           propertyIds: [],
           lastDays: 30
       }
