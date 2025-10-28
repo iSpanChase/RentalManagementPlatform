@@ -58,7 +58,7 @@ const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
   if (c.type === 'revenue' || c.type === 'occupancy') return ChartCardComponent
   if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
-  if (c.type === 'revenue_source') return PieChartCardComponent
+  if (c.type === 'revenue_source' || c.type === 'occupancy_source') return PieChartCardComponent
   
   return {
     props: ['card','data'],
@@ -94,7 +94,18 @@ const getComponentProps = (c: Card) => {
     }
     if (type === 'revenue_source') {
         return {
-            data: c.data
+            data: c.data,
+            labelKey: 'roomTitle',
+            dataKey: 'totalRevenue',
+            unit: 'currency'
+        };
+    }
+    if (type === 'occupancy_source') {
+        return {
+            data: c.data,
+            labelKey: 'roomTitle',
+            dataKey: 'bookingCount',
+            unit: 'count'
         };
     }
     // Default props for heatmap or fallback

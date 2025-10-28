@@ -260,7 +260,55 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                 : 0;
 
             return Ok(new { occupancyRate = Math.Round(occupancyRate, 2) });
+                }
+        
+                [HttpPost("GetOccupancySourceAnalysis")]
+                public async Task<IActionResult> GetOccupancySourceAnalysis([FromBody] AnalysisRequestDto req)
+                {
+                    // TODO: 之後需從登入資訊取得 HostId
+                    int hostId = 47;
+        
+                    List<int> roomIdsToQuery;
+        
+                    if (req.RoomIds == null || !req.RoomIds.Any())
+                    {
+                        roomIdsToQuery = await _context.RoomLists
+                            .Where(r => r.HostId == hostId)
+                            .Select(r => r.RoomId)
+                            .ToListAsync();
+                    }
+                    else
+                    {
+                        roomIdsToQuery = await _context.RoomLists
+                            .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
+                            .Select(r => r.RoomId)
+                            .ToListAsync();
+                    }
+        
+                    if (!roomIdsToQuery.Any())
+                    {
+                        return Ok(new List<OccupancySourceDataPoint>());
+                    }
+        
+                    var startDate = DateTime.Today.AddDays(-req.Days);
+                    var endDate = DateTime.Today;
+        
+                    var analysis = await _context.Bookings
+                        .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                        .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
+                        .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= startDate && b.CheckIn.Value.Date <= endDate)
+                        .GroupBy(b => new { b.RoomId, b.Room.Title })
+                        .Select(g => new OccupancySourceDataPoint
+                        {
+                            RoomId = g.Key.RoomId.Value,
+                            RoomTitle = g.Key.Title,
+                            BookingCount = g.Count()
+                        })
+                        .Where(r => r.BookingCount > 0)
+                        .OrderByDescending(r => r.BookingCount)
+                        .ToListAsync();
+        
+                    return Ok(analysis);
+                }
+            }
         }
-    }
-            
-}

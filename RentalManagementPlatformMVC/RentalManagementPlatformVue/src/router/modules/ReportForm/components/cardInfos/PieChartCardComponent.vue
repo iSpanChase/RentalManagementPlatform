@@ -5,6 +5,9 @@ Chart.register(...registerables);
 
 const props = defineProps({
     data: Object, // { points: [ { roomTitle: 'Room A', totalRevenue: 5000 }, ... ] }
+    labelKey: { type: String, required: true },
+    dataKey: { type: String, required: true },
+    unit: { type: String, default: 'count' } // 'count' or 'currency'
 });
 
 const chartCanvas = ref();
@@ -32,10 +35,10 @@ function drawChart() {
     chartInstance = new Chart(chartCanvas.value, {
         type: 'pie',
         data: {
-            labels: chartDataPoints.map(d => d.roomTitle),
+            labels: chartDataPoints.map(d => d[props.labelKey]),
             datasets: [{
-                label: '收益來源',
-                data: chartDataPoints.map(d => d.totalRevenue),
+                label: '來源分析',
+                data: chartDataPoints.map(d => d[props.dataKey]),
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.7)',
                     'rgba(54, 162, 235, 0.7)',
@@ -72,7 +75,12 @@ function drawChart() {
                             if (context.parsed !== null) {
                                 const total = context.dataset.data.reduce((acc, value) => acc + value, 0);
                                 const percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
-                                label += new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(context.raw) + ` (${percentage})`;
+                                
+                                if (props.unit === 'currency') {
+                                    label += new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(context.raw) + ` (${percentage})`;
+                                } else {
+                                    label += `${context.raw} 次 (${percentage})`;
+                                }
                             }
                             return label;
                         }

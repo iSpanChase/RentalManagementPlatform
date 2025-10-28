@@ -16,6 +16,7 @@
             <option value="occupancy_kpi">入住率KPI</option>
             <option value="revenue_kpi">收益KPI</option>
             <option value="revenue_source">收益來源分析</option>
+            <option value="occupancy_source">入住來源分析</option>
             <option value="heatmap">收益熱力</option>
           </select>
         </div>
@@ -52,6 +53,10 @@
           v-else-if="localDraft.type === 'revenue_source'"
           v-model="(localDraft.config as RevenueSourceConfig)"
         />
+        <OccupancySourceConfigPanelComponent
+          v-else-if="localDraft.type === 'occupancy_source'"
+          v-model="(localDraft.config as OccupancySourceConfig)"
+        />
         <HeatmapConfigPanelComponent
           v-else
           v-model="(localDraft.config as HeatmapConfig)"
@@ -69,12 +74,13 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig } from '../api/reportForm'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
 import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
 import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
 import RevenueSourceConfigPanelComponent from './panels/RevenueSourceConfigPanelComponent.vue'
+import OccupancySourceConfigPanelComponent from './panels/OccupancySourceConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -126,6 +132,13 @@ const defaultByType = (type: CardType): any => {
   }
   if (type === 'revenue_source') {
       const cfg: RevenueSourceConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
+  }
+  if (type === 'occupancy_source') {
+      const cfg: OccupancySourceConfig = {
           propertyIds: [],
           lastDays: 30
       }

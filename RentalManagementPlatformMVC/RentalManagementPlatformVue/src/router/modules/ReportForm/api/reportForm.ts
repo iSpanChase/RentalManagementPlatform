@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // src/modules/ReportForm/api/reportForm.ts
-export type CardType = 'revenue' | 'occupancy' | 'heatmap' | 'occupancy_kpi' | 'revenue_kpi' | 'revenue_source';
+export type CardType = 'revenue' | 'occupancy' | 'heatmap' | 'occupancy_kpi' | 'revenue_kpi' | 'revenue_source' | 'occupancy_source';
 
 export interface BaseDraft {
   type: CardType;
@@ -40,13 +40,18 @@ export interface RevenueSourceConfig {
     lastDays: number;
 }
 
+export interface OccupancySourceConfig {
+    propertyIds: number[];
+    lastDays: number;
+}
+
 export interface HeatmapConfig {
   propertyIds: string[];
   center: { lat: number; lng: number };
   zoom: number;
 }
 
-export type CardConfig = RevenueConfig | OccupancyConfig | HeatmapConfig | OccupancyKpiConfig | RevenueKpiConfig | RevenueSourceConfig;
+export type CardConfig = RevenueConfig | OccupancyConfig | HeatmapConfig | OccupancyKpiConfig | RevenueKpiConfig | RevenueSourceConfig | OccupancySourceConfig;
 
 export interface CardDraft extends BaseDraft {
   config: CardConfig;
@@ -181,6 +186,22 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
         return { points: response.data }; // e.g., [{ roomTitle: 'Room A', totalRevenue: 5000 }]
     } catch (error) {
         console.error('Error fetching revenue source data:', error);
+        return { points: [] };
+    }
+  }
+
+  if (type === 'occupancy_source') {
+    const sourceConfig = config as OccupancySourceConfig;
+    const requestDto = {
+        RoomIds: sourceConfig.propertyIds,
+        Days: sourceConfig.lastDays
+    };
+
+    try {
+        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancySourceAnalysis', requestDto);
+        return { points: response.data }; // e.g., [{ roomTitle: 'Room A', bookingCount: 5 }]
+    } catch (error) {
+        console.error('Error fetching occupancy source data:', error);
         return { points: [] };
     }
   }
