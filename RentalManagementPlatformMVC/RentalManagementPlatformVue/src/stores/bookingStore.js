@@ -94,8 +94,8 @@ export const useBookingStore = defineStore('booking', () => {
       // 準備送到後端的完整資料
       const orderData = {
         // 訂房基本資料
-        roomId: bookingDraft.value.roomId,
         guestId: bookingDraft.value.guestId,
+        roomId: bookingDraft.value.roomId,
         couponId: bookingDraft.value.couponId,
         checkIn: bookingDraft.value.checkIn,
         checkOut: bookingDraft.value.checkOut,
@@ -133,17 +133,54 @@ export const useBookingStore = defineStore('booking', () => {
       console.log('後端回應：', response.data);
 
       // 後端回傳的資料
-      const { bookingId, orderNumber, ecpayFormHtml } = response.data;
+      const { bookingId, orderNumber, ecpayFormHtml, paymentRequired, paymentStatus, paymentDeadline } = response.data;
 
       // 回傳結果
       return {
         bookingId,
         orderNumber,
         ecpayFormHtml,
+        paymentRequired,
+        paymentStatus,
+        paymentDeadline,
       };
     } catch (error) {
       console.error('建立訂單失敗：', error);
       console.error('錯誤詳情：', error.response?.data);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // 獲取指定使用者的所有訂單
+  const fetchUserBookings = async (userId) => {
+    if (!userId) {
+      throw new Error('未提供使用者 ID');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.get(`https://localhost:7230/api/bookings/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`獲取使用者 ${userId} 的訂單失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // 為延後支付的訂單獲取付款表單
+  const getDeferredPaymentForm = async (orderNumber) => {
+    if (!orderNumber) {
+      throw new Error('未提供訂單編號');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.get(`https://localhost:7230/api/payments/deferred/${orderNumber}`);
+      return response.data; // { success, orderNumber, ecpayFormHtml }
+    } catch (error) {
+      console.error(`為訂單 ${orderNumber} 獲取付款表單失敗：`, error);
       throw error;
     } finally {
       isLoading.value = false;
@@ -167,5 +204,7 @@ export const useBookingStore = defineStore('booking', () => {
     setBookingDraft,
     clearBookingDraft,
     createBooking,
+    fetchUserBookings,
+    getDeferredPaymentForm,
   };
 });

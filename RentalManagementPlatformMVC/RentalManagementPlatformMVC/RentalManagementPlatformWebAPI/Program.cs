@@ -11,9 +11,11 @@ using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Repositories.Bookings;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Repositories.Payments;
 using RentalManagementPlatformWebAPI.Services;
 using RentalManagementPlatformWebAPI.Services.Bookings;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Payments;
 using System.Reflection;
 using System.Text.Json;
 

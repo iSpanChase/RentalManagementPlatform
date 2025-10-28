@@ -1,10 +1,7 @@
-﻿using RentalManagementPlatformMVC.Models;
-
-namespace RentalManagementPlatformWebAPI.DTOs.Bookings
+﻿namespace RentalManagementPlatformWebAPI.DTOs.Payments
 {
 	public class CreatePaymentDto
 	{
-		//public int PaymentId { get; set; }
 		public int? BookingId { get; set; }
 		public decimal? Amount { get; set; }
 		public string? Method { get; set; }

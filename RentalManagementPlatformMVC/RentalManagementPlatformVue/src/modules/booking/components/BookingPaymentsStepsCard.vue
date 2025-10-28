@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
+import { useRouter } from 'vue-router'
 import { getData } from 'country-list'
 
 // ==================== 狀態管理 ====================
 const bookingStore = useBookingStore()
+const router = useRouter()
 
 // 當前進行的步驟 (1, 2, 3)
 const currentStep = ref(1)
@@ -138,36 +140,42 @@ const handleConfirmPayment = async () => {
     // 呼叫 Store 的方法建立訂單
     const result = await bookingStore.createBooking(paymentData)
 
-    console.log('訂單建立成功！')
-    console.log('訂單編號：', result.orderNumber)
-    console.log('綠界表單 HTML：', result.ecpayFormHtml)
+    // 判斷後端回傳的結果
+    if (result.paymentRequired) {
+      // ----- 情況 1：選擇立即付款 -----
+      console.log('訂單建立成功，選擇立即付款！')
+      console.log('訂單編號：', result.orderNumber)
 
-    // 將綠界付款表單插入頁面
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = result.ecpayFormHtml
-    document.body.appendChild(tempDiv)
+      // 將綠界付款表單插入頁面並自動提交
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = result.ecpayFormHtml
+      document.body.appendChild(tempDiv)
+      console.log('綠界表單已插入 DOM')
 
-    console.log('表單已插入 DOM')
-
-    // 自動找到表單並提交
-    const form = tempDiv.querySelector('form')
-
-    if (form) {
-      console.log('找到綠界表單')
-      console.log('表單 action:', form.action)
-      console.log('表單 method:', form.method)
-
-      // 延遲提交（確保表單已插入 DOM）
-      setTimeout(() => {
-        console.log('提交表單到綠界...')
-        form.submit()
-        console.log('表單已提交！')
-      }, 500)  // 延長到 500ms
+      const form = tempDiv.querySelector('form')
+      if (form) {
+        console.log('找到綠界表單，準備提交...')
+        // 延遲提交以確保表單已完全載入
+        setTimeout(() => {
+          form.submit()
+          console.log('表單已提交！')
+        }, 500)
+      } else {
+        console.error('找不到綠界付款表單！')
+        alert('無法找到付款表單，請聯繫客服')
+      }
 
     } else {
-      console.error('找不到表單！')
-      console.log('tempDiv.innerHTML:', tempDiv.innerHTML)
-      alert('無法找到付款表單，請聯繫客服')
+      // ----- 情況 2：選擇延後付款 -----
+      console.log('訂單建立成功，選擇延後付款！')
+      console.log('訂單編號：', result.orderNumber)
+      alert('訂單已成功建立！您選擇了延後付款，頁面將跳轉至「我的訂單」。')
+
+      // 跳轉到「我的訂單」頁面
+      await router.push('/booking/mybookings')
+
+      // 清除 booking store 中的草稿資料
+      bookingStore.clearBookingDraft()
     }
 
   } catch (error) {
@@ -228,7 +236,7 @@ onMounted(() => {
           v-if="stepCompleted.step1 && currentStep !== 1"
           type="button"
           class="btn-change"
-          @click="currentStep = 1; stepCompleted.step1 = false"
+          @click="currentStep = 1; stepCompleted.step1 = false; stepCompleted.step2 = false"
         >
           更改
         </button>
@@ -479,7 +487,7 @@ onMounted(() => {
           <i class="fa-solid fa-shield-halved"></i>
           <span>
             <strong>取消政策：</strong>
-            {{ formatDate(bookingStore.bookingDraft.checkIn) }} 前可免費取消
+            {{ bookingStore.refundableDate }} 前可免費取消
           </span>
         </div>
 

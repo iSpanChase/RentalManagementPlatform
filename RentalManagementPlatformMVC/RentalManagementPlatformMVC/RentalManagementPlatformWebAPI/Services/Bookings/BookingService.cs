@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Payments;
 
 namespace RentalManagementPlatformWebAPI.Services.Bookings
 {
@@ -31,12 +31,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
-		/// <summary>
-		/// 建立訂單並產生綠界付款表單
-		/// </summary>
+		// 根據使用者ID獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
+		{
+			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
+			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
+		}
+
+		// 建立訂單並根據付款時機決定是否產生綠界表單
 		public async Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto)
 		{
-			// 1. 驗證資料
+			// ==================== 1. 驗證資料 ====================
 			if (dto.CheckIn >= dto.CheckOut)
 			{
 				throw new ArgumentException("退房日期必須晚於入住日期");
@@ -51,7 +56,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				throw new ArgumentException("住宿天數必須大於 0");
 			}
 
-			// 計算總金額
+			// ==================== 2. 計算總金額 ====================
 			decimal totalPrice = room.PricePerNight.HasValue
 				? room.PricePerNight.Value * nights
 				: throw new ArgumentException("房間價格不可為空值");
@@ -95,10 +100,10 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			// 回饋點數
 			int pointsEarned = (int)Math.Floor(totalPrice * 0.01m);
 
-			// 2. 生成訂單編號
+			// ==================== 3. 生成訂單編號 ====================
 			string orderNumber = await GenerateBookingNumberAsync();
 
-			// 3. 建立訂單
+			// ==================== 4. 建立訂單 ====================
 			var booking = new Booking
 			{
 				// 基本資料
@@ -109,13 +114,19 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				CheckOut = dto.CheckOut,
 				TotalPrice = dto.TotalPrice,
 				OrderNumber = orderNumber,
-				Status = "Pending",  // 等待付款
+				Status = "Pending",  // 訂單狀態：等待確認
 				CreatedAt = DateTime.Now,
 				CommissionRateSnapshot = 0.15m,
 
 				// 住宿資訊
 				GuestCount = dto.GuestCount,
-				PaymentTiming = dto.PaymentTiming,
+				PaymentTiming = dto.PaymentTiming,  // "full" 或 "partial"
+
+				// 關鍵：根據付款時機設定付款狀態
+				PaymentStatus = dto.PaymentTiming == "full" ? "pending" : "deferred",
+
+				// 設定付款期限（入住前一天）
+				PaymentDeadline = dto.CheckIn.AddDays(-7).Date.AddHours(23).AddMinutes(59).AddSeconds(59),
 
 				// 聯絡人資訊
 				ContactName = dto.BillingInfo.Name,
@@ -136,61 +147,67 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				PointsEarned = (int)Math.Floor(dto.TotalPrice * 0.01m)  // 1% 回饋
 			};
 
-			// 4. 儲存訂單到資料庫
+			// ==================== 5. 儲存訂單到資料庫 ====================
 			await _bookingRepository.CreateBookingAsync(booking);
 
-			// 5. 產生綠界付款表單
-			string itemName = $"{room.Title} ({dto.Nights}晚)";
-			string ecpayFormHtml = _ecpayService.GeneratePaymentForm(
-				orderNumber,
-				dto.TotalPrice,
-				itemName
-			);
+			Console.WriteLine($"訂單建立成功：{orderNumber}");
+			Console.WriteLine($"付款時機：{dto.PaymentTiming}");
+			Console.WriteLine($"付款狀態：{booking.PaymentStatus}");
 
-			// 6. 回傳結果
-			return new CreateOrderAndPayResponseDto
+			// ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+
+			if (dto.PaymentTiming == "full")
 			{
-				BookingId = booking.BookingId,
-				OrderNumber = orderNumber,
-				EcpayFormHtml = ecpayFormHtml
-			};
-		}
+				// ========== 立即支付：產生綠界表單 ==========
+				Console.WriteLine("立即支付：產生綠界表單...");
 
-		public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
-		{
-			var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
-			return _mapper.Map<BookingDto?>(booking);
-		}
+				string itemName = $"{room.Title} ({nights}晚)";
+				string ecpayFormHtml = _ecpayService.GeneratePaymentForm(
+					orderNumber,
+					dto.TotalPrice,
+					itemName
+				);
 
-		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int userId)
-		{
-			var booking = await _bookingRepository.GetBookingsByUserAsync(userId);
-			return _mapper.Map<IEnumerable<BookingDto>>(booking);
-		}
+				Console.WriteLine($"綠界表單產生成功，長度：{ecpayFormHtml.Length}");
 
-		public async Task<BookingDto?> CancelBookingByIdAsync(int bookingId)
-		{
-			var booking = await _bookingRepository.GetBookingByIdSimpleAsync(bookingId);
-			if (booking == null)
-			{
-				throw new ArgumentException("此筆訂單不存在");
+				return new CreateOrderAndPayResponseDto
+				{
+					BookingId = booking.BookingId,
+					OrderNumber = orderNumber,
+
+					// 立即支付的回傳資料
+					PaymentRequired = true,
+					PaymentStatus = "pending",
+					EcpayFormHtml = ecpayFormHtml,
+					PaymentDeadline = null
+				};
 			}
-
-			if (booking.Status == "Cancelled")
+			else if (dto.PaymentTiming == "partial")
 			{
-				throw new InvalidOperationException("此預訂已經被取消");
+				// ========== 延後支付：不產生表單 ==========
+				Console.WriteLine("延後支付：不產生綠界表單");
+				Console.WriteLine($"付款期限：{booking.PaymentDeadline}");
+
+				return new CreateOrderAndPayResponseDto
+				{
+					BookingId = booking.BookingId,
+					OrderNumber = orderNumber,
+
+					// 延後支付的回傳資料
+					PaymentRequired = false,
+					PaymentStatus = "deferred",
+					EcpayFormHtml = null,
+					PaymentDeadline = booking.PaymentDeadline
+				};
 			}
-
-			booking.Status = "Cancelled";
-			//booking.CancelledAt = DateTime.Now; 
-
-			await _bookingRepository.CancelBookingByIdAsync(booking);
-
-			return _mapper.Map<BookingDto>(booking);
+			else
+			{
+				throw new ArgumentException($"無效的付款時機：{dto.PaymentTiming}");
+			}
 		}
 
+		// ==================== 內部使用方法 ====================
 
-		// 內部使用方法
 		// 生成訂單編號，格式：ORD + yyyyMMdd + 4位流水號
 		private async Task<string> GenerateBookingNumberAsync()
 		{

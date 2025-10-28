@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Area.Bookings.Controller
+namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
@@ -25,9 +24,20 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controller
 			return Ok(bookings);
 		}
 
-		/// <summary>
-		/// 建立訂單並產生綠界付款表單
-		/// </summary>
+		// [開發用] 根據使用者ID獲取其所有訂單
+		// 未來與登入功能整合後，應改為從 HttpContext 的 Claims 獲取 userId，並加上 [Authorize]
+		[HttpGet("user/{guestId}")]
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsByUserId(int guestId)
+		{
+			var bookings = await _bookingService.GetBookingsByUserAsync(guestId);
+			if (bookings == null || !bookings.Any())
+			{
+				return NotFound("找不到該使用者的訂單");
+			}
+			return Ok(bookings);
+		}
+
+		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
 			[FromBody] CreateBookingWithPaymentDto dto)
@@ -56,39 +66,6 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controller
 					innerException = ex.InnerException?.Message
 				});
 			}
-		}
-
-		[HttpGet("{bookingId:int}")]
-		public async Task<ActionResult<Booking>> GetBookingById(int bookingId)
-		{
-			var booking = await _bookingService.GetBookingByIdAsync(bookingId);
-
-			if (booking == null)
-			{
-				return NotFound();
-			}
-
-			return booking == null ? NotFound() : Ok(booking);
-		}
-
-		[HttpGet("~/api/users/{userId:int}/bookings")]
-		public async Task<ActionResult<IEnumerable<Booking>>> GetBookingByUserAsync(int userId)
-		{
-			var bookings = await _bookingService.GetBookingsByUserAsync(userId);
-
-			if (bookings == null || !bookings.Any())
-			{
-				return NotFound();
-			}
-
-			return Ok(bookings);
-		}
-
-		[HttpPut("{bookingId:int}/cancel")]
-		public async Task<ActionResult<BookingDto>> CancelBookingAsync(int bookingId)
-		{
-			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
-			return Ok(result);
 		}
 	}
 }

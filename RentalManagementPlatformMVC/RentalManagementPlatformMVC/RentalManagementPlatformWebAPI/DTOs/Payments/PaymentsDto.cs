@@ -1,4 +1,4 @@
-﻿namespace RentalManagementPlatformWebAPI.DTOs.Bookings
+﻿namespace RentalManagementPlatformWebAPI.DTOs.Payments
 {
 	public class PaymentsDto
 	{

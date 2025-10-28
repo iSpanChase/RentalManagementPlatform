@@ -1,17 +1,14 @@
-﻿using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.Models;
+﻿using RentalManagementPlatformWebAPI.Models;
 
 namespace RentalManagementPlatformWebAPI.Repositories.Interfaces
 {
 	public interface IBookingRepository
 	{
-		// 取得所有訂單(測試用)
 		Task<IEnumerable<Booking>> GetAllBookingsAsync();
+		Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId);
 		Task CreateBookingAsync(Booking booking);
-		Task<Booking?> GetBookingByIdAsync(int bookingId);
-		Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId);
+		Task <Booking?> GetBookingByOrderNumberAsync(string orderNumber);
+		Task UpdateBookingAsync(Booking booking);
 		Task<string?> GetLastBookingNumberByDateAsync(string datePrefix);
-		Task CancelBookingByIdAsync(Booking booking);
-		Task<Booking?> GetBookingByIdSimpleAsync(int bookingId);
 	}
 }

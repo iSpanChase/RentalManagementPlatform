@@ -5,19 +5,32 @@
 	/// </summary>
 	public class CreateOrderAndPayResponseDto
 	{
-		/// <summary>
-		/// 訂單 ID
-		/// </summary>
+		// 訂單 ID
 		public int BookingId { get; set; }
 
-		/// <summary>
-		/// 訂單編號（例如：ORD202412250001）
-		/// </summary>
-		public string OrderNumber { get; set; } = string.Empty;
+		// 訂單編號（例如：ORD202410270001）
+		public string OrderNumber { get; set; }
 
 		/// <summary>
-		/// 綠界付款表單 HTML（包含自動提交的 JavaScript）
+		/// 是否需要立即付款
+		/// - true = 立即支付（需要跳轉綠界）
+		/// - false = 延後支付（不需要跳轉）
 		/// </summary>
-		public string EcpayFormHtml { get; set; } = string.Empty;
+		public bool PaymentRequired { get; set; }
+
+		/// <summary>
+		/// 付款狀態
+		/// - "pending" = 等待付款中（立即支付）
+		/// - "deferred" = 延後支付
+		/// - "completed" = 已完成付款
+		/// - "failed" = 付款失敗
+		/// </summary>
+		public string PaymentStatus { get; set; }
+
+		///綠界付款表單 HTML（只有立即支付時才有內容）
+		public string? EcpayFormHtml { get; set; }
+
+		// 付款期限（只有延後支付時才有內容）
+		public DateTime? PaymentDeadline { get; set; }
 	}
 }

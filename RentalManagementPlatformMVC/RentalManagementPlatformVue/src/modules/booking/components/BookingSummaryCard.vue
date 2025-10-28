@@ -253,7 +253,7 @@ onMounted(() => {
               <div class="policy-item">
                 <div class="policy-inner-item1">
                   <strong class="policy-label">此時間之前：</strong>
-                  <p class="policy-date">12月30日下午4:00</p>
+                  <p class="policy-date">{{ bookingStore.refundableDate }}</p>
                 </div>
                 <div class="policy-inner-item2">
                   <p>可獲得全額退款</p>
@@ -267,7 +267,7 @@ onMounted(() => {
               <div class="policy-item">
                 <div class="policy-inner-item1">
                   <strong class="policy-label">此時間之後：</strong>
-                  <p class="policy-date">12月30日下午4:00</p>
+                  <p class="policy-date">{{ bookingStore.refundableDate }}</p>
                 </div>
                 <div class="policy-inner-item2">
                   <p>無法獲得退款</p>
@@ -603,7 +603,6 @@ onMounted(() => {
   &.total {
     font-size: 16px;
     padding-top: 12px;
-    border-top: 1px solid #ddd;
   }
 }
 

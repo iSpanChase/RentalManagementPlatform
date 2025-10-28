@@ -16,7 +16,55 @@
 		public string? Status { get; set; }
 		public DateTime? CreatedAt { get; set; }
 
-		// 關聯資料
+		// ==================== 新增欄位 ====================
+
+		// 住宿人數
+		public int? GuestCount { get; set; }
+
+		//付款時機 ('full' = 立即支付, 'partial' = 延後支付)
+		public string? PaymentTiming { get; set; }
+
+		// 付款狀態 ('paid' = 已付款, 'unpaid' = 未付款, 'refunded' = 已退款)
+		public string? PaymentStatus { get; set; }
+
+		// 付款截止日期 (僅在 PaymentTiming 為 'partial' 時適用)
+		public DateTime? PaymentDeadline { get; set; }
+
+		// --- 聯絡人/付款人資訊 ---
+
+		// 聯絡人姓名
+		public string? ContactName { get; set; }
+
+		// 聯絡人 Email
+		public string? ContactEmail { get; set; }
+
+		// 聯絡人電話
+		public string? ContactPhone { get; set; }
+
+		// 特殊需求備註
+		public string? ContactNotes { get; set; }
+
+		// --- 帳單地址 ---
+
+		// 國家代碼 (例如: TW)
+		public string? BillingCountry { get; set; }
+
+		// 街道地址
+		public string? BillingStreet { get; set; }
+
+		// 公寓/套房號碼
+		public string? BillingApartment { get; set; }
+
+		// 城市
+		public string? BillingCity { get; set; }
+
+		// 省份/州
+		public string? BillingState { get; set; }
+
+		// 郵遞區號
+		public string? BillingZipCode { get; set; }
+
+		// ==================== 關聯資料 ====================
 		public string? GuestName { get; set; }
 		public string? Room { get; set; }
 	}

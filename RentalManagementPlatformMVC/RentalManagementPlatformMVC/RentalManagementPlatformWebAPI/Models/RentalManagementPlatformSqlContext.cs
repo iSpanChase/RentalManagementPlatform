@@ -208,6 +208,12 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				.HasMaxLength(50)
 				.HasColumnName("payment_timing");
 
+			entity.Property(e => e.PaymentStatus)
+				.HasMaxLength(20)
+				.HasColumnName("payment_status");
+
+			entity.Property(e => e.PaymentDeadline).HasColumnName("payment_deadline");
+
 			// 聯絡人資訊
 			entity.Property(e => e.ContactName)
 				.HasMaxLength(100)

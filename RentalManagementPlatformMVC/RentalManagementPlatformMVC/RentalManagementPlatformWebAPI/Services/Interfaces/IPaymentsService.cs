@@ -1,4 +1,4 @@
-﻿using RentalManagementPlatformWebAPI.DTOs.Bookings;
+﻿using RentalManagementPlatformWebAPI.DTOs.Payments;
 
 namespace RentalManagementPlatformWebAPI.Services.Interfaces
 {
@@ -6,8 +6,13 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
 	{
 		// 取得所有付款紀錄(測試用)
 		Task<IEnumerable<PaymentsDto>> GetAllPaymentsAsync();
-		Task<PaymentsDto> CreatePaymentAsync(CreatePaymentDto dto);
-		Task<PaymentsDto?> GetPaymentByIdAsync(int paymentId);
-		Task<IEnumerable<PaymentsDto>> GetPaymentsByHostIdAsync(int hostId);
+		Task<PaymentCallbackResultDto> ProcessEcpayCallbackAsync(
+			string orderNumber,
+			bool isSuccess,
+			string tradeNo,
+			decimal tradeAmount,
+			DateTime paymentDate,
+			string paymentType);
+		Task<string> GeneratePaymentFormForDeferredBookingAsync(string orderNumber);
 	}
 }
