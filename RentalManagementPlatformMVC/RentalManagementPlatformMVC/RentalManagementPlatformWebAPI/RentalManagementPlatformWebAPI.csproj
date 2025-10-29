@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19">
       <PrivateAssets>all</PrivateAssets>

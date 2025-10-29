@@ -80,6 +80,10 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+			// DI¡GEmail Sender¡]SmtpEmailSender¡^
+			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
 			// Swagger¡]¸É Schema Id / JWT / DateOnly/TimeOnly ¹ïÀ³¡^
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
@@ -148,6 +152,7 @@ namespace RentalManagementPlatformWebAPI
 
 			app.UseAuthentication();
 			app.UseAuthorization();
+			app.UseStaticFiles();
 
 			app.MapControllers();
 

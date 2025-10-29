@@ -5,6 +5,7 @@ namespace RentalManagementPlatformWebAPI.Repositories
 	public interface IUserRepository
 	{
 		Task<User?> GetByEmailAsync(string email);
+		Task<User?> GetByUsernameAsync(string username);
 		Task<User?> GetByProviderAsync(string provider, string subject);
 		Task<User?> GetByIdAsync(int userId);
 		Task AddAsync(User user);

@@ -203,7 +203,7 @@ namespace RentalManagementPlatformWebAPI.Services
 			Name = u.Name ?? "",
 			Username = u.Username ?? "",
 			Phone = u.Phone ?? "",
-			ProfileImageurl = u.ProfileImageurl ?? ""
+			ProfileImageUrl = u.ProfileImageurl ?? ""
 		};
 
 		private static string MakeUsernameFromEmail(string email)
