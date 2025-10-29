@@ -35,6 +35,12 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
 		{
 			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
+
+			if (bookings == null || !bookings.Any())
+			{
+				throw new ArgumentException("找不到該使用者的訂單");
+			}
+
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
@@ -227,7 +233,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			}
 
 			// 組合訂單編號：ORD + 日期 + 流水號(4位)
-			return $"ORD{datePrefix}{sequence:D4}";
+			return $"ORD{datePrefix}{sequence:D4}{new Random().Next(1000, 9999)}";
 		}
 	}
 }

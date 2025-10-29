@@ -156,6 +156,19 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 			}
 		}
 
+		/// <summary>
+		/// 接收綠界付款結果通知，並導向前端頁面 (OrderResultURL)
+		/// </summary>
+		[HttpPost("redirect-handler")]
+		public IActionResult EcpayFrontendRedirect([FromForm] Dictionary<string, string> formData)
+		{
+		    // 這裡可以選擇性地記錄一些日誌，但主要目的是導向
+		    _logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
+		    // 綠界會把參數 POST 過來，但我們不需要處理，直接導向即可
+		    // 導向到前端的訂單頁面，讓前端自己去查詢訂單狀態
+		    return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings?userId=1");		
+		}
+		
 		/// 測試用：手動觸發回調（開發時使用）
 		/// 正式環境請移除此方法或加上權限驗證
 		/// </summary>

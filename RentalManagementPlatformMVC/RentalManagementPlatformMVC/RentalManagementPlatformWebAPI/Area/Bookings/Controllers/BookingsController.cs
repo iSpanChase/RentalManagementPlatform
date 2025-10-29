@@ -18,7 +18,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 取得所有訂單(測試用)
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Booking>>> GetAllBookingsAsync()
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsAsync()
 		{
 			var bookings = await _bookingService.GetAllBookingsAsync();
 			return Ok(bookings);
@@ -30,10 +30,6 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsByUserId(int guestId)
 		{
 			var bookings = await _bookingService.GetBookingsByUserAsync(guestId);
-			if (bookings == null || !bookings.Any())
-			{
-				return NotFound("找不到該使用者的訂單");
-			}
 			return Ok(bookings);
 		}
 

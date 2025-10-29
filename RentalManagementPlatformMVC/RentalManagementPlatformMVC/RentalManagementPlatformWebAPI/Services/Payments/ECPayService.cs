@@ -4,9 +4,6 @@ using System.Web;
 
 namespace RentalManagementPlatformWebAPI.Services.Payments
 {
-	/// <summary>
-	/// 綠界金流服務
-	/// </summary>
 	public class ECPayService
 	{
 		private readonly IConfiguration _configuration;
@@ -28,9 +25,10 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 			_hashKey = _configuration["ECPay:HashKey"] ?? "5294y06JbISpM5x9";
 			_hashIV = _configuration["ECPay:HashIV"] ?? "v77hoKGq4kWxNNIS";
 			_ecpayUrl = _configuration["ECPay:PaymentUrl"] ?? "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5";
-			_returnUrl = _configuration["ECPay:ReturnUrl"] ?? "https://localhost:7230/api/payments/return"; // 後端接收付款結果的 URL
-			_orderResultUrl = _configuration["ECPay:OrderResultUrl"] ?? "http://localhost:5173/booking/success"; // 前端顯示訂單結果的 URL
-		} 
+			// ECPay URLs using paid ngrok static domains
+			_returnUrl = "https://my-project-backend.ngrok.app/api/payments/return"; // Official: Server-side, for backend notification
+			_orderResultUrl = "https://my-project-backend.ngrok.app/api/payments/redirect-handler"; // Official: Client-side, for user's browser (via backend redirect handler)
+		}
 
 		/// <summary>
 		/// 產生綠界付款表單 HTML

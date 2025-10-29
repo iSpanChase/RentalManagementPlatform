@@ -1,25 +1,25 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useBookingStore } from '@/stores/bookingStore'
-import { useRouter } from 'vue-router'
-import { getData } from 'country-list'
+import { ref, computed, onMounted } from 'vue';
+import { useBookingStore } from '@/stores/bookingStore';
+import { useRouter } from 'vue-router';
+import { getData } from 'country-list';
 
 // ==================== 狀態管理 ====================
-const bookingStore = useBookingStore()
-const router = useRouter()
+const bookingStore = useBookingStore();
+const router = useRouter();
 
 // 當前進行的步驟 (1, 2, 3)
-const currentStep = ref(1)
+const currentStep = ref(1);
 
 // 每個步驟的完成狀態
 const stepCompleted = ref({
   step1: false,
   step2: false,
   step3: false
-})
+});
 
 // 用戶選擇的付款時間 ('full' = 立即支付, 'partial' = 延後支付)
-const selectedPaymentTiming = ref('full')
+const selectedPaymentTiming = ref('full');
 
 // ==================== 表單資料 ====================
 // 聯絡資訊
@@ -28,7 +28,7 @@ const billingInfo = ref({
   email: '',
   phone: '',
   notes: ''
-})
+});
 
 // 帳單地址
 const billingAddress = ref({
@@ -38,7 +38,7 @@ const billingAddress = ref({
   state: '',
   zipCode: '',
   country: 'TW'
-})
+});
 
 // 國家列表 (從 country-list 套件獲取)
 const countries = ref(
@@ -46,7 +46,7 @@ const countries = ref(
     code: country.code,
     name: country.name
   }))
-)
+);
 
 // ==================== 工具函數 ====================
 /**
@@ -55,13 +55,13 @@ const countries = ref(
  * @returns {string} 格式化後的日期
  */
 const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
+  const date = new Date(dateStr);
   return date.toLocaleDateString('zh-TW', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
-  })
-}
+  });
+};
 
 // ==================== 步驟控制函數 ====================
 /**
@@ -70,7 +70,7 @@ const formatDate = (dateStr) => {
 const handleContinue = () => {
   stepCompleted.value.step1 = true
   currentStep.value = 2
-}
+};
 
 /**
  * Step 2 繼續按鈕：完成 Step 2 並進入 Step 3
@@ -78,34 +78,34 @@ const handleContinue = () => {
 const handleStep2Continue = () => {
   // 簡單驗證
   if (!billingInfo.value.name || !billingInfo.value.email || !billingInfo.value.phone) {
-    alert('請填寫完整的聯絡資訊')
-    return
-  }
+    alert('請填寫完整的聯絡資訊');
+    return;
+  };
 
   if (!billingAddress.value.street || !billingAddress.value.city || !billingAddress.value.zipCode) {
-    alert('請填寫完整的帳單地址')
-    return
-  }
+    alert('請填寫完整的帳單地址');
+    return;
+  };
 
-  stepCompleted.value.step2 = true
-  currentStep.value = 3
-}
+  stepCompleted.value.step2 = true;
+  currentStep.value = 3;
+};
 
 /**
  * 返回上一步
  */
 const handleBack = () => {
   if (currentStep.value > 1) {
-    currentStep.value--
+    currentStep.value--;
 
     // 取消當前步驟的完成狀態
     if (currentStep.value === 1) {
-      stepCompleted.value.step1 = false
+      stepCompleted.value.step1 = false;
     } else if (currentStep.value === 2) {
-      stepCompleted.value.step2 = false
-    }
-  }
-}
+      stepCompleted.value.step2 = false;
+    };
+  };
+};
 
 /**
  * 確認並付款
@@ -113,11 +113,11 @@ const handleBack = () => {
 const handleConfirmPayment = async () => {
   try {
     if (!bookingStore.hasBookingDraft) {
-      alert('訂房資料不完整，請先載入測試資料')
-      return
-    }
+      alert('訂房資料不完整，請先載入測試資料');
+      return;
+    };
 
-    console.log('準備送出訂單...')
+    console.log('準備送出訂單...');
 
     const paymentData = {
       paymentTiming: selectedPaymentTiming.value,
@@ -135,62 +135,62 @@ const handleConfirmPayment = async () => {
         state: billingAddress.value.state || '',
         zipCode: billingAddress.value.zipCode
       }
-    }
+    };
 
     // 呼叫 Store 的方法建立訂單
-    const result = await bookingStore.createBooking(paymentData)
+    const result = await bookingStore.createBooking(paymentData);
 
     // 判斷後端回傳的結果
     if (result.paymentRequired) {
       // ----- 情況 1：選擇立即付款 -----
-      console.log('訂單建立成功，選擇立即付款！')
-      console.log('訂單編號：', result.orderNumber)
+      console.log('訂單建立成功，選擇立即付款！');
+      console.log('訂單編號：', result.orderNumber);
 
       // 將綠界付款表單插入頁面並自動提交
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = result.ecpayFormHtml
-      document.body.appendChild(tempDiv)
-      console.log('綠界表單已插入 DOM')
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = result.ecpayFormHtml;
+      document.body.appendChild(tempDiv);
+      console.log('綠界表單已插入 DOM');
 
-      const form = tempDiv.querySelector('form')
+      const form = tempDiv.querySelector('form');
       if (form) {
-        console.log('找到綠界表單，準備提交...')
+        console.log('找到綠界表單，準備提交...');
         // 延遲提交以確保表單已完全載入
         setTimeout(() => {
-          form.submit()
-          console.log('表單已提交！')
-        }, 500)
+          form.submit();
+          console.log('表單已提交！');
+        }, 500);
       } else {
-        console.error('找不到綠界付款表單！')
-        alert('無法找到付款表單，請聯繫客服')
-      }
+        console.error('找不到綠界付款表單！');
+        alert('無法找到付款表單，請聯繫客服');
+      };
 
     } else {
       // ----- 情況 2：選擇延後付款 -----
-      console.log('訂單建立成功，選擇延後付款！')
-      console.log('訂單編號：', result.orderNumber)
-      alert('訂單已成功建立！您選擇了延後付款，頁面將跳轉至「我的訂單」。')
+      console.log('訂單建立成功，選擇延後付款！');
+      console.log('訂單編號：', result.orderNumber);
+      alert('訂單已成功建立！您選擇了延後付款，頁面將跳轉至「我的訂單」。');
 
       // 跳轉到「我的訂單」頁面
-      await router.push('/booking/mybookings')
+      await router.push('/booking/mybookings');
 
       // 清除 booking store 中的草稿資料
-      bookingStore.clearBookingDraft()
-    }
+      bookingStore.clearBookingDraft();
+    };
 
   } catch (error) {
-    console.error('建立訂單失敗', error)
+    console.error('建立訂單失敗', error);
 
     if (error.response) {
-      const errorMessage = error.response.data?.message || '訂單建立失敗'
-      alert(`錯誤：${errorMessage}`)
+      const errorMessage = error.response.data?.message || '訂單建立失敗';
+      alert(`錯誤：${errorMessage}`);
     } else if (error.request) {
-      alert('網路連線失敗，請檢查網路後再試')
+      alert('網路連線失敗，請檢查網路後再試');
     } else {
-      alert('訂單建立失敗，請稍後再試')
-    }
-  }
-}
+      alert('訂單建立失敗，請稍後再試');
+    };
+  };
+};
 
 // ==================== 開發測試：自動載入資料 ====================
 onMounted(() => {
@@ -200,7 +200,7 @@ onMounted(() => {
     email: 'test@example.com',
     phone: '0912-345-678',
     notes: '提早入住'
-  }
+  };
 
   // 設定帳單地址
   billingAddress.value = {
@@ -210,12 +210,12 @@ onMounted(() => {
     city: '台北市',
     state: '台北市',
     zipCode: '110'
-  }
+  };
 
-  console.log('測試房客資料已載入')
-  console.log('billingInfo:', billingInfo.value)
-  console.log('billingAddress:', billingAddress.value)
-})
+  console.log('測試房客資料已載入');
+  console.log('billingInfo:', billingInfo.value);
+  console.log('billingAddress:', billingAddress.value);
+});
 </script>
 
 <template>

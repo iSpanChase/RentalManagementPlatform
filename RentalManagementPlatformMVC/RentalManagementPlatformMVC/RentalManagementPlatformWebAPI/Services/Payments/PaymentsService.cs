@@ -129,8 +129,8 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 					booking.PaymentStatus = "completed";  // 付款狀態：已完成
 					booking.Status = "Confirmed";  // 訂單狀態：已確認
 
-					_logger.LogInformation($"   PaymentStatus: {oldPaymentStatus} → completed");
-					_logger.LogInformation($"   Status: {oldOrderStatus} → Confirmed");
+					_logger.LogInformation($"PaymentStatus: {oldPaymentStatus} → completed");
+					_logger.LogInformation($"Status: {oldOrderStatus} → Confirmed");
 				}
 				else
 				{

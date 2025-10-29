@@ -1,95 +1,95 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useBookingStore } from '@/stores/bookingStore'
-import { Modal } from 'bootstrap'
+import { ref, computed, onMounted } from 'vue';
+import { useBookingStore } from '@/stores/bookingStore';
+import { Modal } from 'bootstrap';
 
 // ==================== Store ====================
-const bookingStore = useBookingStore()
+const bookingStore = useBookingStore();
 
 // ==================== 計算屬性：檢查是否有訂房資料 ====================
 const hasBookingData = computed(() => {
-  return bookingStore.hasBookingDraft && bookingStore.bookingDraft !== null
-})
+  return bookingStore.hasBookingDraft && bookingStore.bookingDraft !== null;
+});
 
 // ==================== 日期相關 ====================
-const newCheckIn = ref('')
-const newCheckOut = ref('')
-const dateError = ref('')
+const newCheckIn = ref('');
+const newCheckOut = ref('');
+const dateError = ref('');
 
 // 格式化日期
 const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
   return date.toLocaleDateString('zh-TW', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
-  })
-}
+  });
+};
 
 // 初始化日期選擇器
 const initDatePickers = () => {
-  if (!hasBookingData.value) return
+  if (!hasBookingData.value) return;
 
-  newCheckIn.value = bookingStore.bookingDraft.checkIn
-  newCheckOut.value = bookingStore.bookingDraft.checkOut
-  dateError.value = ''
-}
+  newCheckIn.value = bookingStore.bookingDraft.checkIn;
+  newCheckOut.value = bookingStore.bookingDraft.checkOut;
+  dateError.value = '';
+};
 
 // 處理變更日期
 const handleChangeDates = () => {
   if (newCheckIn.value && newCheckOut.value) {
-    bookingStore.bookingDraft.checkIn = newCheckIn.value
-    bookingStore.bookingDraft.checkOut = newCheckOut.value
-    dateError.value = ''
+    bookingStore.bookingDraft.checkIn = newCheckIn.value;
+    bookingStore.bookingDraft.checkOut = newCheckOut.value;
+    dateError.value = '';
 
     // 關閉 modal
-    const modal = Modal.getInstance(document.getElementById('dateChangeModal'))
-    if (modal) modal.hide()
+    const modal = Modal.getInstance(document.getElementById('dateChangeModal'));
+    if (modal) modal.hide();
   } else {
-    dateError.value = '請選擇有效的入住和退房日期'
-  }
-}
+    dateError.value = '請選擇有效的入住和退房日期';
+  };
+};
 
 // 清除日期
 const handleClearDates = () => {
-  newCheckIn.value = ''
-  newCheckOut.value = ''
-  dateError.value = ''
-}
+  newCheckIn.value = '';
+  newCheckOut.value = '';
+  dateError.value = '';
+};
 
 // ==================== 客人人數相關 ====================
-const newGuests = ref(1)
+const newGuests = ref(1);
 
 // 初始化客人選擇器
 const initGuestsPicker = () => {
-  if (!hasBookingData.value) return
+  if (!hasBookingData.value) return;
 
-  newGuests.value = bookingStore.bookingDraft.guestCount || 1
-}
+  newGuests.value = bookingStore.bookingDraft.guestCount || 1;
+};
 
 // 處理變更客人
 const handleChangeGuests = () => {
   if (newGuests.value > 0) {
-    bookingStore.bookingDraft.guestCount = newGuests.value
+    bookingStore.bookingDraft.guestCount = newGuests.value;
 
     // 關閉 modal
-    const modal = Modal.getInstance(document.getElementById('guestsChangeModal'))
-    if (modal) modal.hide()
-  }
-}
+    const modal = Modal.getInstance(document.getElementById('guestsChangeModal'));
+    if (modal) modal.hide();
+  };
+};
 
 // 增加客人數
 const increaseGuests = () => {
-  newGuests.value++
-}
+  newGuests.value++;
+};
 
 // 減少客人數
 const decreaseGuests = () => {
   if (newGuests.value > 1) {
-    newGuests.value--
-  }
-}
+    newGuests.value--;
+  };
+};
 
 // ==================== 開發測試：自動載入資料 ====================
 onMounted(() => {
@@ -107,10 +107,10 @@ onMounted(() => {
     coupon: {
       discountAmount: 200,
     }
-  })
+  });
 
-  console.log('測試訂房資料已載入')
-  console.log('bookingDraft:', bookingStore.bookingDraft)
+  console.log('測試訂房資料已載入');
+  console.log('bookingDraft:', bookingStore.bookingDraft);
 })
 </script>
 

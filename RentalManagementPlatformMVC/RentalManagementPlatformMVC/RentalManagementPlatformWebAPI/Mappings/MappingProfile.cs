@@ -12,7 +12,6 @@ namespace RentalManagementPlatformWebAPI.Mappings
 		public MappingProfile()
 		{
 			CreateMap<Booking, BookingDto>()
-				// 原有的對應
 				.ForMember(dest => dest.GuestName, opt => opt.MapFrom(src => src.Guest.Name))
 				.ForMember(dest => dest.Room, opt => opt.MapFrom(src => src.Room.Title));
 			CreateMap<Payment, PaymentsDto>()

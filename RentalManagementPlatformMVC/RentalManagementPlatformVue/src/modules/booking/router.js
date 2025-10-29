@@ -16,9 +16,9 @@ export default [
         component: () => import('./pages/MyBookingsView.vue'),
       },
       {
-        path: 'list',
-        name: 'BookingList',
-        component: () => import('./pages/BookingList.vue'),
+        path: 'myorders',
+        name: 'MyOrders',
+        component: () => import('./pages/MyOrdersView.vue'),
       },
     ],
   },

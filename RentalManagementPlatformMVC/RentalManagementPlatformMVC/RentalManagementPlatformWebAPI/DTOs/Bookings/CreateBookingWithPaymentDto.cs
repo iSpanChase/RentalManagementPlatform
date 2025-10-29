@@ -2,9 +2,7 @@
 
 namespace RentalManagementPlatformWebAPI.DTOs.Bookings
 {
-	/// <summary>
-	/// 建立訂單並付款的 DTO（整合前端所有資料）
-	/// </summary>
+	// 建立訂單並付款的 DTO（整合前端所有資料）
 	public class CreateBookingWithPaymentDto
 	{
 		// ==================== 訂房基本資料 ====================
@@ -61,9 +59,7 @@ namespace RentalManagementPlatformWebAPI.DTOs.Bookings
 		public BillingAddressDto BillingAddress { get; set; } = new();
 	}
 
-	/// <summary>
-	/// 聯絡人資訊
-	/// </summary>
+	// 聯絡人資訊
 	public class BillingInfoDto
 	{
 		[Required(ErrorMessage = "姓名為必填")]
@@ -84,9 +80,7 @@ namespace RentalManagementPlatformWebAPI.DTOs.Bookings
 		public string? Notes { get; set; }
 	}
 
-	/// <summary>
-	/// 帳單地址
-	/// </summary>
+	// 帳單地址
 	public class BillingAddressDto
 	{
 		[Required(ErrorMessage = "國家為必填")]
