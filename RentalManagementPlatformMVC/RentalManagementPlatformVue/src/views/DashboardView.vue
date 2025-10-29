@@ -80,9 +80,11 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+const { state, fetchProfile } = useAuthStore()
 
 const auth = useAuthStore()
 const profile = computed(() => auth.state.profile)
@@ -96,6 +98,12 @@ const fallbackAvatar = computed(() => {
 })
 
 const avatarUrl = computed(() => profile.value?.profileImageUrl || fallbackAvatar.value)
+
+onMounted(async () => {
+  if (!state.profile) {
+    try { await fetchProfile() } catch {}
+  }
+})
 
 function onAvatarError(e: Event) {
   (e.target as HTMLImageElement).src = fallbackAvatar.value

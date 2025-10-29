@@ -186,7 +186,14 @@ const login = async (request: LoginRequest) => {
   try {
     const { data } = await api.post<LoginResponse>('/Auth/login', request)
     setSession(data)
-    return data
+    // 立刻拉一次 /Users/me，確保拿到 gender / birthDate / address 等完整欄位
+    try {
+      await fetchProfile()
+    } catch {
+    // 即便失敗也不影響原本登入流程
+    }
+    // 回傳最新的 profile（若成功）或原本登入回來的
+    return state.profile ?? data
   } catch (error) {
     state.error = resolveErrorMessage(error)
     throw error
