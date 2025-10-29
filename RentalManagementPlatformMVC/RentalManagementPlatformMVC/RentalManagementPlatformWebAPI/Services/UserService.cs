@@ -125,6 +125,12 @@ namespace RentalManagementPlatformWebAPI.Services
 			await _users.SaveChangesAsync();
 			return user.ProfileImageurl ?? "";
 		}
+		public async Task<int?> GetUserIdByEmailAsync(string email)
+		{
+			if (string.IsNullOrWhiteSpace(email)) return null;
+			var user = await _users.GetByEmailAsync(email.Trim());
+			return user?.UserId;
+		}
 
 		// === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
 		private static UserProfileDto Map(User u) => new()

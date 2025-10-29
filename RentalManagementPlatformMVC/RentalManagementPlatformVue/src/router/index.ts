@@ -38,22 +38,29 @@ const router = createRouter({
       path: '/roles',
       name: 'roles',
       component: () => import('@/views/RolesView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiredPerms: ['Roles.View'] },
     },
     {
       path: '/permissions',
       name: 'permissions',
       component: () => import('@/views/PermissionsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiredPerms: ['Permissions.View'] },
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),
     },
-    { path: '/reset-password', 
-      name: 'reset-password', 
-      component: () => import('@/views/ResetPasswordView.vue'), meta: { requiresGuest: true } }
+    {
+      path: '/forbidden',
+      name: 'Forbidden',
+      component: () => import('@/views/ForbiddenView.vue'),
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/ResetPasswordView.vue'), meta: { requiresGuest: true }
+    }
   ],
 })
 
@@ -78,7 +85,28 @@ const ensureProfileLoaded = async () => {
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+    // ★ 先還原 token & headers，避免第一發 /Users/me 變 401
+  auth.restoreSession()
   const hasToken = !!localStorage.getItem('access_token')
+
+    // 需要登入的頁面才取個資；若沒有登入，等會一起導去登入或 Forbidden
+  if (to.meta.requiresAuth || (Array.isArray(to.meta.requiredPerms) && to.meta.requiredPerms.length)) {
+    if (!auth.state.profile) {
+      await auth.fetchProfile() // 這裡 401 會被吞掉並清 session
+    }
+    // 若還是沒登入（或 token 壞掉被清），導去登入頁
+    if (!auth.state.accessToken) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
+    // 權限需求再補拉 abilities（你有實作就會更新；沒有就維持登入回傳）
+    if (!auth.state.permissions?.length && auth.fetchAbilities) {
+      try { await auth.fetchAbilities() } catch {}
+    }
+    const need = (to.meta.requiredPerms as string[]) || []
+    if (need.length && !need.every(auth.can)) {
+      return { name: 'Forbidden' }
+    }
+  }
 
   // 已登入 -> 保險載入 profile
   if (auth.isAuthenticated.value && !auth.state.profile) {

@@ -189,6 +189,7 @@ const login = async (request: LoginRequest) => {
     // 立刻拉一次 /Users/me，確保拿到 gender / birthDate / address 等完整欄位
     try {
       await fetchProfile()
+      await fetchAbilities()
     } catch {
     // 即便失敗也不影響原本登入流程
     }
@@ -201,6 +202,28 @@ const login = async (request: LoginRequest) => {
     state.loading = false
   }
 }
+
+/** 從後端取得「目前使用者」的 roles 與 permissions（即時） */
+const fetchAbilities = async () => {
+  state.error = null
+  try {
+    const { data } = await api.get<{ roles: string[]; perms: string[] }>('/Auth/me/abilities')
+    state.roles = Array.isArray(data?.roles) ? data.roles : []
+    state.permissions = Array.isArray(data?.perms) ? data.perms : []
+    persistSession()
+    return { roles: state.roles, permissions: state.permissions }
+  } catch (error) {
+    // 若沒有這支 API，保留現狀（從 LoginResponse 來的陣列）
+    state.error = resolveErrorMessage(error)
+    // 可選：這裡不 throw，避免頁面啟動時卡住
+    return { roles: state.roles, permissions: state.permissions }
+  }
+}
+
+/** 前端授權判斷輔助 */
+const hasRole = (roleCode: string) => state.roles.includes(roleCode)
+const can = (permCode: string) => state.permissions.includes(permCode)
+
 
 const forgotPassword = async (email: string) => {
   state.error = null
@@ -266,9 +289,14 @@ const fetchProfile = async () => {
     state.profile = data
     persistSession()
     return data
-  } catch (error) {
-    state.error = resolveErrorMessage(error)
-    throw error
+  } catch (err: any) {
+    // 未登入 / token 失效：清理並不拋出，讓路由守衛接手導向
+    if (err?.response?.status === 401) {
+      clearSession()
+      return null
+    }
+    state.error = resolveErrorMessage(err)
+    throw err
   }
 }
 
@@ -301,6 +329,28 @@ const updateProfile = async (payload: UpdateProfileRequest) => {
   }
 }
 
+/** 啟動時從 localStorage 還原登入狀態，並把 Authorization 設回 Axios */
+const restoreSession = () => {
+  try {
+    const raw = localStorage.getItem('auth.session')
+    if (!raw) return
+    const s = JSON.parse(raw)
+
+    state.accessToken = s?.accessToken || ''
+    state.refreshToken = s?.refreshToken || ''
+    state.profile = s?.profile || null
+    state.roles = Array.isArray(s?.roles) ? s.roles : []
+    state.permissions = Array.isArray(s?.permissions) ? s.permissions : []
+
+    if (state.accessToken) {
+      api.defaults.headers.common.Authorization = `Bearer ${state.accessToken}`
+    }
+  } catch {
+    // 壞掉的快取就清掉
+    clearSession()
+  }
+}
+
 const getRoles = async () => {
   state.error = null
   try {
@@ -327,6 +377,7 @@ const assignRoleToUser = async (roleId: number, userId: number) => {
   state.error = null
   try {
     await api.post(`/Roles/${roleId}/users/${userId}`)
+    if (state.profile?.userId === userId) await fetchAbilities()
   } catch (error) {
     state.error = resolveErrorMessage(error)
     throw error
@@ -337,6 +388,7 @@ const revokeRoleFromUser = async (roleId: number, userId: number) => {
   state.error = null
   try {
     await api.delete(`/Roles/${roleId}/users/${userId}`)
+    if (state.profile?.userId === userId) await fetchAbilities()
   } catch (error) {
     state.error = resolveErrorMessage(error)
     throw error
@@ -356,6 +408,8 @@ const updateRolePermissions = async (
     } else {
       await api.delete(url, { data: { permissionIds } })
     }
+    // 若當前使用者擁有此 role，則也更新本地 abilities（需要後端 /Auth/me/abilities）
+    await fetchAbilities()
   } catch (error) {
     state.error = resolveErrorMessage(error)
     throw error
@@ -374,7 +428,6 @@ const resetPassword = async (email: string, token: string, newPassword: string) 
     throw error
   }
 }
-
 
 /** 交給 http 攔截器：自動帶 token / 自動 refresh / 401 清除 */
 registerAuthHandlers({
@@ -408,6 +461,10 @@ export const useAuthStore = () => ({
   resetPassword,
   setSession,
   clearSession,
+  fetchAbilities,
+  hasRole,
+  can,
+  restoreSession,
 })
 
 export type AuthStore = ReturnType<typeof useAuthStore>

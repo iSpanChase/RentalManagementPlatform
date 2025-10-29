@@ -32,19 +32,19 @@ export interface LoginRequest {
 }
 
 export interface RegistrationRequest {
-  roleCode: string
-  email: string
-  passwordHash: string
-  name: string
-  username: string
-  phone?: string
-  gender: string
-  birthDate: string        // yyyy-MM-dd
-  address: string
-  profileImageUrl?: string
-  companyName?: string | null
-  taxId?: string | null
-  nationalIdTail?: string | null
+    roleCode: string
+    email: string
+    passwordHash: string
+    name: string
+    username: string
+    phone?: string
+    gender: string
+    birthDate: string        // yyyy-MM-dd
+    address: string
+    profileImageUrl?: string
+    companyName?: string | null
+    taxId?: string | null
+    nationalIdTail?: string | null
 }
 
 /** 更新「我的個人資料」所需欄位（允許修改的部分） */

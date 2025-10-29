@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RentalManagementPlatformWebAPI.Auth;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
 using RentalManagementPlatformWebAPI.Services;
@@ -83,6 +86,11 @@ namespace RentalManagementPlatformWebAPI
 			// DI°GEmail Sender°]SmtpEmailSender°^
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
 			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+			// DI°GAuth Claims Transformation & Policy Provider
+			builder.Services.AddMemoryCache();
+			builder.Services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
+			builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
 			// Swagger°]∏… Schema Id / JWT / DateOnly/TimeOnly πÔ¿≥°^
 			builder.Services.AddEndpointsApiExplorer();

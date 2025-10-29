@@ -25,6 +25,8 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		private readonly string _frontendBaseUrl;
 		private readonly IEmailSender _emailSender;
 		private readonly IHostEnvironment _env;
+		private readonly IRoleRepository _roles;
+		private readonly IPermissionRepository _perms;
 
 		public AuthController(
 			IAuthService auth,
@@ -34,7 +36,9 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			IConfiguration cfg,
 			ILogger<AuthController> logger,
 			IEmailSender emailSender,
-			IHostEnvironment env)
+			IHostEnvironment env,
+			IRoleRepository roles,
+			IPermissionRepository perms)
 		{
 			_auth = auth;
 			_userService = userService;
@@ -44,10 +48,23 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			_logger = logger;
 			_emailSender = emailSender;
 			_env = env;
+			_roles = roles;
+			_perms = perms;
 
 			// 前端的根網址（用於重設密碼連結），appsettings 裡可設 Frontend:BaseUrl
 			_frontendBaseUrl = _cfg["Frontend:BaseUrl"] ?? "http://localhost:5173";
 			
+		}
+
+		[HttpGet("me/abilities")]
+		public async Task<IActionResult> GetMyAbilities()
+		{
+			var sub = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub")?.Value;
+			if (!int.TryParse(sub, out var userId)) return Unauthorized();
+
+			var roles = await _roles.GetCodesByUserIdAsync(userId);
+			var perms = await _perms.GetCodesByUserIdAsync(userId);
+			return Ok(new { roles, perms });
 		}
 
 		[HttpPost("login")]

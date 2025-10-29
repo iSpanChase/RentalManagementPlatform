@@ -1,299 +1,219 @@
 <template>
-  <div class="page-container">
-    <section class="section">
-      <header class="section-header">
-        <div>
-          <h1>角色管理</h1>
-          <p>檢視系統中的角色，並可快速指派或收回指定使用者的角色。</p>
-        </div>
-        <button class="ghost-button" type="button" @click="loadRoles" :disabled="isLoading">
-          重新整理
-        </button>
-      </header>
+  <main class="page">
+    <header class="page__header">
+      <h1>角色管理</h1>
+      <p class="muted">瀏覽系統角色、並以 Email 指派/收回角色。</p>
+    </header>
 
-      <div class="card">
-        <h2>角色清單</h2>
-        <div v-if="isLoading" class="placeholder">載入中...</div>
-        <div v-else-if="loadError" class="error-box">{{ loadError }}</div>
-        <table v-else class="data-table">
-          <thead>
-            <tr>
-              <th>角色名稱</th>
-              <th>角色代碼</th>
-              <th>角色 ID</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="role in roles" :key="role.id">
-              <td>{{ role.name }}</td>
-              <td><span class="code">{{ role.code }}</span></td>
-              <td>{{ role.id }}</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- 警示/提示 -->
+    <div v-if="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+    <div v-if="okMsg" class="alert alert-ok">{{ okMsg }}</div>
+
+    <!-- 角色清單 -->
+    <section class="card">
+      <div class="card__head">
+        <h3>角色清單</h3>
+        <button class="btn" @click="loadRoles" :disabled="loading">重新整理</button>
       </div>
 
-      <div class="card">
-        <h2>指派 / 收回角色</h2>
-        <form class="form-inline" @submit.prevent="assignRole('assign')">
-          <label>
-            <span>選擇角色</span>
-            <select v-model="selectedRoleId" required>
-              <option :value="null" disabled>請選擇角色</option>
-              <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-            </select>
-          </label>
-
-          <label>
-            <span>使用者 ID</span>
-            <input v-model.number="targetUserId" type="number" min="1" placeholder="輸入使用者 ID" required />
-          </label>
-
-          <div class="button-group">
-            <button class="primary-button" type="submit" :disabled="isProcessing">
-              {{ isProcessing ? '處理中...' : '指派角色' }}
-            </button>
-            <button class="danger-button" type="button" :disabled="isProcessing" @click="assignRole('revoke')">
-              收回角色
-            </button>
-          </div>
-        </form>
-
-        <p v-if="actionMessage" class="status" :class="statusClass">{{ actionMessage }}</p>
-      </div>
+      <div v-if="loading" class="skeleton">載入中…</div>
+      <table v-else class="table">
+        <thead>
+          <tr>
+            <th style="width: 120px;">#</th>
+            <th>角色名稱</th>
+            <th>角色代碼</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(r, idx) in roles" :key="r.roleId" @click="selectedRoleId = r.roleId" :class="{ selected: r.roleId === selectedRoleId }">
+            <td>{{ idx + 1 }}</td>
+            <td>{{ r.roleName }}</td>
+            <td><code>{{ r.roleCode }}</code></td>
+          </tr>
+          <tr v-if="!roles.length">
+            <td colspan="3" class="muted">尚無資料或無權限讀取。</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
-  </div>
+
+    <!-- 指派 / 收回 -->
+    <section class="card">
+      <h3>指派 / 收回角色</h3>
+
+      <div class="grid">
+        <div class="field">
+          <label>選擇角色</label>
+          <select v-model="selectedRoleId">
+            <option :value="null" disabled>請選擇角色</option>
+            <option v-for="r in roles" :key="r.roleId" :value="r.roleId">
+              {{ r.roleName }}（{{ r.roleCode }}）
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>使用者 Email</label>
+          <input
+            v-model.trim="email"
+            type="email"
+            placeholder="輸入 user@example.com"
+            autocomplete="email"
+          />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button
+          class="btn primary"
+          :disabled="loading || !can('Roles.Assign')"
+          @click="assignRole"
+        >
+          指派角色
+        </button>
+        <button
+          class="btn danger"
+          :disabled="loading || !can('Roles.Assign')"
+          @click="revokeRole"
+        >
+          收回角色
+        </button>
+      </div>
+
+      <p class="muted" v-if="!can('Roles.Assign')">你目前沒有 <code>Roles.Assign</code> 權限，無法進行指派/收回。</p>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import type { RoleSummary } from '@/types/auth'
+import { onMounted, ref } from 'vue'
+import http from '@/services/http'            // 既有的 Axios 實例
+import { useAuthStore } from '@/stores/auth'  // 需要 can() / fetchAbilities() / state.profile
 
-const auth = useAuthStore()
+type RoleItem = {
+  roleId: number
+  roleName: string
+  roleCode: string
+}
 
-const roles = ref<RoleSummary[]>([])
-const isLoading = ref(true)
-const loadError = ref('')
+const { can, fetchAbilities, state } = useAuthStore()
 
+const roles = ref<RoleItem[]>([])
 const selectedRoleId = ref<number | null>(null)
-const targetUserId = ref<number | null>(null)
-const isProcessing = ref(false)
-const actionMessage = ref('')
-const actionType = ref<'success' | 'error' | ''>('')
+const email = ref('')
 
-const statusClass = computed(() => (actionType.value === 'success' ? 'status--success' : 'status--error'))
+const loading = ref(false)
+const errorMsg = ref('')
+const okMsg = ref('')
+
+const clearMsgLater = () => {
+  window.setTimeout(() => {
+    okMsg.value = ''
+    errorMsg.value = ''
+  }, 2000)
+}
 
 const loadRoles = async () => {
-  isLoading.value = true
-  loadError.value = ''
+  loading.value = true
+  errorMsg.value = ''
   try {
-    roles.value = await auth.getRoles()
-  } catch (error) {
-    console.error('取得角色失敗', error)
-    loadError.value = auth.state.error ?? '無法載入角色，請稍後再試'
-  } finally {
-    isLoading.value = false
-  }
-}
+    const { data } = await http.get('/Roles')
+    // ★ 正規化：兼容 RoleId/RoleName/RoleCode 或 roleId/roleName/roleCode
+    const list = Array.isArray(data) ? data : []
+    roles.value = list.map((r: any) => ({
+      roleId:  r.roleId  ?? r.RoleId  ?? r.id  ?? r.ID  ?? null,
+      roleName:r.roleName?? r.RoleName?? r.name?? r.Name?? '',
+      roleCode:r.roleCode?? r.RoleCode?? r.code?? r.Code?? '',
+    }))
 
-const assignRole = async (action: 'assign' | 'revoke') => {
-  actionMessage.value = ''
-  actionType.value = ''
-  if (!selectedRoleId.value || !targetUserId.value) return
-
-  isProcessing.value = true
-  try {
-    if (action === 'assign') {
-      await auth.assignRoleToUser(selectedRoleId.value, targetUserId.value)
-      actionMessage.value = '已成功指派角色'
-    } else {
-      await auth.revokeRoleFromUser(selectedRoleId.value, targetUserId.value)
-      actionMessage.value = '已成功收回角色'
+    if (!roles.value.find(r => r.roleId === selectedRoleId.value)) {
+      selectedRoleId.value = roles.value[0]?.roleId ?? null
     }
-    actionType.value = 'success'
-  } catch (error) {
-    console.error('更新角色失敗', error)
-    actionMessage.value = auth.state.error ?? '操作失敗，請確認是否具有權限'
-    actionType.value = 'error'
+  } catch (err: any) {
+    errorMsg.value = err?.response?.status === 403
+      ? '沒有 Roles.View 權限，無法讀取角色清單'
+      : `載入角色失敗：${err?.response?.data ?? err?.message ?? '未知錯誤'}`
   } finally {
-    isProcessing.value = false
+    loading.value = false
   }
 }
 
-onMounted(() => {
-  loadRoles()
+const assignRole = async () => {
+  errorMsg.value = ''
+  okMsg.value = ''
+  if (!selectedRoleId.value) { errorMsg.value = '請先選擇角色'; return }
+  if (!email.value) { errorMsg.value = '請輸入 Email'; return }
+  if (!can('Roles.Assign')) { errorMsg.value = '你沒有 Roles.Assign 權限'; return }
+
+  loading.value = true
+  try {
+    await http.post(`/Roles/${selectedRoleId.value}/users/by-email`, { email: email.value })
+    okMsg.value = '指派成功'
+    // 若是指派給自己 → 同步本地 abilities
+    if (state.profile?.email && state.profile.email.toLowerCase() === email.value.toLowerCase()) {
+      await fetchAbilities()
+    }
+  } catch (err: any) {
+    errorMsg.value = err?.response?.status === 403
+      ? '沒有 Roles.Assign 權限'
+      : `指派失敗：${err?.response?.data ?? err?.message ?? '未知錯誤'}`
+  } finally {
+    loading.value = false
+    clearMsgLater()
+  }
+}
+
+const revokeRole = async () => {
+  errorMsg.value = ''
+  okMsg.value = ''
+  if (!selectedRoleId.value) { errorMsg.value = '請先選擇角色'; return }
+  if (!email.value) { errorMsg.value = '請輸入 Email'; return }
+  if (!can('Roles.Assign')) { errorMsg.value = '你沒有 Roles.Assign 權限'; return }
+
+  loading.value = true
+  try {
+    await http.delete(`/Roles/${selectedRoleId.value}/users/by-email`, {
+      // Axios 的 DELETE 若要帶 body，要寫在 data
+      data: { email: email.value }
+    })
+    okMsg.value = '收回成功'
+    if (state.profile?.email && state.profile.email.toLowerCase() === email.value.toLowerCase()) {
+      await fetchAbilities()
+    }
+  } catch (err: any) {
+    errorMsg.value = err?.response?.status === 403
+      ? '沒有 Roles.Assign 權限'
+      : `收回失敗：${err?.response?.data ?? err?.message ?? '未知錯誤'}`
+  } finally {
+    loading.value = false
+    clearMsgLater()
+  }
+}
+
+onMounted(async () => {
+  await loadRoles()
 })
 </script>
 
 <style scoped>
-.page-container {
-  padding: 32px 24px;
-}
-
-.section {
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.section-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.section-header h1 {
-  margin: 0;
-  font-size: 1.9rem;
-  color: #111827;
-}
-
-.section-header p {
-  margin: 4px 0 0;
-  color: #6b7280;
-}
-
-.card {
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.card h2 {
-  margin: 0;
-  font-size: 1.3rem;
-  color: #1f2937;
-}
-
-.placeholder {
-  color: #6b7280;
-}
-
-.error-box {
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow: hidden;
-  border-radius: 14px;
-}
-
-.data-table thead {
-  background: #f3f4f6;
-  text-align: left;
-}
-
-.data-table th,
-.data-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.95rem;
-}
-
-.data-table tbody tr:hover {
-  background: #f9fafb;
-}
-
-.code {
-  font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  background: #eef2ff;
-  color: #3730a3;
-  padding: 4px 6px;
-  border-radius: 6px;
-}
-
-.form-inline {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  align-items: end;
-}
-
-.form-inline label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.form-inline select,
-.form-inline input {
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 1rem;
-}
-
-.button-group {
-  display: flex;
-  gap: 12px;
-}
-
-.primary-button,
-.danger-button,
-.ghost-button {
-  border-radius: 999px;
-  padding: 12px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.primary-button {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: white;
-}
-
-.primary-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-}
-
-.danger-button {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.danger-button:hover:not(:disabled) {
-  background: #fecaca;
-}
-
-.ghost-button {
-  background: transparent;
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  color: #2563eb;
-}
-
-.ghost-button:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-.status {
-  font-weight: 600;
-}
-
-.status--success {
-  color: #047857;
-}
-
-.status--error {
-  color: #dc2626;
-}
+.page { display: grid; gap: 16px; padding: 16px; }
+.page__header { display: grid; gap: 6px; }
+.muted { color: #6b7280; }
+.alert { padding: 10px 12px; border-radius: 10px; }
+.alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.alert-ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+.card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; background: #fff; display: grid; gap: 12px; }
+.card__head { display: flex; align-items: center; justify-content: space-between; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 8px; border-bottom: 1px solid #eee; }
+.table tr.selected { background: #f3f4f6; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field label { display: block; margin-bottom: 6px; color: #374151; }
+.field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { border: 1px solid #d1d5db; padding: 8px 12px; border-radius: 10px; background: #fff; cursor: pointer; }
+.btn.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.btn.danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+.skeleton { padding: 12px; color: #6b7280; }
 </style>
