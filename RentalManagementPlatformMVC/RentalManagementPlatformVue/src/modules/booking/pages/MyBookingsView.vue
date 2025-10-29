@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { useRoute } from 'vue-router';
+import { Modal } from 'bootstrap';
 
 const bookingStore = useBookingStore();
 const bookings = ref([]);
@@ -61,8 +62,8 @@ const viewDetails = (orderNumber) => {
 
 // 處理 Modal 隱藏事件
 const handleModalHidden = () => {
-    console.log('Modal 已隱藏，清除 selectedBooking 資料');
-    selectedBooking.value = null;
+  console.log('Modal 已隱藏，清除 selectedBooking 資料');
+  selectedBooking.value = null;
 };
 
 // 處理立即付款
@@ -155,46 +156,66 @@ onUnmounted(() => {
 
       <div v-else class="bookings-list">
         <div v-for="booking in bookings" :key="booking.orderNumber" class="booking-card">
-          <div class="card-header">
-            <h3>{{ booking.room }}</h3>
-            <span :class="['order-status', `status-${booking.paymentStatus}`]">
-              {{ getStatusText(booking.paymentStatus) }}
-            </span>
+          <div class="card-image-wrapper">
+            <img
+              :src="booking.roomImageUrl || 'https://placehold.co/220x180/EBEBEB/717171?text=Room'"
+              alt="房源圖片"
+              class="room-image"
+            />
           </div>
-          <div class="card-body">
-            <div class="order-info-grid">
-              <p><strong>訂單編號:</strong></p>
-              <p>{{ booking.orderNumber }}</p>
 
-              <p><strong>入住日期:</strong></p>
-              <p>{{ formatDate(booking.checkIn) }}</p>
-
-              <p><strong>退房日期:</strong></p>
-              <p>{{ formatDate(booking.checkOut) }}</p>
-
-              <p class="total-price"><strong>總金額:</strong></p>
-              <p class="total-price-value">
-                <strong>${{ booking.totalPrice.toLocaleString() }} TWD</strong>
-              </p>
+          <div class="card-details-wrapper">
+            <div class="card-section top-section">
+              <div class="room-info">
+                <span class="room-location">{{ booking.billingCountry || '城市, 國家' }}</span>
+                <h3>{{ booking.room }}</h3>
+              </div>
+              <span :class="['order-status', `status-${booking.paymentStatus}`]">
+                {{ getStatusText(booking.paymentStatus) }}
+              </span>
             </div>
-          </div>
-          <div class="card-footer">
-            <button
-              v-if="booking.paymentStatus === 'deferred'"
-              @click="handlePayNow(booking.orderNumber)"
-              class="btn-pay-now"
-              :disabled="isLoading"
-            >
-              立即付款
-            </button>
-            <button
-              class="btn-details"
-              data-bs-toggle="modal"
-              data-bs-target="#orderDetailModal"
-              @click="viewDetails(booking.orderNumber)"
-            >
-              查看詳情
-            </button>
+
+            <div class="card-section mid-section">
+              <div class="info-item">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>{{ formatDate(booking.checkIn) }} - {{ formatDate(booking.checkOut) }}</span>
+              </div>
+              <div class="info-item">
+                <i class="fa-solid fa-user-group"></i>
+                <span>{{ booking.guestCount }} 位住客</span>
+              </div>
+              <div class="info-item order-number">
+                <i class="fa-solid fa-hashtag"></i>
+                <span>訂單: {{ booking.orderNumber }}</span>
+              </div>
+            </div>
+
+            <div class="card-section bottom-section">
+              <div class="total-price-area">
+                <span>總金額</span>
+                <p class="total-price-value">
+                  <strong>${{ booking.totalPrice.toLocaleString() }} TWD</strong>
+                </p>
+              </div>
+              <div class="card-actions">
+                <button
+                  v-if="booking.paymentStatus === 'deferred'"
+                  @click="handlePayNow(booking.orderNumber)"
+                  class="btn-pay-now"
+                  :disabled="isLoading"
+                >
+                  立即付款
+                </button>
+                <button
+                  class="btn-details"
+                  data-bs-toggle="modal"
+                  data-bs-target="#orderDetailModal"
+                  @click="viewDetails(booking.orderNumber)"
+                >
+                  查看詳情
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -243,18 +264,6 @@ onUnmounted(() => {
                 <p><strong>總金額:</strong></p>
                 <p class="price-value">TWD {{ selectedBooking.totalPrice.toLocaleString() }}</p>
               </div>
-              <div class="detail-row" v-if="selectedBooking.pointsRedeemed > 0">
-                <p><strong>點數折抵:</strong></p>
-                <p class="discount-value">- {{ selectedBooking.pointsRedeemed.toLocaleString() }} 點</p>
-              </div>
-              <div class="detail-row">
-                <p><strong>付款方式:</strong></p>
-                <p>{{ selectedBooking.paymentTiming === 'full' ? '全額預付' : '延後支付' }}</p>
-              </div>
-              <div class="detail-row warning" v-if="selectedBooking.PaymentStatus === 'deferred'">
-                <p><strong>付款截止日:</strong></p>
-                <p>{{ formatDate(selectedBooking.paymentDeadline, true) }}</p>
-              </div>
             </div>
 
             <hr>
@@ -273,7 +282,7 @@ onUnmounted(() => {
                 <p><strong>電話:</strong></p>
                 <p>{{ selectedBooking.contactPhone }}</p>
               </div>
-              <div class="detail-row" v-if="selectedBooking.ContactNotes">
+              <div class="detail-row" v-if="selectedBooking.contactNotes">
                 <p><strong>特殊需求:</strong></p>
                 <p class="notes-text">{{ selectedBooking.contactNotes }}</p>
               </div>
@@ -292,7 +301,6 @@ onUnmounted(() => {
                 {{ selectedBooking.billingApartment }}
               </div>
             </div>
-
           </div>
 
           <div class="modal-footer">
@@ -309,204 +317,271 @@ $primary-color: #222;
 $secondary-color: #008489; // 綠色強調色
 $border-color: #ebebeb;
 $background-light: #f9f9f9;
+$text-light: #717171;
+$text-dark: #484848;
 
 .my-bookings-page {
   padding: 40px 20px;
   background-color: $background-light;
+  min-height: 100vh;
 }
+
 .container {
   max-width: 900px;
   margin: 0 auto;
 }
+
 h1 {
   margin-bottom: 30px;
   font-size: 28px;
+  font-weight: 700; // 加粗
   color: $primary-color;
 }
 
-// 載入和無訂單提示
+// 載入和無訂單提示 (樣式微調)
 .loading-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
 }
+
 .no-bookings {
   text-align: center;
   padding: 50px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px; // 增大圓角
   border: 1px solid $border-color;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 
   p {
     font-size: 18px;
-    color: #717171;
+    color: $text-light;
     margin-bottom: 20px;
   }
+
   .btn-primary {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background-color: $secondary-color;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
+    transition: background-color 0.2s;
+
     &:hover {
       background-color: darken($secondary-color, 10%);
     }
   }
 }
 
+// ==================== 訂單卡片列表 (核心更新) ====================
 .bookings-list {
   display: grid;
-  gap: 24px; // 增加卡片間距
+  gap: 24px; // 卡片間距
 
   .booking-card {
+    display: flex; // *** 核心改動：改為 flex 佈局 (左圖右文) ***
     background: white;
     border: 1px solid $border-color;
-    border-radius: 15px; // 增大圓角
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08); // 輕微陰影
+    border-radius: 16px; // 圓角增大
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); // 陰影更柔和
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: box-shadow 0.3s ease;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1); // hover 陰影加深
+      transform: none; // 移除 Y 軸移動
     }
 
-    .card-header {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 20px;
-      background-color: white; // 移除灰色背景，保持簡潔
-      border-bottom: 1px solid $border-color;
-      gap: 8px;
+    // 1. 左側圖片區
+    .card-image-wrapper {
+      width: 220px; // 固定寬度
+      flex-shrink: 0; // 防止被壓縮
 
-      h3 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-        color: $primary-color;
+      .room-image {
+        width: 100%;
+        height: 100%; // 佔滿父容器高度
+        object-fit: cover; // 裁切以填滿
       }
     }
 
-    .card-body {
-      padding: 20px;
+    // 2. 右側資訊區
+    .card-details-wrapper {
+      flex: 1; // 佔滿剩餘空間
+      display: flex;
+      flex-direction: column; // 內部垂直排列 (上、中、下)
+      padding: 20px 24px;
+      gap: 12px; // 區塊間增加間距
+    }
 
-      .order-info-grid {
-        display: grid;
-        grid-template-columns: 100px 1fr; // 標籤和值分兩欄
-        gap: 12px 10px; // 行間距和列間距
+    // 資訊區塊 (上中下)
+    .card-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
 
-        p {
+    // 頂部 (房名、狀態)
+    .top-section {
+      .room-info {
+        .room-location {
+          display: block;
+          font-size: 14px;
+          color: $text-light;
+        }
+
+        h3 {
+          margin: 2px 0 0 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: $primary-color;
+        }
+      }
+    }
+
+    // 中間 (日期、人數、訂單號)
+    .mid-section {
+      display: flex;
+      flex-direction: column; // 改為垂直排列
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 0;
+      border-top: 1px solid $border-color;
+      flex-grow: 1; // *** 關鍵：讓此區塊填滿中間空白，將底部推到最下面 ***
+      justify-content: center; // 資訊垂直置中 (可選)
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        color: $text-dark;
+        font-size: 14px;
+
+        i { // Font Awesome icon
+          margin-right: 10px;
+          color: $text-light;
+          width: 16px; // 固定 icon 寬度
+          text-align: center;
+        }
+
+        &.order-number {
+          color: $text-light; // 訂單號顏色較淡
+          font-size: 13px;
+        }
+      }
+    }
+
+    // 底部 (價格、按鈕)
+    .bottom-section {
+      align-items: flex-end; // 垂直對齊底部
+      border-top: 1px solid $border-color;
+      padding-top: 16px;
+
+      .total-price-area {
+        text-align: left;
+
+        span {
+          font-size: 13px;
+          color: $text-light;
+        }
+
+        .total-price-value {
           margin: 0;
-          font-size: 15px;
 
-          & strong {
-            color: #717171; // 標籤顏色
-            font-weight: normal;
+          strong {
+            font-size: 20px;
+            font-weight: 700;
+            color: $primary-color;
           }
         }
-
-        // 特別強調總金額
-        .total-price {
-            grid-column: 1 / 2;
-            & strong {
-                font-weight: bold;
-                color: $primary-color;
-            }
-        }
-        .total-price-value {
-            grid-column: 2 / 3;
-            text-align: right;
-            strong {
-                font-weight: 700;
-                color: $primary-color;
-            }
-        }
       }
-    }
 
-    .card-footer {
-      padding: 15px 20px;
-      text-align: right;
-      border-top: 1px solid $border-color;
-
-      // 按鈕間距調整
-      & > button {
-        margin-left: 10px;
+      .card-actions {
+        display: flex;
+        gap: 10px; // 按鈕間距
       }
     }
   }
 }
 
-// 通用按鈕樣式
+// ==================== 按鈕樣式 (微調) ====================
 .btn-pay-now,
 .btn-details {
   padding: 10px 18px;
-  border-radius: 8px; // 增大圓角
-  border: 1px solid #ccc;
+  border-radius: 8px;
+  border: 1px solid;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600; // 字體加粗
   transition: all 0.2s;
+  font-size: 14px;
 }
 
 .btn-details {
-  background-color: white;
+  background-color: $background-light; // 改為淺底色
   color: $primary-color;
-  border-color: $primary-color;
+  border-color: #ddd; // 邊框更淺
 
   &:hover {
     background-color: $primary-color;
     color: white;
+    border-color: $primary-color;
   }
 }
 
 .btn-pay-now {
-  background-color: $secondary-color; // 使用強調色
+  background-color: $secondary-color;
   color: white;
   border-color: $secondary-color;
+  box-shadow: 0 2px 8px rgba(0, 132, 137, 0.3); // 增加陰影
 
   &:hover {
     background-color: darken($secondary-color, 10%);
     border-color: darken($secondary-color, 10%);
+    box-shadow: none;
   }
 
   &:disabled {
     background-color: #ccc;
     border-color: #ccc;
     cursor: not-allowed;
-    color: #717171;
+    color: $text-light;
+    box-shadow: none;
   }
 }
 
-// 狀態標籤
+// ==================== 狀態標籤 (微調) ====================
 .order-status {
-  padding: 4px 10px;
-  border-radius: 20px; // 更圓的標籤
-  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
   display: inline-block;
+  white-space: nowrap; // 確保標籤不換行
 }
 
-.status-deferred { // 待付款 (警告色)
+// 狀態顏色
+.status-deferred, .status-unpaid {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.status-completed { // 已完成 (成功色)
+.status-completed, .status-paid {
   background-color: #d4edda;
   color: #155724;
 }
 
-.status-cancelled { // 已取消 (一般色)
+.status-cancelled {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-// ==================== Modal 樣式區塊 ====================
+.status-refunded {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
 
+// ==================== Modal 樣式 (沿用您的設定，稍作微調) ====================
 .modal-content {
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -536,23 +611,28 @@ h1 {
     color: $primary-color;
     padding-bottom: 5px;
     border-bottom: 1px dashed #f0f0f0;
+
+    i { // 幫 Modal 內的 icon 也加上間距
+      margin-right: 8px;
+      color: $secondary-color;
+    }
   }
 }
 
 .detail-row {
   display: grid;
-  grid-template-columns: 120px 1fr; // 標籤和值分兩欄
-  margin-bottom: 8px;
+  grid-template-columns: 120px 1fr;
+  margin-bottom: 10px; // 增加行距
   font-size: 14px;
-  align-items: center;
+  align-items: start; // 頂部對齊，防止多行文字跑版
 
   p {
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   strong {
-    color: #717171;
+    color: $text-light;
     font-weight: 500;
   }
 
@@ -563,14 +643,14 @@ h1 {
   }
 
   .discount-value {
-    color: #e63946; // 紅色表示扣除
+    color: #e63946;
     font-weight: 500;
   }
 
   &.warning {
     p:last-child {
-        color: #e63946;
-        font-weight: 600;
+      color: #e63946;
+      font-weight: 600;
     }
   }
 }
@@ -580,6 +660,7 @@ h1 {
   padding: 10px;
   border-radius: 8px;
   color: $primary-color;
+  white-space: pre-wrap; // 保留換行
 }
 
 .address-block {
@@ -597,20 +678,77 @@ hr {
 }
 
 .modal-footer {
-    border-top: none;
-    padding: 15px 25px;
+  border-top: 1px solid $border-color; // 加回頂部邊線
+  padding: 15px 25px;
 }
 
-// 覆寫按鈕樣式
 .btn-secondary {
-    background-color: #717171;
-    border-color: #717171;
-    color: white;
-    padding: 8px 20px;
-    border-radius: 8px;
-    &:hover {
-        background-color: darken(#717171, 10%);
-        border-color: darken(#717171, 10%);
+  background-color: $text-light;
+  border-color: $text-light;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: darken($text-light, 10%);
+    border-color: darken($text-light, 10%);
+  }
+}
+
+// ==================== 響應式設計 (RWD) ====================
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  .my-bookings-page {
+    padding: 20px 0;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .bookings-list .booking-card {
+    flex-direction: column; // *** 在小螢幕上改回垂直堆疊 (上圖下文) ***
+
+    .card-image-wrapper {
+      width: 100%; // 圖片寬度變 100%
+      height: 200px; // 固定圖片高度
     }
+
+    .card-details-wrapper {
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .bottom-section {
+      flex-direction: column; // 價格和按鈕也垂直排列
+      align-items: stretch; // 撐滿寬度
+      gap: 12px;
+      padding-top: 12px;
+
+      .total-price-area {
+        text-align: left;
+      }
+
+      .card-actions {
+        width: 100%;
+        display: grid; // 改用 grid 讓按鈕等寬
+        // 如果只有一個按鈕，也會自動撐滿
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+
+  .detail-row {
+    grid-template-columns: 90px 1fr; // 縮小標籤寬度
+  }
 }
 </style>

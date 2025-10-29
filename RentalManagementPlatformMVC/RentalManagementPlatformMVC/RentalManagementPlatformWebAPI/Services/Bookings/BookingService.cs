@@ -44,6 +44,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
+		// 根據 HostId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId)
+		{
+			var bookings = await _bookingRepository.GetOrdersByHostIdAsync(hostId);
+			if (bookings == null || !bookings.Any())
+			{
+				throw new ArgumentException("找不到該房東的訂單");
+			}
+			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
+		}
+
 		// 建立訂單並根據付款時機決定是否產生綠界表單
 		public async Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto)
 		{

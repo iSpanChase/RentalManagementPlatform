@@ -33,6 +33,14 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			return Ok(bookings);
 		}
 
+		// [開發用] 根據 HostId 獲取其所有訂單
+		[HttpGet("host/{hostId}")]
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetOrdersByHostId(int hostId)
+		{
+			var bookings = await _bookingService.GetOrdersByHostIdAsync(hostId);
+			return Ok(bookings);
+		}
+
 		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
