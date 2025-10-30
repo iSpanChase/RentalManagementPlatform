@@ -14,6 +14,7 @@ using Meilisearch;
 using Minio;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Services.Interface;
+using StackExchange.Redis;
 using System.Reflection;
 
 namespace RentalManagementPlatformWebAPI
@@ -29,7 +30,7 @@ namespace RentalManagementPlatformWebAPI
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
-					policy.WithOrigins("http://localhost:5173")  // Vue 前端的網址
+					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
 						  .AllowAnyHeader()
 						  .AllowAnyMethod();
 				});
@@ -38,6 +39,16 @@ namespace RentalManagementPlatformWebAPI
 			// 業務資料庫連線註冊
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
+
+			// Redis 註冊
+			// 註冊 IConnectionMultiplexer 作為單例，提供給整個應用程式共用一個 Redis 連線。
+			// 這是 StackExchange.Redis 推薦的做法，用於高效地管理 Redis 連線。
+			builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+			builder.Services.AddStackExchangeRedisCache(options =>
+			{
+				options.Configuration = builder.Configuration.GetConnectionString("Redis");
+				options.InstanceName = "RentalPlatform_"; // 可選：為 Key 加上前綴，避免多個應用共用 Redis 時衝突
+			});
 
 			// Controllers + 解決JSON循環參照問題
 			builder.Services.AddControllers()
@@ -55,7 +66,7 @@ namespace RentalManagementPlatformWebAPI
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
 			});
 
-			// DI�GDomain Services
+			// DI：Domain Services
 			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
@@ -65,25 +76,38 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
-			// DI�GRepositories
+			// DI：Repositories
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-            builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
-            builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
-            builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
-            builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
-            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
-            // Meilisearch Client and Service registration
-            builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
-            builder.Services.AddScoped<MeilisearchService>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+			builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
-            // MinIO Client and Service registration
-            builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
-            builder.Services.AddSingleton<IMinioService, MinioService>();
-            builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
-            builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+			// DI：Application Services
+			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
+			builder.Services.AddScoped<IReviewService, ReviewService>();
+
+            // 註冊背景工作服務 (Hosted Service)。
+            // MeilisearchIndexWorker 會在應用程式啟動時自動執行，並在背景監聽 Redis Stream 處理索引更新。
+            builder.Services.AddHostedService<MeilisearchIndexWorker>();
+
+			// External integrations
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			builder.Services.AddScoped<MeilisearchService>();
+
+			// 配置 MinioSettings：將 appsettings.json 中的 "MinioSettings" 區塊綁定到 MinioSettings DTO。
+			builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+			builder.Services.AddSingleton<IMinioService, MinioService>();
+			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
 
 			// Swagger�]�� Schema Id / JWT / DateOnly/TimeOnly �����^
 			builder.Services.AddEndpointsApiExplorer();
@@ -129,27 +153,6 @@ namespace RentalManagementPlatformWebAPI
 					c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
 				}
 			});
-
-			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
-			builder.Services.AddScoped<IUserRepository, UserRepository>();
-			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
-			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-			builder.Services.AddScoped<IBookingService, BookingService>();
-			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
-
-			// DI：Domain Services
-			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
-									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
-			builder.Services.AddScoped<IAuthService, AuthService>();
-			builder.Services.AddScoped<IUserService, UserService>();
-			builder.Services.AddScoped<IRoleService, RoleService>();
-			builder.Services.AddScoped<IPermissionService, PermissionService>();
-			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
