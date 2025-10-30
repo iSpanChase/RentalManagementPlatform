@@ -4,6 +4,8 @@ using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
+using Microsoft.AspNetCore.SignalR;
+using RentalManagementPlatformWebAPI.Hubs;
 
 namespace RentalManagementPlatformWebAPI.Services.Bookings
 {
@@ -14,15 +16,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		private readonly ICouponRepository _couponRepository;
 		private readonly IMapper _mapper;
 		private readonly ECPayService _ecpayService;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-		public BookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository, ICouponRepository couponRepository, IMapper mapper, ECPayService ecpayService)
+        public BookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository, ICouponRepository couponRepository, IMapper mapper, ECPayService ecpayService, IHubContext<NotificationHub> hubContext)
 		{
 			_bookingRepository = bookingRepository;
 			_roomRepository = roomRepository;
 			_couponRepository = couponRepository;
 			_mapper = mapper;
 			_ecpayService = ecpayService;
-		}
+            _hubContext = hubContext;
+        }
 
 		// 取得所有訂單(測試用)
 		public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
@@ -160,9 +164,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			Console.WriteLine($"付款時機：{dto.PaymentTiming}");
 			Console.WriteLine($"付款狀態：{booking.PaymentStatus}");
 
-			// ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+            // ==================== 5-1. 發送新訂單即時通知給房東 ====================
+            if (room != null && room.HostId.HasValue)
+            {
+                var hostId = room.HostId.Value;
+                string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
+                await _hubContext.Clients.Group($"host_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
+            }
 
-			if (dto.PaymentTiming == "full")
+            // ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+
+            if (dto.PaymentTiming == "full")
 			{
 				// ========== 立即支付：產生綠界表單 ==========
 				Console.WriteLine("立即支付：產生綠界表單...");

@@ -65,6 +65,7 @@ import {
     createCard, updateCard, refetchCardData, type Card, type CardDraft,
     getFavoriteReports, loadFavoriteReport, saveFavoriteReport, deleteFavoriteReport, type FavoriteReport
 } from '../api/reportForm'
+import { startConnection, registerWarningHandler } from '../api/notificationService';
 
 // ---------- state ----------
 const cards = reactive<Card[]>([])
@@ -264,6 +265,20 @@ onMounted(async () => {
             config: { propertyIds: [], center: { lat: 25.0330, lng: 121.5654 }, zoom: 10 } as any
         });
         cards.push(created);
+    }
+
+    //SignalR
+    try {
+        const hostId = 47;
+        await startConnection(hostId);
+
+        // 註冊一個處理器，當收到訊息時，用 alert 彈窗顯示
+        registerWarningHandler((message: string) => {
+            alert(`[房東即時通知]\n---------------------------------\n${message}`);
+        });
+    }
+    catch (err) {
+        console.error("SignalR 連線失敗: ", err);
     }
 });
 
