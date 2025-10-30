@@ -15,5 +15,6 @@ namespace RentalManagementPlatformMVC.Services.Interfaces
         /// <param name="photoType">照片類型，例如 "Cover" 或 "Gallery"。</param>
         /// <returns>一個有時效性的預簽章 URL，如果找不到則為 null。</returns>
         Task<string?> GetUrlAsync(string entityType, int entityId, string photoType);
+        Task<string?> GetPhotoUrlAsync(string? objectKey);
     }
 }
