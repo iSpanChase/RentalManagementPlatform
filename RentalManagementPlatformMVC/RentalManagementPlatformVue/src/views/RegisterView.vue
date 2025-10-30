@@ -16,7 +16,7 @@
               <option value="LANDLORD">房東</option>
               <option value="TENANT">房客</option>
               <option value="VENDOR">廠商</option>
-              <option value="ADMIN">系統管理員</option>
+              <option value="OPERATOR">系統管理員</option>
             </select>
           </label>
 
@@ -193,6 +193,10 @@ const handleSubmit = async () => {
     msg.value = '兩次密碼不一致'
     return
   }
+  if (form.roleCode === 'ADMIN') {
+    msg.value = '此角色無法在註冊時選擇'
+    return
+  }
 
   submitting.value = true
   try {
@@ -211,10 +215,15 @@ const handleSubmit = async () => {
       taxId: null,
       nationalIdTail: null,
     })
-
-    ok.value = true
-    msg.value = '帳號已建立，請使用新帳號登入。'
-    router.push({ path: '/login', query: { registered: '1' } })
+  if (form.roleCode === 'OPERATOR') {
+      ok.value = true
+      msg.value = '已送出申請，待系統管理員審核通過後生效。'
+      router.push({ path: '/login', query: { pending: 'operator' } })
+    } else {
+      ok.value = true
+      msg.value = '帳號已建立，請使用新帳號登入。'
+      router.push({ path: '/login', query: { registered: '1' } })
+    }
   } catch (err: any) {
     ok.value = false
     msg.value = auth.state?.error || err?.message || '註冊失敗，請稍候再試'

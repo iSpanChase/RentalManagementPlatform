@@ -986,7 +986,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(512)
                 .HasColumnName("username");
-        });
+			entity.Property(u => u.IsOperatorPending).HasColumnName("is_operator_pending");
+		});
 
         modelBuilder.Entity<UserFavoriteReport>(entity =>
         {

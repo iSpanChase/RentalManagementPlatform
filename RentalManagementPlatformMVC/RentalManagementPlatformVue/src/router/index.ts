@@ -60,7 +60,13 @@ const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: () => import('@/views/ResetPasswordView.vue'), meta: { requiresGuest: true }
-    }
+    },
+    {
+      path: '/admin/review-operators',
+      name: 'AdminReviewOperators',
+      component: () => import('@/views/AdminReviewOperators.vue'),
+      meta: { requiresAuth: true, perms: ['Admin.ApproveOperator'] } // 你現有的守門規則
+    },
   ],
 })
 

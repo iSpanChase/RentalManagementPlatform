@@ -6,6 +6,9 @@
       <RouterLink to="/roles" class="nav-link" active-class="is-active">角色</RouterLink>
       <RouterLink to="/permissions" class="nav-link" active-class="is-active">權限</RouterLink>
       <RouterLink to="/profile" class="nav-link" active-class="is-active">更新個人資料</RouterLink>
+      <li v-if="hasPerm('Admin.ApproveOperator')">
+        <RouterLink to="/admin/review-operators" class="nav-link" active-class="is-active">審核系統管理員</RouterLink>
+      </li>
     </nav>
     <div class="spacer"></div>
     <div class="actions">
@@ -46,6 +49,22 @@ function onMiniError(e: Event) {
 const handleLogout = async () => {
   await auth.logout()
   router.replace({ name: 'login' })
+}
+
+// 以 store 的 getPermissions() 為主，沒有時再退回 state.permissions（若未來你又加回此欄位）
+const perms = computed<string[]>(() => {
+  // 有些 store 會把方法掛在原型上，這裡做安全判斷
+  const fromMethod = typeof (auth as any).getPermissions === 'function'
+    ? (auth as any).getPermissions()
+    : undefined
+
+  const arr = fromMethod ?? (auth.state as any)?.permissions
+  return Array.isArray(arr) ? arr as string[] : []
+})
+
+// 提供給 template 用
+function hasPerm(code: string): boolean {
+  return auth.can(code)   // ← 直接用 store 匯出的 can()
 }
 </script>
 

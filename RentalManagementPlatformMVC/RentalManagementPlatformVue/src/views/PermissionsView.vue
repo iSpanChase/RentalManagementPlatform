@@ -42,8 +42,8 @@
                     :value="permission.id"
                     :disabled="!selectedRoleId"
                   />
-                  <span class="perm-code">{{ permission.code }}</span>
-                  <span class="perm-name">{{ permission.displayName }}</span>
+                  <span class="badge perm-code">{{ formatCode(permission.code) }}</span>
+                  <!-- <span class="perm-name">{{ permission.displayName }}</span> -->
                 </label>
               </li>
             </ul>
@@ -69,9 +69,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import type { PermissionSummary, RoleSummary } from '@/types/auth'
+import http from '@/services/http'
 
 const auth = useAuthStore()
 
@@ -82,6 +83,7 @@ const loadError = ref('')
 
 const selectedRoleId = ref<number | null>(null)
 const selectedPermissions = ref<number[]>([])
+const ownedPermissionIds = ref<number[]>([])
 const actionMessage = ref('')
 const actionType = ref<'success' | 'error' | ''>('')
 
@@ -94,6 +96,40 @@ const groupedPermissions = computed(() => {
     acc[key].push(perm)
     return acc
   }, {})
+})
+
+async function fetchOwnedPermissionIds(roleId: number) {
+  ownedPermissionIds.value = []
+  if (!roleId || roleId <= 0) return
+  const { data } = await http.get<number[]>(`/Permissions/roles/${roleId}`)
+  ownedPermissionIds.value = Array.isArray(data) ? data : []
+}
+
+// 放在 <script setup> 內
+function formatCode(code?: string): string {
+  return (code ?? '').replace(/\./g, '.\u200b')  // 在每個 . 後插入零寬空白
+}
+
+function syncOwnedIntoSelected() {
+  // 把目前角色已擁有的權限，直接塞進你原本的勾選陣列
+  selectedPermissions.value = [...ownedPermissionIds.value]
+}
+
+watch(selectedRoleId, async (rid: number | null) => {
+  // 切換角色時先清空
+  ownedPermissionIds.value = []
+  // 沒選角色就不打 API，並清空你原本的勾選模型
+  if (!rid) { 
+    syncOwnedIntoSelected()  // 讓畫面也清掉勾選
+    return
+  }
+  try {
+    await fetchOwnedPermissionIds(rid)
+    syncOwnedIntoSelected()
+  } catch (err) {
+    // 這裡不要 throw，避免 Vue 提示 unhandled watcher error
+    console.warn('讀取角色權限失敗', err)
+  }
 })
 
 const canSubmit = computed(() => !!selectedRoleId.value && selectedPermissions.value.length > 0)
@@ -252,6 +288,11 @@ onMounted(() => {
 }
 
 .perm-code {
+  display:inline-block;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.25;
   font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   background: #eef2ff;
   color: #3730a3;

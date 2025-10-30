@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using RentalManagementPlatformWebAPI.DTOs;
 using RentalManagementPlatformWebAPI.Models;
@@ -70,7 +71,38 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[HttpPost("login")]
 		[AllowAnonymous]
 		public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto dto)
-			=> Ok(await _auth.LoginAsync(dto));
+		{
+			try
+			{
+				var res = await _auth.LoginAsync(dto);
+				return Ok(res);
+			}
+			catch (PendingOperatorException ex)
+			{
+				// ★ Operator 待審核：403
+				return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				// ★ 帳號或密碼錯誤 / 第三方登入限制：401
+				return Unauthorized(new { message = ex.Message });
+			}
+			catch (InvalidOperationException ex) // 多半來自 JwtTokenService 設定檢查
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError,
+					new { type = ex.GetType().Name, message = ex.Message });
+			}
+			catch (SqlException ex) // RefreshToken 寫入 DB 失敗/連線問題
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError,
+					new { type = ex.GetType().Name, message = ex.Message });
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Login failed for {Email}", dto?.Email);
+				return Problem("登入發生錯誤"); // 500 with generic message
+			}
+		}
 
 		[HttpPost("google")]
 		[AllowAnonymous]

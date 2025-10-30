@@ -61,9 +61,29 @@ namespace RentalManagementPlatformWebAPI.Services
 
 			await _users.AddAsync(user);
 
-			var role = await _roles.GetByCodeAsync(dto.RoleCode);
-			if (role != null) await _roles.AssignUserAsync(role.RoleId, user.UserId);
+			if (!string.IsNullOrWhiteSpace(dto.RoleCode))
+			{
+				var roleCode = dto.RoleCode.Trim().ToUpperInvariant();
 
+				// A) Admin 禁止在註冊時選
+				if (roleCode == "ADMIN")
+					throw new InvalidOperationException("此角色無法在註冊時選擇。");
+
+				// B) Operator 需審核：先標記，不立即指派
+				if (roleCode == "OPERATOR")
+				{
+					user.IsOperatorPending = true;
+					await _users.SaveChangesAsync();  // 寫入旗標
+				}
+				else
+				{
+					// C) Tenant/Host/Supplier 直接指派角色（若存在）
+					var role = await _roles.GetByCodeAsync(roleCode);
+					if (role == null)
+						throw new InvalidOperationException($"角色代碼不存在：{roleCode}");
+					await _roles.AssignUserAsync(role.RoleId, user.UserId);
+				}
+			}
 			return Map(user);
 		}
 
