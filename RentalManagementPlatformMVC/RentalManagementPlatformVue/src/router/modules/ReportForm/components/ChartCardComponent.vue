@@ -9,6 +9,7 @@
         data: Object, // Change to Object, as it contains the 'points' array
         chartType: { type: String, default: "line" },
         timeUnit: { type: String, default: "month" }, // Add timeUnit prop
+        yAxisDataKey: { type: String, default: "revenue" }, // New prop for Y-axis data key
     });
 
     const chartCanvas = ref();
@@ -43,7 +44,7 @@
                 labels: chartDataPoints.map(d => d.date),
                 datasets: [{
                     label: props.label,
-                    data: chartDataPoints.map(d => d.revenue),
+                    data: chartDataPoints.map(d => d[props.yAxisDataKey]), // Use yAxisDataKey here
                     borderWidth: 2,
                 }]
             },
@@ -59,7 +60,7 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: props.timeUnit, // Use the prop
+                            unit: props.timeUnit,
                             displayFormats: {
                                 day: 'yyyy-MM-dd',
                                 week: 'yyyy-MM-dd',
@@ -68,7 +69,14 @@
                         },
                         title: {
                             display: true,
-                            text: '日期' // Generic title
+                            text: '日期'
+                        }
+                    },
+                    y: { // Explicitly define a Y-axis
+                        beginAtZero: true, // Start from zero
+                        title: {
+                            display: true,
+                            text: props.yAxisDataKey === 'revenue' ? '收益' : '入住率 (%)' // Dynamic title
                         }
                     }
                 }

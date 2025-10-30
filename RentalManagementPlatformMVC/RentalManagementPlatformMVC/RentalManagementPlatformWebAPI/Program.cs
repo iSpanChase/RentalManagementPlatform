@@ -1,21 +1,28 @@
+using Meilisearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Minio;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Bookings;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
-using RentalManagementPlatformWebAPI.Services.Interfaces;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
+using RentalManagementPlatformWebAPI.Repositories.Payments;
 using RentalManagementPlatformWebAPI.Services;
 using Meilisearch;
 using Minio;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Services.Interface;
 using StackExchange.Redis;
+using RentalManagementPlatformWebAPI.Services.Bookings;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Payments;
 using System.Reflection;
+using System.Text.Json;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -30,9 +37,11 @@ namespace RentalManagementPlatformWebAPI
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
+					policy.WithOrigins("http://localhost:5173",
+									   "https://my-project-frontend.ngrok.app")  // <--- 將 ngrok URL 加入！
 					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
 						  .AllowAnyHeader()
-						  .AllowAnyMethod();
+						 .AllowAnyMethod();
 				});
 			});
 
@@ -51,11 +60,19 @@ namespace RentalManagementPlatformWebAPI
 			});
 
 			// Controllers + 解決JSON循環參照問題
+			// JSON 設定
 			builder.Services.AddControllers()
 				.AddJsonOptions(options =>
 				{
+					// 1. 避免循環參考造成序列化錯誤
 					options.JsonSerializerOptions.ReferenceHandler =
 						System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+
+					// 2. 忽略大小寫
+					options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+
+					// 3. JSON 統一用 camelCase
+					options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 				});
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -153,6 +170,28 @@ namespace RentalManagementPlatformWebAPI
 					c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
 				}
 			});
+
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
+
+			// DI：Domain Services
+			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IRoleService, RoleService>();
+			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddScoped<ECPayService>();
+			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體

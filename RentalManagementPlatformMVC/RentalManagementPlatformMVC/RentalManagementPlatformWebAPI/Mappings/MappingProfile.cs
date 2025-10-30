@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.DTOs.Bookings;
+using RentalManagementPlatformWebAPI.DTOs.Payments;
 using RentalManagementPlatformWebAPI.DTOs;
 using RentalManagementPlatformWebAPI.DTO.RoomList;
 using RentalManagementPlatformWebAPI.Models;

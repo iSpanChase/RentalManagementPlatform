@@ -172,5 +172,94 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                     return Ok(fullDailyReport.OrderBy(r => r.date));
             }
         }
+
+        [HttpPost("GetRevenueKpi")]
+        public async Task<IActionResult> GetRevenueKpi([FromBody] RevenueKpiRequestDto req)
+        {
+            // TODO: 之後需從登入資訊取得 HostId
+            int hostId = 47;
+
+            List<int> roomIdsToQuery;
+
+            if (req.RoomIds == null || !req.RoomIds.Any())
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId)
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+            else
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new { totalRevenue = 0 });
+            }
+
+            var startDate = DateTime.Today.AddDays(-req.Days);
+            var endDate = DateTime.Today;
+
+            var totalRevenue = await _context.Bookings
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
+                .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= startDate && b.CheckIn.Value.Date <= endDate)
+                .SumAsync(b => b.TotalPrice ?? 0);
+
+            return Ok(new { totalRevenue });
+        }
+
+        [HttpPost("GetRevenueSourceAnalysis")]
+        public async Task<IActionResult> GetRevenueSourceAnalysis([FromBody] AnalysisRequestDto req)
+        {
+            // TODO: 之後需從登入資訊取得 HostId
+            int hostId = 47;
+
+            List<int> roomIdsToQuery;
+
+            if (req.RoomIds == null || !req.RoomIds.Any())
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId)
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+            else
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new List<RevenueSourceDataPoint>());
+            }
+
+            var startDate = DateTime.Today.AddDays(-req.Days);
+            var endDate = DateTime.Today;
+
+            var analysis = await _context.Bookings
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
+                .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= startDate && b.CheckIn.Value.Date <= endDate)
+                .GroupBy(b => new { b.RoomId, b.Room.Title })
+                .Select(g => new RevenueSourceDataPoint
+                {
+                    RoomId = g.Key.RoomId.Value,
+                    RoomTitle = g.Key.Title,
+                    TotalRevenue = g.Sum(b => b.TotalPrice ?? 0)
+                })
+                .Where(r => r.TotalRevenue > 0) // Only include rooms with revenue
+                .OrderByDescending(r => r.TotalRevenue)
+                .ToListAsync();
+
+            return Ok(analysis);
+        }
     }
 }

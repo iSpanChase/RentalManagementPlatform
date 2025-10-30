@@ -5,21 +5,7 @@ networks:
 
 services:
 
-  rabbitmq:
-    image: rabbitmq:4.1-management
-    container_name: rabbitmq
-    ports:
-      - 127.0.0.1:5672:5672     # MQ 主要通信 port
-      - 127.0.0.1:15672:15672   # RabbitMQ Web UI
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    restart: unless-stopped
-    networks:
-      - backend
-
+  
   nginx:
     image: nginx:1.29.1
     container_name: nginx

@@ -13,6 +13,10 @@
           <select class="form-select" v-model="localDraft.type">
             <option value="revenue">收益分析</option>
             <option value="occupancy">入住率</option>
+            <option value="occupancy_kpi">入住率KPI</option>
+            <option value="revenue_kpi">收益KPI</option>
+            <option value="revenue_source">收益來源分析</option>
+            <option value="occupancy_source">入住來源分析</option>
             <option value="heatmap">收益熱力</option>
           </select>
         </div>
@@ -37,6 +41,22 @@
           v-else-if="localDraft.type === 'occupancy'"
           v-model="(localDraft.config as OccupancyConfig)"
         />
+        <OccupancyKpiConfigPanelComponent
+          v-else-if="localDraft.type === 'occupancy_kpi'"
+          v-model="(localDraft.config as OccupancyKpiConfig)"
+        />
+        <RevenueKpiConfigPanelComponent
+          v-else-if="localDraft.type === 'revenue_kpi'"
+          v-model="(localDraft.config as RevenueKpiConfig)"
+        />
+        <RevenueSourceConfigPanelComponent
+          v-else-if="localDraft.type === 'revenue_source'"
+          v-model="(localDraft.config as RevenueSourceConfig)"
+        />
+        <OccupancySourceConfigPanelComponent
+          v-else-if="localDraft.type === 'occupancy_source'"
+          v-model="(localDraft.config as OccupancySourceConfig)"
+        />
         <HeatmapConfigPanelComponent
           v-else
           v-model="(localDraft.config as HeatmapConfig)"
@@ -53,11 +73,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig } from '../api/reportForm'
+import { computed, reactive, ref, watch, nextTick } from 'vue'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
-import HeatmapConfigPanelComponent from './panels/HeatmapConfigPanelComponent.vue'
+import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
+import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
+import RevenueSourceConfigPanelComponent from './panels/RevenueSourceConfigPanelComponent.vue'
+import OccupancySourceConfigPanelComponent from './panels/OccupancySourceConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -77,19 +100,49 @@ const defaultByType = (type: CardType): any => {
   if (type === 'revenue') {
     const cfg: RevenueConfig = {
       propertyIds: [],
-      range: { start: '2025-09-01', end: '2025-10-23' },
+      startDate: '2025-09-01',
+      endDate: '2025-10-23',
       groupBy: 'month',
-      chartType: 'line'
     }
     return cfg
   }
   if (type === 'occupancy') {
     const cfg: OccupancyConfig = {
       propertyIds: [],
-      range: { start: '2025-09-01', end: '2025-10-23' },
-      breakdownBy: 'roomType'
+      startDate: '2025-09-01',
+      endDate: '2025-10-23',
+      groupBy: 'month',
+      chartType: 'line',
     }
     return cfg
+  }
+  if (type === 'occupancy_kpi') {
+      const cfg: OccupancyKpiConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
+  }
+  if (type === 'revenue_kpi') {
+      const cfg: RevenueKpiConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
+  }
+  if (type === 'revenue_source') {
+      const cfg: RevenueSourceConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
+  }
+  if (type === 'occupancy_source') {
+      const cfg: OccupancySourceConfig = {
+          propertyIds: [],
+          lastDays: 30
+      }
+      return cfg;
   }
   const cfg: HeatmapConfig = {
     propertyIds: [],
@@ -106,27 +159,22 @@ const localDraft = reactive<CardDraft>({
   config: defaultByType('revenue')
 })
 
-watch(() => props.visible, (v) => {
+watch([() => props.visible, () => props.modelValue], ([v, mv]) => {
   if (v) {
-    if (props.modelValue) {
-      // edit
-      Object.assign(localDraft, JSON.parse(JSON.stringify(props.modelValue)))
-    } else {
-      // add default
-      Object.assign(localDraft, {
-        type: 'revenue',
-        title: '新卡片',
-        subtitle: '',
-        config: defaultByType('revenue')
-      })
-    }
+    nextTick(() => {
+      if (props.modelValue) {
+        Object.assign(localDraft, JSON.parse(JSON.stringify(props.modelValue)))
+      } else {
+        Object.assign(localDraft, {
+          type: 'revenue',
+          title: '新卡片',
+          subtitle: '',
+          config: defaultByType('revenue')
+        })
+      }
+    })
   }
-}, { immediate: true })
-
-watch(() => localDraft.type, (t) => {
-  // When type switched, reset config to sensible defaults
-  localDraft.config = defaultByType(t as CardType)
-})
+}, { immediate: true, deep: true })
 
 
 function onCancel(){

@@ -36,7 +36,22 @@ CREATE TABLE [BOOKING] (
   [points_earned] int,
   [points_redeemed] int,
   [status] nvarchar(512),
-  [created_at] DATETIME2
+  [created_at] DATETIME2,
+  [guest_count] INT NULL,
+  [payment_timing] NVARCHAR(50) NULL,
+  [payment_status] NVARCHAR(20) NULL,
+  [payment_deadline] DATETIME2 NULL,
+  [contact_name] NVARCHAR(100) NULL,
+  [contact_email] NVARCHAR(100) NULL,
+  [contact_phone] NVARCHAR(50) NULL,
+  [contact_notes] NVARCHAR(MAX) NULL,
+  [billing_country] NVARCHAR(10) NULL,
+  [billing_street] NVARCHAR(200) NULL,
+  [billing_apartment] NVARCHAR(100) NULL,
+  [billing_city] NVARCHAR(100) NULL,
+  [billing_state] NVARCHAR(100) NULL,
+  [billing_zip_code] NVARCHAR(20) NULL,
+  [updated_at] DATETIME2 NULL
 )
 GO
 
@@ -122,7 +137,7 @@ CREATE TABLE [DISTRICT] (
 GO
 
 CREATE TABLE [PAYMENT] (
-  [payment_id] int PRIMARY KEY NOT NULL,
+  [payment_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [booking_id] int,
   [amount] decimal,
   [method] nvarchar(512),
