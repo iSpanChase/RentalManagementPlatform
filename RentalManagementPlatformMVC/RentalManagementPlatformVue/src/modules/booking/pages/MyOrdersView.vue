@@ -277,13 +277,13 @@ onUnmounted(() => {
               <div class="detail-row">
                 <p><strong>您的淨收入:</strong></p>
                 <p class="net-income-value">
-                  <strong>TWD {{ (selectedOrder.totalPrice * 0.9).toLocaleString() }}</strong>
-                  <span class="text-muted"> (10% 平台佣金)</span>
+                  <strong>TWD {{ Math.round(selectedOrder.totalPrice * 0.85).toLocaleString() }}</strong>
+                  <span class="text-muted"> (15% 平台佣金)</span>
                 </p>
               </div>
               <div class="detail-row">
                 <p><strong>付款方式:</strong></p>
-                <p>{{ selectedOrder.paymentTiming === 'full' ? '全額預付' : '延後支付' }}</p>
+                <p>{{ selectedOrder.paymentTiming === 'full' ? '立即支付' : '延後支付' }}</p>
               </div>
               <div class="detail-row warning" v-if="selectedOrder.paymentStatus === 'deferred'">
                 <p><strong>付款截止日:</strong></p>
