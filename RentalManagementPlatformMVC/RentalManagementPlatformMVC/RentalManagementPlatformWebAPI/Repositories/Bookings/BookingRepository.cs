@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Models;
-using RentalManagementPlatformWebAPI.Repositories.Interface;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 
-namespace RentalManagementPlatformWebAPI.Repositories
+namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 {
 	public class BookingRepository : IBookingRepository
 	{
@@ -26,40 +25,38 @@ namespace RentalManagementPlatformWebAPI.Repositories
 				.ToListAsync();
 		}
 
+		// 根據使用者ID獲取其所有訂單
+		public async Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId)
+		{
+			return await _context.Bookings
+				.AsNoTracking()
+				.Where(b => b.GuestId == guestId)
+				.Include(b => b.Room) // 同時載入房間資訊
+				.Include(b => b.Guest) // 同時載入房客姓名
+				.OrderByDescending(b => b.CreatedAt) // 讓最新的訂單在最前面
+				.ToListAsync();
+		}
+
+		// 建立訂單
 		public async Task CreateBookingAsync(Booking booking)
 		{
 			_context.Bookings.Add(booking);
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task<Booking?> GetBookingByIdAsync(int bookingId)
+		// 根據 OrderNumber 取得訂單詳細資訊
+		public async Task<Booking?> GetBookingByOrderNumberAsync(string orderNumber)
 		{
 			return await _context.Bookings
 				.AsNoTracking()
-				.Include(b => b.Guest)
-				.Include(b => b.Room)
-				.Include(b => b.Coupon)
-				.Include(b => b.Payments)
-				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
+				.FirstOrDefaultAsync(b => b.OrderNumber == orderNumber);
 		}
 
-		public async Task<Booking?> GetBookingByIdSimpleAsync(int bookingId)
+		// 更新訂單
+		public async Task UpdateBookingAsync(Booking booking)
 		{
-			return await _context.Bookings
-				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
-		}
-
-		public async Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId)
-		{
-			return await _context.Bookings
-				.AsNoTracking()
-				.Where(b => b.GuestId == userId)
-				.Include(b => b.Guest)
-				.Include(b => b.Room)
-				.Include(b => b.Coupon)
-				.Include(b => b.Payments)
-				.OrderByDescending(b => b.CheckIn)
-				.ToListAsync();
+			_context.Bookings.Update(booking);
+			await _context.SaveChangesAsync();
 		}
 
 		public async Task<string?> GetLastBookingNumberByDateAsync(string datePrefix)
@@ -70,12 +67,6 @@ namespace RentalManagementPlatformWebAPI.Repositories
 				.OrderByDescending(b => b.OrderNumber)
 				.Select(b => b.OrderNumber)
 				.FirstOrDefaultAsync();
-		}
-
-		public async Task CancelBookingByIdAsync(Booking booking)
-		{
-			_context.Bookings.Update(booking);
-			await _context.SaveChangesAsync();
 		}
 	}
 }
