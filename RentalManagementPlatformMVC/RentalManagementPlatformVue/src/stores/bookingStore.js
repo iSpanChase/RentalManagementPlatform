@@ -211,6 +211,25 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
+  // 根據BookingId取消訂單
+  const cancelBooking = async (bookingId) => {
+    if (!bookingId) {
+      throw new Error('未提供訂單 ID');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.put(
+        `https://localhost:7230/api/bookings/cancel/${bookingId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`取消訂單 ${bookingId} 失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   return {
     // State
     bookingDraft,
@@ -231,5 +250,6 @@ export const useBookingStore = defineStore('booking', () => {
     fetchUserBookings,
     fetchHostOrders,
     getDeferredPaymentForm,
+    cancelBooking,
   };
 });

@@ -1,15 +1,18 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { Modal } from 'bootstrap';
 
 const bookingStore = useBookingStore();
+const router = useRouter(); // 取得 router 實例
 const bookings = ref([]);
 const isLoading = ref(false);
 const route = useRoute();
 const testUserId = 1;
 const selectedBooking = ref(null);
+const cancelModal = ref(null);
+const bookingToCancel = ref(null);
 
 // ==================== 工具函數 ====================
 /**
@@ -98,14 +101,74 @@ const handlePayNow = async (orderNumber) => {
   }
 };
 
+const handleContactHost = (booking) => {
+  console.log('準備聯繫房東，訂單:', booking.orderNumber, '房源:', booking.room);
+  alert(`聯繫房東功能開發中... (房源: ${booking.room})`);
+};
+
+const openCancelConfirmModal = (booking) => {
+  bookingToCancel.value = booking;
+  if (cancelModal.value) {
+    cancelModal.value.show();
+  }
+};
+
+const confirmCancellation = async () => {
+  if (!bookingToCancel.value) return;
+
+  const bookingId = bookingToCancel.value.bookingId;
+  const orderNumber = bookingToCancel.value.orderNumber;
+  console.log(`確認取消訂單 (ID: ${bookingId})`);
+  isLoading.value = true;
+
+  try {
+    // 1. 呼叫 store action，預期會收到一個包含 success 和 booking 的物件
+    const response = await bookingStore.cancelBooking(bookingId);
+
+    // 2. 檢查回應是否成功，且包含 booking 物件
+    if (response && response.success && response.booking) {
+      alert(response.message || '訂單已成功取消');
+      const updatedBooking = response.booking; // 提取真正的訂單物件
+
+      // 3. 使用回傳的 booking 物件來更新 bookings 陣列
+      bookings.value = bookings.value.map(booking =>
+        booking.bookingId === updatedBooking.bookingId ? updatedBooking : booking
+      );
+    } else {
+      // 處理後端回傳 success: false 或資料結構不符的狀況
+      alert(response?.message || '取消訂單失敗，請稍後再試');
+    }
+  } catch (error) {
+    // axios 捕捉到 400/404/500 錯誤
+    const errorMessage = error.response?.data?.message || error.message || '取消訂單時發生錯誤';
+    alert(errorMessage);
+  } finally {
+    isLoading.value = false;
+    if (cancelModal.value) {
+      cancelModal.value.hide(); // 關閉彈窗
+    }
+    bookingToCancel.value = null; // 清除
+  }
+};
+
+const handleRebook = (booking) => {
+  console.log('準備重新預訂，房源:', booking.room);
+  alert(`重新預訂功能開發中... (房源: ${booking.room})`);
+};
+
 onMounted(async () => {
   isLoading.value = true;
 
-  // ==================== Modal 事件監聽設置 ====================
+  // --- 監聽詳情 Modal ---
   const modalElement = document.getElementById('orderDetailModal');
   if (modalElement) {
-    // 監聽 Bootstrap 的 Modal 完全隱藏後的事件
     modalElement.addEventListener('hidden.bs.modal', handleModalHidden);
+  }
+
+  // --- 初始化取消 Modal ---
+  const cancelModalElement = document.getElementById('cancelConfirmModal');
+  if (cancelModalElement) {
+    cancelModal.value = new Modal(cancelModalElement);
   }
 
   try {
@@ -205,6 +268,29 @@ onUnmounted(() => {
                   :disabled="isLoading"
                 >
                   立即付款
+                </button>
+                <button
+                  class="btn-contact"
+                  @click="handleContactHost(booking)"
+                  v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
+                >
+                  聯繫房東
+                </button>
+                <button
+                  class="btn-cancel"
+                  @click="openCancelConfirmModal(booking)"
+                  v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
+                  :disabled="isLoading"
+                >
+                  取消預訂
+                </button>
+                <button
+                  class="btn-rebook"
+                  @click="handleRebook(booking)"
+                  v-if="booking.paymentStatus === 'cancelled' || booking.paymentStatus === 'completed'"
+                  :disabled="isLoading"
+                >
+                  重新預訂
                 </button>
                 <button
                   class="btn-details"
@@ -309,17 +395,43 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cancelConfirmModalLabel">確認取消預訂</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            您確定要取消這筆訂單 (編號: {{ bookingToCancel?.orderNumber }}) 嗎？
+            <br>
+            <small class="text-muted">請注意，取消政策可能適用。</small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isLoading">關閉</button>
+            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isLoading">
+              <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span v-else>確認取消</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </Teleport>
 </template>
 
 <style lang="scss" scoped>
+// ==================== 顏色變數 ====================
 $primary-color: #222;
-$secondary-color: #008489; // 綠色強調色
+$secondary-color: #008489;     // 主要強調色（綠）
+$danger-color: #d9534f;        // 取消/危險色（紅）
 $border-color: #ebebeb;
 $background-light: #f9f9f9;
 $text-light: #717171;
 $text-dark: #484848;
 
+// ==================== 頁面基礎 ====================
 .my-bookings-page {
   padding: 40px 20px;
   background-color: $background-light;
@@ -334,11 +446,11 @@ $text-dark: #484848;
 h1 {
   margin-bottom: 30px;
   font-size: 28px;
-  font-weight: 700; // 加粗
+  font-weight: 700;
   color: $primary-color;
 }
 
-// 載入和無訂單提示 (樣式微調)
+// 載入中
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -346,13 +458,14 @@ h1 {
   min-height: 200px;
 }
 
+// 無訂單提示
 .no-bookings {
   text-align: center;
   padding: 50px 20px;
   background: white;
-  border-radius: 16px; // 增大圓角
+  border-radius: 16px;
   border: 1px solid $border-color;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 
   p {
     font-size: 18px;
@@ -366,8 +479,8 @@ h1 {
     color: white;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: 600;
+    cursor: pointer;
     transition: background-color 0.2s;
 
     &:hover {
@@ -376,54 +489,52 @@ h1 {
   }
 }
 
-// ==================== 訂單卡片列表 (核心更新) ====================
+// ==================== 訂單卡片列表 ====================
 .bookings-list {
   display: grid;
-  gap: 24px; // 卡片間距
+  gap: 24px;
 
   .booking-card {
-    display: flex; // *** 核心改動：改為 flex 佈局 (左圖右文) ***
+    display: flex;
     background: white;
     border: 1px solid $border-color;
-    border-radius: 16px; // 圓角增大
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06); // 陰影更柔和
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     transition: box-shadow 0.3s ease;
 
     &:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1); // hover 陰影加深
-      transform: none; // 移除 Y 軸移動
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
-    // 1. 左側圖片區
+    // 圖片區
     .card-image-wrapper {
-      width: 220px; // 固定寬度
-      flex-shrink: 0; // 防止被壓縮
+      width: 220px;
+      flex-shrink: 0;
 
       .room-image {
         width: 100%;
-        height: 100%; // 佔滿父容器高度
-        object-fit: cover; // 裁切以填滿
+        height: 100%;
+        object-fit: cover;
       }
     }
 
-    // 2. 右側資訊區
+    // 內容區
     .card-details-wrapper {
-      flex: 1; // 佔滿剩餘空間
+      flex: 1;
       display: flex;
-      flex-direction: column; // 內部垂直排列 (上、中、下)
+      flex-direction: column;
       padding: 20px 24px;
-      gap: 12px; // 區塊間增加間距
+      gap: 12px;
     }
 
-    // 資訊區塊 (上中下)
     .card-section {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
 
-    // 頂部 (房名、狀態)
+    // 頂部：房源資訊
     .top-section {
       .room-info {
         .room-location {
@@ -433,7 +544,7 @@ h1 {
         }
 
         h3 {
-          margin: 2px 0 0 0;
+          margin: 2px 0 0;
           font-size: 20px;
           font-weight: 600;
           color: $primary-color;
@@ -441,16 +552,16 @@ h1 {
       }
     }
 
-    // 中間 (日期、人數、訂單號)
+    // 中間：訂單細節
     .mid-section {
       display: flex;
-      flex-direction: column; // 改為垂直排列
+      flex-direction: column;
       align-items: flex-start;
       gap: 8px;
       padding: 12px 0;
       border-top: 1px solid $border-color;
-      flex-grow: 1; // *** 關鍵：讓此區塊填滿中間空白，將底部推到最下面 ***
-      justify-content: center; // 資訊垂直置中 (可選)
+      flex-grow: 1;
+      justify-content: center;
 
       .info-item {
         display: flex;
@@ -458,23 +569,25 @@ h1 {
         color: $text-dark;
         font-size: 14px;
 
-        i { // Font Awesome icon
+        i {
           margin-right: 10px;
           color: $text-light;
-          width: 16px; // 固定 icon 寬度
+          width: 16px;
           text-align: center;
         }
 
         &.order-number {
-          color: $text-light; // 訂單號顏色較淡
+          color: $text-light;
           font-size: 13px;
         }
       }
     }
 
-    // 底部 (價格、按鈕)
+    // 底部：價格 + 按鈕群組
     .bottom-section {
-      align-items: flex-end; // 垂直對齊底部
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       border-top: 1px solid $border-color;
       padding-top: 16px;
 
@@ -499,28 +612,41 @@ h1 {
 
       .card-actions {
         display: flex;
-        gap: 10px; // 按鈕間距
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
       }
     }
   }
 }
 
-// ==================== 按鈕樣式 (微調) ====================
-.btn-pay-now,
-.btn-details {
-  padding: 10px 18px;
+// ==================== 按鈕群組（核心更新）================
+// 基礎按鈕樣式
+%btn-base {
+  padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid;
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
-  font-weight: 600; // 字體加粗
   transition: all 0.2s;
-  font-size: 14px;
+  white-space: nowrap;
 }
 
-.btn-details {
-  background-color: $background-light; // 改為淺底色
+.btn-pay-now,
+.btn-details,
+.btn-contact,
+.btn-cancel,
+.btn-rebook {
+  @extend %btn-base;
+}
+
+// 詳情按鈕
+.btn-details,
+.btn-rebook {
+  background-color: $background-light;
   color: $primary-color;
-  border-color: #ddd; // 邊框更淺
+  border-color: #ddd;
 
   &:hover {
     background-color: $primary-color;
@@ -529,11 +655,12 @@ h1 {
   }
 }
 
+// 付款按鈕
 .btn-pay-now {
   background-color: $secondary-color;
   color: white;
   border-color: $secondary-color;
-  box-shadow: 0 2px 8px rgba(0, 132, 137, 0.3); // 增加陰影
+  box-shadow: 0 2px 8px rgba(0, 132, 137, 0.3);
 
   &:hover {
     background-color: darken($secondary-color, 10%);
@@ -544,29 +671,61 @@ h1 {
   &:disabled {
     background-color: #ccc;
     border-color: #ccc;
-    cursor: not-allowed;
     color: $text-light;
+    cursor: not-allowed;
     box-shadow: none;
   }
 }
 
-// ==================== 狀態標籤 (微調) ====================
+// 聯繫房東按鈕
+.btn-contact {
+  background-color: white;
+  color: $secondary-color;
+  border-color: $secondary-color;
+
+  &:hover {
+    background-color: $secondary-color;
+    color: white;
+  }
+}
+
+// 取消預訂按鈕
+.btn-cancel {
+  background-color: white;
+  color: $danger-color;
+  border-color: $danger-color;
+
+  &:hover {
+    background-color: $danger-color;
+    color: white;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    color: $text-light;
+    cursor: not-allowed;
+  }
+}
+
+// ==================== 狀態標籤 ====================
 .order-status {
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   display: inline-block;
-  white-space: nowrap; // 確保標籤不換行
+  white-space: nowrap;
 }
 
-// 狀態顏色
-.status-deferred, .status-unpaid {
+.status-deferred,
+.status-unpaid {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.status-completed, .status-paid {
+.status-completed,
+.status-paid {
   background-color: #d4edda;
   color: #155724;
 }
@@ -581,13 +740,13 @@ h1 {
   color: #383d41;
 }
 
-// ==================== Modal 樣式 (沿用您的設定，稍作微調) ====================
+// ==================== Modal 樣式 ====================
 .modal-content {
   border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 
   .modal-header {
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid $border-color;
     padding: 20px 25px;
 
     .modal-title {
@@ -612,7 +771,7 @@ h1 {
     padding-bottom: 5px;
     border-bottom: 1px dashed #f0f0f0;
 
-    i { // 幫 Modal 內的 icon 也加上間距
+    i {
       margin-right: 8px;
       color: $secondary-color;
     }
@@ -622,9 +781,9 @@ h1 {
 .detail-row {
   display: grid;
   grid-template-columns: 120px 1fr;
-  margin-bottom: 10px; // 增加行距
+  margin-bottom: 10px;
   font-size: 14px;
-  align-items: start; // 頂部對齊，防止多行文字跑版
+  align-items: start;
 
   p {
     margin: 0;
@@ -647,11 +806,9 @@ h1 {
     font-weight: 500;
   }
 
-  &.warning {
-    p:last-child {
-      color: #e63946;
-      font-weight: 600;
-    }
+  &.warning p:last-child {
+    color: #e63946;
+    font-weight: 600;
   }
 }
 
@@ -660,7 +817,8 @@ h1 {
   padding: 10px;
   border-radius: 8px;
   color: $primary-color;
-  white-space: pre-wrap; // 保留換行
+  white-space: pre-wrap;
+  font-style: italic;
 }
 
 .address-block {
@@ -673,12 +831,12 @@ h1 {
 }
 
 hr {
-  border-color: #ebebeb;
+  border-color: $border-color;
   margin: 20px 0;
 }
 
 .modal-footer {
-  border-top: 1px solid $border-color; // 加回頂部邊線
+  border-top: 1px solid $border-color;
   padding: 15px 25px;
 }
 
@@ -711,11 +869,11 @@ hr {
   }
 
   .bookings-list .booking-card {
-    flex-direction: column; // *** 在小螢幕上改回垂直堆疊 (上圖下文) ***
+    flex-direction: column;
 
     .card-image-wrapper {
-      width: 100%; // 圖片寬度變 100%
-      height: 200px; // 固定圖片高度
+      width: 100%;
+      height: 200px;
     }
 
     .card-details-wrapper {
@@ -724,8 +882,8 @@ hr {
     }
 
     .bottom-section {
-      flex-direction: column; // 價格和按鈕也垂直排列
-      align-items: stretch; // 撐滿寬度
+      flex-direction: column;
+      align-items: stretch;
       gap: 12px;
       padding-top: 12px;
 
@@ -735,10 +893,13 @@ hr {
 
       .card-actions {
         width: 100%;
-        display: grid; // 改用 grid 讓按鈕等寬
-        // 如果只有一個按鈕，也會自動撐滿
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
+
+        .btn-pay-now {
+          grid-column: 1 / -1;
+        }
       }
     }
   }
@@ -748,7 +909,19 @@ hr {
   }
 
   .detail-row {
-    grid-template-columns: 90px 1fr; // 縮小標籤寬度
+    grid-template-columns: 90px 1fr;
+  }
+}
+
+// ==================== 取消彈窗按鈕 ====================
+.btn-danger {
+  background-color: $danger-color;
+  border-color: $danger-color;
+  color: white;
+
+  &:hover {
+    background-color: darken($danger-color, 10%);
+    border-color: darken($danger-color, 10%);
   }
 }
 </style>

@@ -51,6 +51,19 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 				.ToListAsync();
 		}
 
+		// 根據 BookingId 取得訂單詳細資訊
+		public async Task<Booking?> GetBookingByIdAsync(int bookingId)
+		{
+			return await _context.Bookings
+				.AsNoTracking()
+				.Include(b => b.Guest)
+				.Include(b => b.Coupon)
+				.Include(b => b.Payments)
+				.Include(b => b.Room)
+					.ThenInclude(r => r.Host)
+				.FirstOrDefaultAsync(b => b.BookingId == bookingId);
+		}
+
 		// 建立訂單
 		public async Task CreateBookingAsync(Booking booking)
 		{
