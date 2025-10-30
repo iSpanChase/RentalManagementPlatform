@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RentalManagementPlatformMVC.Services;
+using RentalManagementPlatformMVC.Models;
 
 namespace RentalManagementPlatformMVC.Areas.Room_List.Services
 {
