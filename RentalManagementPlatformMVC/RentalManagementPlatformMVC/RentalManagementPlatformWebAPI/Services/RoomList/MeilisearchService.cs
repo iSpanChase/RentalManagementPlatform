@@ -85,14 +85,57 @@ namespace RentalManagementPlatformWebAPI.Services
 
                 if (hits.Any())
                 {
+                    var roomIds = hits.Select(h => h.RoomId)
+                        .Where(id => id > 0)
+                        .Distinct()
+                        .ToList();
+
+                    if (roomIds.Any())
+                    {
+                        var ratingStats = await _dbContext.Reviews
+                            .Where(review => review.RoomId.HasValue && roomIds.Contains(review.RoomId.Value) && review.Rating.HasValue)
+                            .GroupBy(review => review.RoomId!.Value)
+                            .Select(group => new
+                            {
+                                RoomId = group.Key,
+                                AverageRating = group.Average(review => review.Rating!.Value),
+                                ReviewsCount = group.Count()
+                            })
+                            .ToDictionaryAsync(group => group.RoomId);
+
+                        foreach (var hit in hits)
+                        {
+                            if (ratingStats.TryGetValue(hit.RoomId, out var stats))
+                            {
+                                hit.RatingAvg = Math.Round(stats.AverageRating, 1, MidpointRounding.AwayFromZero);
+                                hit.ReviewsCount = stats.ReviewsCount;
+                            }
+                            else
+                            {
+                                hit.RatingAvg = 0;
+                                hit.ReviewsCount = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var hit in hits)
+                        {
+                            hit.RatingAvg = 0;
+                            hit.ReviewsCount = 0;
+                        }
+                    }
+
                     var firstHit = hits.First();
-                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', CoverImageUrl='{CoverImageUrl}'",
-                        firstHit.RoomId, firstHit.Title, firstHit.CoverImageUrl);
+                    _logger.LogInformation("First hit details: RoomId={RoomId}, Title='{Title}', CoverImageUrl='{CoverImageUrl}', RatingAvg={RatingAvg}, ReviewsCount={ReviewsCount}",
+                        firstHit.RoomId, firstHit.Title, firstHit.CoverImageUrl, firstHit.RatingAvg, firstHit.ReviewsCount);
                 }
                 return hits;
             }
             catch (Exception ex)
             {
+                Console.WriteLine("!!!!!!!!!! CAUGHT EXCEPTION IN MeilisearchService !!!!!!!!!!");
+                Console.WriteLine(ex.ToString());
                 _logger.LogError(ex, "An error occurred while searching Meilisearch index '{IndexName}'.", IndexName);
                 return Enumerable.Empty<RoomListSearchDto>();
             }

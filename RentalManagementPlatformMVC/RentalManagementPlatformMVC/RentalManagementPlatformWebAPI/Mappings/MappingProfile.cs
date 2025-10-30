@@ -2,6 +2,8 @@
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.DTOs.Payments;
+using RentalManagementPlatformWebAPI.DTOs;
+using RentalManagementPlatformWebAPI.DTO.RoomList;
 using RentalManagementPlatformWebAPI.Models;
 using System.Runtime;
 
@@ -18,6 +20,9 @@ namespace RentalManagementPlatformWebAPI.Mappings
 			CreateMap<Payment, PaymentsDto>()
 				.ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.Booking.BookingId));
 			CreateMap<Payment, CreatePaymentDto>();
+
+            CreateMap<Review, ReviewDto>();
+            CreateMap<CreateReviewDto, Review>();
 		}
 	}
 }

@@ -21,22 +21,23 @@ namespace RentalManagementPlatformMVC.Services
         {
             string? objectKey = null;
 
-                        
             if (entityType == "Room")
             {
                 objectKey = await _context.RoomPhotos
-                                    .Where(p => p.RoomId == entityId && p.PhotoType == photoType)
-                                    .OrderBy(p => p.SortOrder)
-                                    .Select(p => p.ObjectKey)
-                                    .FirstOrDefaultAsync();
+                    .Where(p => p.RoomId == entityId && p.PhotoType == photoType)
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p => p.ObjectKey)
+                    .FirstOrDefaultAsync();
             }
 
-            // else if (entityType == "User") { ... 未來可擴充 ... }
+            return await GetPhotoUrlAsync(objectKey);
+        }
 
-
-            if (string.IsNullOrEmpty(objectKey))
+        public async Task<string?> GetPhotoUrlAsync(string? objectKey)
+        {
+            if (string.IsNullOrWhiteSpace(objectKey))
             {
-                return null; // 目前因為邏輯被註解，所以會直接回傳 null
+                return null;
             }
 
             return await _minioService.GetFileUrlAsync(objectKey);

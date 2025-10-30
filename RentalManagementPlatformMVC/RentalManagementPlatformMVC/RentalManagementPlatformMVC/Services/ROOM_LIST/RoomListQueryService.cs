@@ -22,6 +22,27 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             _urlResolver = urlResolver;
         }
 
+        private async Task<string?> ResolvePhotoUrlAsync(RoomPhoto photo)
+        {
+            if (photo == null)
+            {
+                return null;
+            }
+
+            var url = await _urlResolver.GetPhotoUrlAsync(photo.ObjectKey);
+            if (!string.IsNullOrEmpty(url))
+            {
+                return url;
+            }
+
+            if (!photo.RoomId.HasValue)
+            {
+                return null;
+            }
+
+            return await _urlResolver.GetUrlAsync("Room", photo.RoomId.Value, photo.PhotoType ?? string.Empty);
+        }
+
         public async Task<List<RoomSummaryViewModel>> GetRoomSummariesAsync()
         {
             var roomsWithUsers = await (from room in _repository.GetAll().Include(r => r.RoomPhotos) // Include RoomPhotos here
@@ -44,10 +65,16 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
 
                 if (item.Room.RoomPhotos != null && item.Room.RoomPhotos.Any())
                 {
-                    var mainPhoto = item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+                    var orderedPhotos = item.Room.RoomPhotos
+                        .OrderBy(p => p.SortOrder)
+                        .ThenBy(p => p.PhotoId)
+                        .ToList();
+
+                    var mainPhoto = orderedPhotos.FirstOrDefault(p => p.PhotoType == "Cover") ?? orderedPhotos.FirstOrDefault();
+
                     if (mainPhoto != null)
                     {
-                        summary.MainImageUrl = await _urlResolver.GetUrlAsync("Room", item.Room.RoomId, mainPhoto.PhotoType);
+                        summary.MainImageUrl = await ResolvePhotoUrlAsync(mainPhoto);
                     }
                 }
                 roomSummaries.Add(summary);
@@ -77,7 +104,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             {
                 foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    var url = await ResolvePhotoUrlAsync(photo);
                     if (!string.IsNullOrEmpty(url))
                     {
                         photoUrls.Add(url);
@@ -85,7 +112,15 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 }
             }
 
-            var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+            var mainPhoto = rawData.room.RoomPhotos?
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.PhotoId)
+                .FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.PhotoId)
+                .FirstOrDefault();
+
+            var (ratingAvg, reviewsCount) = await _repository.GetRoomRatingStatsAsync(id);
 
             var roomDetails = new RoomDetailsViewModel
             {
@@ -104,8 +139,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 Address = new AddressViewModel { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street },
                 AddressLine = rawData.address.Street,
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
-                RatingAvg = 0,
-                ReviewsCount = 0,
+                RatingAvg = ratingAvg ?? 0,
+                ReviewsCount = reviewsCount,
                 CoverBucket = mainPhoto?.Bucket,
                 CoverObjectKey = mainPhoto?.ObjectKey,
                 CoverContentType = mainPhoto?.ContentType,
@@ -146,7 +181,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             {
                 foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    var url = await ResolvePhotoUrlAsync(photo);
                     if (!string.IsNullOrEmpty(url))
                     {
                         photoUrls.Add(url);
@@ -155,6 +190,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
             }
 
             var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+
+            var (ratingAvg, reviewsCount) = await _repository.GetRoomRatingStatsAsync(id);
 
             var roomDetails = new RoomDetailsViewModel
             {
@@ -173,8 +210,8 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Services
                 Address = new AddressViewModel { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street },
                 AddressLine = rawData.address.Street,
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
-                RatingAvg = 0,
-                ReviewsCount = 0,
+                RatingAvg = ratingAvg ?? 0,
+                ReviewsCount = reviewsCount,
                 CoverBucket = mainPhoto?.Bucket,
                 CoverObjectKey = mainPhoto?.ObjectKey,
                 CoverContentType = mainPhoto?.ContentType,

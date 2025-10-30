@@ -2,10 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.DTOs; // API's DTOs namespace
 using RentalManagementPlatformWebAPI.Services.Interfaces; // API's Services.Interfaces namespace
 using RentalManagementPlatformWebAPI.Repositories.Interfaces; // API's Repositories.Interfaces namespace
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RentalManagementPlatformWebAPI.Models; // API's Models namespace
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using StackExchange.Redis;
 
 namespace RentalManagementPlatformWebAPI.Services
 {
@@ -14,12 +18,35 @@ namespace RentalManagementPlatformWebAPI.Services
         private readonly IRoomListReadRepository _repository;
         private readonly MeilisearchService _meilisearchService; // Assuming MeilisearchService will be in API's Services
         private readonly IFileUrlResolver _urlResolver; // Assuming IFileUrlResolver will be in API's Services.Interfaces
+        private readonly IDistributedCache _cache;
 
-        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService, IFileUrlResolver urlResolver)
+        public RoomListQueryService(IRoomListReadRepository repository, MeilisearchService meilisearchService, IFileUrlResolver urlResolver, IDistributedCache cache)
         {
             _repository = repository;
             _meilisearchService = meilisearchService;
             _urlResolver = urlResolver;
+            _cache = cache;
+        }
+
+        private async Task<string?> ResolvePhotoUrlAsync(RoomPhoto photo)
+        {
+            if (photo == null)
+            {
+                return null;
+            }
+
+            var url = await _urlResolver.GetPhotoUrlAsync(photo.ObjectKey);
+            if (!string.IsNullOrEmpty(url))
+            {
+                return url;
+            }
+
+            if (!photo.RoomId.HasValue)
+            {
+                return null;
+            }
+
+            return await _urlResolver.GetUrlAsync("Room", photo.RoomId.Value, photo.PhotoType ?? string.Empty);
         }
 
         public async Task<List<RoomSummaryResponseDto>> GetRoomSummariesAsync()
@@ -44,10 +71,15 @@ namespace RentalManagementPlatformWebAPI.Services
 
                 if (item.Room.RoomPhotos != null && item.Room.RoomPhotos.Any())
                 {
-                    var mainPhoto = item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? item.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+                    var orderedPhotos = item.Room.RoomPhotos
+                        .OrderBy(p => p.SortOrder)
+                        .ThenBy(p => p.PhotoId)
+                        .ToList();
+
+                    var mainPhoto = orderedPhotos.FirstOrDefault(p => p.PhotoType == "Cover") ?? orderedPhotos.FirstOrDefault();
                     if (mainPhoto != null)
                     {
-                        summary.MainImageUrl = await _urlResolver.GetUrlAsync("Room", item.Room.RoomId, mainPhoto.PhotoType);
+                        summary.MainImageUrl = await ResolvePhotoUrlAsync(mainPhoto);
                     }
                 }
                 roomSummaries.Add(summary);
@@ -77,7 +109,7 @@ namespace RentalManagementPlatformWebAPI.Services
             {
                 foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    var url = await ResolvePhotoUrlAsync(photo);
                     if (!string.IsNullOrEmpty(url))
                     {
                         photoUrls.Add(url);
@@ -86,6 +118,8 @@ namespace RentalManagementPlatformWebAPI.Services
             }
 
             var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+
+            var (ratingAvg, reviewsCount) = await _repository.GetRoomRatingStatsAsync(id);
 
             var roomDetails = new RoomDetailsResponseDto
             {
@@ -104,8 +138,8 @@ namespace RentalManagementPlatformWebAPI.Services
                 Address = new AddressDto { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street }, // Changed to AddressDto
                 AddressLine = rawData.address.Street,
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
-                RatingAvg = 0,
-                ReviewsCount = 0,
+                RatingAvg = ratingAvg ?? 0,
+                ReviewsCount = reviewsCount,
                 CoverBucket = mainPhoto?.Bucket,
                 CoverObjectKey = mainPhoto?.ObjectKey,
                 CoverContentType = mainPhoto?.ContentType,
@@ -146,7 +180,7 @@ namespace RentalManagementPlatformWebAPI.Services
             {
                 foreach (var photo in rawData.room.RoomPhotos.OrderBy(p => p.SortOrder))
                 {
-                    var url = await _urlResolver.GetUrlAsync("Room", rawData.room.RoomId, photo.PhotoType);
+                    var url = await ResolvePhotoUrlAsync(photo);
                     if (!string.IsNullOrEmpty(url))
                     {
                         photoUrls.Add(url);
@@ -155,6 +189,8 @@ namespace RentalManagementPlatformWebAPI.Services
             }
 
             var mainPhoto = rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? rawData.room.RoomPhotos?.OrderBy(p => p.SortOrder).FirstOrDefault();
+
+            var (ratingAvg, reviewsCount) = await _repository.GetRoomRatingStatsAsync(id);
 
             var roomDetails = new RoomDetailsResponseDto
             {
@@ -173,8 +209,8 @@ namespace RentalManagementPlatformWebAPI.Services
                 Address = new AddressDto { FullAddress = rawData.city.CityName + rawData.district.DistrictName + rawData.address.Street }, // Changed to AddressDto
                 AddressLine = rawData.address.Street,
                 Geo = new GeoLocation { Lat = (double)rawData.address.Latitude, Lng = (double)rawData.address.Longitude },
-                RatingAvg = 0,
-                ReviewsCount = 0,
+                RatingAvg = ratingAvg ?? 0,
+                ReviewsCount = reviewsCount,
                 CoverBucket = mainPhoto?.Bucket,
                 CoverObjectKey = mainPhoto?.ObjectKey,
                 CoverContentType = mainPhoto?.ContentType,
@@ -226,6 +262,116 @@ namespace RentalManagementPlatformWebAPI.Services
         public async Task<bool> RoomListExistsAsync(int id)
         {
             return await _repository.GetAll().AnyAsync(e => e.RoomId == id && e.IsDeleted == false);
+        }
+
+        public async Task<IEnumerable<RoomSummaryResponseDto>> GetHotRoomsAsync()
+        {
+            const string cacheKey = "hot-rooms-random-selection";
+            string? cachedData = null;
+
+            try
+            {
+                cachedData = await _cache.GetStringAsync(cacheKey);
+            }
+            catch (RedisConnectionException)
+            {
+                // Ignore if Redis is down
+            }
+
+            if (!string.IsNullOrEmpty(cachedData))
+            {
+                return JsonSerializer.Deserialize<List<RoomSummaryResponseDto>>(cachedData) ?? new List<RoomSummaryResponseDto>();
+            }
+            else
+            {
+                const int numberOfRoomsToFetch = 10;
+                var randomRoomsWithHost = await _repository.GetRandomRoomsWithHostAsync(numberOfRoomsToFetch);
+
+                var roomSummaries = new List<RoomSummaryResponseDto>();
+                foreach (var (room, host, ratingAvg, reviewsCount) in randomRoomsWithHost)
+                {
+                    var summary = new RoomSummaryResponseDto
+                    {
+                        RoomId = room.RoomId,
+                        Title = room.Title,
+                        Status = room.Status,
+                        HostId = room.HostId ?? host.UserId,
+                        HostName = host.Name,
+                        Description = room.Description,
+                        PricePerNight = room.PricePerNight ?? 0,
+                        RatingAvg = ratingAvg ?? 0m,
+                        ReviewsCount = reviewsCount,
+                        CityName = room.Address?.District?.City?.CityName,
+                        DistrictName = room.Address?.District?.DistrictName,
+                        AddressLine = room.Address?.Street,
+                        IsDeleted = room.IsDeleted,
+                        MaxGuests = room.MaxGuests ?? 0,
+                        Geo = room.Address != null
+                            ? new GeoLocation
+                            {
+                                Lat = (double)room.Address.Latitude,
+                                Lng = (double)room.Address.Longitude
+                            }
+                            : null
+                    };
+
+                    var photoUrls = new List<string>();
+
+                    if (room.RoomPhotos != null && room.RoomPhotos.Any())
+                    {
+                        var orderedPhotos = room.RoomPhotos
+                            .OrderBy(p => p.SortOrder)
+                            .ThenBy(p => p.PhotoId)
+                            .ToList();
+
+                        foreach (var photo in orderedPhotos)
+                        {
+                            try
+                            {
+                                var url = await ResolvePhotoUrlAsync(photo);
+                                if (!string.IsNullOrEmpty(url))
+                                {
+                                    photoUrls.Add(url);
+                                    if (string.IsNullOrEmpty(summary.MainImageUrl))
+                                    {
+                                        summary.MainImageUrl = url;
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                // Ignore individual photo resolution errors to keep other data flowing.
+                            }
+                        }
+                    }
+
+                    summary.PhotoUrls = photoUrls;
+
+                    if (string.IsNullOrEmpty(summary.MainImageUrl) && photoUrls.Any())
+                    {
+                        summary.MainImageUrl = photoUrls.First();
+                    }
+
+                    roomSummaries.Add(summary);
+                }
+
+                var serializedRooms = JsonSerializer.Serialize(roomSummaries);
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                };
+
+                try
+                {
+                    await _cache.SetStringAsync(cacheKey, serializedRooms, cacheOptions);
+                }
+                catch (RedisConnectionException)
+                {
+                    // Ignore
+                }
+
+                return roomSummaries;
+            }
         }
     }
 }
