@@ -18,7 +18,6 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro     # 如果要 TLS
       - ./frontend/dist:/usr/share/nginx/html:ro  # 如果要部署前端靜態檔
     depends_on:
-      - postgres
       - redis
       - minio
       - meilisearch
