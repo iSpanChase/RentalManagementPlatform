@@ -83,4 +83,7 @@ public partial class Booking
 	// 郵遞區號
 	public string? BillingZipCode { get; set; }
 
+	// 更新日期
+	public DateTime? UpdatedAt { get; set; }
+
 }

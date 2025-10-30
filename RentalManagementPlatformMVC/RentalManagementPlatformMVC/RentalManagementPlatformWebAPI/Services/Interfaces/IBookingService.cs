@@ -6,6 +6,8 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
 	{
 		Task<IEnumerable<BookingDto>> GetAllBookingsAsync();
 		Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId);
+		Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId);
 		Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto);
+		Task<BookingDto?> CancelBookingByIdAsync(int bookingId);
 	}
 }

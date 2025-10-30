@@ -125,7 +125,7 @@ export const useBookingStore = defineStore('booking', () => {
         orderData,
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -133,7 +133,14 @@ export const useBookingStore = defineStore('booking', () => {
       console.log('後端回應：', response.data);
 
       // 後端回傳的資料
-      const { bookingId, orderNumber, ecpayFormHtml, paymentRequired, paymentStatus, paymentDeadline } = response.data;
+      const {
+        bookingId,
+        orderNumber,
+        ecpayFormHtml,
+        paymentRequired,
+        paymentStatus,
+        paymentDeadline,
+      } = response.data;
 
       // 回傳結果
       return {
@@ -170,6 +177,21 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
+  // 獲取指定房東的所有訂單
+  const fetchHostOrders = async (hostId) => {
+    if (!hostId) throw new Error('未提供房東 ID');
+    isLoading.value = true;
+    try {
+      const response = await axios.get(`https://localhost:7230/api/bookings/host/${hostId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`獲取房東 ${hostId} 的訂單失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   // 為延後支付的訂單獲取付款表單
   const getDeferredPaymentForm = async (orderNumber) => {
     if (!orderNumber) {
@@ -177,10 +199,31 @@ export const useBookingStore = defineStore('booking', () => {
     }
     isLoading.value = true;
     try {
-      const response = await axios.get(`https://localhost:7230/api/payments/deferred/${orderNumber}`);
+      const response = await axios.get(
+        `https://localhost:7230/api/payments/deferred/${orderNumber}`
+      );
       return response.data; // { success, orderNumber, ecpayFormHtml }
     } catch (error) {
       console.error(`為訂單 ${orderNumber} 獲取付款表單失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // 根據BookingId取消訂單
+  const cancelBooking = async (bookingId) => {
+    if (!bookingId) {
+      throw new Error('未提供訂單 ID');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.put(
+        `https://localhost:7230/api/bookings/cancel/${bookingId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`取消訂單 ${bookingId} 失敗：`, error);
       throw error;
     } finally {
       isLoading.value = false;
@@ -205,6 +248,8 @@ export const useBookingStore = defineStore('booking', () => {
     clearBookingDraft,
     createBooking,
     fetchUserBookings,
+    fetchHostOrders,
     getDeferredPaymentForm,
+    cancelBooking,
   };
 });

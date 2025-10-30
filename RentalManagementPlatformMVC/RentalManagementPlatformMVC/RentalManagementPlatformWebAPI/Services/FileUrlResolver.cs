@@ -21,16 +21,23 @@ namespace RentalManagementPlatformWebAPI.Services
         {
             string? objectKey = null;
 
-            if (entityType == "Room")
+            switch (entityType)
             {
-                objectKey = await _context.RoomPhotos
-                                    .Where(p => p.RoomId == entityId && p.PhotoType == photoType)
-                                    .OrderBy(p => p.SortOrder)
-                                    .Select(p => p.ObjectKey)
-                                    .FirstOrDefaultAsync();
+                case "Room":
+                    objectKey = await _context.RoomPhotos
+                        .Where(p => p.RoomId == entityId && p.PhotoType == photoType)
+                        .OrderBy(p => p.SortOrder)
+                        .Select(p => p.ObjectKey)
+                        .FirstOrDefaultAsync();
+                    break;
             }
 
-            if (string.IsNullOrEmpty(objectKey))
+            return await GetPhotoUrlAsync(objectKey);
+        }
+
+        public async Task<string?> GetPhotoUrlAsync(string? objectKey)
+        {
+            if (string.IsNullOrWhiteSpace(objectKey))
             {
                 return null;
             }

@@ -48,6 +48,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
+		// 根據 HostId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId)
+		{
+			var bookings = await _bookingRepository.GetOrdersByHostIdAsync(hostId);
+			if (bookings == null || !bookings.Any())
+			{
+				throw new ArgumentException("找不到該房東的訂單");
+			}
+			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
+		}
+
 		// 建立訂單並根據付款時機決定是否產生綠界表單
 		public async Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto)
 		{
@@ -222,6 +233,42 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			{
 				throw new ArgumentException($"無效的付款時機：{dto.PaymentTiming}");
 			}
+		}
+
+		// 根據訂單ID取消訂單
+		public async Task<BookingDto?> CancelBookingByIdAsync(int bookingId)
+		{
+			var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
+
+			if (booking == null)
+			{
+				throw new ArgumentException("找不到指定訂單");
+			}
+
+			if (booking.Status == "Cancelled")
+			{
+				throw new InvalidOperationException("訂單已經取消");
+			}
+
+			if (booking.Status == "Completed")
+			{
+				throw new InvalidOperationException("已完成的訂單無法取消");
+			}
+
+			booking.Status = "Cancelled";
+
+			if (booking.PaymentStatus == "completed")
+			{
+				booking.PaymentStatus = "refunded";
+			}
+			else
+			{
+				booking.PaymentStatus = "cancelled";
+			}
+
+			booking.UpdatedAt = DateTime.Now;
+			await _bookingRepository.UpdateBookingAsync(booking);
+			return _mapper.Map<BookingDto>(booking);
 		}
 
 		// ==================== 內部使用方法 ====================

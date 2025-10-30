@@ -22,6 +22,7 @@
     "@fortawesome/vue-fontawesome": "^3.1.2",
     "@microsoft/signalr": "^9.0.6",
     "@tanstack/vue-query": "^5.90.5",
+    "@vuepic/vue-datepicker": "^11.0.3",
     "@vueuse/core": "^13.9.0",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",

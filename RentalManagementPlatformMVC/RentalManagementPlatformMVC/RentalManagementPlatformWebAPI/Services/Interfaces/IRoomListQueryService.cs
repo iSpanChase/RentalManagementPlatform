@@ -12,5 +12,6 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
         Task<UpdateRoomRequestDto?> GetRoomForEditAsync(int id); // Changed to UpdateRoomRequestDto
         Task<RoomSummaryResponseDto?> GetRoomSummaryForDeleteAsync(int id); // Changed to RoomSummaryResponseDto
         Task<bool> RoomListExistsAsync(int id);
+        Task<IEnumerable<RoomSummaryResponseDto>> GetHotRoomsAsync();
     }
 }

@@ -66,6 +66,7 @@
 
 		// ==================== 關聯資料 ====================
 		public string? GuestName { get; set; }
+		public string? HostName { get; set; }
 		public string? Room { get; set; }
 	}
 }
