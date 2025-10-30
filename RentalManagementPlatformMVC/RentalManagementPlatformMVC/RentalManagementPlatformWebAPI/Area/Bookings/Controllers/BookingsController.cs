@@ -33,6 +33,14 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			return Ok(bookings);
 		}
 
+		// [開發用] 根據 HostId 獲取其所有訂單
+		[HttpGet("host/{hostId}")]
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetOrdersByHostId(int hostId)
+		{
+			var bookings = await _bookingService.GetOrdersByHostIdAsync(hostId);
+			return Ok(bookings);
+		}
+
 		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
@@ -62,6 +70,22 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 					innerException = ex.InnerException?.Message
 				});
 			}
+		}
+
+		// 根據BookingId取消訂單
+		[HttpPut("cancel/{bookingId}")]
+		public async Task<IActionResult> CancelBookingAsync(int bookingId)
+		{
+			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
+
+			var apiResponse = new
+			{
+				success = true,
+				message = result != null ? "訂單取消成功" : "找不到訂單或無法取消",
+				booking = result
+			};
+
+			return Ok(apiResponse);
 		}
 	}
 }

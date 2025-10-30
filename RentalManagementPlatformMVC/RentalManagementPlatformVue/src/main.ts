@@ -9,6 +9,7 @@ import {
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock, 
     faHouse, faAddressBook, faStar 
 } from '@fortawesome/free-solid-svg-icons'
+import { faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser, faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock, faHouse, faAddressBook, faCalendarDays, faUserGroup, faHashtag, faComments} from '@fortawesome/free-solid-svg-icons'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
@@ -20,6 +21,7 @@ library.add(
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock, 
     faHouse, faAddressBook, faStar
 );
+library.add(faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser, faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock, faHouse, faAddressBook, faCalendarDays, faUserGroup, faHashtag, faComments);
 dom.watch()
 
 const app = createApp(App)

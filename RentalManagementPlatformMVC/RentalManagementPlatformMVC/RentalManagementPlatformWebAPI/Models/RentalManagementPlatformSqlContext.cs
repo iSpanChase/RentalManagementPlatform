@@ -255,6 +255,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				.HasMaxLength(20)
 				.HasColumnName("billing_zip_code");
 
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
 			// ==================== 關聯設定 ====================
 
 			entity.HasOne(d => d.Coupon)
