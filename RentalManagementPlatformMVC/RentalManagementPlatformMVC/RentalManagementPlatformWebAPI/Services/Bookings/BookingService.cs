@@ -223,6 +223,42 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			}
 		}
 
+		// 根據訂單ID取消訂單
+		public async Task<BookingDto?> CancelBookingByIdAsync(int bookingId)
+		{
+			var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
+
+			if (booking == null)
+			{
+				throw new ArgumentException("找不到指定訂單");
+			}
+
+			if (booking.Status == "Cancelled")
+			{
+				throw new InvalidOperationException("訂單已經取消");
+			}
+
+			if (booking.Status == "Completed")
+			{
+				throw new InvalidOperationException("已完成的訂單無法取消");
+			}
+
+			booking.Status = "Cancelled";
+
+			if (booking.PaymentStatus == "completed")
+			{
+				booking.PaymentStatus = "refunded";
+			}
+			else
+			{
+				booking.PaymentStatus = "cancelled";
+			}
+
+			booking.UpdatedAt = DateTime.Now;
+			await _bookingRepository.UpdateBookingAsync(booking);
+			return _mapper.Map<BookingDto>(booking);
+		}
+
 		// ==================== 內部使用方法 ====================
 
 		// 生成訂單編號，格式：ORD + yyyyMMdd + 4位流水號

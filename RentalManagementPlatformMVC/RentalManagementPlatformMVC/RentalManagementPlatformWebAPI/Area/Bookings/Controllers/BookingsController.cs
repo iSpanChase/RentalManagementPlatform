@@ -71,5 +71,21 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 				});
 			}
 		}
+
+		// 根據BookingId取消訂單
+		[HttpPut("cancel/{bookingId}")]
+		public async Task<IActionResult> CancelBookingAsync(int bookingId)
+		{
+			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
+
+			var apiResponse = new
+			{
+				success = true,
+				message = result != null ? "訂單取消成功" : "找不到訂單或無法取消",
+				booking = result
+			};
+
+			return Ok(apiResponse);
+		}
 	}
 }
