@@ -162,11 +162,22 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 		[HttpPost("redirect-handler")]
 		public IActionResult EcpayFrontendRedirect([FromForm] Dictionary<string, string> formData)
 		{
-		    // 這裡可以選擇性地記錄一些日誌，但主要目的是導向
 		    _logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
-		    // 綠界會把參數 POST 過來，但我們不需要處理，直接導向即可
-		    // 導向到前端的訂單頁面，讓前端自己去查詢訂單狀態
-		    return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings?userId=1");		
+
+		    // 從 formData 中取得 MerchantTradeNo (即訂單編號)
+		    string? orderNumber = formData.ContainsKey("MerchantTradeNo") ? formData["MerchantTradeNo"] : null;
+
+		    if (!string.IsNullOrEmpty(orderNumber))
+		    {
+		        // 導向到前端的訂單頁面，並帶上訂單編號
+		        return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings?orderNumber={orderNumber}");
+		    }
+		    else
+		    {
+		        _logger.LogWarning("從綠界 OrderResultURL 回調中未取得 MerchantTradeNo，導向通用訂單頁面。");
+		        // 如果沒有訂單編號，則導向通用訂單頁面
+		        return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings");
+		    }
 		}
 		
 		/// 測試用：手動觸發回調（開發時使用）

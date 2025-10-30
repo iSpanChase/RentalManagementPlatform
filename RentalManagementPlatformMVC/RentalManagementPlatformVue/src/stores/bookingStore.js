@@ -192,6 +192,24 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
+  // 獲取單一訂單詳情 (根據 orderNumber)
+  const fetchBookingByOrderNumber = async (orderNumber) => {
+    if (!orderNumber) {
+      throw new Error('未提供訂單編號');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.get(`https://localhost:7230/api/bookings/ordernumber/${orderNumber}`);
+      return response.data;
+    } catch (error) {
+      console.error(`獲取訂單 ${orderNumber} 失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+
   // 為延後支付的訂單獲取付款表單
   const getDeferredPaymentForm = async (orderNumber) => {
     if (!orderNumber) {
@@ -249,6 +267,7 @@ export const useBookingStore = defineStore('booking', () => {
     createBooking,
     fetchUserBookings,
     fetchHostOrders,
+    fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,
   };

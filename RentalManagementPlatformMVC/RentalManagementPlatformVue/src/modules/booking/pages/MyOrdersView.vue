@@ -83,14 +83,28 @@ onMounted(async () => {
   }
 
   try {
-    // 取得 hostId，無則使用測試 ID
-    let hostId = route.query.hostId;
-    if (!hostId) {
-      console.warn('URL 中未提供 hostId，使用測試房東 ID');
-      hostId = testHostId;
+    const orderNumberFromQuery = route.query.orderNumber;
+    let fetchedOrders = [];
+
+    if (orderNumberFromQuery) {
+      console.log(`URL 中檢測到訂單編號: ${orderNumberFromQuery}，正在獲取單一訂單詳情...`);
+      const singleOrder = await bookingStore.fetchBookingByOrderNumber(orderNumberFromQuery);
+      if (singleOrder) {
+        fetchedOrders.push(singleOrder);
+      } else {
+        console.warn(`找不到訂單編號為 ${orderNumberFromQuery} 的訂單。`);
+      }
+    } else {
+      // 取得 hostId，無則使用測試 ID
+      let hostId = route.query.hostId;
+      if (!hostId) {
+        console.warn('URL 中未提供 hostId，使用測試房東 ID');
+        hostId = testHostId;
+      }
+      console.log(`URL 中未提供訂單編號，正在獲取房東 ${hostId} 的所有訂單...`);
+      fetchedOrders = await bookingStore.fetchHostOrders(hostId);
     }
 
-    const fetchedOrders = await bookingStore.fetchHostOrders(hostId);
     orders.value = fetchedOrders;
 
     console.log('從後端獲取訂單成功:', orders.value);

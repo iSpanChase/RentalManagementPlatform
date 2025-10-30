@@ -172,13 +172,26 @@ onMounted(async () => {
   }
 
   try {
-    let userId = route.query.userId;
-    if (!userId) {
-      console.warn('URL 中未提供 userId，使用測試用戶 ID');
-      userId = testUserId;
-    }
+    const orderNumberFromQuery = route.query.orderNumber;
+    let fetchedBookings = [];
 
-    const fetchedBookings = await bookingStore.fetchUserBookings(userId);
+    if (orderNumberFromQuery) {
+      console.log(`URL 中檢測到訂單編號: ${orderNumberFromQuery}，正在獲取單一訂單詳情...`);
+      const singleBooking = await bookingStore.fetchBookingByOrderNumber(orderNumberFromQuery);
+      if (singleBooking) {
+        fetchedBookings.push(singleBooking);
+      } else {
+        console.warn(`找不到訂單編號為 ${orderNumberFromQuery} 的訂單。`);
+      }
+    } else {
+      let userId = route.query.userId;
+      if (!userId) {
+        console.warn('URL 中未提供 userId，使用測試用戶 ID');
+        userId = testUserId;
+      }
+      console.log(`URL 中未提供訂單編號，正在獲取用戶 ${userId} 的所有訂單...`);
+      fetchedBookings = await bookingStore.fetchUserBookings(userId);
+    }
 
     bookings.value = fetchedBookings.map(b => ({...b}));
 

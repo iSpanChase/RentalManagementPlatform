@@ -68,5 +68,6 @@
 		public string? GuestName { get; set; }
 		public string? HostName { get; set; }
 		public string? Room { get; set; }
+		public string? RoomImageUrl { get; set; } // 新增：房間主要圖片 URL
 	}
 }
