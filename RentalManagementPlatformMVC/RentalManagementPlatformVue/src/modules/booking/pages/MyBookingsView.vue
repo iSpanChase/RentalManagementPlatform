@@ -152,8 +152,8 @@ const confirmCancellation = async () => {
 };
 
 const handleRebook = (booking) => {
-  console.log('準備重新預訂，房源:', booking.room);
-  alert(`重新預訂功能開發中... (房源: ${booking.room})`);
+  console.log('導航到預訂確認頁面...');
+  router.push({ name: 'BookingConfirmView' });
 };
 
 onMounted(async () => {
@@ -172,13 +172,26 @@ onMounted(async () => {
   }
 
   try {
-    let userId = route.query.userId;
-    if (!userId) {
-      console.warn('URL 中未提供 userId，使用測試用戶 ID');
-      userId = testUserId;
-    }
+    const orderNumberFromQuery = route.query.orderNumber;
+    let fetchedBookings = [];
 
-    const fetchedBookings = await bookingStore.fetchUserBookings(userId);
+    if (orderNumberFromQuery) {
+      console.log(`URL 中檢測到訂單編號: ${orderNumberFromQuery}，正在獲取單一訂單詳情...`);
+      const singleBooking = await bookingStore.fetchBookingByOrderNumber(orderNumberFromQuery);
+      if (singleBooking) {
+        fetchedBookings.push(singleBooking);
+      } else {
+        console.warn(`找不到訂單編號為 ${orderNumberFromQuery} 的訂單。`);
+      }
+    } else {
+      let userId = route.query.userId;
+      if (!userId) {
+        console.warn('URL 中未提供 userId，使用測試用戶 ID');
+        userId = testUserId;
+      }
+      console.log(`URL 中未提供訂單編號，正在獲取用戶 ${userId} 的所有訂單...`);
+      fetchedBookings = await bookingStore.fetchUserBookings(userId);
+    }
 
     bookings.value = fetchedBookings.map(b => ({...b}));
 
@@ -287,7 +300,7 @@ onUnmounted(() => {
                 <button
                   class="btn-rebook"
                   @click="handleRebook(booking)"
-                  v-if="booking.paymentStatus === 'cancelled' || booking.paymentStatus === 'completed'"
+                  v-if="booking.paymentStatus === 'cancelled' || booking.paymentStatus === 'completed' || booking.paymentStatus === 'refunded'"
                   :disabled="isLoading"
                 >
                   重新預訂
@@ -642,8 +655,7 @@ h1 {
 }
 
 // 詳情按鈕
-.btn-details,
-.btn-rebook {
+.btn-details {
   background-color: $background-light;
   color: $primary-color;
   border-color: #ddd;
@@ -652,6 +664,18 @@ h1 {
     background-color: $primary-color;
     color: white;
     border-color: $primary-color;
+  }
+}
+
+// 重新預訂按鈕
+.btn-rebook {
+  background-color: $secondary-color;
+  color: white;
+  border-color: $secondary-color;
+
+  &:hover {
+    background-color: darken($secondary-color, 10%);
+    border-color: darken($secondary-color, 10%);
   }
 }
 

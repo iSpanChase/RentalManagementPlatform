@@ -9,5 +9,6 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
 		Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId);
 		Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto);
 		Task<BookingDto?> CancelBookingByIdAsync(int bookingId);
+		Task<BookingDto?> GetBookingByOrderNumberAsync(string orderNumber); // New method
 	}
 }

@@ -41,6 +41,18 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			return Ok(bookings);
 		}
 
+		// 根據訂單編號獲取單一訂單詳情
+		[HttpGet("ordernumber/{orderNumber}")]
+		public async Task<ActionResult<BookingDto>> GetBookingByOrderNumber(string orderNumber)
+		{
+			var booking = await _bookingService.GetBookingByOrderNumberAsync(orderNumber);
+			if (booking == null)
+			{
+				return NotFound($"找不到訂單編號為 {orderNumber} 的訂單");
+			}
+			return Ok(booking);
+		}
+
 		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
@@ -72,7 +84,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			}
 		}
 
-		// 根據BookingId取消訂單
+		// 根據 BookingId 取消訂單
 		[HttpPut("cancel/{bookingId}")]
 		public async Task<IActionResult> CancelBookingAsync(int bookingId)
 		{

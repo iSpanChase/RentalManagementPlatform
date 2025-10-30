@@ -83,14 +83,28 @@ onMounted(async () => {
   }
 
   try {
-    // 取得 hostId，無則使用測試 ID
-    let hostId = route.query.hostId;
-    if (!hostId) {
-      console.warn('URL 中未提供 hostId，使用測試房東 ID');
-      hostId = testHostId;
+    const orderNumberFromQuery = route.query.orderNumber;
+    let fetchedOrders = [];
+
+    if (orderNumberFromQuery) {
+      console.log(`URL 中檢測到訂單編號: ${orderNumberFromQuery}，正在獲取單一訂單詳情...`);
+      const singleOrder = await bookingStore.fetchBookingByOrderNumber(orderNumberFromQuery);
+      if (singleOrder) {
+        fetchedOrders.push(singleOrder);
+      } else {
+        console.warn(`找不到訂單編號為 ${orderNumberFromQuery} 的訂單。`);
+      }
+    } else {
+      // 取得 hostId，無則使用測試 ID
+      let hostId = route.query.hostId;
+      if (!hostId) {
+        console.warn('URL 中未提供 hostId，使用測試房東 ID');
+        hostId = testHostId;
+      }
+      console.log(`URL 中未提供訂單編號，正在獲取房東 ${hostId} 的所有訂單...`);
+      fetchedOrders = await bookingStore.fetchHostOrders(hostId);
     }
 
-    const fetchedOrders = await bookingStore.fetchHostOrders(hostId);
     orders.value = fetchedOrders;
 
     console.log('從後端獲取訂單成功:', orders.value);
@@ -277,13 +291,13 @@ onUnmounted(() => {
               <div class="detail-row">
                 <p><strong>您的淨收入:</strong></p>
                 <p class="net-income-value">
-                  <strong>TWD {{ (selectedOrder.totalPrice * 0.9).toLocaleString() }}</strong>
-                  <span class="text-muted"> (10% 平台佣金)</span>
+                  <strong>TWD {{ Math.round(selectedOrder.totalPrice * 0.85).toLocaleString() }}</strong>
+                  <span class="text-muted"> (15% 平台佣金)</span>
                 </p>
               </div>
               <div class="detail-row">
                 <p><strong>付款方式:</strong></p>
-                <p>{{ selectedOrder.paymentTiming === 'full' ? '全額預付' : '延後支付' }}</p>
+                <p>{{ selectedOrder.paymentTiming === 'full' ? '立即支付' : '延後支付' }}</p>
               </div>
               <div class="detail-row warning" v-if="selectedOrder.paymentStatus === 'deferred'">
                 <p><strong>付款截止日:</strong></p>

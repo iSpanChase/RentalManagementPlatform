@@ -117,18 +117,18 @@ const decreaseGuests = () => {
 // ==================== 生命週期 ====================
 onMounted(() => {
   // 模擬載入測試資料
-  bookingStore.setBookingDraft({
-    roomId: 1,
-    guestId: 1,
-    couponId: null,
-    checkIn: '2025-12-31',
-    checkOut: '2026-01-02',
-    guestCount: 2,
-    roomTitle: 'Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
-    roomImage: 'https://picsum.photos/120/90',
-    pricePerNight: 3598,
-    coupon: { discountAmount: 200 }
-  });
+  // bookingStore.setBookingDraft({
+  //   roomId: 1,
+  //   guestId: 1,
+  //   couponId: null,
+  //   checkIn: '2025-12-31',
+  //   checkOut: '2026-01-02',
+  //   guestCount: 2,
+  //   roomTitle: 'Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
+  //   roomImage: 'https://picsum.photos/120/90',
+  //   pricePerNight: 3598,
+  //   coupon: { discountAmount: 200 }
+  // });
 
   console.log('測試訂房資料已載入');
   console.log('bookingDraft:', bookingStore.bookingDraft);

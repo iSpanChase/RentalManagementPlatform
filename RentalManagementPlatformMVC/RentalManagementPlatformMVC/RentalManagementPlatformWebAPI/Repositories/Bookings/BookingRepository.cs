@@ -26,15 +26,16 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 				.ToListAsync();
 		}
 
-		// 根據使用者ID獲取其所有訂單
+		// 根據 GuestId 獲取其所有訂單
 		public async Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId)
 		{
 			return await _context.Bookings
 				.AsNoTracking()
 				.Where(b => b.GuestId == guestId)
-				.Include(b => b.Room) // 同時載入房間資訊
+				.Include(b => b.Room) 
+					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
 				.Include(b => b.Guest) // 同時載入房客姓名
-				.OrderByDescending(b => b.CreatedAt) // 讓最新的訂單在最前面
+				.OrderByDescending(b => b.CreatedAt) 
 				.ToListAsync();
 		}
 
@@ -44,8 +45,10 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 			return await _context.Bookings
 				.AsNoTracking()
 				.Include(b => b.Room)
-				.ThenInclude(r => r.Host)
-				.Where(b => b.Room != null && b.Room.HostId == hostId)
+					.ThenInclude(r => r.Host) // 同時載入房東資訊
+				.Include(b => b.Room)
+					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
+				.Where(b => b.Room != null && b.Room.HostId == hostId) // 過濾出指定 HostId 的訂單
 				.Include(b => b.Guest)
 				.OrderByDescending(b => b.CreatedAt)
 				.ToListAsync();
@@ -76,6 +79,8 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 		{
 			return await _context.Bookings
 				.AsNoTracking()
+				.Include(b => b.Room)
+					.ThenInclude(r => r.RoomPhotos)
 				.FirstOrDefaultAsync(b => b.OrderNumber == orderNumber);
 		}
 
@@ -86,6 +91,7 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 			await _context.SaveChangesAsync();
 		}
 
+		// 根據日期前綴取得最後一筆訂單編號
 		public async Task<string?> GetLastBookingNumberByDateAsync(string datePrefix)
 		{
 			return await _context.Bookings
