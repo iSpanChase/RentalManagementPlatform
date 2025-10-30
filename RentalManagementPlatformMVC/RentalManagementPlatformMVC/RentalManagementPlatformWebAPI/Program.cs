@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Minio;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
+using RentalManagementPlatformWebAPI.Hubs;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
@@ -40,7 +41,8 @@ namespace RentalManagementPlatformWebAPI
 						"https://my-project-frontend.ngrok.app"); // <--- 將 ngrok URL 加入！
 					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
 						  .AllowAnyHeader()
-						 .AllowAnyMethod();
+						 .AllowAnyMethod()
+                         .AllowCredentials();
 				});
 			});
 
@@ -196,8 +198,8 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
 
 			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
-
-			var app = builder.Build();
+            builder.Services.AddSignalR();
+            var app = builder.Build();
 
 			app.UseExceptionHandler(); // 全域異常處理中介軟體
 
@@ -216,8 +218,9 @@ namespace RentalManagementPlatformWebAPI
 			app.UseAuthorization();
 
 			app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationHub");
 
-			app.Run();
+            app.Run();
 		}
 	}
 }
