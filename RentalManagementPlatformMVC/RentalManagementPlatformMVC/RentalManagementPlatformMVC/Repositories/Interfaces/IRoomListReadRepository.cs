@@ -1,6 +1,7 @@
 
 using RentalManagementPlatformMVC.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RentalManagementPlatformMVC.Repositories.Interfaces
 {
@@ -11,5 +12,6 @@ namespace RentalManagementPlatformMVC.Repositories.Interfaces
         IQueryable<Address> GetAddresses();
         IQueryable<District> GetDistricts();
         IQueryable<City> GetCities();
+        Task<(double? RatingAvg, int ReviewsCount)> GetRoomRatingStatsAsync(int roomId);
     }
 }

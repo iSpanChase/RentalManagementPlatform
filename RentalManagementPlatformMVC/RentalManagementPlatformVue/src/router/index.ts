@@ -1,0 +1,50 @@
+import { createRouter, createWebHistory } from 'vue-router';
+import MainLayout from '@/layouts/MainLayout.vue';
+import HomeView from '../views/HomeView.vue';
+import exampleARouter from './modules/exampleA/router';
+import exampleBRouter from './modules/exampleB/router';
+import ReportFormRouter from './modules/ReportForm/router';
+import bookingRoutes from '@/modules/booking/router';
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    // 1. 主頁面：用 MainLayout 包住
+    {
+      path: '/',
+      component: MainLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomeView,
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('../views/AboutView.vue'),
+        },
+        {
+          path: 'rooms/:id',
+          name: 'room-detail',
+          component: () => import('../views/RoomDetailView.vue'),
+        },
+        {
+          path: '/search',
+          name: 'search',
+          component: () => import('../views/SearchView.vue'),
+        },
+      ],
+    },
+
+    // 2. 其他模組路由
+    ...exampleARouter,
+    ...exampleBRouter,
+    ...ReportFormRouter,
+
+    // 3. 訂單路由（使用自己的 BookingLayout）
+    ...bookingRoutes,
+  ],
+});
+
+export default router;

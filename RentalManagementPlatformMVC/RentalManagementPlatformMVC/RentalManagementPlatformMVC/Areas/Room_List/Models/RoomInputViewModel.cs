@@ -14,7 +14,7 @@ namespace RentalManagementPlatformMVC.Areas.Room_List.Models
         public string? Title { get; set; }
 
         [Required(ErrorMessage = "請輸入描述")]
-        [Display(Name = "描述")]
+        [Display(Name = "描述 ")]
         public string? Description { get; set; }
 
         [Display(Name = "最大入住人數")]
