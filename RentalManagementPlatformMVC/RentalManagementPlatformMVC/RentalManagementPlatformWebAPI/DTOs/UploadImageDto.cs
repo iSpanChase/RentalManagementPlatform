@@ -16,12 +16,6 @@ namespace RentalManagementPlatformWebAPI.DTOs
         public IFormFile? ImageFile { get; set; }
 
         /// <summary>
-        /// 圖片的排序順序。通常由前端指定，用於決定圖片在列表中的顯示位置。
-        /// 標記為可為 null (?)，表示前端可以選擇不提供此值。
-        /// </summary>
-        public int? SortOrder { get; set; }
-
-        /// <summary>
         /// 圖片的類型標籤，例如 "Cover" (封面), "Profile" (大頭貼), "Gallery" (圖庫) 等。
         /// 用於區分圖片的用途。預設值為 string.Empty，以避免 CS8618 警告。
         /// </summary>
