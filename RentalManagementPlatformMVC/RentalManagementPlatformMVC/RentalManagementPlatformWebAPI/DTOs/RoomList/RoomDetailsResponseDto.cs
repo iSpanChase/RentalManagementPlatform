@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace RentalManagementPlatformWebAPI.DTOs
 {
+    public class PhotoDto
+    {
+        public int PhotoId { get; set; }
+        public string Url { get; set; } = string.Empty;
+        public int? SortOrder { get; set; }
+    }
+
     public class RoomDetailsResponseDto
     {
         public int RoomId { get; set; }
@@ -14,7 +21,7 @@ namespace RentalManagementPlatformWebAPI.DTOs
         public bool IsDeleted { get; set; }
         public AddressDto? Address { get; set; } // Changed to AddressDto
         public HostDto? Host { get; set; } // Changed to HostDto
-        public List<string>? PhotoUrls { get; set; }
+        public List<PhotoDto>? Photos { get; set; }
         public int? HostId { get; set; }
         public string? CityName { get; set; }
         public int? DistrictId { get; set; }
@@ -29,5 +36,7 @@ namespace RentalManagementPlatformWebAPI.DTOs
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public List<string> Amenities { get; set; } = new();
+        
+        
     }
 }

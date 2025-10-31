@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using RentalManagementPlatformWebAPI.DTOs;
 using RentalManagementPlatformWebAPI.Models;
 using System.Threading.Tasks;
@@ -35,5 +36,21 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
         /// </summary>
         /// <param name="roomPhoto">包含照片詳細資訊的 RoomPhoto 實體。</param>
         Task AddRoomPhotoAsync(RoomPhoto roomPhoto);
+
+        /// <summary>
+        /// 處理房源照片的上傳、建立資料庫紀錄並觸發索引更新的完整流程。
+        /// </summary>
+        /// <param name="roomId">房源 ID。</param>
+        /// <param name="file">上傳的圖片檔案。</param>
+        /// <param name="photoType">圖片類型 (例如: 'Cover', 'General')。</param>
+        /// <returns>建立成功的 RoomPhoto 實體。</returns>
+        Task<RoomPhoto> UploadAndAddPhotoAsync(int roomId, IFormFile file, string? photoType);
+
+        /// <summary>
+        /// 刪除指定的房源照片。
+        /// </summary>
+        /// <param name="photoId">要刪除的照片 ID。</param>
+        /// <returns>如果找到並成功刪除則返回 true，否則返回 false。</returns>
+        Task<bool> DeleteRoomPhotoAsync(int photoId);
     }
 }
