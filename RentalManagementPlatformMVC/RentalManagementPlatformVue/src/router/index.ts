@@ -5,6 +5,8 @@ import exampleARouter from './modules/exampleA/router';
 import exampleBRouter from './modules/exampleB/router';
 import ReportFormRouter from './modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
+import UserCouponsView from '../views/UserCouponsView.vue'
+import CouponListView from '../views/CouponListView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +36,21 @@ const router = createRouter({
           name: 'search',
           component: () => import('../views/SearchView.vue'),
         },
+	{
+      	  path:'/coupons',
+      	  name:'coupons',
+      	  component:CouponListView
+    	},
+    	{
+      	  path: '/checkout',
+     	  name: 'Checkout',
+      	  component: () => import('../views/CheckoutPageView.vue')
+    	},
+	{ 
+	  path: '/user-coupons', 
+	  name: 'UserCoupons', 
+	  component: UserCouponsView 
+	},
       ],
     },
 
