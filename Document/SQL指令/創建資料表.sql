@@ -173,7 +173,7 @@ CREATE TABLE [REVIEW] (
 GO
 
 CREATE TABLE [ROOM_LIST] (
-  [room_id] int PRIMARY KEY NOT NULL,
+  [room_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [address_id] int,
   [host_id] int,
   [title] nvarchar(512),
@@ -188,7 +188,7 @@ CREATE TABLE [ROOM_LIST] (
 GO
 
 CREATE TABLE [ROOM_PHOTO] (
-  [photo_id] int PRIMARY KEY NOT NULL,
+  [photo_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [room_id] int,
   [sort_order] int,
   [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
