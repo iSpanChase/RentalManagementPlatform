@@ -143,7 +143,7 @@ export const useBookingStore = defineStore('booking', () => {
   /**
    * 取得使用者所有訂單
    */
-  const fetchUserBookings = async (userId) => {
+  const fetchBookingsByUser = async (userId) => {
     if (!userId) throw new Error('未提供使用者 ID');
     isLoading.value = true;
     try {
@@ -159,7 +159,7 @@ export const useBookingStore = defineStore('booking', () => {
   /**
    * 取得房東所有訂單
    */
-  const fetchHostOrders = async (hostId) => {
+  const fetchOrdersByHost = async (hostId) => {
     if (!hostId) throw new Error('未提供房東 ID');
     isLoading.value = true;
     try {
@@ -224,7 +224,7 @@ export const useBookingStore = defineStore('booking', () => {
 
   // ==================== Return ====================
   return {
-    // State  
+    // State
     bookingDraft,
     isLoading,
 
@@ -242,8 +242,8 @@ export const useBookingStore = defineStore('booking', () => {
     setBookingDraft,
     clearBookingDraft,
     createBooking,
-    fetchUserBookings,
-    fetchHostOrders,
+    fetchBookingsByUser,
+    fetchOrdersByHost,
     fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,

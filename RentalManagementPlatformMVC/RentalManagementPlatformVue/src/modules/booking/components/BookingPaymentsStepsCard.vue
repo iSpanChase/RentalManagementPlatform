@@ -212,11 +212,12 @@ onMounted(() => {
           </label>
         </div>
 
-        <div class="payment-option">
-          <input type="radio" id="partial" name="payment" value="partial" v-model="selectedPaymentTiming">
+        <div class="payment-option" :class="{ disabled: bookingStore.isRefundable === false }">
+          <input type="radio" id="partial" name="payment" value="partial" v-model="selectedPaymentTiming" :disabled="!bookingStore.isRefundable">
           <label for="partial">
             <div>立即支付 $0 TWD</div>
-            <small>
+            <small v-if="bookingStore.isRefundable === false" class="text-muted">此訂單不符合延後付款資格</small>
+            <small v-else>
               將於 {{ bookingStore.refundableDate }} 收取 ${{ Math.round(bookingStore.totalPrice).toLocaleString() }} TWD。無須支付額外費用。
               <a href="#">更多資訊</a>
             </small>

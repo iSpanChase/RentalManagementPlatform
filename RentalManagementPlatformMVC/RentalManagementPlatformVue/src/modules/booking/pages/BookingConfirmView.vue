@@ -1,11 +1,62 @@
 <script setup>
-import { useBookingStore } from '@/stores/bookingStore'
-import { useRouter } from 'vue-router'
-import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue'
-import BookingSummaryCard from '../components/BookingSummaryCard.vue'
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useBookingStore } from '@/stores/bookingStore';
+import { useAuthStore } from '@/stores/authStore.js';
+import { fetchRoomDetail } from '@/api/roomSearchApi';
+import { useToast } from 'vue-toastification';
+import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue';
+import BookingSummaryCard from '../components/BookingSummaryCard.vue';
 
-const bookingStore = useBookingStore()
-const router = useRouter()
+const bookingStore = useBookingStore();
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
+const authStore = useAuthStore();
+
+const isLoading = ref(true);
+const isError = ref(false);
+
+onMounted(async () => {
+  isLoading.value = true;
+  const roomId = Number(route.query.roomId);
+
+  // Case 1: Rebook flow (roomId is present in query)
+  if (roomId && !isNaN(roomId)) {
+    bookingStore.clearBookingDraft(); // Clear previous draft for rebooking
+    try {
+      const roomDetail = await fetchRoomDetail(roomId);
+      if (roomDetail) {
+        const bookingData = {
+          roomId: roomDetail.roomId,
+          guestId: authStore.currentUser?.id,
+          guestCount: 1,
+          roomTitle: roomDetail.title,
+          roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
+          pricePerNight: roomDetail.pricePerNight,
+        };
+        bookingStore.setBookingDraft(bookingData);
+        toast.success('房源資料已載入!');
+      } else {
+        throw new Error('找不到房源資料');
+      }
+    } catch (error) {
+      toast.error(error.message || '載入房源資料失敗');
+      isError.value = true;
+    } finally {
+      isLoading.value = false;
+    }
+  } 
+  // Case 2: Normal booking flow (coming from RoomDetailView)
+  else {
+    if (!bookingStore.hasBookingDraft) {
+      toast.error('訂房資料不存在，請重新選擇房源');
+      isError.value = true;
+      router.push({ name: 'home' });
+    }
+    isLoading.value = false;
+  }
+});
 
 </script>
 
@@ -13,15 +64,25 @@ const router = useRouter()
   <div class="booking-confirm-page">
     <h1>確認預定</h1>
 
-    <!-- Loading 遮罩 -->
-    <div v-if="bookingStore.isLoading" class="loading-overlay">
+    <!-- Loading -->
+    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
       <div class="loading-content">
         <div class="loading-spinner"></div>
-        <p>正在處理您的訂單...</p>
+        <p>{{ bookingStore.isLoading ? '正在處理您的訂單...' : '正在載入房源資訊...' }}</p>
       </div>
     </div>
 
-    <div class="container">
+    <!-- Error -->
+    <div v-else-if="isError" class="error-message-container">
+      <div class="error-card">
+        <h2>無法載入頁面</h2>
+        <p>抱歉，載入房源資訊時發生錯誤，或該房源不存在。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div v-else-if="bookingStore.hasBookingDraft" class="container">
       <!-- 左側:付款步驟 -->
       <BookingPaymentsStepsCard :total-price="bookingStore.totalPrice" />
 
@@ -73,27 +134,28 @@ const router = useRouter()
   }
 }
 
-/* Loading 遮罩樣式 */
-.loading-overlay {
+/* Loading & Error Styles */
+.loading-overlay, .error-message-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(248, 249, 250, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  padding: 20px;
 }
 
-.loading-content {
+.loading-content, .error-card {
   background: white;
   padding: 40px;
   border-radius: 16px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  max-width: 300px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 350px;
   width: 90%;
 
   p {
@@ -112,6 +174,33 @@ const router = useRouter()
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
+}
+
+.error-card {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #d9534f;
+    margin-bottom: 15px;
+  }
+  p {
+    color: #484848;
+    line-height: 1.6;
+  }
+  .btn-back-home {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+      background-color: #0056b3;
+    }
+  }
 }
 
 @keyframes spin {

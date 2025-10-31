@@ -6,8 +6,11 @@ import { Modal } from 'bootstrap';
 import { useToast } from 'vue-toastification';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 
+import { useAuthStore } from '@/stores/authStore.js';
+
 const toast = useToast();
 const bookingStore = useBookingStore();
+const authStore = useAuthStore();
 const route = useRoute();
 
 const allOrders = ref([]);
@@ -87,13 +90,13 @@ onMounted(async () => {
   try {
     let fetchedOrders = [];
 
-    if (route.query.orderNumber) {
-      const single = await bookingStore.fetchBookingByOrderNumber(route.query.orderNumber);
-      if (single) fetchedOrders.push(single);
-    } else {
-      const hostId = route.query.hostId || 47; // 預設測試 ID（上線前請移除或由後端提供）
-      fetchedOrders = await bookingStore.fetchHostOrders(hostId);
+    const hostId = authStore.currentHostId;
+    if (!hostId) {
+      toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
+      isLoading.value = false;
+      return;
     }
+    fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
 
     allOrders.value = fetchedOrders;
   } catch (error) {

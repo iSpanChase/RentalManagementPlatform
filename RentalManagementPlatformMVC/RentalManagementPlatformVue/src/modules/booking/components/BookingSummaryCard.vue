@@ -51,7 +51,11 @@ const toISODateString = (date) => {
 const initDatePickers = () => {
   if (!hasBookingData.value) return;
   const { checkIn, checkOut } = bookingStore.bookingDraft;
-  dateRange.value = [new Date(checkIn), new Date(checkOut)];
+  if (checkIn && checkOut) {
+    dateRange.value = [new Date(checkIn), new Date(checkOut)];
+  } else {
+    dateRange.value = [];
+  }
   dateError.value = '';
 };
 

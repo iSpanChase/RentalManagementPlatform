@@ -6,8 +6,11 @@ import { Modal } from 'bootstrap';
 import { useToast } from 'vue-toastification';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 
+import { useAuthStore } from '@/stores/authStore.js';
+
 const toast = useToast();
 const bookingStore = useBookingStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -150,8 +153,12 @@ const confirmCancellation = async () => {
 /**
  * 重新預訂
  */
-const handleRebook = () => {
-  router.push({ name: 'BookingConfirmView' });
+const handleRebook = (booking) => {
+  if (!booking || !booking.roomId) {
+    toast.error('無法獲取房源資訊，請稍後再試');
+    return;
+  }
+  router.push({ name: 'BookingConfirmView', query: { roomId: booking.roomId } });
 };
 
 onMounted(async () => {
@@ -168,19 +175,16 @@ onMounted(async () => {
   }
 
   try {
-    let fetchedBookings = [];
-
-    if (route.query.orderNumber) {
-      const single = await bookingStore.fetchBookingByOrderNumber(route.query.orderNumber);
-      if (single) fetchedBookings.push(single);
-    } else {
-      const userId = route.query.userId || 1;
-      fetchedBookings = await bookingStore.fetchUserBookings(userId);
+    const userId = authStore.currentUser?.id;
+    if (!userId) {
+      toast.error('無法獲取使用者資訊，請先登入');
+      isLoading.value = false;
+      return;
     }
-
-    allBookings.value = fetchedBookings.map(b => ({ ...b }));
+    const fetchedBookings = await bookingStore.fetchBookingsByUser(userId);
+    allBookings.value = fetchedBookings || [];
   } catch (error) {
-    toast.error('無法載入訂單資料');
+    toast.error(error.message || '無法載入訂單資料');
   } finally {
     isLoading.value = false;
   }
@@ -282,7 +286,7 @@ onUnmounted(() => {
                   </button>
                   <button
                     class="btn-rebook"
-                    @click="handleRebook"
+                    @click="handleRebook(booking)"
                     v-if="['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
                     :disabled="isLoading"
                   >
