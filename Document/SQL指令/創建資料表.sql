@@ -24,7 +24,7 @@ CREATE INDEX [IX_EMAIL_VERIFICATIONS_user_id_is_used] ON [EMAIL_VERIFICATIONS]([
 GO
 
 CREATE TABLE [ADDRESS] (
-  [address_id] int PRIMARY KEY NOT NULL,
+  [address_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [district_id] int,
   [Latitude] decimal(9,6) NOT NULL,
   [Longitude] decimal(9,6) NOT NULL,
