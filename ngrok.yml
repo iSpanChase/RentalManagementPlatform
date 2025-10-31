@@ -1,0 +1,12 @@
+version: '2'
+authtoken: 34hIrgmklIWgQV7YlvFAHBNIPb8_5mMWgPEbKcse1u15KEQ2y
+
+tunnels:
+  backend:
+    proto: http
+    addr: https://localhost:7230
+    hostname: my-project-backend.ngrok.app
+  frontend:
+    proto: http
+    addr: 5173
+    hostname: my-project-frontend.ngrok.app
