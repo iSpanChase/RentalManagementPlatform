@@ -162,7 +162,7 @@ namespace RentalManagementPlatformWebAPI.Services
                             CoverBucket = roomDetails.CoverBucket,
                             CoverObjectKey = roomDetails.CoverObjectKey,
                             CoverContentType = roomDetails.CoverContentType,
-                            CoverImageUrl = roomDetails.PhotoUrls.FirstOrDefault()
+                            CoverImageUrl = roomDetails.Photos?.FirstOrDefault()?.Url
                         };
                         await index.AddDocumentsAsync(new[] { roomSearchDto });
                     }
