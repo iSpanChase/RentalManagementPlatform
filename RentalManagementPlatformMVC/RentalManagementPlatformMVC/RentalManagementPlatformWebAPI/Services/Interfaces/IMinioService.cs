@@ -7,5 +7,6 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
     {
         Task<string> UploadFileAsync(Stream stream, string fileName);
         Task<string> GetFileUrlAsync(string objectName);
+        Task DeleteFileAsync(string objectName);
     }
 }
