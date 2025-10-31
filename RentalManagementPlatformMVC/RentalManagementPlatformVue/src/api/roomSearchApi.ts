@@ -125,6 +125,12 @@ export interface GeoLocation {
   lng: number;
 }
 
+export interface RoomPhoto {
+  photoId: number;
+  url: string;
+  sortOrder?: number;
+}
+
 export interface RoomDetail {
   roomId: number;
   title: string;
@@ -144,6 +150,7 @@ export interface RoomDetail {
   hostName?: string;
   mainImageUrl?: string;
   photoUrls: string[];
+  photos: RoomPhoto[];
 }
 
 const coalesceValue = <T>(
@@ -183,6 +190,43 @@ const normalizePhotoUrls = (rawUrls: string[], mainImage?: string): string[] => 
   return unique;
 };
 
+const mapRoomPhotos = (rawPhotos: unknown): RoomPhoto[] => {
+  if (!Array.isArray(rawPhotos)) {
+    return [];
+  }
+
+  return rawPhotos
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const data = item as Record<string, unknown>;
+      const photoId =
+        coalesceValue<number>(data, 'photo_id', 'photoId', 'id') ?? 0;
+      const url =
+        coalesceValue<string>(data, 'url', 'photo_url', 'photoUrl') ?? '';
+      const sortOrder =
+        coalesceValue<number>(data, 'sort_order', 'sortOrder');
+
+      if (photoId === 0 || !url) {
+        return null;
+      }
+
+      return {
+        photoId,
+        url,
+        sortOrder: sortOrder ?? undefined,
+      } satisfies RoomPhoto;
+    })
+    .filter((photo): photo is RoomPhoto => photo !== null)
+    .sort((a, b) => {
+      const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
+};
+
 const mapGeoLocation = (dto?: GeoLocationDto): GeoLocation | undefined => {
   if (!dto) {
     return undefined;
@@ -219,9 +263,15 @@ const mapRoomSearchResult = (dto: RoomListSearchDtoResponse): RoomCard => {
 const mapRoomSummaryFromCache = (dto: RoomSummaryResponseDtoResponse): RoomCard => mapRoomSummaryToCard(dto);
 
 const mapRoomDetail = (dto: RoomDetailResponseDto): RoomDetail => {
+  const photos = mapRoomPhotos(coalesceValue<Record<string, unknown>[]>(dto, 'photos'));
   const rawPhotos = coalesceValue<string[]>(dto, 'photo_urls', 'photoUrls') ?? [];
-  const mainImage = coalesceValue<string>(dto, 'main_image_url', 'mainImageUrl');
-  const photoUrls = normalizePhotoUrls(rawPhotos, mainImage);
+  const mainImage =
+    coalesceValue<string>(dto, 'main_image_url', 'mainImageUrl') ?? photos[0]?.url;
+  const combinedPhotoSources = [
+    ...photos.map((photo) => photo.url),
+    ...rawPhotos,
+  ];
+  const photoUrls = normalizePhotoUrls(combinedPhotoSources, mainImage);
   const hostDto = coalesceValue<HostDto>(dto, 'host');
   const hostName = coalesceValue<string>(hostDto, 'host_name', 'hostName')
     ?? coalesceValue<string>(dto, 'host_name', 'hostName');
@@ -253,6 +303,7 @@ const mapRoomDetail = (dto: RoomDetailResponseDto): RoomDetail => {
     hostName,
     mainImageUrl: photoUrls[0],
     photoUrls,
+    photos,
   };
 };
 
@@ -285,6 +336,7 @@ const mapRoomDetailFromCache = (dto: RoomSummaryResponseDtoResponse): RoomDetail
     hostName: coalesceValue<string>(dto, 'host_name', 'hostName'),
     mainImageUrl: photoUrls[0],
     photoUrls,
+    photos: [],
   };
 };
 

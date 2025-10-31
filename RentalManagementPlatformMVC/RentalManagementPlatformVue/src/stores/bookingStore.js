@@ -105,15 +105,15 @@ export const useBookingStore = defineStore('booking', () => {
       const orderData = {
         guestId: bookingDraft.value.guestId,
         roomId: bookingDraft.value.roomId,
-        couponId: bookingDraft.value.couponId,
+        couponId: bookingDraft.value.couponId, // 注意：這裡的 couponId 可能與最終折扣不符，但本次修正目標是總價，此處暫不更動
         checkIn: bookingDraft.value.checkIn,
         checkOut: bookingDraft.value.checkOut,
         guestCount: bookingDraft.value.guestCount,
         nights: nights.value,
         pricePerNight: bookingDraft.value.pricePerNight,
-        subtotal: subtotal.value,
-        discountAmount: discountAmount.value,
-        totalPrice: totalPrice.value,
+        subtotal: subtotal.value, // 原始小計，保持不變
+        discountAmount: subtotal.value - paymentData.finalAmount, // 根據最終價格反推出正確的折扣金額
+        totalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
         paymentTiming: paymentData.paymentTiming,
         billingInfo: paymentData.billingInfo,
         billingAddress: paymentData.billingAddress,

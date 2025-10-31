@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+import footerBackground from '@/assets/images/background/bg-1.jpg';
+import footerLogo from '@/assets/images/footer-logo.png';
+import awardImage15 from '@/assets/images/resource/image-15.png';
+import awardImage16 from '@/assets/images/resource/image-16.png';
+import awardImage17 from '@/assets/images/resource/image-17.png';
+import brandImage18 from '@/assets/images/resource/image-18.png';
+import brandImage19 from '@/assets/images/resource/image-19.png';
+import brandImage20 from '@/assets/images/resource/image-20.png';
+import brandImage21 from '@/assets/images/resource/image-21.png';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -43,16 +52,20 @@ const swiperOptions = {
         },
     },
 };
+
+const awards = [awardImage15, awardImage16, awardImage17];
+const brandLogos = [brandImage18, brandImage19, brandImage20, brandImage21];
+const footerBackgroundStyle = { backgroundImage: `url(${footerBackground})` };
 </script>
 
 <template>
     <!--footer section  -->
-    <footer class="main-footer style-two" style="background-image: url(../assets/images/background/bg-1.jpg);">
+    <footer class="main-footer style-two" :style="footerBackgroundStyle">
         <div class="auto-container">
             <div class="widget-wrapper">
                 <div class="row">
                     <div class="col-lg-3 col-md-6">
-                        <div class="footer-logo"><img src="../assets/images/footer-logo.png" alt=""></div>
+                        <div class="footer-logo"><img :src="footerLogo" alt="footer logo"></div>
                     </div>
                     <div class="column col-lg-3 col-md-6">
                         <div class="widget links-widget">
@@ -83,14 +96,12 @@ const swiperOptions = {
                             <h4>Our Awards</h4>
                             <div class="text">When your people get up every day <br> wanting to come to work.</div>
                             <div class="row">
-                                <div class="col-sm-4">
-                                    <div class="logo"><img src="./assets/images/resource/image-15.png" alt=""></div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="logo"><img src="./assets/images/resource/image-16.png" alt=""></div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="logo"><img src="./assets/images/resource/image-17.png" alt=""></div>
+                                <div
+                                    v-for="(award, index) in awards"
+                                    :key="`award-${index}`"
+                                    class="col-sm-4"
+                                >
+                                    <div class="logo"><img :src="award" alt=""></div>
                                 </div>
                             </div>
                         </div>
@@ -134,10 +145,13 @@ const swiperOptions = {
                             :breakpoints="swiperOptions.breakpoints"
                             class="theme_carousel"
                         >
-                            <swiper-slide class="logo"><img src="./assets/images/resource/image-18.png" alt=""></swiper-slide>
-                            <swiper-slide class="logo"><img src="./assets/images/resource/image-19.png" alt=""></swiper-slide>
-                            <swiper-slide class="logo"><img src="./assets/images/resource/image-20.png" alt=""></swiper-slide>
-                            <swiper-slide class="logo"><img src="./assets/images/resource/image-21.png" alt=""></swiper-slide>
+                            <swiper-slide
+                                v-for="(logo, index) in brandLogos"
+                                :key="`brand-${index}`"
+                                class="logo"
+                            >
+                                <img :src="logo" alt="brand logo">
+                            </swiper-slide>
                         </swiper>
                     </div>
                 </div>

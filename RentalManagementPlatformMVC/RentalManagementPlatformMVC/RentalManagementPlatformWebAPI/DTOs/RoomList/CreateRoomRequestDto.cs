@@ -6,10 +6,10 @@ namespace RentalManagementPlatformWebAPI.DTOs
     {
         [Required(ErrorMessage = "請輸入標題")]
         [StringLength(100)]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "請輸入描述")]
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "請輸入最大入住人數")]
         [Range(1, 20, ErrorMessage = "人數必須介於 1-20 之間")]
@@ -18,5 +18,18 @@ namespace RentalManagementPlatformWebAPI.DTOs
         [Required(ErrorMessage = "請輸入每晚價格")]
         [Range(1, 100000, ErrorMessage = "價格格式不正確")]
         public decimal PricePerNight { get; set; }
+
+        [Required(ErrorMessage = "必須指定房東")]
+        public int HostId { get; set; }
+
+        [Required(ErrorMessage = "請選擇城市")]
+        public int CityId { get; set; }
+
+        [Required(ErrorMessage = "請選擇區域")]
+        public int DistrictId { get; set; }
+
+        [Required(ErrorMessage = "請輸入街道地址")]
+        [StringLength(200)]
+        public string Street { get; set; } = string.Empty;
     }
 }

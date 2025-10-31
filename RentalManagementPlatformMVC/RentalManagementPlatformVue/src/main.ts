@@ -3,6 +3,12 @@ import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue'
 import router from './router'
+
+// 先載 CSS
+import 'bootstrap/dist/css/bootstrap.min.css'
+// 再載 JS（很關鍵）
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+
 import { config, library, dom } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
@@ -32,6 +38,7 @@ const queryClient = new QueryClient();
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(pinia);
+
 app.use(router);
 app.use(VueQueryPlugin, { queryClient });
 app.use(Toast, {

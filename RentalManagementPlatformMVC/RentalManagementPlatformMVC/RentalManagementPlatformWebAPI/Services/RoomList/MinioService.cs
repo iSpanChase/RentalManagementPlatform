@@ -97,7 +97,6 @@ namespace RentalManagementPlatformWebAPI.Services
             try
             {
                 var bucketName = _minioSettings.BucketName;
-                // 從設定檔中取得 URL 的有效期限，而不是硬編碼。
                 var expiry = _minioSettings.UrlExpirySeconds;
                 if (expiry < 1)
                 {
@@ -113,9 +112,29 @@ namespace RentalManagementPlatformWebAPI.Services
             }
             catch (Exception ex)
             {
-                // 使用 ILogger 記錄錯誤。
                 _logger.LogError(ex, "從 MinIO 取得檔案 URL 時發生錯誤: {ObjectName}", objectName);
-                throw; // 重新拋出例外。
+                throw; 
+            }
+        }
+
+        /// <summary>
+        /// 從 MinIO 儲存桶中刪除一個檔案。
+        /// </summary>
+        /// <param name="objectName">要刪除的檔案的名稱 (ObjectKey)。</param>
+        public async Task DeleteFileAsync(string objectName)
+        {
+            try
+            {
+                var args = new RemoveObjectArgs()
+                    .WithBucket(_minioSettings.BucketName)
+                    .WithObject(objectName);
+
+                await _minioClient.RemoveObjectAsync(args);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "從 MinIO 刪除檔案時發生錯誤: {ObjectName}", objectName);
+                throw; // 重新拋出例外，讓上層處理。
             }
         }
     }

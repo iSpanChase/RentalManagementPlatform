@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using RentalManagementPlatformWebAPI.Models;
 
 namespace RentalManagementPlatformWebAPI.Services.Interfaces
 {
@@ -17,6 +18,7 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
         /// <param name="photoType">照片的類型 (例如: "Cover", "Profile")。</param>
         /// <returns>檔案的預簽章 URL，如果找不到則為 null。</returns>
         Task<string?> GetUrlAsync(string entityType, int entityId, string photoType);
-        Task<string?> GetPhotoUrlAsync(string? objectKey);
+        Task<string?> GetPhotoUrlAsync(RoomPhoto? photo);
+        Task<IReadOnlyList<string>> GetRoomPhotoUrlsAsync(int roomId);
     }
 }

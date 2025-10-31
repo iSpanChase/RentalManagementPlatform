@@ -5,6 +5,15 @@ import { useRouter } from 'vue-router';
 import { getData } from 'country-list';
 import { useToast } from 'vue-toastification';
 
+// ==================== Props ====================
+const props = defineProps({
+  totalPrice: {
+    type: Number,
+    required: true
+  }
+});
+
+// ==================== 狀態管理 ====================
 const bookingStore = useBookingStore();
 const router = useRouter();
 const toast = useToast();
@@ -114,6 +123,7 @@ const handleConfirmPayment = async () => {
 
   try {
     const paymentData = {
+      finalAmount: props.totalPrice,
       paymentTiming: selectedPaymentTiming.value,
       billingInfo: {
         name: billingInfo.value.name,
