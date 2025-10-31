@@ -7,6 +7,14 @@ import { Modal } from 'bootstrap';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
+// ==================== Props ====================
+defineProps({
+  hideInternalTotal: {
+    type: Boolean,
+    default: false
+  }
+});
+
 // ==================== Store ====================
 const bookingStore = useBookingStore();
 
@@ -116,7 +124,8 @@ const decreaseGuests = () => {
 
 // ==================== 生命週期 ====================
 onMounted(() => {
-  // 模擬載入測試資料
+
+  // 設定訂房草稿
   bookingStore.setBookingDraft({
     roomId: 1,
     guestId: 1,
@@ -124,10 +133,12 @@ onMounted(() => {
     checkIn: '2025-12-31',
     checkOut: '2026-01-02',
     guestCount: 2,
-    roomTitle: 'Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
+    roomTitle: '🏠Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
     roomImage: 'https://picsum.photos/120/90',
     pricePerNight: 3598,
-    coupon: { discountAmount: 200 }
+    coupon: {
+      //discountAmount: 200,
+    }
   });
 
   console.log('測試訂房資料已載入');
@@ -215,14 +226,13 @@ onMounted(() => {
           <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
         </div>
 
-        <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
-          <span>特別優惠</span>
-          <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
-        </div>
+
+
+        <slot name="coupon"></slot>
 
         <hr />
 
-        <div class="price-row total">
+        <div class="price-row total" v-if="!hideInternalTotal">
           <strong>總計 TWD</strong>
           <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
         </div>
@@ -406,19 +416,26 @@ onMounted(() => {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" v-if="hasBookingData">
-            <div class="price-row">
-              <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
-              <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
-            </div>
-            <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
-              <span>特別優惠</span>
-              <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
-            </div>
-            <hr />
-            <div class="price-row total">
-              <strong>總計 TWD</strong>
-              <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
-            </div>
+
+            <slot name="price-details-body">
+              <div class="price-row">
+                <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
+                <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
+              </div>
+
+              <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
+                <span>特別優惠</span>
+                <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
+              </div>
+
+              <hr>
+
+              <div class="price-row total">
+                <strong>總計 TWD</strong>
+                <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
+              </div>
+            </slot>
+
           </div>
         </div>
       </div>

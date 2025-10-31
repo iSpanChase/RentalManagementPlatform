@@ -3,15 +3,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
+using RentalManagementPlatformAPI.Repository;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.Data;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
+using RentalManagementPlatformWebAPI.Hubs;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+//using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Repositories.Bookings;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Repositories.Payments;
+using RentalManagementPlatformWebAPI.Repositories.Property;
+using RentalManagementPlatformWebAPI.Repositories.Property.Interfaces;
+using RentalManagementPlatformWebAPI.Repository.Interfaces;
 using RentalManagementPlatformWebAPI.Services;
 using Meilisearch;
 using Minio;
@@ -20,8 +27,11 @@ using StackExchange.Redis;
 using RentalManagementPlatformWebAPI.Services.Bookings;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
+using RentalManagementPlatformWebAPI.Services.Property;
+using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
 using System.Reflection;
 using System.Text.Json;
+using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -31,8 +41,13 @@ namespace RentalManagementPlatformWebAPI
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// 加入 CORS 服務
-			builder.Services.AddCors(options =>
+			//SignalR()
+            builder.Services.AddSignalR();
+            // In-Memory 暫存
+            builder.Services.AddSingleton<InMemoryStore>();
+
+            // 加入 CORS 服務
+            builder.Services.AddCors(options =>
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
@@ -40,7 +55,7 @@ namespace RentalManagementPlatformWebAPI
 						"https://my-project-frontend.ngrok.app"); // <--- 將 ngrok URL 加入！
 					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
 						  .AllowAnyHeader()
-						 .AllowAnyMethod();
+						  .AllowAnyMethod();
 				});
 			});
 
@@ -75,15 +90,19 @@ namespace RentalManagementPlatformWebAPI
 				});
 
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			// Authorization�]�����U�򥻵����GAdminOnly�^
-			// �ʺA�v����ĳ�אּ�ۭq IAuthorizationPolicyProvider�F�����n�b�Ұʮɳs DB�C
+			// Authorization ]     U 򥻵    GAdminOnly ^
+			//  ʺA v    ĳ אּ ۭq IAuthorizationPolicyProvider F     n b Ұʮɳs DB C
 			builder.Services.AddAuthorization(options =>
 			{
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
 			});
 
-			// DI：Domain Services
-			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+            // DI Message
+            builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
+
+            // DI�GDomain Services
+            builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<IUserService, UserService>();
@@ -97,6 +116,7 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
 			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
 			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
@@ -125,7 +145,22 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddSingleton<IMinioService, MinioService>();
 			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
 
-			// Swagger�]�� Schema Id / JWT / DateOnly/TimeOnly �����^
+			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+			// Meilisearch Client and Service registration
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			builder.Services.AddScoped<MeilisearchService>();
+
+			// MinIO Client and Service registration
+			builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+			builder.Services.AddSingleton<IMinioService, MinioService>();
+			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+			//builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
+
+			// Swagger ]   Schema Id / JWT / DateOnly/TimeOnly      ^
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
 			{
@@ -170,6 +205,17 @@ namespace RentalManagementPlatformWebAPI
 				}
 			});
 
+			builder.Services.AddScoped<ICouponApiService, CouponApiService>();
+			builder.Services.AddScoped<CouponValidationService>();          // CouponAPI   U  Ƽh Repository
+			builder.Services.AddScoped<ICouponReadRepository, CouponReadRepository>();
+			builder.Services.AddScoped<ICouponDistrictReadRepository, CouponDistrictReadRepository>();
+			builder.Services.AddScoped<IBookingReadRepository, BookingReadRepository>(); builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
+			builder.Services.AddScoped<ICouponApiRepository, CouponApiRepository>();
+			builder.Services.AddScoped<ICouponDbRepository, CouponDbRepository>();
+
+			builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+			builder.Services.AddScoped<IPropertyService, PropertyService>();
+
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
@@ -196,8 +242,8 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
 
 			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
-
-			var app = builder.Build();
+            builder.Services.AddSignalR();
+            var app = builder.Build();
 
 			app.UseExceptionHandler(); // 全域異常處理中介軟體
 
@@ -216,8 +262,12 @@ namespace RentalManagementPlatformWebAPI
 			app.UseAuthorization();
 
 			app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationHub");
 
-			app.Run();
+			//Message
+            app.MapHub<ChatHub>("/hubs/chat");
+
+            app.Run();
 		}
 	}
 }

@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
+using Microsoft.AspNetCore.SignalR;
+using RentalManagementPlatformWebAPI.Hubs;
 
 namespace RentalManagementPlatformWebAPI.Services.Bookings
 {
@@ -14,14 +16,26 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		private readonly ICouponRepository _couponRepository;
 		private readonly IMapper _mapper;
 		private readonly ECPayService _ecpayService;
+        private readonly IHubContext<NotificationHub> _hubContext;
+		private readonly IFileUrlResolver _fileUrlResolver; // 注入 IFileUrlResolver
 
-		public BookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository, ICouponRepository couponRepository, IMapper mapper, ECPayService ecpayService)
+		public BookingService(
+				IBookingRepository bookingRepository, 
+				IRoomRepository roomRepository, 
+				ICouponRepository couponRepository, 
+				IMapper mapper, 
+				ECPayService ecpayService, 
+				IHubContext<NotificationHub> hubContext,
+				IFileUrlResolver fileUrlResolver
+			) 
 		{
 			_bookingRepository = bookingRepository;
 			_roomRepository = roomRepository;
 			_couponRepository = couponRepository;
 			_mapper = mapper;
 			_ecpayService = ecpayService;
+            _hubContext = hubContext;
+			_fileUrlResolver = fileUrlResolver; 
 		}
 
 		// 取得所有訂單(測試用)
@@ -31,7 +45,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
 		}
 
-		// 根據使用者ID獲取其所有訂單
+		// 根據 GuestId 獲取其所有訂單
 		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
 		{
 			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
@@ -41,7 +55,22 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				throw new ArgumentException("找不到該使用者的訂單");
 			}
 
-			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
+			var bookingDtos = new List<BookingDto>();
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+				if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
+				{
+					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+					}
+				}
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
 		}
 
 		// 根據 HostId 獲取其所有訂單
@@ -52,7 +81,23 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			{
 				throw new ArgumentException("找不到該房東的訂單");
 			}
-			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
+
+			var bookingDtos = new List<BookingDto>();
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+				if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
+				{
+					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+					}
+				}
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
 		}
 
 		// 建立訂單並根據付款時機決定是否產生綠界表單
@@ -171,9 +216,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			Console.WriteLine($"付款時機：{dto.PaymentTiming}");
 			Console.WriteLine($"付款狀態：{booking.PaymentStatus}");
 
-			// ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+            // ==================== 5-1. 發送新訂單即時通知給房東 ====================
+            if (room != null && room.HostId.HasValue)
+            {
+                var hostId = room.HostId.Value;
+                string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
+                await _hubContext.Clients.Group($"host_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
+            }
 
-			if (dto.PaymentTiming == "full")
+            // ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+
+            if (dto.PaymentTiming == "full")
 			{
 				// ========== 立即支付：產生綠界表單 ==========
 				Console.WriteLine("立即支付：產生綠界表單...");
@@ -223,7 +276,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			}
 		}
 
-		// 根據訂單ID取消訂單
+		// 根據 BookingId 取消訂單
 		public async Task<BookingDto?> CancelBookingByIdAsync(int bookingId)
 		{
 			var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
@@ -257,6 +310,27 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			booking.UpdatedAt = DateTime.Now;
 			await _bookingRepository.UpdateBookingAsync(booking);
 			return _mapper.Map<BookingDto>(booking);
+		}
+
+		// 根據訂單編號獲取單一訂單詳情
+		public async Task<BookingDto?> GetBookingByOrderNumberAsync(string orderNumber)
+		{
+			var booking = await _bookingRepository.GetBookingByOrderNumberAsync(orderNumber);
+			if (booking == null)
+			{
+				return null;
+			}
+
+			var bookingDto = _mapper.Map<BookingDto>(booking);
+			if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
+			{
+				var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+				if (mainPhoto != null)
+				{
+					bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+				}
+			}
+			return bookingDto;
 		}
 
 		// ==================== 內部使用方法 ====================

@@ -24,9 +24,4 @@
     <PackageReference Include="Google.Apis.Auth" Version="1.64.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Entities\" />
-    <Folder Include="Data\" />
-  </ItemGroup>
-
 </Project>

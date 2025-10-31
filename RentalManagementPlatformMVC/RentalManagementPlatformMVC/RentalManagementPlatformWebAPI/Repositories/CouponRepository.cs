@@ -8,7 +8,7 @@ namespace RentalManagementPlatformWebAPI.Repositories
 	public class CouponRepository : ICouponRepository
 	{
 		private readonly RentalManagementPlatformSqlContext _context;
-		
+
 		public CouponRepository(RentalManagementPlatformSqlContext context)
 		{
 			_context = context;

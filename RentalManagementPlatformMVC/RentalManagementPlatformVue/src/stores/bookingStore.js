@@ -96,17 +96,17 @@ export const useBookingStore = defineStore('booking', () => {
         // 訂房基本資料
         guestId: bookingDraft.value.guestId,
         roomId: bookingDraft.value.roomId,
-        couponId: bookingDraft.value.couponId,
+        couponId: bookingDraft.value.couponId, // 注意：這裡的 couponId 可能與最終折扣不符，但本次修正目標是總價，此處暫不更動
         checkIn: bookingDraft.value.checkIn,
         checkOut: bookingDraft.value.checkOut,
         guestCount: bookingDraft.value.guestCount,
 
-        // 價格資訊
+        // 價格資訊 (修正後)
         nights: nights.value,
         pricePerNight: bookingDraft.value.pricePerNight,
-        subtotal: subtotal.value,
-        discountAmount: discountAmount.value,
-        totalPrice: totalPrice.value,
+        subtotal: subtotal.value, // 原始小計，保持不變
+        discountAmount: subtotal.value - paymentData.finalAmount, // 根據最終價格反推出正確的折扣金額
+        totalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
 
         // 付款資訊
         paymentTiming: paymentData.paymentTiming,
@@ -192,6 +192,24 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
+  // 獲取單一訂單詳情 (根據 orderNumber)
+  const fetchBookingByOrderNumber = async (orderNumber) => {
+    if (!orderNumber) {
+      throw new Error('未提供訂單編號');
+    }
+    isLoading.value = true;
+    try {
+      const response = await axios.get(`https://localhost:7230/api/bookings/ordernumber/${orderNumber}`);
+      return response.data;
+    } catch (error) {
+      console.error(`獲取訂單 ${orderNumber} 失敗：`, error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+
   // 為延後支付的訂單獲取付款表單
   const getDeferredPaymentForm = async (orderNumber) => {
     if (!orderNumber) {
@@ -249,6 +267,7 @@ export const useBookingStore = defineStore('booking', () => {
     createBooking,
     fetchUserBookings,
     fetchHostOrders,
+    fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,
   };

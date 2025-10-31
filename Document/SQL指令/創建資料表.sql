@@ -12,8 +12,19 @@ CREATE TABLE [PASSWORD_RESET_TOKENS] (
 CREATE INDEX IX_RESET_user ON PASSWORD_RESET_TOKENS(user_id);
 GO
 
+CREATE TABLE [EMAIL_VERIFICATIONS] (
+  [token_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
+  [user_id] int NOT NULL,
+  [token_hash] nvarchar(200) NOT NULL,
+  [expires_at] datetime2 NOT NULL,
+  [is_used] bit NOT NULL DEFAULT (0),
+  [created_at] datetime2 NOT NULL DEFAULT SYSUTCDATETIME(),
+);
+CREATE INDEX [IX_EMAIL_VERIFICATIONS_user_id_is_used] ON [EMAIL_VERIFICATIONS]([user_id], [is_used]);
+GO
+
 CREATE TABLE [ADDRESS] (
-  [address_id] int PRIMARY KEY NOT NULL,
+  [address_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [district_id] int,
   [Latitude] decimal(9,6) NOT NULL,
   [Longitude] decimal(9,6) NOT NULL,
@@ -72,7 +83,8 @@ CREATE TABLE [USER] (
   [updated_at] DATETIME2,
   [provider] NVARCHAR(20) NOT NULL CONSTRAINT DF_User_Provider DEFAULT ('Local'),
   [provider_subject] NVARCHAR(100) NULL,
-  [last_login_at] DATETIME2 NULL
+  [last_login_at] DATETIME2 NULL,
+  [is_operator_pending] Bit NOT NULL,
 )
 GO
 
@@ -173,7 +185,7 @@ CREATE TABLE [REVIEW] (
 GO
 
 CREATE TABLE [ROOM_LIST] (
-  [room_id] int PRIMARY KEY NOT NULL,
+  [room_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [address_id] int,
   [host_id] int,
   [title] nvarchar(512),
@@ -188,7 +200,7 @@ CREATE TABLE [ROOM_LIST] (
 GO
 
 CREATE TABLE [ROOM_PHOTO] (
-  [photo_id] int PRIMARY KEY NOT NULL,
+  [photo_id] int identity(1,1) PRIMARY KEY NOT NULL,
   [room_id] int,
   [sort_order] int,
   [bucket] NVARCHAR(128) NOT NULL DEFAULT N'room-photos',
