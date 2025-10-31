@@ -32,7 +32,7 @@
       <div class="left-column">
         <div class="host-info">
             <h2>Entire home hosted by {{ roomDetail.hostName }}</h2>
-            <span>{{ roomDetail.maxGuests }} guests · 4 beds · 2 baths</span>
+            <span>{{ roomDetail.maxGuests }} guests</span>
         </div>
         <hr />
         <section class="description" v-if="roomDetail.description">
