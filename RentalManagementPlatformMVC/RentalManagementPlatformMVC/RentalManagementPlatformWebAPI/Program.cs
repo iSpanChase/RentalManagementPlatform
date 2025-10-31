@@ -1,12 +1,28 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Meilisearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Minio;
+using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
+using RentalManagementPlatformWebAPI.Hubs;
+using RentalManagementPlatformWebAPI.Mappings;
+using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+using RentalManagementPlatformWebAPI.Repositories.Bookings;
+using RentalManagementPlatformWebAPI.Repositories.Interfaces;
+using RentalManagementPlatformWebAPI.Repositories.Payments;
 using RentalManagementPlatformWebAPI.Services;
+using Meilisearch;
+using Minio;
+using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
+using StackExchange.Redis;
+using RentalManagementPlatformWebAPI.Services.Bookings;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Payments;
 using System.Reflection;
-using System.Text;
+using System.Text.Json;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -16,55 +32,59 @@ namespace RentalManagementPlatformWebAPI
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// DbContext
+			// åŠ å…¥ CORS æœå‹™
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowVue", policy =>
+				{
+					policy.WithOrigins("http://localhost:5173",
+						"https://my-project-frontend.ngrok.app"); // <--- å°‡ ngrok URL åŠ å…¥ï¼
+					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue å‰ç«¯çš„ç¶²å€
+						  .AllowAnyHeader()
+						 .AllowAnyMethod()
+                         .AllowCredentials();
+				});
+			});
+
+			// æ¥­å‹™è³‡æ–™åº«é€£ç·šè¨»å†Š
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
 
-			// CORS¡]¨Ì¹ê»Ú«eºİºô°ì½Õ¾ã¡^
-			builder.Services.AddCors(opt =>
+			// Redis è¨»å†Š
+			// è¨»å†Š IConnectionMultiplexer ä½œç‚ºå–®ä¾‹ï¼Œæä¾›çµ¦æ•´å€‹æ‡‰ç”¨ç¨‹å¼å…±ç”¨ä¸€å€‹ Redis é€£ç·šã€‚
+			// é€™æ˜¯ StackExchange.Redis æ¨è–¦çš„åšæ³•ï¼Œç”¨æ–¼é«˜æ•ˆåœ°ç®¡ç† Redis é€£ç·šã€‚
+			builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+			builder.Services.AddStackExchangeRedisCache(options =>
 			{
-				opt.AddPolicy("spa", p => p
-					.WithOrigins("http://localhost:5173")
-					.AllowAnyHeader()
-					.AllowAnyMethod()
-					.AllowCredentials()
-				);
+				options.Configuration = builder.Configuration.GetConnectionString("Redis");
+				options.InstanceName = "RentalPlatform_"; // å¯é¸ï¼šç‚º Key åŠ ä¸Šå‰ç¶´ï¼Œé¿å…å¤šå€‹æ‡‰ç”¨å…±ç”¨ Redis æ™‚è¡çª
 			});
 
-			// JWT Authentication
-			var key = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Missing Jwt:Key");
-			builder.Services
-				.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-				.AddJwtBearer(o =>
-				{
-					o.TokenValidationParameters = new()
-					{
-						ValidateIssuerSigningKey = true,
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-						ValidateIssuer = true,
-						ValidateAudience = true,
-						ValidIssuer = builder.Configuration["Jwt:Issuer"],
-						ValidAudience = builder.Configuration["Jwt:Audience"],
-						ClockSkew = TimeSpan.Zero
-					};
-				});
-
-			// Controllers + JSON¡]Á×§KÂù¦V¾É¯è¾É­P´`Àô°Ñ¦Ò§â Swagger ¬µ±¼¡^
+			// Controllers + è§£æ±ºJSONå¾ªç’°åƒç…§å•é¡Œ
+			// JSON è¨­å®š
 			builder.Services.AddControllers()
-				.AddJsonOptions(opt =>
+				.AddJsonOptions(options =>
 				{
-					opt.JsonSerializerOptions.ReferenceHandler =
+					// 1. é¿å…å¾ªç’°åƒè€ƒé€ æˆåºåˆ—åŒ–éŒ¯èª¤
+					options.JsonSerializerOptions.ReferenceHandler =
 						System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+
+					// 2. å¿½ç•¥å¤§å°å¯«
+					options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+
+					// 3. JSON çµ±ä¸€ç”¨ camelCase
+					options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 				});
 
-			// Authorization¡]¥ıµù¥U°ò¥»µ¦²¤¡GAdminOnly¡^
-			// °ÊºAÅv­­«ØÄ³§ï¬°¦Û­q IAuthorizationPolicyProvider¡F¥ı¤£­n¦b±Ò°Ê®É³s DB¡C
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			// Authorizationï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½Uï¿½ò¥»µï¿½ï¿½ï¿½ï¿½GAdminOnlyï¿½^
+			// ï¿½ÊºAï¿½vï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¬°ï¿½Û­q IAuthorizationPolicyProviderï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½nï¿½bï¿½Ò°Ê®É³s DBï¿½C
 			builder.Services.AddAuthorization(options =>
 			{
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
 			});
 
-			// DI¡GDomain Services
+			// DIï¼šDomain Services
 			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
@@ -74,22 +94,47 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
-			// DI¡GRepositories
+			// DIï¼šRepositories
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
+			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+			builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
-			// Swagger¡]¸É Schema Id / JWT / DateOnly/TimeOnly ¹ïÀ³¡^
+			// DIï¼šApplication Services
+			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
+			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
+			builder.Services.AddScoped<IReviewService, ReviewService>();
+
+            // è¨»å†ŠèƒŒæ™¯å·¥ä½œæœå‹™ (Hosted Service)ã€‚
+            // MeilisearchIndexWorker æœƒåœ¨æ‡‰ç”¨ç¨‹å¼å•Ÿå‹•æ™‚è‡ªå‹•åŸ·è¡Œï¼Œä¸¦åœ¨èƒŒæ™¯ç›£è½ Redis Stream è™•ç†ç´¢å¼•æ›´æ–°ã€‚
+            builder.Services.AddHostedService<MeilisearchIndexWorker>();
+
+			// External integrations
+			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
+			builder.Services.AddScoped<MeilisearchService>();
+
+			// é…ç½® MinioSettingsï¼šå°‡ appsettings.json ä¸­çš„ "MinioSettings" å€å¡Šç¶å®šåˆ° MinioSettings DTOã€‚
+			builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
+			builder.Services.AddSingleton<IMinioService, MinioService>();
+			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
+
+			// Swaggerï¿½]ï¿½ï¿½ Schema Id / JWT / DateOnly/TimeOnly ï¿½ï¿½ï¿½ï¿½ï¿½^
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new OpenApiInfo { Title = "RentalManagementPlatformWebAPI", Version = "v1" });
-
-				// Á×§K¤£¦P©R¦WªÅ¶¡¦P¦WÃş§O³y¦¨ Schema ½Ä¬ğ
+				// é¿å…å› é‡è¤‡åç¨±è€Œç”¢ç”Ÿç›¸åŒåç¨± Schema çš„å•é¡Œ
 				c.CustomSchemaIds(t => t.FullName);
 
-				// JWT ¦w¥ş©w¸q
+				// JWT é©—è­‰å®šç¾©
 				c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 				{
 					Name = "Authorization",
@@ -97,7 +142,7 @@ namespace RentalManagementPlatformWebAPI
 					Scheme = "bearer",
 					BearerFormat = "JWT",
 					In = ParameterLocation.Header,
-					Description = "¿é¤J: Bearer {your token}"
+					Description = "è¼¸å…¥: Bearer {your token}"
 				});
 				c.AddSecurityRequirement(new OpenApiSecurityRequirement
 				{
@@ -114,11 +159,11 @@ namespace RentalManagementPlatformWebAPI
 					}
 				});
 
-				// ­Y±M®×¨Ï¥Î DateOnly/TimeOnly
+				// ç‰¹æ®Šå‹åˆ¥çš„ DateOnly/TimeOnly
 				c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
 				c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
 
-				// ¥i¿ï¡G¦Û°Ê¸ü¤J XML µù¸Ñ¡]¦s¦b¤~¸ü¡^
+				// å¯é¸ï¼šè‡ªå‹•è¼‰å…¥ XML è¨»è§£ï¼ˆä¸å­˜åœ¨ä¸å ±éŒ¯ï¼‰
 				var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 				var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
 				if (File.Exists(xmlPath))
@@ -127,31 +172,55 @@ namespace RentalManagementPlatformWebAPI
 				}
 			});
 
-			var app = builder.Build();
+			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			builder.Services.AddScoped<IBookingService, BookingService>();
+			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 
-			// ¦b¶}µoÀô¹ÒÅã¥Ü§¹¾ã¨Ò¥~­¶¡A¤è«K¬İ¨ì /swagger/v1/swagger.json ªº°ïÅ|
+			// DIï¼šDomain Services
+			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<IRoleService, RoleService>();
+			builder.Services.AddScoped<IPermissionService, PermissionService>();
+			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+			builder.Services.AddScoped<ECPayService>();
+			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
+
+			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+			builder.Services.AddProblemDetails(); // å•é¡Œè©³æƒ…ä¸­ä»‹è»Ÿé«”
+
+			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
+            builder.Services.AddSignalR();
+            var app = builder.Build();
+
+			app.UseExceptionHandler(); // å…¨åŸŸç•°å¸¸è™•ç†ä¸­ä»‹è»Ÿé«”
+
+			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
-				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI();
 			}
 
-			// «ØÄ³¥ı¤£¤ÀÀô¹Ò³£¶} Swagger¡]µ¥­×¦n¦A§ï¦^¥u¦b Dev ¶}¡^
-			app.UseSwagger();
-			app.UseSwaggerUI(c =>
-			{
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "RentalManagementPlatformWebAPI v1");
-				c.RoutePrefix = "swagger";
-			});
-
 			app.UseHttpsRedirection();
-			app.UseCors("spa");
+
+			app.UseCors("AllowVue");
 
 			app.UseAuthentication();
 			app.UseAuthorization();
 
 			app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationHub");
 
-			app.Run();
+            app.Run();
 		}
 	}
 }

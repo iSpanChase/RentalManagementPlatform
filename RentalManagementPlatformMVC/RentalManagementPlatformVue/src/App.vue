@@ -13,33 +13,31 @@ const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, 
 </script>
 
 <template>
-        <div class="page-wrapper" :class="{'mobile-menu-visible': isMobileMenuOpen}">
+    <div class="page-wrapper" :class="{'mobile-menu-visible': isMobileMenuOpen}">
 
         <ThePreloader />
 
 
-        <TheHeader
+        <!-- <TheHeader
             :isSearchPopupOpen="isSearchPopupOpen"
             :isSidebarOpen="isSidebarOpen"
             :isMobileMenuOpen="isMobileMenuOpen"
             @toggle-search="handleToggleSearch"
             @toggle-sidebar="handleToggleSidebar"
             @toggle-mobile-menu="handleToggleMobileMenu"
-        />
+        /> -->
 
-        <TheHiddenSidebar v-if="isSidebarOpen" @close-sidebar="handleToggleSidebar" />
+        <!-- <TheHiddenSidebar v-if="isSidebarOpen" @close-sidebar="handleToggleSidebar" />
         <SearchPopup v-if="isSearchPopupOpen" @close-search="handleToggleSearch" />
-        <TheMobileMenu v-if="isMobileMenuOpen" @close-mobile-menu="handleToggleMobileMenu" />
+        <TheMobileMenu v-if="isMobileMenuOpen" @close-mobile-menu="handleToggleMobileMenu" /> -->
 
-        <TempNavComponent></TempNavComponent>
-        <RouterLink class="col-2" to="/">Home</RouterLink>
+        <!-- <TempNavComponent></TempNavComponent> -->
+        <!-- <RouterLink class="col-2" to="/">Home</RouterLink> -->
         <RouterView />
 
-        <TheFooter />
+        <!-- <TheFooter /> -->
 
     </div>
-    <!--End pagewrapper-->
 
     <ScrollToTopButton />
 </template>
-    

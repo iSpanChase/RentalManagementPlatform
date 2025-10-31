@@ -9,7 +9,7 @@ using RentalManagementPlatformMVC.Areas.Auth.ViewModels;
 namespace RentalManagementPlatformMVC.Areas.Auth.Controllers
 {
     [Area("Auth")]
-    [Route("[area]/[action]")]
+    [Route("[area]/[controller]/[action]")]
     [AllowAnonymous] // 整個控制器預設可匿名
     public class AuthController : Controller
     {

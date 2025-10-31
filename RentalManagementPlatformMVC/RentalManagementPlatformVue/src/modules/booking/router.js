@@ -1,0 +1,25 @@
+export default [
+  {
+    path: '/booking',
+    name: 'Booking',
+    component: () => import('./layouts/BookingLayout.vue'),
+    meta: { layout: 'Booking', requiresAuth: true },
+    children: [
+      {
+        path: 'confirm',
+        name: 'BookingConfirmView',
+        component: () => import('./pages/BookingConfirmView.vue'),
+      },
+      {
+        path: 'mybookings',
+        name: 'MyBookings',
+        component: () => import('./pages/MyBookingsView.vue'),
+      },
+      {
+        path: 'myorders',
+        name: 'MyOrders',
+        component: () => import('./pages/MyOrdersView.vue'),
+      },
+    ],
+  },
+];

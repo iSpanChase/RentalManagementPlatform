@@ -154,36 +154,128 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("threshold_value");
         });
 
-        modelBuilder.Entity<Booking>(entity =>
-        {
-            entity.HasKey(e => e.BookingId).HasName("PK__BOOKING__5DE3A5B1A9001E79");
+		modelBuilder.Entity<Booking>(entity =>
+		{
+			entity.HasKey(e => e.BookingId).HasName("PK__BOOKING__5DE3A5B1A9001E79");
 
-            entity.ToTable("BOOKING");
+			entity.ToTable("BOOKING");
 
-            entity.Property(e => e.BookingId).HasColumnName("booking_id");
-            entity.Property(e => e.CheckIn).HasColumnName("check_in");
-            entity.Property(e => e.CheckOut).HasColumnName("check_out");
-            entity.Property(e => e.CommissionRateSnapshot)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("commission_rate_snapshot");
-            entity.Property(e => e.CouponId).HasColumnName("coupon_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.GuestId).HasColumnName("guest_id");
-            entity.Property(e => e.OrderNumber)
-                .HasMaxLength(512)
-                .HasColumnName("order_number");
-            entity.Property(e => e.PointsEarned).HasColumnName("points_earned");
-            entity.Property(e => e.PointsRedeemed).HasColumnName("points_redeemed");
-            entity.Property(e => e.RoomId).HasColumnName("room_id");
-            entity.Property(e => e.Status)
-                .HasMaxLength(512)
-                .HasColumnName("status");
-            entity.Property(e => e.TotalPrice)
-                .HasColumnType("decimal(18, 0)")
-                .HasColumnName("total_price");
-        });
+			// 主鍵
+			entity.Property(e => e.BookingId)
+				.ValueGeneratedOnAdd()
+				.HasColumnName("booking_id");
 
-        modelBuilder.Entity<BookingGuest>(entity =>
+			// 原有欄位
+			entity.Property(e => e.CheckIn).HasColumnName("check_in");
+
+			entity.Property(e => e.CheckOut).HasColumnName("check_out");
+
+			entity.Property(e => e.CommissionRateSnapshot)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("commission_rate_snapshot");
+
+			entity.Property(e => e.CouponId).HasColumnName("coupon_id");
+
+			entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+
+			entity.Property(e => e.GuestId).HasColumnName("guest_id");
+
+			entity.Property(e => e.OrderNumber)
+				.HasMaxLength(512)
+				.HasColumnName("order_number");
+
+			entity.Property(e => e.PointsEarned).HasColumnName("points_earned");
+
+			entity.Property(e => e.PointsRedeemed).HasColumnName("points_redeemed");
+
+			entity.Property(e => e.RoomId).HasColumnName("room_id");
+
+			entity.Property(e => e.Status)
+				.HasMaxLength(512)
+				.HasColumnName("status");
+
+			entity.Property(e => e.TotalPrice)
+				.HasColumnType("decimal(18, 0)")
+				.HasColumnName("total_price");
+
+			// ==================== 新增欄位配置 ====================
+
+			// 基本資訊
+			entity.Property(e => e.GuestCount)
+				.HasColumnName("guest_count");
+
+			entity.Property(e => e.PaymentTiming)
+				.HasMaxLength(50)
+				.HasColumnName("payment_timing");
+
+			entity.Property(e => e.PaymentStatus)
+				.HasMaxLength(20)
+				.HasColumnName("payment_status");
+
+			entity.Property(e => e.PaymentDeadline).HasColumnName("payment_deadline");
+
+			// 聯絡人資訊
+			entity.Property(e => e.ContactName)
+				.HasMaxLength(100)
+				.HasColumnName("contact_name");
+
+			entity.Property(e => e.ContactEmail)
+				.HasMaxLength(100)
+				.HasColumnName("contact_email");
+
+			entity.Property(e => e.ContactPhone)
+				.HasMaxLength(50)
+				.HasColumnName("contact_phone");
+
+			entity.Property(e => e.ContactNotes)
+				.HasColumnName("contact_notes");
+
+			// 帳單地址
+			entity.Property(e => e.BillingCountry)
+				.HasMaxLength(10)
+				.HasColumnName("billing_country");
+
+			entity.Property(e => e.BillingStreet)
+				.HasMaxLength(200)
+				.HasColumnName("billing_street");
+
+			entity.Property(e => e.BillingApartment)
+				.HasMaxLength(100)
+				.HasColumnName("billing_apartment");
+
+			entity.Property(e => e.BillingCity)
+				.HasMaxLength(100)
+				.HasColumnName("billing_city");
+
+			entity.Property(e => e.BillingState)
+				.HasMaxLength(100)
+				.HasColumnName("billing_state");
+
+			entity.Property(e => e.BillingZipCode)
+				.HasMaxLength(20)
+				.HasColumnName("billing_zip_code");
+
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+			// ==================== 關聯設定 ====================
+
+			entity.HasOne(d => d.Coupon)
+				.WithMany(p => p.Bookings)
+				.HasForeignKey(d => d.CouponId)
+				.HasConstraintName("FK_BOOKING_COUPON");
+
+			entity.HasOne(d => d.Guest)
+				.WithMany(p => p.Bookings)
+				.HasForeignKey(d => d.GuestId)
+				.HasConstraintName("FK_BOOKING_GUEST");
+
+			entity.HasOne(d => d.Room)
+				.WithMany(p => p.Bookings)
+				.HasForeignKey(d => d.RoomId)
+				.HasConstraintName("FK_BOOKING_ROOM");
+		});
+
+		modelBuilder.Entity<BookingGuest>(entity =>
         {
             entity.HasKey(e => e.BookingGuestId).HasName("PK__BOOKING___A6D88E88883D0701");
 
@@ -525,8 +617,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT");
 
             entity.Property(e => e.PaymentId)
-                .ValueGeneratedNever()
-                .HasColumnName("payment_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("payment_id");
             entity.Property(e => e.Amount)
                 .HasColumnType("decimal(18, 0)")
                 .HasColumnName("amount");
@@ -554,8 +646,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.ToTable("PAYMENT_TRANSACTION");
 
             entity.Property(e => e.TransactionId)
-                .ValueGeneratedNever()
-                .HasColumnName("transaction_id");
+				.ValueGeneratedOnAdd()
+				.HasColumnName("transaction_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.PaymentId).HasColumnName("payment_id");
             entity.Property(e => e.Provider)
@@ -640,8 +732,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
             entity.ToTable("POINT_RULE");
 
-            entity.Property(e => e.RuleId).HasColumnName("rule_id");
-            entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
+            entity.Property(e => e.RuleId).HasColumnName("rule_id")
+			    .ValueGeneratedNever();
+			entity.Property(e => e.ActiveFrom).HasColumnName("active_from");
             entity.Property(e => e.ActiveTo).HasColumnName("active_to");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.EarnRatePerNtd)
