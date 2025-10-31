@@ -4,6 +4,14 @@ import { useBookingStore } from '@/stores/bookingStore';
 import { useRouter } from 'vue-router';
 import { getData } from 'country-list';
 
+// ==================== Props ====================
+const props = defineProps({
+  totalPrice: {
+    type: Number,
+    required: true
+  }
+});
+
 // ==================== 狀態管理 ====================
 const bookingStore = useBookingStore();
 const router = useRouter();
@@ -120,6 +128,7 @@ const handleConfirmPayment = async () => {
     console.log('準備送出訂單...');
 
     const paymentData = {
+      finalAmount: props.totalPrice,
       paymentTiming: selectedPaymentTiming.value,
       billingInfo: {
         name: billingInfo.value.name,
@@ -254,7 +263,7 @@ onMounted(() => {
             v-model="selectedPaymentTiming"
           >
           <label for="full">
-            <div>立即支付 ${{ bookingStore.totalPrice.toFixed(2) }} TWD</div>
+            <div>立即支付 ${{ totalPrice.toFixed(2) }} TWD</div>
           </label>
         </div>
 
@@ -270,7 +279,7 @@ onMounted(() => {
           <label for="partial">
             <div>立即支付 $0 TWD</div>
             <small>
-              將於 {{ bookingStore.refundableDate }} 收取 ${{ bookingStore.totalPrice.toFixed(2) }} TWD。無須支付額外費用。
+              將於 {{ bookingStore.refundableDate }} 收取 ${{ totalPrice.toFixed(2) }} TWD。無須支付額外費用。
               <a href="#">更多資訊</a>
             </small>
           </label>
@@ -285,10 +294,10 @@ onMounted(() => {
       <!-- 已完成：顯示摘要 -->
       <div v-else-if="stepCompleted.step1" class="step-summary">
         <p v-if="selectedPaymentTiming === 'full'">
-          立即支付 ${{ bookingStore.totalPrice.toFixed(2) }} TWD
+          立即支付 ${{ totalPrice.toFixed(2) }} TWD
         </p>
         <p v-else>
-          已於12月23日收取 ${{ bookingStore.totalPrice.toFixed(2) }} TWD。無須支付額外費用。
+          已於12月23日收取 ${{ totalPrice.toFixed(2) }} TWD。無須支付額外費用。
         </p>
       </div>
     </div>

@@ -1,14 +1,34 @@
 <script setup>
 import { useBookingStore } from '@/stores/bookingStore'
 import { useRouter } from 'vue-router'
+import { computed } from 'vue' 
 import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue'
 import BookingSummaryCard from '../components/BookingSummaryCard.vue'
+import CouponSelector from '@/components/coupons/CouponSelector.vue' 
+import { useCouponCalculator } from '@/composables/useCouponCalculator.js'
 
 const bookingStore = useBookingStore()
 const router = useRouter()
 const goHome = () => {
   router.push('/')
 }
+
+// For Coupon Calculator
+const cartInfo = computed(() => ({
+  totalAmount: bookingStore.subtotal, // 使用小計作為計算基礎
+  leaseDays: bookingStore.nights,
+  userId: bookingStore.bookingDraft?.guestId,
+  // 這邊可以根據需要從 bookingStore 填充更多資訊
+  // cityId: bookingStore.bookingDraft?.cityId,
+  useDate: new Date(bookingStore.bookingDraft?.checkIn)
+}));
+
+const {
+  couponOptions,
+  selectedCouponId,
+  discountAmount,
+  finalPrice,
+} = useCouponCalculator(cartInfo);
 </script>
 
 <template>
@@ -25,10 +45,52 @@ const goHome = () => {
 
     <div class="container">
       <!-- 左側:付款步驟 -->
-      <BookingPaymentsStepsCard :total-price="bookingStore.totalPrice" />
+      <BookingPaymentsStepsCard :total-price="finalPrice" />
 
       <!-- 右側:預訂摘要 -->
-      <BookingSummaryCard />
+      <BookingSummaryCard :hide-internal-total="true">
+        <template #coupon>
+          <div class="coupon-section">
+            <CouponSelector
+              :coupons="couponOptions"
+              v-model="selectedCouponId"
+            />
+            <div v-if="discountAmount > 0" class="price-row discount">
+              <span>優惠券折扣</span>
+              <span class="green">-${{ discountAmount.toLocaleString() }} TWD</span>
+            </div>
+          </div>
+
+          <hr v-if="discountAmount > 0">
+
+          <div class="price-row total">
+            <strong>最終總計 TWD</strong>
+            <strong>${{ finalPrice.toLocaleString() }} TWD</strong>
+          </div>
+        </template>
+
+        <template #price-details-body>
+          <div class="price-row">
+            <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
+            <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
+          </div>
+
+          <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
+          </div>
+
+          <div class="price-row discount" v-if="discountAmount > 0">
+            <span>優惠券折扣</span>
+            <span class="green">-${{ discountAmount.toLocaleString() }} TWD</span>
+          </div>
+
+          <hr>
+
+          <div class="price-row total">
+            <strong>總計 TWD</strong>
+            <strong>${{ finalPrice.toLocaleString() }} TWD</strong>
+          </div>
+        </template>
+      </BookingSummaryCard>
     </div>
   </div>
 </template>
@@ -119,5 +181,39 @@ const goHome = () => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+// --- 優惠券區塊樣式 (優化版) ---
+.coupon-section {
+  padding-top: 8px;
+  padding-bottom: 8px;
+
+  // 使用 :deep() 穿透 Scoped CSS 來影響子元件
+  :deep(.coupon-selector) {
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #222;
+      font-size: 16px;
+    }
+  }
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 16px;
+
+  &.discount span.green {
+    color: #008489;
+    font-weight: 600;
+  }
+
+  &.total {
+    font-size: 16px;
+    font-weight: bold;
+  }
 }
 </style>
