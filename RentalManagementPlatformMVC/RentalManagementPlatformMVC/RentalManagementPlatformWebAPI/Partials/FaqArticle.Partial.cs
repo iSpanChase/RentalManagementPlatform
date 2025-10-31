@@ -4,8 +4,8 @@ namespace RentalManagementPlatformWebAPI.Models
 {
     public partial class FaqArticle
     {
-        // 明確宣告外鍵，對應 DB 欄位 category_id
-        [Column("category_id")]
+        //// 明確宣告外鍵，對應 DB 欄位 category_id
+        //[Column("category_id")]
         //public int CategoryId { get; set; }
 
         // 導覽屬性
