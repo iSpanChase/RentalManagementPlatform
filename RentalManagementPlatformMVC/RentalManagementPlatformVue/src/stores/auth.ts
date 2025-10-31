@@ -191,7 +191,7 @@ const login = async (request: LoginRequest) => {
       await fetchProfile()
       await fetchAbilities()
     } catch {
-    // 即便失敗也不影響原本登入流程
+      // 即便失敗也不影響原本登入流程
     }
     // 回傳最新的 profile（若成功）或原本登入回來的
     return state.profile ?? data
@@ -242,7 +242,7 @@ const register = async (request: RegistrationRequest) => {
   state.loading = true
   state.error = null
   try {
-    const { data } = await api.post<UserProfile>('/Users/register', request)
+    const { data } = await api.post<UserProfile>('/Auth/register', request)
     return data
   } catch (error) {
     state.error = resolveErrorMessage(error)
@@ -285,6 +285,10 @@ const logout = async () => {
 const fetchProfile = async () => {
   state.error = null
   try {
+    // ✅ 最小修正：沒有 token 就不呼叫 /Users/me，避免未登入時噴 401
+    const token = state.accessToken || localStorage.getItem(storageKeys.accessToken)
+    if (!token) return null
+
     const { data } = await api.get<UserProfile>('/Users/me')
     state.profile = data
     persistSession()

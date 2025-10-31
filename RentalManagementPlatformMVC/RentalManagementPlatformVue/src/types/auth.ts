@@ -56,6 +56,7 @@ export interface UpdateProfileRequest {
     phone: string | null
     address: string
     point: number | null
+    isverified?: boolean
     profileImageUrl: string | null
 }
 

@@ -28,6 +28,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		private readonly IHostEnvironment _env;
 		private readonly IRoleRepository _roles;
 		private readonly IPermissionRepository _perms;
+		private readonly IEmailVerificationService _emailVerify;
 
 		public AuthController(
 			IAuthService auth,
@@ -39,7 +40,8 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			IEmailSender emailSender,
 			IHostEnvironment env,
 			IRoleRepository roles,
-			IPermissionRepository perms)
+			IPermissionRepository perms,
+			IEmailVerificationService emailVerify)
 		{
 			_auth = auth;
 			_userService = userService;
@@ -51,10 +53,9 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			_env = env;
 			_roles = roles;
 			_perms = perms;
-
+			_emailVerify = emailVerify;
 			// 前端的根網址（用於重設密碼連結），appsettings 裡可設 Frontend:BaseUrl
 			_frontendBaseUrl = _cfg["Frontend:BaseUrl"] ?? "http://localhost:5173";
-			
 		}
 
 		[HttpGet("me/abilities")]
@@ -134,6 +135,16 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			try
 			{
 				var result = await _userService.RegisterAsync(dto);
+				try
+				{
+					var user = await _userRepository.GetByEmailAsync(dto.Email);
+					if (user != null && !user.Isverified)
+						await _emailVerify.CreateAndSendAsync(user.UserId, user.Email!, HttpContext.RequestAborted, BuildApiBase(Request));
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Send verification mail failed after register. Email={Email}", dto.Email);
+				}
 				return Ok(result);
 			}
 			catch (InvalidOperationException ex)
@@ -180,6 +191,47 @@ namespace RentalManagementPlatformWebAPI.Controllers
 				// 正式環境：只回通用訊息
 				return StatusCode(500, new { message = "寄信失敗，請稍後再試或聯絡管理員。" });
 			}
+		}
+
+		// ===== Email 驗證：重寄驗證信 =====
+		public record ResendVerificationDto(string Email);
+
+		string BuildApiBase(HttpRequest req) => $"{req.Scheme}://{req.Host}/api/Auth/verify-email";
+
+		[HttpPost("resend-verification")]
+		[AllowAnonymous]
+		public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationDto dto)
+		{
+			if (string.IsNullOrWhiteSpace(dto?.Email)) return Ok();
+			var user = await _userRepository.GetByEmailAsync(dto.Email.Trim());
+			if (user == null || user.Isverified) return Ok();
+
+			try
+			{
+				await _emailVerify.CreateAndSendAsync(user.UserId, user.Email!, HttpContext.RequestAborted, BuildApiBase(Request));
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Resend verification failed. Email={Email}", dto.Email);
+			}
+			return Ok();
+		}
+
+		// ===== Email 驗證：點擊信中連結完成驗證 =====
+		[HttpGet("verify-email")]
+		[AllowAnonymous]
+		public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
+		{
+			if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+				return BadRequest(new { message = "參數不完整" });
+
+			var ok = await _emailVerify.VerifyAsync(email.Trim(), token.Trim(), HttpContext.RequestAborted);
+			if (!ok) return BadRequest(new { message = "連結無效或已過期" });
+
+			// 你也可以改為 Redirect 到前端成功頁：
+			var successUrl = (_cfg["EmailVerification:SuccessUrl"] ?? $"{_frontendBaseUrl}/verify-email/success").TrimEnd('/');
+			return Redirect(successUrl);
+			//return Ok(new { message = "Email 驗證成功" });
 		}
 
 		// ===== 重設密碼：驗證 token，通過後更新密碼 =====

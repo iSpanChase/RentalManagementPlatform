@@ -86,6 +86,10 @@ namespace RentalManagementPlatformWebAPI
 			// DI¡GEmail Sender¡]SmtpEmailSender¡^
 			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
 			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+			//builder.Services.AddScoped<IEmailSender, EmailSender>();
+			builder.Services.Configure<EmailVerificationOptions>(
+				builder.Configuration.GetSection("EmailVerification"));
+			builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
 
 			// DI¡GAuth Claims Transformation & Policy Provider
 			builder.Services.AddMemoryCache();

@@ -47,16 +47,6 @@ const router = createRouter({
       meta: { requiresAuth: true, requiredPerms: ['Permissions.View'] },
     },
     {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: () => import('@/views/NotFoundView.vue'),
-    },
-    {
-      path: '/forbidden',
-      name: 'Forbidden',
-      component: () => import('@/views/ForbiddenView.vue'),
-    },
-    {
       path: '/reset-password',
       name: 'reset-password',
       component: () => import('@/views/ResetPasswordView.vue'), meta: { requiresGuest: true }
@@ -66,6 +56,28 @@ const router = createRouter({
       name: 'AdminReviewOperators',
       component: () => import('@/views/AdminReviewOperators.vue'),
       meta: { requiresAuth: true, perms: ['Admin.ApproveOperator'] } // 你現有的守門規則
+    },
+    {
+      path: '/verify-email',
+      name: 'VerifyEmail',
+      component: () => import('@/views/VerifyEmailView.vue'),
+      meta: { requiresAuth: false, public: true } // 不需登入
+    },
+    {
+      path: '/verify-email/success',
+      name: 'VerifyEmailSuccess',
+      component: () => import('@/views/VerifyEmailSuccessView.vue'),
+      meta: { public: true } // 不需登入
+    },
+        {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/NotFoundView.vue'),
+    },
+    {
+      path: '/forbidden',
+      name: 'Forbidden',
+      component: () => import('@/views/ForbiddenView.vue'),
     },
   ],
 })

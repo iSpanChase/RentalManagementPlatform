@@ -13,7 +13,7 @@
             <span>角色</span>
             <select v-model="form.roleCode" required>
               <option value="">請選擇</option>
-              <option value="LANDLORD">房東</option>
+              <option value="HOST">房東</option>
               <option value="TENANT">房客</option>
               <option value="VENDOR">廠商</option>
               <option value="OPERATOR">系統管理員</option>
@@ -206,15 +206,19 @@ const handleSubmit = async () => {
       passwordHash: form.password, // 後端雜湊
       name: form.name.trim(),
       username: form.username.trim(),
-      phone: form.phone.trim() || undefined,
+      phone: form.phone.trim() || '',
       gender: form.gender.trim(),
       birthDate: ymd!,                 // yyyy-MM-dd
       address: form.address.trim(),
       profileImageUrl: form.profileImageUrl.trim() || undefined,
-      companyName: null,
-      taxId: null,
-      nationalIdTail: null,
+      companyName: '',
+      taxId: '',
+      nationalIdTail: '',
     })
+
+const emailForVerify = form.email.trim();
+router.push({ name: 'VerifyEmail', query: { email: emailForVerify } });
+
   if (form.roleCode === 'OPERATOR') {
       ok.value = true
       msg.value = '已送出申請，待系統管理員審核通過後生效。'
@@ -226,10 +230,19 @@ const handleSubmit = async () => {
     }
   } catch (err: any) {
     ok.value = false
-    msg.value = auth.state?.error || err?.message || '註冊失敗，請稍候再試'
-  } finally {
-    submitting.value = false
-  }
+  // ✅ 把後端真正錯誤訊息顯示出來（避免只看到「Request failed with status code 400」）
+  const serverMsg =
+    err?.response?.data?.message ??
+    err?.response?.data?.title ??                        // ProblemDetails.title
+    (typeof err?.response?.data === 'string' ? err.response.data : '') ??
+    auth.state?.error ??
+    err?.message ??
+    '註冊失敗，請稍候再試'
+  msg.value = serverMsg
+  console.error('[Register failed]', err?.response?.data ?? err)
+} finally {
+  submitting.value = false
+}
 }
 </script>
 

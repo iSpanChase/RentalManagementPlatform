@@ -61,6 +61,11 @@
             <input v-model.trim="form.profileImageUrl" type="url" placeholder="https://..." />
           </label>
 
+          <div class="avatar-preview" v-if="previewUrl">
+            <img :src="previewUrl" alt="avatar preview" class="avatar-preview-img" @error="onPreviewError" />
+            <button type="button" class="outline-button" @click="clearAvatar">清除大頭貼</button>
+          </div>
+
           <div class="form-item form-item--checkbox">
             <label class="checkbox">
               <input type="checkbox" :checked="isVerified" disabled />
@@ -70,11 +75,19 @@
               {{ isVerified ? '已通過驗證' : '尚未通過驗證' }}
             </small>
           </div>
-
-          <div class="avatar-preview" v-if="previewUrl">
-            <img :src="previewUrl" alt="avatar preview" class="avatar-preview-img" @error="onPreviewError" />
-            <button type="button" class="outline-button" @click="clearAvatar">清除大頭貼</button>
-          </div>
+          
+          <div v-if="auth.state.profile && !isVerified" class="form-item form-item--checkbox verify-banner">
+              <div class="msg">
+                您的 Email 尚未完成驗證，部分功能可能受限。請至信箱點擊驗證連結，或重寄驗證信。
+              </div>
+              <div class="actions">
+                <router-link class="link" :to="{ name: 'VerifyEmail', query: { email: auth.state.profile.email } }">前往驗證頁</router-link>
+                <button type="button" @click="resendVerification" :disabled="resendPending || !isValidEmail">
+                  {{ resendPending ? '寄送中…' : '重寄驗證信' }}
+                </button>
+              </div>
+              <div v-if="resentOnce" class="hint">已送出（若帳號不存在或已驗證，系統不會顯示更多資訊）。</div>
+            </div>
         </div>
 
         <footer class="form-footer">
@@ -91,8 +104,26 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watchEffect } from 'vue'
+import { reactive, ref, computed, watchEffect, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import http from '@/services/http'
+
+const auth = useAuthStore()
+const resendPending = ref(false)
+const resentOnce = ref(false)
+const email = computed(() => auth.state.profile?.email ?? '')
+const isValidEmail = computed(() => !!email.value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value))
+
+const resendVerification = async () => {
+   if (!isValidEmail.value) return
+   resendPending.value = true
+   try {
+     await http.post('/Auth/resend-verification', { email: email.value })
+     resentOnce.value = true
+   } finally {
+     resendPending.value = false
+   }
+ }
 
 const previewUrl = computed(() => {
   const src = (form.profileImageUrl || '').trim()
@@ -112,7 +143,7 @@ function clearAvatar() {
   form.profileImageUrl = ''
 }
 
-const auth = useAuthStore()
+
 
 /** 表單模型（與後端/DB 欄位對齊；birthDate 用 input 綁定字串 yyyy-MM-dd） */
 type ProfileForm = {
@@ -148,7 +179,21 @@ const statusType = ref<'success' | 'error' | ''>('')
 /** 顯示用：Email 驗證狀態（唯讀） */
 const isVerified = computed(() => {
   const p: any = auth.state.profile || {}
-  return !!(p.isVerified ?? p.emailConfirmed ?? p.isEmailVerified ?? false)
+   // 兼容多種命名：isVerified / isverified / emailConfirmed / isEmailVerified / is_verified
+   return Boolean(
+     p.isVerified      // 小駝峰
+     ?? p.IsVerified   // 大駝峰（有些 DTO 會這樣》
+     ?? p.isverified   // ✅ 後端目前就是這個
+     ?? p.is_verified  // 蛇形
+     ?? p.emailConfirmed
+     ?? p.isEmailVerified
+     ?? false
+   )
+ })
+
+onMounted(async () => {
+  // 若目前快取顯示未驗證，嘗試拉一次最新資料
+  await auth.fetchProfile?.()
 })
 
 /** 進頁/更新後，把 store.profile 映射到表單 */
@@ -378,4 +423,9 @@ if (!auth.state.profile) {
   cursor: pointer;
 }
 .outline-button:hover { background: #f8fafc; }
+
+.verify-banner{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:10px;padding:12px;margin-bottom:16px}
+.actions{margin-top:8px;display:flex;gap:12px;align-items:center}
+.link{color:#2563eb}
+.hint{margin-top:6px;font-size:13px;color:#6b7280}
 </style>
