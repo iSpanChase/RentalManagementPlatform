@@ -6,7 +6,7 @@ let thisYear = new Date().getFullYear()
   <div class="booking-layout">
     <header class="booking-header">
       <router-link to="/">
-        <img src="../../../assets/images/logo.png" alt="logo">
+        <img src="@/assets/images/logo.png" alt="logo">
       </router-link>
     </header>
 
