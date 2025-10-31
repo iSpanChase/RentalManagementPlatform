@@ -20,13 +20,6 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 			_ecPayService = ecpayService;
 		}
 
-		[HttpGet]
-		public async Task<ActionResult<IEnumerable<PaymentsDto>>> GetAllPaymentsAsync()
-		{
-			var payments = await _paymentsService.GetAllPaymentsAsync();
-			return Ok(payments);
-		}
-
 		/// <summary>
 		/// 為延後支付的訂單產生付款表單
 		/// </summary>

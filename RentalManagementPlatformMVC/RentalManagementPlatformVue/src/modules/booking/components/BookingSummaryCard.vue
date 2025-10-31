@@ -1,31 +1,25 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { Modal } from 'bootstrap';
-
-// ==================== 外部套件 ====================
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
-// ==================== Store ====================
 const bookingStore = useBookingStore();
 
-// ==================== 計算屬性 ====================
 /** 是否有訂房草稿資料 */
 const hasBookingData = computed(() => {
   return bookingStore.hasBookingDraft && bookingStore.bookingDraft !== null;
 });
 
-// ==================== 狀態宣告 ====================
-// --- 日期選擇器 ---
-const dateRange = ref(); // [startDate, endDate] (Date 物件陣列)
+// 日期選擇器
+const dateRange = ref();
 const dateError = ref('');
-const minDate = new Date(); // 最小可選日期：今天
+const minDate = new Date();
 
-// --- 客人人數 ---
+// 客人人數
 const newGuests = ref(1);
 
-// ==================== 工具函數 ====================
 /**
  * 格式化日期為「2025年12月31日」
  * @param {string} dateStr - ISO 日期字串
@@ -53,16 +47,11 @@ const toISODateString = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-// ==================== 初始化函數 ====================
 /** 初始化日期選擇器 */
 const initDatePickers = () => {
   if (!hasBookingData.value) return;
-
   const { checkIn, checkOut } = bookingStore.bookingDraft;
-  const checkInDate = new Date(checkIn);
-  const checkOutDate = new Date(checkOut);
-
-  dateRange.value = [checkInDate, checkOutDate];
+  dateRange.value = [new Date(checkIn), new Date(checkOut)];
   dateError.value = '';
 };
 
@@ -72,17 +61,13 @@ const initGuestsPicker = () => {
   newGuests.value = bookingStore.bookingDraft.guestCount || 1;
 };
 
-// ==================== 事件處理 ====================
 /** 儲存變更後的日期 */
 const handleChangeDates = () => {
   if (dateRange.value?.[0] && dateRange.value?.[1]) {
     const [newCheckIn, newCheckOut] = dateRange.value;
-
     bookingStore.bookingDraft.checkIn = toISODateString(newCheckIn);
     bookingStore.bookingDraft.checkOut = toISODateString(newCheckOut);
     dateError.value = '';
-
-    // 關閉 Modal
     const modal = Modal.getInstance(document.getElementById('dateChangeModal'));
     modal?.hide();
   } else {
@@ -100,7 +85,6 @@ const handleClearDates = () => {
 const handleChangeGuests = () => {
   if (newGuests.value > 0) {
     bookingStore.bookingDraft.guestCount = newGuests.value;
-
     const modal = Modal.getInstance(document.getElementById('guestsChangeModal'));
     modal?.hide();
   }
@@ -113,33 +97,11 @@ const increaseGuests = () => newGuests.value++;
 const decreaseGuests = () => {
   if (newGuests.value > 1) newGuests.value--;
 };
-
-// ==================== 生命週期 ====================
-onMounted(() => {
-  // 模擬載入測試資料
-  // bookingStore.setBookingDraft({
-  //   roomId: 1,
-  //   guestId: 1,
-  //   couponId: null,
-  //   checkIn: '2025-12-31',
-  //   checkOut: '2026-01-02',
-  //   guestCount: 2,
-  //   roomTitle: 'Sonoya客用住房，安靜的satoyama旅館，每日可供一組客人私人租...',
-  //   roomImage: 'https://picsum.photos/120/90',
-  //   pricePerNight: 3598,
-  //   coupon: { discountAmount: 200 }
-  // });
-
-  console.log('測試訂房資料已載入');
-  console.log('bookingDraft:', bookingStore.bookingDraft);
-});
 </script>
 
 <template>
   <div class="right-section">
-    <!-- 有資料：顯示訂房摘要 -->
     <div v-if="hasBookingData" class="summary-card">
-      <!-- 房源資訊 -->
       <div class="property-info">
         <router-link to="/">
           <img :src="bookingStore.bookingDraft.roomImage" alt="房源圖片" />
@@ -151,54 +113,44 @@ onMounted(() => {
 
       <hr />
 
-      <!-- 取消政策 -->
       <div class="cancellation">
-        <strong>可免費取消</strong>
-        <p>
-          {{ bookingStore.refundableDate }}前取消可以全額退款。
-          <button
-            type="button"
-            class="full-cancellation"
-            data-bs-toggle="modal"
-            data-bs-target="#cancellationModal"
-          >
-            完整政策
-          </button>
-        </p>
+        <div v-if="bookingStore.isRefundable">
+          <strong>可免費取消</strong>
+          <p>
+            {{ bookingStore.refundableDate }}前取消可以全額退款。
+            <button type="button" class="full-cancellation" data-bs-toggle="modal" data-bs-target="#cancellationModal">
+              完整政策
+            </button>
+          </p>
+        </div>
+        <div v-else>
+          <strong>不可退款</strong>
+          <p>
+            此預訂在入住前7天內將無法退款。
+            <button type="button" class="full-cancellation" data-bs-toggle="modal" data-bs-target="#cancellationModal">
+              完整政策
+            </button>
+          </p>
+        </div>
       </div>
 
       <hr />
 
-      <!-- 日期 -->
       <div class="info-row">
         <strong>日期</strong>
-        <button
-          type="button"
-          class="btn-edit"
-          data-bs-toggle="modal"
-          data-bs-target="#dateChangeModal"
-          @click="initDatePickers"
-        >
+        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#dateChangeModal" @click="initDatePickers">
           變更
         </button>
       </div>
       <div class="date-info">
-        {{ formatDate(bookingStore.bookingDraft.checkIn) }} 至
-        {{ formatDate(bookingStore.bookingDraft.checkOut) }}
+        {{ formatDate(bookingStore.bookingDraft.checkIn) }} 至 {{ formatDate(bookingStore.bookingDraft.checkOut) }}
       </div>
 
       <hr />
 
-      <!-- 客人 -->
       <div class="info-row">
         <strong>客人</strong>
-        <button
-          type="button"
-          class="btn-edit"
-          data-bs-toggle="modal"
-          data-bs-target="#guestsChangeModal"
-          @click="initGuestsPicker"
-        >
+        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#guestsChangeModal" @click="initGuestsPicker">
           變更
         </button>
       </div>
@@ -206,37 +158,30 @@ onMounted(() => {
 
       <hr />
 
-      <!-- 價格詳情 -->
       <div class="price-section">
         <h4>價格詳情</h4>
-
         <div class="price-row">
           <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
           <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
         </div>
-
+        <div class="price-row">
+          <span>服務費</span>
+          <span>${{ bookingStore.serviceFee.toLocaleString() }} TWD</span>
+        </div>
         <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
           <span>特別優惠</span>
           <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
         </div>
-
         <hr />
-
         <div class="price-row total">
           <strong>總計 TWD</strong>
           <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
         </div>
-
-        <button
-          class="btn-details"
-          data-bs-toggle="modal"
-          data-bs-target="#priceDetailsModal"
-        >
+        <button class="btn-details" data-bs-toggle="modal" data-bs-target="#priceDetailsModal">
           價格明細
         </button>
       </div>
 
-      <!-- 特別優惠提示 -->
       <div class="special-offer" v-if="bookingStore.discountAmount > 0">
         <span class="icon"><i class="fa-solid fa-alarm-clock"></i></span>
         <p>
@@ -246,7 +191,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 無資料：載入中 -->
     <div v-else class="summary-card placeholder-card">
       <div class="placeholder-content">
         <div class="spinner-border text-primary" role="status">
@@ -257,7 +201,6 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- ==================== Modals ==================== -->
   <Teleport to="body">
     <!-- 取消政策 Modal -->
     <div class="modal fade" id="cancellationModal" tabindex="-1">
@@ -279,9 +222,7 @@ onMounted(() => {
                   <p class="policy-description">你將拿回已支付的全額退款</p>
                 </div>
               </div>
-
               <hr class="policy-divider" />
-
               <div class="policy-item">
                 <div class="policy-inner-item1">
                   <strong class="policy-label">此時間之後：</strong>
@@ -293,7 +234,6 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-
             <div class="policy-footer">
               <p class="policy-note">時間是根據房源當地時間顯示。</p>
               <div class="refund-info">
@@ -316,10 +256,7 @@ onMounted(() => {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div v-if="dateError" class="alert alert-danger" role="alert">
-              {{ dateError }}
-            </div>
-
+            <div v-if="dateError" class="alert alert-danger" role="alert">{{ dateError }}</div>
             <div class="mb-3">
               <label class="form-label">入住 - 退房日期</label>
               <VueDatePicker
@@ -340,9 +277,7 @@ onMounted(() => {
           </div>
           <div class="modal-footer">
             <div class="date-clear" @click="handleClearDates">清除日期</div>
-            <button type="button" class="btn date-save" @click="handleChangeDates">
-              儲存
-            </button>
+            <button type="button" class="btn date-save" @click="handleChangeDates">儲存</button>
           </div>
         </div>
       </div>
@@ -357,7 +292,6 @@ onMounted(() => {
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <!-- 成人 -->
             <div class="mb-3 d-flex align-items-center justify-content-between">
               <div>
                 <div><span>成人</span></div>
@@ -378,20 +312,13 @@ onMounted(() => {
                 >+</button>
               </div>
             </div>
-
-            <!-- 兒童、嬰幼兒、寵物（禁用） -->
-            <!-- ... 其他類別保持不變 ... -->
-            <!-- （為節省篇幅，保留原結構） -->
-
             <div class="guest-limit-text">
               <small>此住宿地點最多可容納 4 名房客 (未含嬰幼兒)。不允許攜帶寵物。</small>
             </div>
           </div>
           <div class="modal-footer">
             <div class="customer-clear" @click="initGuestsPicker">清除</div>
-            <button type="button" class="btn customer-save" @click="handleChangeGuests">
-              儲存
-            </button>
+            <button type="button" class="btn customer-save" @click="handleChangeGuests">儲存</button>
           </div>
         </div>
       </div>
@@ -410,6 +337,10 @@ onMounted(() => {
               <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
               <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
             </div>
+            <div class="price-row">
+              <span>服務費</span>
+              <span>${{ bookingStore.serviceFee.toLocaleString() }} TWD</span>
+            </div>
             <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
               <span>特別優惠</span>
               <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
@@ -427,7 +358,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-// ==================== 變數 ====================
 $border-color: #ddd;
 $divider-color: #ebebeb;
 $bg-muted: #f7f7f7;
@@ -436,7 +366,6 @@ $text-dark: #222;
 $primary: #222;
 $accent: #008489;
 
-// ==================== 主要容器 ====================
 .right-section {
   position: sticky;
   top: 80px;
@@ -455,26 +384,22 @@ $accent: #008489;
   display: flex;
   align-items: center;
   justify-content: center;
-
   .placeholder-content {
     text-align: center;
     p { margin: 0; font-size: 14px; }
   }
 }
 
-// ==================== 房源資訊 ====================
 .property-info {
   display: flex;
   gap: 16px;
   margin-bottom: 20px;
-
   img {
     width: 30rem;
     height: 7rem;
     border-radius: 8px;
     object-fit: cover;
   }
-
   h4 {
     margin: 0;
     font-size: 16px;
@@ -483,7 +408,6 @@ $accent: #008489;
   }
 }
 
-// ==================== 取消政策 ====================
 .cancellation {
   margin: 16px 0;
   strong { display: block; margin-bottom: 4px; }
@@ -498,13 +422,11 @@ $accent: #008489;
   }
 }
 
-// ==================== 資訊列 ====================
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-
   .btn-edit {
     background: none;
     border: none;
@@ -521,7 +443,6 @@ $accent: #008489;
   margin-bottom: 16px;
 }
 
-// ==================== 價格區塊 ====================
 .price-section {
   margin-top: 20px;
   h4 { font-size: 18px; margin-bottom: 16px; }
@@ -532,7 +453,6 @@ $accent: #008489;
   justify-content: space-between;
   margin-bottom: 12px;
   font-size: 14px;
-
   &.discount .green { color: $accent; }
   &.total {
     font-size: 16px;
@@ -550,7 +470,6 @@ $accent: #008489;
   cursor: pointer;
   margin-top: 16px;
   font-weight: 600;
-
   &:hover { background-color: #f7f7f7; }
 }
 
@@ -562,7 +481,6 @@ $accent: #008489;
   background: $bg-muted;
   border-radius: 8px;
   font-size: 14px;
-
   .icon i { color: $accent; }
   p { margin: 0; line-height: 1.5; }
 }
@@ -573,16 +491,13 @@ hr {
   margin: 16px 0;
 }
 
-// ==================== Modal 通用樣式 ====================
 .modal-content {
   border-radius: 25px;
-
   .modal-title {
     width: 100%;
     text-align: center;
     font-weight: 600;
   }
-
   .modal-body { padding: 24px; }
   .modal-footer {
     display: flex;
@@ -591,11 +506,9 @@ hr {
   }
 }
 
-// ==================== 取消政策 Modal ====================
 .policy-item {
   padding: 10px 0;
   display: flex;
-
   .policy-inner-item2 { margin-left: 4rem; }
   .policy-label { color: $text-dark; font-size: 16px; margin-bottom: 8px; }
   .policy-date { color: $text-muted; font-size: 14px; margin-bottom: 8px; }
@@ -613,7 +526,6 @@ hr {
   padding: 16px;
   border-radius: 8px;
   margin-top: 16px;
-
   .policy-note { color: $text-muted; font-size: 12px; margin-bottom: 16px; text-align: start; }
   .refund-info h6 { color: $text-dark; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
   .refund-info p { color: $text-muted; font-size: 13px; line-height: 1.4; margin: 0; }
@@ -627,7 +539,6 @@ hr {
   }
 }
 
-// ==================== 按鈕樣式 ====================
 .date-save, .customer-save {
   background-color: $primary;
   color: white;
@@ -656,12 +567,10 @@ hr {
   background: white;
   font-size: 18px;
   font-weight: bold;
-
   &:hover:not(:disabled) {
     background-color: #f8f9fa;
     border-color: #adb5bd;
   }
-
   &:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -683,7 +592,6 @@ hr {
   font-size: 13px;
 }
 
-// ==================== 響應式 ====================
 @media (max-width: 768px) {
   .right-section { position: static; }
   .property-info {
@@ -692,7 +600,6 @@ hr {
   }
 }
 
-/* 修復：DatePicker 彈窗 z-index 高於 Bootstrap Modal */
 :deep(.dp__menu) {
   z-index: 1060 !important;
 }

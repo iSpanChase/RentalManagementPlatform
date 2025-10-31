@@ -61,11 +61,11 @@
             <span class="price-amount">${{ roomDetail.pricePerNight }}</span>
             <span class="price-unit">night</span>
           </div>
-          
+
           <div class="booking-form">
-             <date-picker 
+             <date-picker
                 v-model:value="dateRange"
-                range 
+                range
                 placeholder="Select check-in & check-out date"
                 format="YYYY-MM-DD"
                 :editable="false"
@@ -79,7 +79,7 @@
 
           <button class="reserve-button" @click="handleReserve">Reserve</button>
           <p class="charge-notice">You won't be charged yet</p>
-          
+
           <div class="price-breakdown" v-if="dateRange && dateRange[0] && dateRange[1]">
             <div class="price-item">
                 <span>${{ roomDetail.pricePerNight }} x {{ nights }} nights</span>
@@ -87,12 +87,12 @@
             </div>
             <div class="price-item">
                 <span>Service fee</span>
-                <span>$50</span>
+                <span>${{ serviceFee }}</span>
             </div>
             <hr/>
             <div class="price-item total">
                 <span>Total</span>
-                <span>${{ roomDetail.pricePerNight * nights + 50 }}</span>
+                <span>${{ totalPriceWithFee }}</span>
             </div>
           </div>
         </div>
@@ -236,6 +236,18 @@ const nights = computed(() => {
     return diffDays > 0 ? diffDays : 0;
 });
 
+const serviceFee = computed(() => {
+  if (!roomDetail.value || nights.value <= 0) return 0;
+  const subtotal = roomDetail.value.pricePerNight * nights.value;
+  return Math.round(subtotal * 0.1); // 10% service fee
+});
+
+const totalPriceWithFee = computed(() => {
+  if (!roomDetail.value || nights.value <= 0) return 0;
+  const subtotal = roomDetail.value.pricePerNight * nights.value;
+  return subtotal + serviceFee.value;
+});
+
 // Query to fetch reviews
 const {
   data: reviews,
@@ -272,6 +284,7 @@ const handleReserve = () => {
         roomTitle: roomDetail.value.title,
         roomImage: roomDetail.value.mainImageUrl || galleryItems.value[0]?.src || '',
         pricePerNight: roomDetail.value.pricePerNight,
+        serviceFee: roomDetail.value.pricePerNight * nights.value * 0.1, // Example: 10% service fee
     };
 
     bookingStore.setBookingDraft(bookingData);

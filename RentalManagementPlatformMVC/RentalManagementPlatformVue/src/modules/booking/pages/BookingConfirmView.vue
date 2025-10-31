@@ -6,9 +6,7 @@ import BookingSummaryCard from '../components/BookingSummaryCard.vue'
 
 const bookingStore = useBookingStore()
 const router = useRouter()
-const goHome = () => {
-  router.push('/')
-}
+
 </script>
 
 <template>
