@@ -1,4 +1,5 @@
 <script setup>
+// 1. 移除 onMounted, onUnmounted，恢復原狀
 import { ref, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { Modal } from 'bootstrap';
@@ -28,6 +29,12 @@ const minDate = new Date();
 
 // 客人人數
 const newGuests = ref(1);
+
+// ==================== Modal 關閉修復 (新增) ====================
+// 2. 建立 Ref 來綁定隱藏的關閉按鈕
+const dateModalCloser = ref(null);
+const guestsModalCloser = ref(null);
+// ======================================================
 
 /**
  * 格式化日期為「2025年12月31日」
@@ -81,8 +88,11 @@ const handleChangeDates = () => {
     bookingStore.bookingDraft.checkIn = toISODateString(newCheckIn);
     bookingStore.bookingDraft.checkOut = toISODateString(newCheckOut);
     dateError.value = '';
-    const modal = Modal.getInstance(document.getElementById('dateChangeModal'));
-    modal?.hide();
+
+    // 3. 修改：不再呼叫 Modal.getInstance()
+    //    改為點擊隱藏的關閉按鈕
+    dateModalCloser.value?.click();
+
   } else {
     dateError.value = '請選擇有效的入住和退房日期';
   }
@@ -98,8 +108,10 @@ const handleClearDates = () => {
 const handleChangeGuests = () => {
   if (newGuests.value > 0) {
     bookingStore.bookingDraft.guestCount = newGuests.value;
-    const modal = Modal.getInstance(document.getElementById('guestsChangeModal'));
-    modal?.hide();
+
+    // 4. 修改：不再呼叫 Modal.getInstance()
+    //    改為點擊隱藏的關閉按鈕
+    guestsModalCloser.value?.click();
   }
 };
 
@@ -213,7 +225,6 @@ const decreaseGuests = () => {
   </div>
 
   <Teleport to="body">
-    <!-- 取消政策 Modal -->
     <div class="modal fade" id="cancellationModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -258,7 +269,6 @@ const decreaseGuests = () => {
       </div>
     </div>
 
-    <!-- 日期變更 Modal -->
     <div class="modal fade" id="dateChangeModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -287,6 +297,12 @@ const decreaseGuests = () => {
             </div>
           </div>
           <div class="modal-footer">
+            <button
+              ref="dateModalCloser"
+              type="button"
+              data-bs-dismiss="modal"
+              style="display: none;"
+            ></button>
             <div class="date-clear" @click="handleClearDates">清除日期</div>
             <button type="button" class="btn date-save" @click="handleChangeDates">儲存</button>
           </div>
@@ -294,7 +310,6 @@ const decreaseGuests = () => {
       </div>
     </div>
 
-    <!-- 客人變更 Modal -->
     <div class="modal fade" id="guestsChangeModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -328,6 +343,12 @@ const decreaseGuests = () => {
             </div>
           </div>
           <div class="modal-footer">
+            <button
+              ref="guestsModalCloser"
+              type="button"
+              data-bs-dismiss="modal"
+              style="display: none;"
+            ></button>
             <div class="customer-clear" @click="initGuestsPicker">清除</div>
             <button type="button" class="btn customer-save" @click="handleChangeGuests">儲存</button>
           </div>
@@ -335,7 +356,6 @@ const decreaseGuests = () => {
       </div>
     </div>
 
-    <!-- 價格明細 Modal -->
     <div class="modal fade" id="priceDetailsModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -372,6 +392,7 @@ const decreaseGuests = () => {
 </template>
 
 <style lang="scss" scoped>
+// 你的 SCSS 樣式 (保持不變)
 $border-color: #ddd;
 $divider-color: #ebebeb;
 $bg-muted: #f7f7f7;

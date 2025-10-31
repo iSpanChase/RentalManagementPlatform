@@ -261,6 +261,13 @@ const {
   queryFn: () => fetchReviewsByRoomId(roomId),
 });
 
+const toLocalISODateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const handleReserve = () => {
     if (!dateRange.value || dateRange.value.length < 2 || !dateRange.value[0] || !dateRange.value[1]) {
         alert('Please select check-in and check-out dates.');
@@ -280,8 +287,8 @@ const handleReserve = () => {
     const bookingData = {
         roomId: roomDetail.value.roomId,
         guestId: authStore.currentUser?.id,
-        checkIn: (checkIn as Date).toISOString().split('T')[0],
-        checkOut: (checkOut as Date).toISOString().split('T')[0],
+        checkIn: toLocalISODateString(checkIn as Date),
+        checkOut: toLocalISODateString(checkOut as Date),
         guestCount: guestCount.value,
         roomTitle: roomDetail.value.title,
         roomImage: roomDetail.value.mainImageUrl || galleryItems.value[0]?.src || '',

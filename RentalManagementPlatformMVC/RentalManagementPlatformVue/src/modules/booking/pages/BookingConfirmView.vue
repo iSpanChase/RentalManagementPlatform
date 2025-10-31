@@ -31,7 +31,7 @@ onMounted(async () => {
       if (roomDetail) {
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: authStore.currentUser?.id,
+          guestId: authStore.currentUser?.id || 1, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
           guestCount: 1,
           roomTitle: roomDetail.title,
           roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
