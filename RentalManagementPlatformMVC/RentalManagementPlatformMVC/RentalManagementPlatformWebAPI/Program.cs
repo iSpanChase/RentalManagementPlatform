@@ -5,12 +5,14 @@ using Microsoft.OpenApi.Models;
 using Minio;
 using RentalManagementPlatformAPI.Repository;
 using RentalManagementPlatformMVC.Models;
+using RentalManagementPlatformWebAPI.Data;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Hubs;
 using RentalManagementPlatformWebAPI.Mappings;
 using RentalManagementPlatformWebAPI.Middlewares;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories;
+//using RentalManagementPlatformWebAPI.Repositories.Interface;
 using RentalManagementPlatformWebAPI.Repositories.Bookings;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Repositories.Payments;
@@ -29,6 +31,7 @@ using RentalManagementPlatformWebAPI.Services.Property;
 using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
 using System.Reflection;
 using System.Text.Json;
+using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI
 {
@@ -38,8 +41,13 @@ namespace RentalManagementPlatformWebAPI
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// 加入 CORS 服務
-			builder.Services.AddCors(options =>
+			//SignalR()
+            builder.Services.AddSignalR();
+            // In-Memory 暫存
+            builder.Services.AddSingleton<InMemoryStore>();
+
+            // 加入 CORS 服務
+            builder.Services.AddCors(options =>
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
@@ -47,8 +55,7 @@ namespace RentalManagementPlatformWebAPI
 						"https://my-project-frontend.ngrok.app"); // <--- 將 ngrok URL 加入！
 					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
 						  .AllowAnyHeader()
-						 .AllowAnyMethod()
-                         .AllowCredentials();
+						  .AllowAnyMethod();
 				});
 			});
 
@@ -90,8 +97,12 @@ namespace RentalManagementPlatformWebAPI
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
 			});
 
-			// DI：Domain Services
-			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
+            // DI Message
+            builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
+
+            // DI�GDomain Services
+            builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<IUserService, UserService>();
@@ -252,6 +263,9 @@ namespace RentalManagementPlatformWebAPI
 
 			app.MapControllers();
             app.MapHub<NotificationHub>("/notificationHub");
+
+			//Message
+            app.MapHub<ChatHub>("/hubs/chat");
 
             app.Run();
 		}

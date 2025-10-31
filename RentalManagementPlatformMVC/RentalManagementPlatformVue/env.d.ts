@@ -11,5 +11,14 @@ declare module '*.js' {
     export default value;
 }
 
+/// <reference types="vite/client" />
+interface ImportMetaEnv {
+    readonly VITE_API_BASE: string
+    readonly VITE_HUB_URL: string
+}
+interface ImportMeta {
+    readonly env: ImportMetaEnv
+}
+
 // 這一行可順便加上 Vite types（可選，但建議）
 /// <reference types="vite/client" />

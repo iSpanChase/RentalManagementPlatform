@@ -7,6 +7,8 @@ import ReportFormRouter from './modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import UserCouponsView from '../views/UserCouponsView.vue'
 import CouponListView from '../views/CouponListView.vue'
+import supportRoutes from '@/modules/faq/router'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,6 +63,8 @@ const router = createRouter({
 
     // 3. 訂單路由（使用自己的 BookingLayout）
     ...bookingRoutes,
+    ...supportRoutes,
+
   ],
 });
 

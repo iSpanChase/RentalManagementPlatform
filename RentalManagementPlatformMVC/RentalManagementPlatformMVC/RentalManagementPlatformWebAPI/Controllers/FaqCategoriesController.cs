@@ -43,6 +43,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
                 {
                     Id = a.FaqArticlesId,
                     Title = a.Title,
+                    Summary = a.Summary,
                     Content = a.Content,
                     CategoryId = a.CategoryId!.Value,    // DTO 是 int 就給 Value
                     //IsActive = a.IsActive
@@ -85,6 +86,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
                     Id = a.FaqArticlesId,               // ← 正確主鍵
                     Title = a.Title,
                     Content = a.Content,
+                    Summary = a.Summary,
                     CategoryId = a.CategoryId!.Value,           // ← 這裡用 !.Value；因為上面 Where 已保證等於 id
                     //
                     //IsActive = a.IsActive
