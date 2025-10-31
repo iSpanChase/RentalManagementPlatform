@@ -64,7 +64,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
 					if (mainPhoto != null)
 					{
-						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
 					}
 				}
 				bookingDtos.Add(bookingDto);
@@ -91,7 +91,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
 					if (mainPhoto != null)
 					{
-						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
 					}
 				}
 				bookingDtos.Add(bookingDto);
@@ -327,7 +327,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
 				if (mainPhoto != null)
 				{
-					bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto.ObjectKey);
+					bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
 				}
 			}
 			return bookingDto;
