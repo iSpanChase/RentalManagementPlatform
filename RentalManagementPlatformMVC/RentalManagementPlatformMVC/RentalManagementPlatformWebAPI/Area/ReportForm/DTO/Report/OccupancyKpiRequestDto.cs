@@ -1,7 +1,6 @@
-
 using System.Collections.Generic;
 
-namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO
+namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report
 {
     public class OccupancyKpiRequestDto
     {

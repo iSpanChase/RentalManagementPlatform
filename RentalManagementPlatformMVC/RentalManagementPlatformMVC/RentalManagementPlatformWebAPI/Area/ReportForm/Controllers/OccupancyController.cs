@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
 using RentalManagementPlatformWebAPI.Models;
 using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 
 namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 {

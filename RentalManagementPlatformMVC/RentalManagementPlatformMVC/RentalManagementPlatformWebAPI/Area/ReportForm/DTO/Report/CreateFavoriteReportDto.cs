@@ -1,5 +1,4 @@
-
-namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO
+namespace RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report
 {
     public class CreateFavoriteReportDto
     {
