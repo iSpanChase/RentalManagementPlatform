@@ -17,19 +17,28 @@ export function useCouponCalculator(cartInfo) {
 
   const discountAmount = ref(0); // 後端驗證後回傳的折扣金額
   const selectedCouponDescription = ref(null); // 選定優惠券的描述
+  const validationMessage = ref(''); // 驗證訊息
+  const isError = ref(false); // 是否發生錯誤
 
   const couponStore = useCouponStore(); // 引入 coupon store
 
   // ----------------------------------------------------------------------------
   // 生命週期鉤子 (Lifecycle Hooks)
   // ----------------------------------------------------------------------------
-  onMounted(async () => {
-    await fetchUserCoupons(); // 在組件掛載時獲取優惠券
-  });
+  // 移除 onMounted 中的 fetchUserCoupons，改用 watch 監聽 userId
 
   // ----------------------------------------------------------------------------
   // 監聽器 (Watchers)
   // ----------------------------------------------------------------------------
+
+  // 監聽 userId 變化，當 userId 存在時才獲取優惠券
+  watch(() => cartInfo.value.userId, (newUserId) => {
+    // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+    const userIdToFetch = newUserId || 1; 
+    if (userIdToFetch) {
+      fetchUserCoupons(userIdToFetch); 
+    }
+  }, { immediate: true });
 
   // 監聽使用者選擇的優惠券 ID，當 ID 變更時，觸發後端驗證
   watch(selectedCouponId, async (newId) => {
@@ -146,10 +155,10 @@ export function useCouponCalculator(cartInfo) {
   };
 
   // 新增一個方法來重新獲取使用者優惠券
-  async function fetchUserCoupons() {
-    if (!cartInfo.value.userId) return;
+  async function fetchUserCoupons(userId) {
+    if (!userId) return;
     try {
-      userCoupons.value = await getUserCoupons(cartInfo.value.userId);
+      userCoupons.value = await getUserCoupons(userId);
     } catch (error) {
       console.error("重新獲取使用者優惠券失敗：", error);
       validationMessage.value = "無法載入您的優惠券列表。";

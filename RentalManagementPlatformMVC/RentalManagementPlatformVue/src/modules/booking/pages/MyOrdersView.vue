@@ -1,23 +1,37 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { useRoute } from 'vue-router';
 import { Modal } from 'bootstrap';
+import { useToast } from 'vue-toastification';
+import SimplePaginator from '@/components/SimplePaginator.vue';
 
-// ==================== 狀態宣告 ====================
+import { useAuthStore } from '@/stores/authStore.js';
+
+const toast = useToast();
 const bookingStore = useBookingStore();
+const authStore = useAuthStore();
 const route = useRoute();
 
-const orders = ref([]);
+const allOrders = ref([]);
 const isLoading = ref(false);
 const selectedOrder = ref(null);
-const testHostId = 47;
+const currentPage = ref(1);
+const itemsPerPage = 5;
 
-// ==================== 工具函數 ====================
+const totalPages = computed(() => Math.ceil(allOrders.value.length / itemsPerPage));
+const paginatedOrders = computed(() => {
+  const startIndex = (currentPage.value - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return allOrders.value.slice(startIndex, endIndex);
+});
+
+function onPageChange(page) {
+  currentPage.value = page;
+}
+
 /**
- * 格式化日期為「2025年10月29日」格式
- * @param {string} dateStr - ISO 日期字串
- * @returns {string}
+ * 格式化日期為「2025年10月29日」
  */
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
@@ -30,8 +44,6 @@ const formatDate = (dateStr) => {
 
 /**
  * 取得訂單狀態文字
- * @param {string} status
- * @returns {string}
  */
 const getStatusText = (status) => {
   switch (status) {
@@ -52,74 +64,52 @@ const getStatusText = (status) => {
 
 /**
  * 開啟訂單詳情 Modal
- * @param {string} orderNumber
  */
 const viewDetails = (orderNumber) => {
-  const order = orders.value.find(b => b.orderNumber === orderNumber);
-  if (!order) {
-    console.error(`找不到訂單 ${orderNumber}`);
-    return;
-  }
+  const order = allOrders.value.find(o => o.orderNumber === orderNumber);
+  if (!order) return;
   selectedOrder.value = order;
-  console.log(`設置訂單 ${orderNumber} 資料，準備開啟 Modal`);
 };
 
 /**
  * Modal 隱藏後清除資料
  */
 const handleModalHidden = () => {
-  console.log('Modal 已隱藏，清除 selectedOrder 資料');
   selectedOrder.value = null;
 };
 
-// ==================== 生命週期 ====================
 onMounted(async () => {
   isLoading.value = true;
 
-  // 綁定 Bootstrap Modal 隱藏事件
-  const modalElement = document.getElementById('orderDetailModal');
-  if (modalElement) {
-    modalElement.addEventListener('hidden.bs.modal', handleModalHidden);
+  // 監聽 Modal 關閉事件
+  const modalEl = document.getElementById('orderDetailModal');
+  if (modalEl) {
+    modalEl.addEventListener('hidden.bs.modal', handleModalHidden);
   }
 
   try {
-    const orderNumberFromQuery = route.query.orderNumber;
     let fetchedOrders = [];
 
-    if (orderNumberFromQuery) {
-      console.log(`URL 中檢測到訂單編號: ${orderNumberFromQuery}，正在獲取單一訂單詳情...`);
-      const singleOrder = await bookingStore.fetchBookingByOrderNumber(orderNumberFromQuery);
-      if (singleOrder) {
-        fetchedOrders.push(singleOrder);
-      } else {
-        console.warn(`找不到訂單編號為 ${orderNumberFromQuery} 的訂單。`);
-      }
-    } else {
-      // 取得 hostId，無則使用測試 ID
-      let hostId = route.query.hostId;
-      if (!hostId) {
-        console.warn('URL 中未提供 hostId，使用測試房東 ID');
-        hostId = testHostId;
-      }
-      console.log(`URL 中未提供訂單編號，正在獲取房東 ${hostId} 的所有訂單...`);
-      fetchedOrders = await bookingStore.fetchHostOrders(hostId);
+    const hostId = authStore.currentHostId;
+    if (!hostId) {
+      toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
+      isLoading.value = false;
+      return;
     }
+    fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
 
-    orders.value = fetchedOrders;
-
-    console.log('從後端獲取訂單成功:', orders.value);
+    allOrders.value = fetchedOrders;
   } catch (error) {
-    console.error('獲取訂單失敗:', error);
-    alert('無法載入訂單資料');
+    toast.error('無法載入訂單資料');
   } finally {
     isLoading.value = false;
   }
 });
 
 onUnmounted(() => {
-  const modalElement = document.getElementById('orderDetailModal');
-  if (modalElement) {
-    modalElement.removeEventListener('hidden.bs.modal', handleModalHidden);
+  const modalEl = document.getElementById('orderDetailModal');
+  if (modalEl) {
+    modalEl.removeEventListener('hidden.bs.modal', handleModalHidden);
   }
 });
 </script>
@@ -137,7 +127,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 無訂單 -->
-      <div v-else-if="orders.length === 0" class="no-orders">
+      <div v-else-if="allOrders.length === 0" class="no-orders">
         <p>目前沒有任何房客預訂。</p>
         <router-link to="/host/listings">
           <button class="btn-primary">前往房源管理</button>
@@ -145,66 +135,65 @@ onUnmounted(() => {
       </div>
 
       <!-- 訂單列表 -->
-      <div v-else class="orders-list">
-        <div
-          v-for="order in orders"
-          :key="order.orderNumber"
-          class="order-card"
-        >
-          <!-- 房客頭像 -->
-          <div class="guest-avatar-wrapper">
-            <img
-              :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
-              alt="房客頭像"
-              class="guest-avatar"
-            />
-          </div>
-
-          <!-- 訂單內容 -->
-          <div class="order-details-wrapper">
-            <!-- 頂部：姓名 + 狀態 -->
-            <div class="card-section top-section">
-              <div class="guest-info">
-                <h3>{{ order.guestName }} ({{ order.guestCount }}位)</h3>
-              </div>
-              <span :class="['order-status', `status-${order.paymentStatus}`]">
-                {{ getStatusText(order.paymentStatus) }}
-              </span>
+      <div v-else>
+        <div class="orders-list">
+          <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
+            <div class="guest-avatar-wrapper">
+              <img
+                :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
+                alt="房客頭像"
+                class="guest-avatar"
+              />
             </div>
 
-            <!-- 中間：日期 + 房源 -->
-            <div class="card-section mid-section">
-              <div class="info-item date-info">
-                <i class="fa-solid fa-calendar-days"></i>
-                <span>{{ formatDate(order.checkIn) }} - {{ formatDate(order.checkOut) }}</span>
+            <div class="order-details-wrapper">
+              <div class="card-section top-section">
+                <div class="guest-info">
+                  <h3>{{ order.guestName }} ({{ order.guestCount }}位)</h3>
+                </div>
+                <span :class="['order-status', `status-${order.paymentStatus}`]">
+                  {{ getStatusText(order.paymentStatus) }}
+                </span>
               </div>
-              <div class="info-item room-info">
-                <i class="fa-solid fa-house"></i>
-                <span>{{ order.room }}</span>
-              </div>
-            </div>
 
-            <!-- 底部：價格 + 按鈕 -->
-            <div class="card-section bottom-section">
-              <div class="price-preview">
-                <strong>TWD {{ order.totalPrice.toLocaleString() }}</strong>
+              <div class="card-section mid-section">
+                <div class="info-item date-info">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span>{{ formatDate(order.checkIn) }} - {{ formatDate(order.checkOut) }}</span>
+                </div>
+                <div class="info-item room-info">
+                  <i class="fa-solid fa-house"></i>
+                  <span>{{ order.room }}</span>
+                </div>
               </div>
-              <button
-                class="btn-details"
-                data-bs-toggle="modal"
-                data-bs-target="#orderDetailModal"
-                @click="viewDetails(order.orderNumber)"
-              >
-                查看詳情 / 聯絡
-              </button>
+
+              <div class="card-section bottom-section">
+                <div class="price-preview">
+                  <strong>TWD {{ order.totalPrice.toLocaleString() }}</strong>
+                </div>
+                <button
+                  class="btn-details"
+                  data-bs-toggle="modal"
+                  data-bs-target="#orderDetailModal"
+                  @click="viewDetails(order.orderNumber)"
+                >
+                  查看詳情 / 聯絡
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        <SimplePaginator
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          @page-changed="onPageChange"
+        />
       </div>
     </div>
   </div>
 
-  <!-- Modal：訂單詳情 -->
+  <!-- 訂單詳情 Modal -->
   <Teleport to="body">
     <div
       class="modal fade"
@@ -215,7 +204,6 @@ onUnmounted(() => {
     >
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" v-if="selectedOrder">
-          <!-- Modal Header -->
           <div class="modal-header">
             <div class="modal-header-content">
               <img
@@ -233,7 +221,6 @@ onUnmounted(() => {
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
-          <!-- Modal Body -->
           <div class="modal-body">
             <!-- 房客聯絡資訊（高亮） -->
             <div class="detail-section highlight">
@@ -306,11 +293,8 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Modal Footer -->
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              關閉
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
             <button type="button" class="btn btn-chat">
               <i class="fa-solid fa-comments"></i> 聯絡房客
             </button>
@@ -322,16 +306,14 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-// ==================== 顏色變數 ====================
 $primary-color: #222;
-$secondary-color: #f7a800;     // 房東強調色（橘黃）
-$chat-color: #008489;         // 溝通按鈕色
+$secondary-color: #f7a800;
+$chat-color: #008489;
 $border-color: #ebebeb;
 $background-light: #f9f9f9;
 $text-light: #717171;
 $text-dark: #484848;
 
-// ==================== 頁面基礎 ====================
 .host-orders-page {
   padding: 40px 20px;
   background-color: $background-light;
@@ -350,7 +332,6 @@ h1 {
   color: $primary-color;
 }
 
-// ==================== 載入 & 無資料 ====================
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -387,7 +368,6 @@ h1 {
   }
 }
 
-// ==================== 訂單卡片 ====================
 .orders-list {
   display: grid;
   gap: 20px;
@@ -407,10 +387,8 @@ h1 {
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
-    // 頭像
     .guest-avatar-wrapper {
       flex-shrink: 0;
-
       .guest-avatar {
         width: 80px;
         height: 80px;
@@ -420,7 +398,6 @@ h1 {
       }
     }
 
-    // 內容區
     .order-details-wrapper {
       flex: 1;
       display: flex;
@@ -467,7 +444,6 @@ h1 {
 
     .bottom-section {
       align-items: center;
-
       .price-preview {
         font-size: 16px;
         font-weight: 600;
@@ -477,7 +453,6 @@ h1 {
   }
 }
 
-// ==================== 狀態標籤 ====================
 .order-status {
   padding: 5px 12px;
   border-radius: 20px;
@@ -492,7 +467,6 @@ h1 {
 .status-cancelled                  { background-color: #f8d7da; color: #721c24; }
 .status-refunded                   { background-color: #e2e3e5; color: #383d41; }
 
-// ==================== 按鈕 ====================
 .btn-details {
   background-color: $secondary-color;
   color: $primary-color;
@@ -509,7 +483,6 @@ h1 {
   }
 }
 
-// ==================== Modal ====================
 .modal-content {
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -555,17 +528,12 @@ h1 {
 
 .detail-section {
   margin-bottom: 20px;
-
   h6 {
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 15px;
     color: $primary-color;
-
-    i {
-      margin-right: 8px;
-      color: $text-light;
-    }
+    i { margin-right: 8px; color: $text-light; }
   }
 }
 
@@ -621,10 +589,7 @@ h1 {
   }
 }
 
-hr {
-  border-color: $border-color;
-  margin: 25px 0;
-}
+hr { border-color: $border-color; margin: 25px 0; }
 
 .modal-footer {
   border-top: 1px solid $border-color;
@@ -658,7 +623,6 @@ hr {
   }
 }
 
-// ==================== 響應式 ====================
 @media (max-width: 768px) {
   .container { padding: 0 15px; }
   .host-orders-page { padding: 20px 0; }

@@ -4,7 +4,6 @@ namespace RentalManagementPlatformWebAPI.Repositories.Interfaces
 {
 	public interface IBookingRepository
 	{
-		Task<IEnumerable<Booking>> GetAllBookingsAsync();
 		Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId);
 		Task<IEnumerable<Booking>> GetOrdersByHostIdAsync(int hostId);
 		Task<Booking?> GetBookingByIdAsync(int bookingId);
