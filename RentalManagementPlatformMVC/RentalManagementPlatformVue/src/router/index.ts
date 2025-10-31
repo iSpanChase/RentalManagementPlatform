@@ -34,6 +34,16 @@ const router = createRouter({
           name: 'search',
           component: () => import('../views/SearchView.vue'),
         },
+        {
+          path: '/hosting/rooms/new',
+          name: 'create-room',
+          component: () => import('../views/hosting/CreateRoomView.vue'),
+        },
+        {
+          path: '/hosting/rooms/:id/edit',
+          name: 'edit-room',
+          component: () => import('../views/hosting/EditRoomView.vue'),
+        },
       ],
     },
 
