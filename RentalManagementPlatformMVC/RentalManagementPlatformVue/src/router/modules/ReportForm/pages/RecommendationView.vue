@@ -49,7 +49,23 @@ const { data: recommendedRooms, isLoading, isError } = useQuery<RoomCard[]>({
   staleTime: 1000 * 60 * 5, // 5 分鐘內資料視為新鮮
 });
 
-const displayedRooms = recommendedRooms;
+
+const displayedRooms = computed(() => {
+  if (!recommendedRooms.value) {
+    return [];
+  }
+  return recommendedRooms.value.map(room => ({
+    roomId: room.roomId,
+    name: room.title,
+    price: room.pricePerNight,
+    rating: room.ratingAvg,
+    imageUrl: room.mainImageUrl,
+    cityName: room.cityName,
+    districtName: room.districtName,
+    addressLine: room.addressLine,
+  }));
+});
+
 </script>
 
 <style scoped>
