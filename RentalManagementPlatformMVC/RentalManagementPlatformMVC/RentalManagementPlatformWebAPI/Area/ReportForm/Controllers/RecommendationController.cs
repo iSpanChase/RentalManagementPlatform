@@ -17,15 +17,12 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
             _recommendationService = recommendationService;
         }
 
-        [HttpGet("ForGuest")]
+        [HttpPost("ForGuest")]
         public async Task<ActionResult<IEnumerable<RecommendedRoomDto>>> GetGuestRecommendations(
-               [FromQuery] int? guestId = null,
-               [FromQuery] int topN = 10,
-               [FromQuery] int displayM = 4)
+            [FromBody] RecommendationRequestDto request)
         {
             // 1. 呼叫 Service，從快取或計算結果中獲取 Top N 筆推薦
-            // 注意：我們遵循您的風格，呼叫沒有 Async 後綴的方法名
-            var topNRecommendations = await _recommendationService.GetRecommendationsForGuest(guestId, topN);
+            var topNRecommendations = await _recommendationService.GetRecommendationsForGuest(request.GuestId, request.TopN);
 
             if (topNRecommendations == null || !topNRecommendations.Any())
             {
@@ -33,7 +30,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
             }
 
             // 2. 確保 displayM 不大於實際推薦數量
-            int finalDisplayCount = Math.Min(displayM, topNRecommendations.Count);
+            int finalDisplayCount = Math.Min(request.DisplayM, topNRecommendations.Count);
 
             // 3. 從 Top N 中隨機抽取 M 筆
             var randomMRecommendations = topNRecommendations.GetRandomUnique(finalDisplayCount);

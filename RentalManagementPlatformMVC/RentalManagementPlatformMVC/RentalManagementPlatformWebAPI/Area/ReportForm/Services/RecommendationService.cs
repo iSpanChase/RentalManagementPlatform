@@ -30,7 +30,13 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
 
             // 如果快取命中，反序列化 JSON 並直接回傳
             if (cachedRecommendations.HasValue)
-                return (JsonSerializer.Deserialize<List<int>>(cachedRecommendations!) ?? new List<int>()).ToHashSet();
+            {
+                var cachedRecommendationsObject
+                    = JsonSerializer.Deserialize<List<int>>(cachedRecommendations!)
+                    ?? new List<int>();
+                if (cachedRecommendationsObject.Count > 0)
+                    return cachedRecommendationsObject.ToHashSet();
+            }
 
             // --- 如果快取中沒有，則執行以下計算 ---
 
@@ -57,14 +63,14 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                         roomId => roomId,
                         room => room.RoomId,
                         (roomId, room) => room)
-                .Where(r => !r.IsDeleted && r.Status == "Active")
+                .Where(r => !r.IsDeleted && r.Status == "上架中")
                 .Select(r => r.RoomId)
                 .OfType<int>()
                 .Take(topN)
                 .ToListAsync();
         }
 
-        public async Task<List<RecommendedRoomDto>> GetRecommendationsForGuest(int? guestId =null, int topN = 10)
+        public async Task<List<RecommendedRoomDto>> GetRecommendationsForGuest(int? guestId =null, int topN = 20)
         {
             // 1. 決定在 Redis 中儲存的 Key
             var cacheKey = guestId.HasValue
@@ -76,8 +82,13 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
             
             // 如果快取命中，反序列化 JSON 並直接回傳
             if (cachedRecommendations.HasValue)
-                return JsonSerializer.Deserialize<List<RecommendedRoomDto>>(cachedRecommendations!) ?? new List<RecommendedRoomDto>();
-
+            {
+                var cachedRecommendationsObject
+                    = JsonSerializer.Deserialize<List<RecommendedRoomDto>>(cachedRecommendations!)
+                    ?? new List<RecommendedRoomDto>();
+                if(cachedRecommendationsObject.Count > 0)
+                    return cachedRecommendationsObject;
+            }
 
             List<RecommendedRoomDto> recommendations;
 
@@ -120,7 +131,8 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
             // 1a. 獲取使用者基本資料 (性別)
             var guest = await _context.Users.FindAsync(guestId);
             //判斷使用者是否具有房客權限，若無，回傳空結果
-            bool isGuest = guest != null && guest.UserRoles.Select(x => x.Role.RoleCode).Contains("TENANT");
+            bool isGuest = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == guestId && ur.Role.RoleCode == "TENANT");
             if (!isGuest ) return new List<RecommendedRoomDto>();
 
             // 1b. 獲取使用者的歷史訂單，並從中分析出偏好
@@ -131,12 +143,12 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .ToListAsync();
 
             var pastRoomIds = pastBookings.Select(b => b.RoomId).OfType<int>().ToHashSet();
-            var pastDistrictIds = pastBookings.Select(b => b.Room.Address.DistrictId).OfType<int>().ToHashSet();
-            var pastCityIds = pastBookings.Select(b => b.Room.Address.District.CityId).OfType<int>().ToHashSet();
+            var pastDistrictIds = pastBookings.Select(b => b.Room?.Address?.DistrictId).OfType<int>().ToHashSet();
+            var pastCityIds = pastBookings.Select(b => b.Room?.Address?.District?.CityId).OfType<int>().ToHashSet();
 
             // 計算平均房價，如果沒有歷史訂單，則給一個預設值 (例如 2500)
             decimal avgPrice = pastBookings.Any()
-                ? pastBookings.Average(b => b.Room.PricePerNight ?? 0)
+                ? pastBookings.Average(b => b.Room?.PricePerNight ?? 0)
                 : 2500m;
 
             // 1c. 獲取其他使用者所喜愛的房源 (取預訂次數最多的前 10 名)
@@ -149,7 +161,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
             // 1e. 獲取所有可被推薦的候選房源
             // 條件：未被刪除、已上架
             var candidateRooms = await _context.RoomLists
-                .Where(r => !r.IsDeleted && r.Status == "Active")
+                .Where(r => !r.IsDeleted && r.Status == "上架中")
                 .Include(r => r.Address)
                 .ThenInclude(a => a.District)
                 .ToListAsync();
