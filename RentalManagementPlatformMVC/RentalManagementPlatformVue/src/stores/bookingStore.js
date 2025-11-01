@@ -103,22 +103,37 @@ export const useBookingStore = defineStore('booking', () => {
     isLoading.value = true;
     try {
       const orderData = {
-        guestId: bookingDraft.value.guestId,
-        roomId: bookingDraft.value.roomId,
-        couponId: bookingDraft.value.couponId, // 注意：這裡的 couponId 可能與最終折扣不符，但本次修正目標是總價，此處暫不更動
-        checkIn: bookingDraft.value.checkIn,
-        checkOut: bookingDraft.value.checkOut,
-        guestCount: bookingDraft.value.guestCount,
-        nights: nights.value,
-        pricePerNight: bookingDraft.value.pricePerNight,
-        subtotal: subtotal.value, // 原始小計，保持不變
-        discountAmount: subtotal.value - paymentData.finalAmount, // 根據最終價格反推出正確的折扣金額
-        totalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
-        paymentTiming: paymentData.paymentTiming,
-        billingInfo: paymentData.billingInfo,
-        billingAddress: paymentData.billingAddress,
-        pointsRedeemed: 0,
+        GuestId: bookingDraft.value.guestId,
+        RoomId: bookingDraft.value.roomId,
+        CouponId: bookingDraft.value.couponId || null, // 確保null而不是undefined
+        CheckIn: typeof bookingDraft.value.checkIn === 'string' ? bookingDraft.value.checkIn : new Date(bookingDraft.value.checkIn).toISOString(),
+        CheckOut: typeof bookingDraft.value.checkOut === 'string' ? bookingDraft.value.checkOut : new Date(bookingDraft.value.checkOut).toISOString(),
+        GuestCount: bookingDraft.value.guestCount,
+        Nights: nights.value,
+        PricePerNight: bookingDraft.value.pricePerNight,
+        Subtotal: subtotal.value, // 原始小計，保持不變
+        DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount), // 確保折扣金額不為負數
+        TotalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
+        PaymentTiming: paymentData.paymentTiming,
+        BillingInfo: {
+          Name: paymentData.billingInfo.name,
+          Email: paymentData.billingInfo.email,
+          Phone: paymentData.billingInfo.phone,
+          Notes: paymentData.billingInfo.notes || null
+        },
+        BillingAddress: {
+          Country: paymentData.billingAddress.country,
+          Street: paymentData.billingAddress.street,
+          Apartment: paymentData.billingAddress.apartment || null,
+          City: paymentData.billingAddress.city,
+          State: paymentData.billingAddress.state || null,
+          ZipCode: paymentData.billingAddress.zipCode
+        },
+        PointsRedeemed: 0,
       };
+
+      // 添加調試日志
+      console.log('Sending order data:', orderData);
 
       const response = await axios.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
         headers: { 'Content-Type': 'application/json' },
@@ -133,6 +148,9 @@ export const useBookingStore = defineStore('booking', () => {
         paymentDeadline: response.data.paymentDeadline,
       };
     } catch (error) {
+      console.error('Create booking error:', error);
+      console.error('Error response:', error.response?.data);
+
       const msg = error.response?.data?.message || error.message || '建立訂單失敗';
       throw new Error(msg);
     } finally {

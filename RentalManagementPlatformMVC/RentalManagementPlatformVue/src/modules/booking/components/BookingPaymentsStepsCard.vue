@@ -2,8 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { useRouter } from 'vue-router';
-import { getData } from 'country-list';
 import { useToast } from 'vue-toastification';
+import { formatPrice } from '@/composables/useBookingFormatters';
+import BillingForm from './BillingForm.vue';
 
 // ==================== Props ====================
 const props = defineProps({
@@ -31,44 +32,36 @@ const stepCompleted = ref({
 // 付款時間選擇
 const selectedPaymentTiming = ref('full');
 
-// 聯絡資訊
-const billingInfo = ref({
-  name: '',
-  email: '',
-  phone: '',
-  notes: ''
+// 帳單表單資料
+const billingFormData = ref({
+  billingInfo: {
+    name: '',
+    email: '',
+    phone: '',
+    notes: ''
+  },
+  billingAddress: {
+    street: '',
+    apartment: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'TW'
+  }
 });
 
-// 帳單地址
-const billingAddress = ref({
-  street: '',
-  apartment: '',
-  city: '',
-  state: '',
-  zipCode: '',
-  country: 'TW'
+// 表單驗證狀態
+const formValidation = ref({
+  isValid: false,
+  errors: {}
 });
 
-// 國家列表
-const countries = ref(
-  getData().map(country => ({
-    code: country.code,
-    name: country.name
-  }))
-);
+// 帳單表單引用
+const billingForm = ref(null);
 
-/**
- * 格式化日期為「2025年12月31日」
- * @param {string} dateStr - ISO 日期字串
- * @returns {string}
- */
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+// 處理表單驗證狀態變更
+const handleValidationChange = (validation) => {
+  formValidation.value = validation;
 };
 
 /**
@@ -83,13 +76,11 @@ const handleContinue = () => {
  * Step 2：驗證並繼續 → 進入 Step 3
  */
 const handleStep2Continue = () => {
-  if (!billingInfo.value.name || !billingInfo.value.email || !billingInfo.value.phone) {
-    toast.info('請填寫完整的聯絡資訊');
-    return;
-  }
+  // 使用表單元件的驗證方法
+  const isValid = billingForm.value?.validate();
 
-  if (!billingAddress.value.street || !billingAddress.value.city || !billingAddress.value.zipCode) {
-    toast.info('請填寫完整的帳單地址');
+  if (!isValid || !formValidation.value.isValid) {
+    toast.info('請填寫完整且正確的資訊');
     return;
   }
 
@@ -125,20 +116,8 @@ const handleConfirmPayment = async () => {
     const paymentData = {
       finalAmount: props.totalPrice,
       paymentTiming: selectedPaymentTiming.value,
-      billingInfo: {
-        name: billingInfo.value.name,
-        email: billingInfo.value.email,
-        phone: billingInfo.value.phone,
-        notes: billingInfo.value.notes || ''
-      },
-      billingAddress: {
-        country: billingAddress.value.country,
-        street: billingAddress.value.street,
-        apartment: billingAddress.value.apartment || '',
-        city: billingAddress.value.city,
-        state: billingAddress.value.state || '',
-        zipCode: billingAddress.value.zipCode
-      }
+      billingInfo: billingFormData.value.billingInfo,
+      billingAddress: billingFormData.value.billingAddress
     };
 
     const result = await bookingStore.createBooking(paymentData);
@@ -173,25 +152,7 @@ const handleConfirmPayment = async () => {
   }
 };
 
-onMounted(() => {
-  // 設定聯絡資訊
-  billingInfo.value = {
-    name: '李文志',
-    email: 'aa39275814@gmail.com',
-    phone: '0916-315-915',
-    notes: '提早入住'
-  };
-
-  // 設定帳單地址
-  billingAddress.value = {
-    country: 'TW',
-    street: '信義路五段7號',
-    apartment: '10樓之1',
-    city: '臺北市信義區',
-    state: '臺灣省',
-    zipCode: '110'
-  };
-});
+// 移除硬編碼的測試資料，交由 BillingForm 元件自行管理初始化
 </script>
 
 <template>
@@ -218,7 +179,7 @@ onMounted(() => {
         <div class="payment-option">
           <input type="radio" id="full" name="payment" value="full" v-model="selectedPaymentTiming">
           <label for="full">
-            <div>立即支付 ${{ Math.round(bookingStore.totalPrice).toLocaleString() }} TWD</div>
+            <div>立即支付 {{ formatPrice(Math.round(props.totalPrice)) }}</div>
           </label>
         </div>
 
@@ -228,7 +189,7 @@ onMounted(() => {
             <div>立即支付 $0 TWD</div>
             <small v-if="bookingStore.isRefundable === false" class="text-muted">此訂單不符合延後付款資格</small>
             <small v-else>
-              將於 {{ bookingStore.refundableDate }} 收取 ${{ Math.round(bookingStore.totalPrice).toLocaleString() }} TWD。無須支付額外費用。
+              將於 {{ bookingStore.refundableDate }} 收取 {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
               <a href="#">更多資訊</a>
             </small>
           </label>
@@ -239,10 +200,10 @@ onMounted(() => {
 
       <div v-else-if="stepCompleted.step1" class="step-summary">
         <p v-if="selectedPaymentTiming === 'full'">
-          立即支付 ${{ Math.round(bookingStore.totalPrice).toLocaleString() }} TWD
+          立即支付 {{ formatPrice(Math.round(props.totalPrice)) }}
         </p>
         <p v-else>
-          已於 {{ bookingStore.refundableDate }} 收取 ${{ Math.round(bookingStore.totalPrice).toLocaleString() }} TWD。無須支付額外費用。
+          已於 {{ bookingStore.refundableDate }} 收取 {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
         </p>
       </div>
     </div>
@@ -289,67 +250,11 @@ onMounted(() => {
           </div>
         </div>
 
-        <form class="billing-form">
-          <h4><i class="fa-solid fa-user"></i> 聯絡資訊</h4>
-
-          <div class="form-group">
-            <label>姓名 <span class="required">*</span></label>
-            <input type="text" v-model="billingInfo.name" placeholder="請輸入姓名" required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Email <span class="required">*</span></label>
-              <input type="email" v-model="billingInfo.email" placeholder="example@email.com" required>
-            </div>
-            <div class="form-group">
-              <label>電話 <span class="required">*</span></label>
-              <input type="tel" v-model="billingInfo.phone" placeholder="0912-345-678" required>
-            </div>
-          </div>
-
-          <h4><i class="fa-solid fa-location-dot"></i> 帳單地址</h4>
-
-          <div class="form-group">
-            <label>國家 / 地區 <span class="required">*</span></label>
-            <select v-model="billingAddress.country" required>
-              <option v-for="country in countries" :key="country.code" :value="country.code">
-                {{ country.name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>城市 <span class="required">*</span></label>
-            <input type="text" v-model="billingAddress.city" placeholder="請輸入城市" required>
-          </div>
-
-          <div class="form-group">
-            <label>街道地址 <span class="required">*</span></label>
-            <input type="text" v-model="billingAddress.street" placeholder="請輸入街道地址" required>
-          </div>
-
-          <div class="form-group">
-            <label>公寓或套房號碼</label>
-            <input type="text" v-model="billingAddress.apartment" placeholder="公寓、套房號碼（選填）">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>省份 / 直轄市 / 州</label>
-              <input type="text" v-model="billingAddress.state" placeholder="省份">
-            </div>
-            <div class="form-group">
-              <label>郵遞區號 <span class="required">*</span></label>
-              <input type="text" v-model="billingAddress.zipCode" placeholder="郵遞區號" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label><i class="fa-solid fa-comment"></i> 特殊需求或備註（選填）</label>
-            <textarea v-model="billingInfo.notes" placeholder="例如：提早入住、加床服務等" rows="3"></textarea>
-          </div>
-        </form>
+        <BillingForm
+          ref="billingForm"
+          v-model="billingFormData"
+          @validation-change="handleValidationChange"
+        />
 
         <div class="info-box">
           <div class="info-icon"><i class="fa-solid fa-circle-info"></i></div>
@@ -377,9 +282,9 @@ onMounted(() => {
       <div v-else-if="stepCompleted.step2" class="step-summary">
         <div class="summary-icon"><i class="fa-solid fa-check"></i></div>
         <div>
-          <p><strong>{{ billingInfo.name }}</strong></p>
-          <p class="text-muted">{{ billingInfo.email }}</p>
-          <p class="text-muted">{{ billingAddress.city }}, {{ billingAddress.country }}</p>
+          <p><strong>{{ billingFormData.billingInfo.name }}</strong></p>
+          <p class="text-muted">{{ billingFormData.billingInfo.email }}</p>
+          <p class="text-muted">{{ billingFormData.billingAddress.city }}, {{ billingFormData.billingAddress.country }}</p>
         </div>
       </div>
     </div>
@@ -607,64 +512,6 @@ onMounted(() => {
   }
 }
 
-.billing-form h4 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 28px 0 16px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
-
-  i { color: #666; }
-}
-
-.required { color: #e53e3e; margin-left: 4px; }
-
-.form-group {
-  margin-bottom: 16px;
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #333;
-    font-size: 14px;
-
-    i { margin-right: 4px; color: #666; }
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.2s;
-    font-family: inherit;
-
-    &:focus {
-      outline: none;
-      border-color: #222;
-      box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
-    }
-
-    &::placeholder { color: #999; }
-  }
-
-  select { cursor: pointer; }
-  textarea { resize: vertical; min-height: 80px; }
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
-}
 
 .info-box {
   display: flex;

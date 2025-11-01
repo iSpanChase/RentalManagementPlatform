@@ -1,14 +1,12 @@
 <script setup>
-// 1. 移除 onMounted, onUnmounted，恢復原狀
 import { ref, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { Modal } from 'bootstrap';
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
+import { formatDate, formatPrice } from '@/composables/useBookingFormatters';
+import DateGuestEditor from './DateGuestEditor.vue';
 
 // ==================== Props ====================
-defineProps({
-  hideInternalTotal: {
+const props = defineProps({
+  showBasicPrice: {
     type: Boolean,
     default: false
   }
@@ -22,106 +20,8 @@ const hasBookingData = computed(() => {
   return bookingStore.hasBookingDraft && bookingStore.bookingDraft !== null;
 });
 
-// 日期選擇器
-const dateRange = ref();
-const dateError = ref('');
-const minDate = new Date();
-
-// 客人人數
-const newGuests = ref(1);
-
-// ==================== Modal 關閉修復 (新增) ====================
-// 2. 建立 Ref 來綁定隱藏的關閉按鈕
-const dateModalCloser = ref(null);
-const guestsModalCloser = ref(null);
-// ======================================================
-
-/**
- * 格式化日期為「2025年12月31日」
- * @param {string} dateStr - ISO 日期字串
- * @returns {string}
- */
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-/**
- * 將 Date 物件轉為 'YYYY-MM-DD' 字串
- * @param {Date} date
- * @returns {string}
- */
-const toISODateString = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-/** 初始化日期選擇器 */
-const initDatePickers = () => {
-  if (!hasBookingData.value) return;
-  const { checkIn, checkOut } = bookingStore.bookingDraft;
-  if (checkIn && checkOut) {
-    dateRange.value = [new Date(checkIn), new Date(checkOut)];
-  } else {
-    dateRange.value = [];
-  }
-  dateError.value = '';
-};
-
-/** 初始化客人選擇器 */
-const initGuestsPicker = () => {
-  if (!hasBookingData.value) return;
-  newGuests.value = bookingStore.bookingDraft.guestCount || 1;
-};
-
-/** 儲存變更後的日期 */
-const handleChangeDates = () => {
-  if (dateRange.value?.[0] && dateRange.value?.[1]) {
-    const [newCheckIn, newCheckOut] = dateRange.value;
-    bookingStore.bookingDraft.checkIn = toISODateString(newCheckIn);
-    bookingStore.bookingDraft.checkOut = toISODateString(newCheckOut);
-    dateError.value = '';
-
-    // 3. 修改：不再呼叫 Modal.getInstance()
-    //    改為點擊隱藏的關閉按鈕
-    dateModalCloser.value?.click();
-
-  } else {
-    dateError.value = '請選擇有效的入住和退房日期';
-  }
-};
-
-/** 清除日期 */
-const handleClearDates = () => {
-  dateRange.value = null;
-  dateError.value = '';
-};
-
-/** 儲存變更後的客人數 */
-const handleChangeGuests = () => {
-  if (newGuests.value > 0) {
-    bookingStore.bookingDraft.guestCount = newGuests.value;
-
-    // 4. 修改：不再呼叫 Modal.getInstance()
-    //    改為點擊隱藏的關閉按鈕
-    guestsModalCloser.value?.click();
-  }
-};
-
-/** 增加客人 */
-const increaseGuests = () => newGuests.value++;
-
-/** 減少客人 */
-const decreaseGuests = () => {
-  if (newGuests.value > 1) newGuests.value--;
-};
+// 日期和客人數編輯器引用
+const dateGuestEditor = ref(null);
 </script>
 
 <template>
@@ -163,19 +63,19 @@ const decreaseGuests = () => {
 
       <div class="info-row">
         <strong>日期</strong>
-        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#dateChangeModal" @click="initDatePickers">
+        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#dateChangeModal" @click="dateGuestEditor?.initDatePickers">
           變更
         </button>
       </div>
       <div class="date-info">
-        {{ formatDate(bookingStore.bookingDraft.checkIn) }} 至 {{ formatDate(bookingStore.bookingDraft.checkOut) }}
+        <strong>{{ formatDate(bookingStore.bookingDraft.checkIn, 'checkIn') }}</strong> 至 <strong>{{ formatDate(bookingStore.bookingDraft.checkOut, 'checkOut') }}</strong>
       </div>
 
       <hr />
 
       <div class="info-row">
         <strong>客人</strong>
-        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#guestsChangeModal" @click="initGuestsPicker">
+        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#guestsChangeModal" @click="dateGuestEditor?.initGuestsPicker">
           變更
         </button>
       </div>
@@ -184,33 +84,22 @@ const decreaseGuests = () => {
       <hr />
 
       <div class="price-section">
-        <h4>價格詳情</h4>
-        <div class="price-row">
-          <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
-          <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
-        </div>
-
-
-
-        <slot name="coupon"></slot>
-
-        <hr />
-
-        <div class="price-row total" v-if="!hideInternalTotal">
-          <strong>總計 TWD</strong>
-          <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
-        </div>
-        <button class="btn-details" data-bs-toggle="modal" data-bs-target="#priceDetailsModal">
-          價格明細
-        </button>
-      </div>
-
-      <div class="special-offer" v-if="bookingStore.discountAmount > 0">
-        <span class="icon"><i class="fa-solid fa-alarm-clock"></i></span>
-        <p>
-          特別優惠：節省 ${{ bookingStore.discountAmount.toLocaleString() }} TWD。
-          這位房東為新 3 筆預訂提供折扣。
-        </p>
+        <!-- 使用新的價格摘要元件 -->
+        <slot name="price-summary">
+          <!-- 預設顯示基本價格資訊 -->
+          <div v-if="showBasicPrice">
+            <h4>價格詳情</h4>
+            <div class="price-row">
+              <span>{{ bookingStore.nights }} 晚 x {{ formatPrice(bookingStore.bookingDraft.pricePerNight) }}</span>
+              <span>{{ formatPrice(bookingStore.subtotal) }}</span>
+            </div>
+            <hr />
+            <div class="price-row total">
+              <strong>總計 TWD</strong>
+              <strong>{{ formatPrice(bookingStore.totalPrice) }}</strong>
+            </div>
+          </div>
+        </slot>
       </div>
     </div>
 
@@ -224,13 +113,25 @@ const decreaseGuests = () => {
     </div>
   </div>
 
+  <!-- 日期和客人數編輯器 -->
+  <DateGuestEditor ref="dateGuestEditor" />
+
+
   <Teleport to="body">
-    <div class="modal fade" id="cancellationModal" tabindex="-1">
+    <div
+      class="modal fade"
+      id="cancellationModal"
+      tabindex="-1"
+      aria-labelledby="cancellationModalLabel"
+      aria-hidden="true"
+      data-bs-backdrop="true"
+      data-bs-keyboard="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">《取消政策》</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="cancellationModalLabel">《取消政策》</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
           </div>
           <div class="modal-body">
             <div class="policy-section">
@@ -264,126 +165,6 @@ const decreaseGuests = () => {
               </div>
               <a href="#" class="policy-link">如何查看退款政策</a>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="dateChangeModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">變更日期</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div v-if="dateError" class="alert alert-danger" role="alert">{{ dateError }}</div>
-            <div class="mb-3">
-              <label class="form-label">入住 - 退房日期</label>
-              <VueDatePicker
-                v-model="dateRange"
-                range
-                :enable-time-picker="false"
-                :min-date="minDate"
-                min-range="1"
-                placeholder="請選擇入住和退房日期"
-                auto-apply
-                format="yyyy/MM/dd"
-                :clearable="false"
-                input-class-name="form-control"
-                locale="zh-TW"
-                :teleport-center="true"
-              />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              ref="dateModalCloser"
-              type="button"
-              data-bs-dismiss="modal"
-              style="display: none;"
-            ></button>
-            <div class="date-clear" @click="handleClearDates">清除日期</div>
-            <button type="button" class="btn date-save" @click="handleChangeDates">儲存</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="guestsChangeModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">變更入住人數</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-              <div>
-                <div><span>成人</span></div>
-                <div><small>年滿13歲</small></div>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary rounded-circle guest-btn"
-                  @click="decreaseGuests"
-                  :disabled="newGuests <= 1"
-                >-</button>
-                <span class="fw-bold guest-count">{{ newGuests }}</span>
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary rounded-circle guest-btn"
-                  @click="increaseGuests"
-                >+</button>
-              </div>
-            </div>
-            <div class="guest-limit-text">
-              <small>此住宿地點最多可容納 4 名房客 (未含嬰幼兒)。不允許攜帶寵物。</small>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              ref="guestsModalCloser"
-              type="button"
-              data-bs-dismiss="modal"
-              style="display: none;"
-            ></button>
-            <div class="customer-clear" @click="initGuestsPicker">清除</div>
-            <button type="button" class="btn customer-save" @click="handleChangeGuests">儲存</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="priceDetailsModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">價格明細</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body" v-if="hasBookingData">
-
-            <slot name="price-details-body">
-              <div class="price-row">
-                <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
-                <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
-              </div>
-
-              <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
-                <span>特別優惠</span>
-                <span class="green">-${{ bookingStore.discountAmount.toLocaleString() }} TWD</span>
-              </div>
-
-              <hr>
-
-              <div class="price-row total">
-                <strong>總計 TWD</strong>
-                <strong>${{ bookingStore.totalPrice.toLocaleString() }} TWD</strong>
-              </div>
-            </slot>
-
           </div>
         </div>
       </div>
@@ -496,30 +277,6 @@ $accent: #008489;
   }
 }
 
-.btn-details {
-  width: 100%;
-  padding: 12px;
-  background: white;
-  border: 1px solid $primary;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 16px;
-  font-weight: 600;
-  &:hover { background-color: #f7f7f7; }
-}
-
-.special-offer {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 12px;
-  background: $bg-muted;
-  border-radius: 8px;
-  font-size: 14px;
-  .icon i { color: $accent; }
-  p { margin: 0; line-height: 1.5; }
-}
-
 hr {
   border: none;
   border-top: 1px solid $divider-color;
@@ -574,58 +331,6 @@ hr {
   }
 }
 
-.date-save, .customer-save {
-  background-color: $primary;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 32px;
-  font-weight: 600;
-  &:hover { background-color: #000; }
-}
-
-.date-clear, .customer-clear {
-  color: $text-dark;
-  cursor: pointer;
-  border-radius: 8px;
-  padding: 8px 16px;
-  &:hover { background-color: #e0e0e0; }
-}
-
-.guest-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid $border-color;
-  background: white;
-  font-size: 18px;
-  font-weight: bold;
-  &:hover:not(:disabled) {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
-  }
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-}
-
-.guest-count {
-  min-width: 20px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.guest-limit-text {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid $divider-color;
-  color: $text-muted;
-  font-size: 13px;
-}
 
 @media (max-width: 768px) {
   .right-section { position: static; }
@@ -633,9 +338,5 @@ hr {
     flex-direction: column;
     img { width: 100%; height: auto; }
   }
-}
-
-:deep(.dp__menu) {
-  z-index: 1060 !important;
 }
 </style>
