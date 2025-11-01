@@ -6,6 +6,11 @@ ALTER TABLE [PASSWORD_RESET_TOKENS] --not repeatable
     FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
 GO
 
+ALTER TABLE [EMAIL_VERIFICATIONS]
+    ADD CONSTRAINT FK_EMAIL_VERIFICATIONS_user_id_USER_user_id 
+    FOREIGN KEY ([user_id]) REFERENCES [USER] ([user_id]);
+GO
+
 ALTER TABLE [ADDRESS] --not repeatable
     ADD CONSTRAINT FK_ADDRESS_district_id_DISTRICT_district_id 
     FOREIGN KEY ([district_id]) REFERENCES [DISTRICT] ([district_id]);

@@ -1,7 +1,7 @@
 UPDATE u
-SET u.is_operator_pending = 0
+SET u.is_operator_pending = 1
 FROM [USER] u
-WHERE u.is_operator_pending = 1
+WHERE u.is_operator_pending = 0
   AND EXISTS (
       SELECT 1
       FROM USER_ROLES ur
