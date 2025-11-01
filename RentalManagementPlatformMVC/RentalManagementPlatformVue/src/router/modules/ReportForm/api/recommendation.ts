@@ -1,5 +1,5 @@
-import apiClient from './axiosInstance';
-import type { RoomCard } from './roomSearchApi';
+import apiClient from '@/api/axiosInstance';
+import type { RoomCard } from '@/api/roomSearchApi';
 
 export interface RecommendationRequest {
     guestId?: number | null;

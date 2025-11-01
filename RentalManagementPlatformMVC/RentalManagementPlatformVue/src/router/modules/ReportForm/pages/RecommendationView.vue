@@ -21,7 +21,7 @@ import { ref, computed } from 'vue'; // 引入 computed
 import { useQuery } from '@tanstack/vue-query';
 import RoomCardComponent from '@/modules/RoomManagement/components/RoomCard.vue';  
 import { getGuestRecommendations, type RecommendationRequest } from
-'@/api/recommendation';
+'../api/recommendation';
 import type { RoomCard } from '@/api/roomSearchApi';
 
 // --- 獲取當前使用者 ID 的部分 (待補齊) ---

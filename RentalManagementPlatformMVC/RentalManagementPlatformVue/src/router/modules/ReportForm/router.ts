@@ -20,7 +20,7 @@ const reportFormRoutes: RouteRecordRaw[] = [
     {
         path: '/recommendations',
         name: 'Recommendations',
-        component: () => import('@/views/ReportForm/RecommendationView.vue'),
+        component: () => import('./pages/RecommendationView.vue'),
         meta: {
             title: '推薦房間',
             requiresAuth: false,
