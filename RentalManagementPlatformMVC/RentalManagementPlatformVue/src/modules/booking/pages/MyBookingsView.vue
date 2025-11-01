@@ -1,82 +1,35 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useRoute, useRouter } from 'vue-router';
-import { Modal } from 'bootstrap';
+import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import SimplePaginator from '@/components/SimplePaginator.vue';
-
 import { useAuthStore } from '@/stores/authStore.js';
+import { formatDate } from '@/composables/useBookingFormatters';
+import { usePagination } from '@/composables/usePagination';
+import { useOrderModal } from '@/composables/useOrderModal';
+import { useCancelBookingModal } from '@/composables/useCancelBookingModal';
+import SimplePaginator from '@/components/SimplePaginator.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
 
-const toast = useToast();
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
 const router = useRouter();
-const route = useRoute();
+const toast = useToast();
+const authStore = useAuthStore();
 
 const allBookings = ref([]);
-const isLoading = ref(false);
-const selectedBooking = ref(null);
-const cancelModal = ref(null);
-const bookingToCancel = ref(null);
-const currentPage = ref(1);
-const itemsPerPage = 5;
+const isLoading = ref(true);
+const isError = ref(false);
 
-const totalPages = computed(() => Math.ceil(allBookings.value.length / itemsPerPage));
-const paginatedBookings = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  return allBookings.value.slice(startIndex, endIndex);
-});
+// 使用共用的分頁邏輯
+const { currentPage, totalPages, paginatedItems: paginatedBookings, onPageChange } = usePagination(allBookings, 5);
 
-function onPageChange(page) {
-  currentPage.value = page;
-}
+// 使用共用的訂單詳情 Modal 邏輯
+const { selectedItem: selectedBooking, viewDetails: viewBookingDetails } = useOrderModal('orderDetailModal', allBookings);
 
-/**
- * 格式化日期
- */
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-/**
- * 取得狀態文字
- */
-const getStatusText = (status) => {
-  switch (status) {
-    case 'deferred':
-    case 'unpaid':
-      return '待付款';
-    case 'completed':
-    case 'paid':
-      return '已完成';
-    case 'cancelled':
-      return '已取消';
-    case 'refunded':
-      return '已退款';
-    default:
-      return status || '未知狀態';
-  }
-};
-
-/**
- * 查看詳情
- */
-const viewDetails = (orderNumber) => {
-  const booking = allBookings.value.find(b => b.orderNumber === orderNumber);
-  if (!booking) return;
-  selectedBooking.value = booking;
-};
-
-const handleModalHidden = () => {
-  selectedBooking.value = null;
-};
+// 使用共用的取消預訂 Modal 邏輯
+const { bookingToCancel, isCancelling, openCancelConfirmModal, confirmCancellation } = useCancelBookingModal(allBookings);
 
 /**
  * 立即付款
@@ -114,43 +67,6 @@ const handleContactHost = () => {
 };
 
 /**
- * 開啟取消確認
- */
-const openCancelConfirmModal = (booking) => {
-  bookingToCancel.value = booking;
-  cancelModal.value?.show();
-};
-
-/**
- * 確認取消
- */
-const confirmCancellation = async () => {
-  if (!bookingToCancel.value) return;
-
-  const bookingId = bookingToCancel.value.bookingId;
-  isLoading.value = true;
-
-  try {
-    const response = await bookingStore.cancelBooking(bookingId);
-    if (response?.success && response.booking) {
-      toast.success(response.message || '訂單已成功取消');
-      allBookings.value = allBookings.value.map(b =>
-        b.bookingId === response.booking.bookingId ? response.booking : b
-      );
-    } else {
-      toast.error(response?.message || '取消失敗');
-    }
-  } catch (error) {
-    const msg = error.response?.data?.message || error.message || '取消時發生錯誤';
-    toast.error(msg);
-  } finally {
-    isLoading.value = false;
-    cancelModal.value?.hide();
-    bookingToCancel.value = null;
-  }
-};
-
-/**
  * 重新預訂
  */
 const handleRebook = (booking) => {
@@ -163,62 +79,67 @@ const handleRebook = (booking) => {
 
 onMounted(async () => {
   isLoading.value = true;
-
-  const modalEl = document.getElementById('orderDetailModal');
-  if (modalEl) {
-    modalEl.addEventListener('hidden.bs.modal', handleModalHidden);
-  }
-
-  const cancelEl = document.getElementById('cancelConfirmModal');
-  if (cancelEl) {
-    cancelModal.value = new Modal(cancelEl);
-  }
+  isError.value = false;
 
   try {
     const userId = authStore.currentUser?.id;
     if (!userId) {
       toast.error('無法獲取使用者資訊，請先登入');
-      isLoading.value = false;
+      isError.value = true;
       return;
     }
+
     const fetchedBookings = await bookingStore.fetchBookingsByUser(userId);
     allBookings.value = fetchedBookings || [];
+
+    if (allBookings.value.length === 0) {
+      toast.info('目前沒有任何預訂記錄');
+    }
   } catch (error) {
-    toast.error(error.message || '無法載入訂單資料');
+    console.error('載入預訂失敗:', error);
+    toast.error(error.message || '載入預訂資料失敗');
+    isError.value = true;
   } finally {
     isLoading.value = false;
   }
 });
 
-onUnmounted(() => {
-  const modalEl = document.getElementById('orderDetailModal');
-  if (modalEl) {
-    modalEl.removeEventListener('hidden.bs.modal', handleModalHidden);
-  }
-});
 </script>
 
 <template>
   <div class="my-bookings-page">
-    <div class="container">
-      <h1>我的預訂</h1>
+    <h1>我的預訂</h1>
 
-      <div v-if="isLoading" class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">載入中...</span>
-        </div>
+    <!-- Loading -->
+    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>{{ bookingStore.isLoading ? '正在處理您的預訂...' : '正在載入預訂資料...' }}</p>
       </div>
+    </div>
 
-      <div v-else-if="allBookings.length === 0" class="no-bookings">
+    <!-- Error -->
+    <div v-else-if="isError" class="error-message-container">
+      <div class="error-card">
+        <h2>無法載入頁面</h2>
+        <p>抱歉，載入預訂資料時發生錯誤，請稍後再試。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="allBookings.length === 0" class="error-message-container">
+      <div class="error-card">
+        <h2>尚無預訂</h2>
         <p>您目前沒有任何預訂。</p>
-        <router-link to="/">
-          <button class="btn-primary">開始探索房源</button>
-        </router-link>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">開始探索房源</button>
       </div>
+    </div>
 
-      <div v-else>
-        <div class="bookings-list">
-          <div v-for="booking in paginatedBookings" :key="booking.orderNumber" class="booking-card">
+    <!-- Content -->
+    <div v-else class="container">
+      <div class="bookings-list">
+        <div v-for="booking in paginatedBookings" :key="booking.orderNumber" class="booking-card">
             <div class="card-image-wrapper">
               <img
                 :src="booking.roomImageUrl || 'https://placehold.co/220x180/EBEBEB/717171?text=Room'"
@@ -233,9 +154,7 @@ onUnmounted(() => {
                   <span class="room-location">{{ booking.billingCountry || '城市, 國家' }}</span>
                   <h3>{{ booking.room }}</h3>
                 </div>
-                <span :class="['order-status', `status-${booking.paymentStatus}`]">
-                  {{ getStatusText(booking.paymentStatus) }}
-                </span>
+                <StatusBadge :status="booking.paymentStatus" />
               </div>
 
               <div class="card-section mid-section">
@@ -280,7 +199,7 @@ onUnmounted(() => {
                     class="btn-cancel"
                     @click="openCancelConfirmModal(booking)"
                     v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
-                    :disabled="isLoading"
+                    :disabled="isCancelling || isLoading"
                   >
                     取消預訂
                   </button>
@@ -288,7 +207,7 @@ onUnmounted(() => {
                     class="btn-rebook"
                     @click="handleRebook(booking)"
                     v-if="['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
-                    :disabled="isLoading"
+                    :disabled="isLoading || isCancelling"
                   >
                     重新預訂
                   </button>
@@ -296,22 +215,21 @@ onUnmounted(() => {
                     class="btn-details"
                     data-bs-toggle="modal"
                     data-bs-target="#orderDetailModal"
-                    @click="viewDetails(booking.orderNumber)"
+                    @click="viewBookingDetails(booking.orderNumber, allBookings)"
                   >
                     查看詳情
                   </button>
                 </div>
               </div>
             </div>
-          </div>
         </div>
-
-        <SimplePaginator
-          :current-page="currentPage"
-          :total-pages="totalPages"
-          @page-changed="onPageChange"
-        />
       </div>
+
+      <SimplePaginator
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @page-changed="onPageChange"
+      />
     </div>
   </div>
 
@@ -342,9 +260,7 @@ onUnmounted(() => {
               <div class="detail-row">
                 <p><strong>目前狀態:</strong></p>
                 <p>
-                  <span :class="['order-status', `status-${selectedBooking.paymentStatus}`]">
-                    {{ getStatusText(selectedBooking.paymentStatus) }}
-                  </span>
+                  <StatusBadge :status="selectedBooking.paymentStatus" />
                 </p>
               </div>
             </div>
@@ -408,9 +324,9 @@ onUnmounted(() => {
             <small class="text-muted">請注意，取消政策可能適用。</small>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isLoading">關閉</button>
-            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isLoading">
-              <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status"></span>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isCancelling">關閉</button>
+            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isCancelling">
+              <span v-if="isCancelling" class="spinner-border spinner-border-sm" role="status"></span>
               <span v-else>確認取消</span>
             </button>
           </div>
@@ -430,56 +346,91 @@ $text-light: #717171;
 $text-dark: #484848;
 
 .my-bookings-page {
-  padding: 40px 20px;
-  background-color: $background-light;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 20px;
   min-height: 100vh;
+
+  h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-left: 10px;
+    margin-bottom: 20px;
+    color: #222;
+  }
 }
 
 .container {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
 
-h1 {
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 700;
-  color: $primary-color;
-}
-
-.loading-spinner {
+/* Loading & Error Styles */
+.loading-overlay, .error-message-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 249, 250, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  z-index: 9999;
+  padding: 20px;
 }
 
-.no-bookings {
-  text-align: center;
-  padding: 50px 20px;
+.loading-content, .error-card {
   background: white;
+  padding: 40px;
   border-radius: 16px;
-  border: 1px solid $border-color;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 350px;
+  width: 90%;
 
   p {
-    font-size: 18px;
-    color: $text-light;
-    margin-bottom: 20px;
+    margin-top: 16px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
   }
+}
 
-  .btn-primary {
-    padding: 12px 24px;
-    background-color: $secondary-color;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.error-card {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #d9534f;
+    margin-bottom: 15px;
+  }
+  p {
+    color: #484848;
+    line-height: 1.6;
+  }
+  .btn-back-home {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
-
     &:hover {
-      background-color: darken($secondary-color, 10%);
+      background-color: #0056b3;
     }
   }
 }
@@ -827,5 +778,10 @@ hr { border-color: $border-color; margin: 20px 0; }
     background-color: darken($danger-color, 10%);
     border-color: darken($danger-color, 10%);
   }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

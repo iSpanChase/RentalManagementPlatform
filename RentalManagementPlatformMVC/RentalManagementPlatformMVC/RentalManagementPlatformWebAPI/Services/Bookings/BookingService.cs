@@ -106,7 +106,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				?? throw new ArgumentException("找不到指定房間");
 
 			int nights = (dto.CheckOut - dto.CheckIn).Days;
-			if (nights <= 0)
+			if (nights < 0)
 			{
 				throw new ArgumentException("住宿天數必須大於 0");
 			}

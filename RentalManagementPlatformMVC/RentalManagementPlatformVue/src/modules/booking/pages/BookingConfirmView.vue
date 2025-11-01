@@ -7,8 +7,7 @@ import { fetchRoomDetail } from '@/api/roomSearchApi';
 import { useToast } from 'vue-toastification';
 import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue';
 import BookingSummaryCard from '../components/BookingSummaryCard.vue';
-import CouponSelector from '@/components/coupons/CouponSelector.vue' 
-import { useCouponCalculator } from '@/composables/useCouponCalculator.js'
+import PriceSummary from '../components/PriceSummary.vue';
 
 const bookingStore = useBookingStore();
 const route = useRoute();
@@ -19,16 +18,27 @@ const authStore = useAuthStore();
 const isLoading = ref(true);
 const isError = ref(false);
 
+// 價格摘要元件引用
+const priceSummary = ref(null);
+
 onMounted(async () => {
   isLoading.value = true;
   const roomId = Number(route.query.roomId);
 
-  // Case 1: Rebook flow (roomId is present in query)
   if (roomId && !isNaN(roomId)) {
-    bookingStore.clearBookingDraft(); // Clear previous draft for rebooking
+    bookingStore.clearBookingDraft();
     try {
       const roomDetail = await fetchRoomDetail(roomId);
       if (roomDetail) {
+        // 取得今天日期作為入住日
+        const checkInDate = new Date();
+        checkInDate.setHours(15, 0, 0, 0); // 下午 3 點
+
+        // 退房為隔天上午 11 點
+        const checkOutDate = new Date();
+        checkOutDate.setDate(checkOutDate.getDate() + 1);
+        checkOutDate.setHours(11, 0, 0, 0);
+
         const bookingData = {
           roomId: roomDetail.roomId,
           guestId: authStore.currentUser?.id || 1, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
@@ -36,6 +46,8 @@ onMounted(async () => {
           roomTitle: roomDetail.title,
           roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
           pricePerNight: roomDetail.pricePerNight,
+          checkIn: checkInDate.toISOString(),
+          checkOut: checkOutDate.toISOString()
         };
         bookingStore.setBookingDraft(bookingData);
         toast.success('房源資料已載入!');
@@ -48,8 +60,7 @@ onMounted(async () => {
     } finally {
       isLoading.value = false;
     }
-  } 
-  // Case 2: Normal booking flow (coming from RoomDetailView)
+  }
   else {
     if (!bookingStore.hasBookingDraft) {
       toast.error('訂房資料不存在，請重新選擇房源');
@@ -61,22 +72,8 @@ onMounted(async () => {
 });
 
 
-// For Coupon Calculator
-const cartInfo = computed(() => ({
-  totalAmount: bookingStore.subtotal, // 使用小計作為計算基礎
-  leaseDays: bookingStore.nights,
-  userId: bookingStore.bookingDraft?.guestId,
-  // 這邊可以根據需要從 bookingStore 填充更多資訊
-  // cityId: bookingStore.bookingDraft?.cityId,
-  useDate: new Date(bookingStore.bookingDraft?.checkIn)
-}));
-
-const {
-  couponOptions,
-  selectedCouponId,
-  discountAmount,
-  finalPrice,
-} = useCouponCalculator(cartInfo);
+// 取得最終價格的計算值
+const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore.totalPrice);
 </script>
 
 <template>
@@ -106,47 +103,9 @@ const {
       <BookingPaymentsStepsCard :total-price="finalPrice" />
 
       <!-- 右側:預訂摘要 -->
-      <BookingSummaryCard :hide-internal-total="true">
-        <template #coupon>
-          <div class="coupon-section">
-            <CouponSelector
-              :coupons="couponOptions"
-              v-model="selectedCouponId"
-            />
-            <div v-if="discountAmount > 0" class="price-row discount">
-              <span>優惠券折扣</span>
-              <span class="green">-${{ discountAmount.toLocaleString() }} TWD</span>
-            </div>
-          </div>
-
-          <hr v-if="discountAmount > 0">
-
-          <div class="price-row total">
-            <strong>最終總計 TWD</strong>
-            <strong>${{ finalPrice.toLocaleString() }} TWD</strong>
-          </div>
-        </template>
-
-        <template #price-details-body>
-          <div class="price-row">
-            <span>{{ bookingStore.nights }} 晚 x ${{ bookingStore.bookingDraft.pricePerNight.toLocaleString() }} TWD</span>
-            <span>${{ bookingStore.subtotal.toLocaleString() }} TWD</span>
-          </div>
-
-          <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
-          </div>
-
-          <div class="price-row discount" v-if="discountAmount > 0">
-            <span>優惠券折扣</span>
-            <span class="green">-${{ discountAmount.toLocaleString() }} TWD</span>
-          </div>
-
-          <hr>
-
-          <div class="price-row total">
-            <strong>總計 TWD</strong>
-            <strong>${{ finalPrice.toLocaleString() }} TWD</strong>
-          </div>
+      <BookingSummaryCard>
+        <template #price-summary>
+          <PriceSummary ref="priceSummary" />
         </template>
       </BookingSummaryCard>
     </div>
@@ -267,39 +226,5 @@ const {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-// --- 優惠券區塊樣式 (優化版) ---
-.coupon-section {
-  padding-top: 8px;
-  padding-bottom: 8px;
-
-  // 使用 :deep() 穿透 Scoped CSS 來影響子元件
-  :deep(.coupon-selector) {
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #222;
-      font-size: 16px;
-    }
-  }
-}
-
-.price-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  font-size: 16px;
-
-  &.discount span.green {
-    color: #008489;
-    font-weight: 600;
-  }
-
-  &.total {
-    font-size: 16px;
-    font-weight: bold;
-  }
 }
 </style>

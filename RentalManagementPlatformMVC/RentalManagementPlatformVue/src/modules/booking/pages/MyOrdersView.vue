@@ -1,143 +1,101 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useRoute } from 'vue-router';
-import { Modal } from 'bootstrap';
-import { useToast } from 'vue-toastification';
-import SimplePaginator from '@/components/SimplePaginator.vue';
-
 import { useAuthStore } from '@/stores/authStore.js';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
+import { formatDate } from '@/composables/useBookingFormatters';
+import { usePagination } from '@/composables/usePagination';
+import { useOrderModal } from '@/composables/useOrderModal';
+import SimplePaginator from '@/components/SimplePaginator.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
-const toast = useToast();
 const bookingStore = useBookingStore();
 const authStore = useAuthStore();
-const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
 const allOrders = ref([]);
-const isLoading = ref(false);
-const selectedOrder = ref(null);
-const currentPage = ref(1);
-const itemsPerPage = 5;
+const isLoading = ref(true);
+const isError = ref(false);
 
-const totalPages = computed(() => Math.ceil(allOrders.value.length / itemsPerPage));
-const paginatedOrders = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  return allOrders.value.slice(startIndex, endIndex);
-});
+// 使用共用的分頁邏輯
+const { currentPage, totalPages, paginatedItems: paginatedOrders, onPageChange } = usePagination(allOrders, 5);
 
-function onPageChange(page) {
-  currentPage.value = page;
-}
-
-/**
- * 格式化日期為「2025年10月29日」
- */
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-/**
- * 取得訂單狀態文字
- */
-const getStatusText = (status) => {
-  switch (status) {
-    case 'deferred':
-    case 'unpaid':
-      return '待付款';
-    case 'completed':
-    case 'paid':
-      return '已完成';
-    case 'cancelled':
-      return '已取消';
-    case 'refunded':
-      return '已退款';
-    default:
-      return status || '未知狀態';
-  }
-};
+// 使用共用的 Modal 邏輯
+const { selectedItem: selectedOrder, viewDetails } = useOrderModal('orderDetailModal');
 
 /**
  * 開啟訂單詳情 Modal
  */
-const viewDetails = (orderNumber) => {
-  const order = allOrders.value.find(o => o.orderNumber === orderNumber);
-  if (!order) return;
-  selectedOrder.value = order;
-};
-
-/**
- * Modal 隱藏後清除資料
- */
-const handleModalHidden = () => {
-  selectedOrder.value = null;
+const handleViewDetails = (orderNumber) => {
+  viewDetails(orderNumber, allOrders.value);
 };
 
 onMounted(async () => {
   isLoading.value = true;
-
-  // 監聽 Modal 關閉事件
-  const modalEl = document.getElementById('orderDetailModal');
-  if (modalEl) {
-    modalEl.addEventListener('hidden.bs.modal', handleModalHidden);
-  }
+  isError.value = false;
 
   try {
-    let fetchedOrders = [];
-
     const hostId = authStore.currentHostId;
     if (!hostId) {
       toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
-      isLoading.value = false;
+      isError.value = true;
       return;
     }
-    fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
 
-    allOrders.value = fetchedOrders;
+    const fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
+    allOrders.value = fetchedOrders || [];
+
+    if (allOrders.value.length === 0) {
+      toast.info('目前沒有房客預訂記錄');
+    }
   } catch (error) {
-    toast.error('無法載入訂單資料');
+    console.error('載入訂單失敗:', error);
+    toast.error(error.message || '載入訂單資料失敗');
+    isError.value = true;
   } finally {
     isLoading.value = false;
-  }
-});
-
-onUnmounted(() => {
-  const modalEl = document.getElementById('orderDetailModal');
-  if (modalEl) {
-    modalEl.removeEventListener('hidden.bs.modal', handleModalHidden);
   }
 });
 </script>
 
 <template>
   <div class="host-orders-page">
-    <div class="container">
-      <h1>房客預訂清單</h1>
+    <h1>房客預訂清單</h1>
 
-      <!-- 載入中 -->
-      <div v-if="isLoading" class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">載入中...</span>
-        </div>
+    <!-- Loading -->
+    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>{{ bookingStore.isLoading ? '正在處理訂單...' : '正在載入房客預訂資料...' }}</p>
       </div>
+    </div>
 
-      <!-- 無訂單 -->
-      <div v-else-if="allOrders.length === 0" class="no-orders">
-        <p>目前沒有任何房客預訂。</p>
-        <router-link to="/host/listings">
-          <button class="btn-primary">前往房源管理</button>
-        </router-link>
+    <!-- Error -->
+    <div v-else-if="isError" class="error-message-container">
+      <div class="error-card">
+        <h2>無法載入頁面</h2>
+        <p>抱歉，載入房客預訂資料時發生錯誤，請確認您的房東權限。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
       </div>
+    </div>
 
-      <!-- 訂單列表 -->
-      <div v-else>
-        <div class="orders-list">
-          <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
+    <!-- Empty State -->
+    <div v-else-if="allOrders.length === 0" class="error-message-container">
+      <div class="error-card">
+        <h2>尚無房客預訂</h2>
+        <p>目前沒有任何房客預訂您的房源。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">前往房源管理</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div v-else class="container">
+      <div class="orders-list">
+        <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
             <div class="guest-avatar-wrapper">
               <img
                 :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
@@ -151,9 +109,7 @@ onUnmounted(() => {
                 <div class="guest-info">
                   <h3>{{ order.guestName }} ({{ order.guestCount }}位)</h3>
                 </div>
-                <span :class="['order-status', `status-${order.paymentStatus}`]">
-                  {{ getStatusText(order.paymentStatus) }}
-                </span>
+                <StatusBadge :status="order.paymentStatus" />
               </div>
 
               <div class="card-section mid-section">
@@ -175,21 +131,20 @@ onUnmounted(() => {
                   class="btn-details"
                   data-bs-toggle="modal"
                   data-bs-target="#orderDetailModal"
-                  @click="viewDetails(order.orderNumber)"
+                  @click="handleViewDetails(order.orderNumber)"
                 >
                   查看詳情 / 聯絡
                 </button>
               </div>
             </div>
-          </div>
         </div>
-
-        <SimplePaginator
-          :current-page="currentPage"
-          :total-pages="totalPages"
-          @page-changed="onPageChange"
-        />
       </div>
+
+      <SimplePaginator
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @page-changed="onPageChange"
+      />
     </div>
   </div>
 
@@ -255,9 +210,7 @@ onUnmounted(() => {
               <div class="detail-row">
                 <p><strong>訂單狀態:</strong></p>
                 <p>
-                  <span :class="['order-status', `status-${selectedOrder.paymentStatus}`]">
-                    {{ getStatusText(selectedOrder.paymentStatus) }}
-                  </span>
+                  <StatusBadge :status="selectedOrder.paymentStatus" />
                 </p>
               </div>
               <div class="detail-row" v-if="selectedOrder.contactNotes">
@@ -315,55 +268,91 @@ $text-light: #717171;
 $text-dark: #484848;
 
 .host-orders-page {
-  padding: 40px 20px;
-  background-color: $background-light;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 20px;
   min-height: 100vh;
+
+  h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-left: 10px;
+    margin-bottom: 20px;
+    color: #222;
+  }
 }
 
 .container {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
 
-h1 {
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 700;
-  color: $primary-color;
-}
-
-.loading-spinner {
+/* Loading & Error Styles */
+.loading-overlay, .error-message-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 249, 250, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  z-index: 9999;
+  padding: 20px;
 }
 
-.no-orders {
-  text-align: center;
-  padding: 50px 20px;
+.loading-content, .error-card {
   background: white;
+  padding: 40px;
   border-radius: 16px;
-  border: 1px solid $border-color;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 350px;
+  width: 90%;
 
   p {
-    font-size: 18px;
-    color: $text-light;
-    margin-bottom: 20px;
+    margin-top: 16px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
   }
+}
 
-  .btn-primary {
-    padding: 12px 24px;
-    background-color: $secondary-color;
-    color: $primary-color;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.error-card {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #d9534f;
+    margin-bottom: 15px;
+  }
+  p {
+    color: #484848;
+    line-height: 1.6;
+  }
+  .btn-back-home {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
     border: none;
     border-radius: 8px;
     font-weight: 600;
+    cursor: pointer;
     transition: background-color 0.2s;
-
     &:hover {
-      background-color: darken($secondary-color, 10%);
+      background-color: #0056b3;
     }
   }
 }
@@ -654,6 +643,11 @@ hr { border-color: $border-color; margin: 25px 0; }
   .modal-body { padding: 15px; }
   .detail-section.highlight { padding: 15px; }
   .detail-row { grid-template-columns: 90px 1fr; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
 
