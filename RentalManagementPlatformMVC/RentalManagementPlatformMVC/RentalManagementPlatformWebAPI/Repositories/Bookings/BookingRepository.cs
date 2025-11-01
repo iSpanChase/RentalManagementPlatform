@@ -13,19 +13,6 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 			_context = context;
 		}
 
-		// 取得所有訂單(測試用)
-		public async Task<IEnumerable<Booking>> GetAllBookingsAsync()
-		{
-			return await _context.Bookings
-				.AsNoTracking()
-				.Include(b => b.Guest)
-				.Include(b => b.Coupon)
-				.Include(b => b.Payments)
-				.Include(b => b.Room)
-					.ThenInclude(r => r.Host)
-				.ToListAsync();
-		}
-
 		// 根據 GuestId 獲取其所有訂單
 		public async Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId)
 		{

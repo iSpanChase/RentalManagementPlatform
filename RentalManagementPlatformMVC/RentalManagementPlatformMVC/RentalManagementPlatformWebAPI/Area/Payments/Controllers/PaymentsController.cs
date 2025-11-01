@@ -20,13 +20,6 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 			_ecPayService = ecpayService;
 		}
 
-		[HttpGet]
-		public async Task<ActionResult<IEnumerable<PaymentsDto>>> GetAllPaymentsAsync()
-		{
-			var payments = await _paymentsService.GetAllPaymentsAsync();
-			return Ok(payments);
-		}
-
 		/// <summary>
 		/// 為延後支付的訂單產生付款表單
 		/// </summary>
@@ -160,24 +153,12 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 		/// 接收綠界付款結果通知，並導向前端頁面 (OrderResultURL)
 		/// </summary>
 		[HttpPost("redirect-handler")]
-		public IActionResult EcpayFrontendRedirect([FromForm] Dictionary<string, string> formData)
+		public IActionResult EcpayFrontendRedirect()
 		{
 		    _logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
 
-		    // 從 formData 中取得 MerchantTradeNo (即訂單編號)
-		    string? orderNumber = formData.ContainsKey("MerchantTradeNo") ? formData["MerchantTradeNo"] : null;
-
-		    if (!string.IsNullOrEmpty(orderNumber))
-		    {
-		        // 導向到前端的訂單頁面，並帶上訂單編號
-		        return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings?orderNumber={orderNumber}");
-		    }
-		    else
-		    {
-		        _logger.LogWarning("從綠界 OrderResultURL 回調中未取得 MerchantTradeNo，導向通用訂單頁面。");
-		        // 如果沒有訂單編號，則導向通用訂單頁面
-		        return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings");
-		    }
+			// 導向到前端的訂單頁面，並帶上userId參數 (測試用)
+			return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings");
 		}
 		
 		/// 測試用：手動觸發回調（開發時使用）

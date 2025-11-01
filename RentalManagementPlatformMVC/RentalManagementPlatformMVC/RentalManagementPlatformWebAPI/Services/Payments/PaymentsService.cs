@@ -22,12 +22,6 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<PaymentsDto>> GetAllPaymentsAsync()
-		{
-			var payments = await _paymentsRepository.GetAllPaymentsAsync();
-			return _mapper.Map<IEnumerable<PaymentsDto>>(payments);
-		}
-
 		// 處理綠界付款回調
 		public async Task<PaymentCallbackResultDto> ProcessEcpayCallbackAsync(
 			string orderNumber,

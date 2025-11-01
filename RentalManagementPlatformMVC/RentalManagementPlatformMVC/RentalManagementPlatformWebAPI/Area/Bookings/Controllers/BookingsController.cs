@@ -16,14 +16,6 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			_bookingService = bookingService;
 		}
 
-		// 取得所有訂單(測試用)
-		[HttpGet]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsAsync()
-		{
-			var bookings = await _bookingService.GetAllBookingsAsync();
-			return Ok(bookings);
-		}
-
 		// [開發用] 根據使用者ID獲取其所有訂單
 		// 未來與登入功能整合後，應改為從 HttpContext 的 Claims 獲取 userId，並加上 [Authorize]
 		[HttpGet("user/{guestId}")]

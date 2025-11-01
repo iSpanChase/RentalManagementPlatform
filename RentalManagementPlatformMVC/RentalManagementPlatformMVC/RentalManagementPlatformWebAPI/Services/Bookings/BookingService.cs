@@ -38,13 +38,6 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			_fileUrlResolver = fileUrlResolver; 
 		}
 
-		// 取得所有訂單(測試用)
-		public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
-		{
-			var bookings = await _bookingRepository.GetAllBookingsAsync();
-			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
-		}
-
 		// 根據 GuestId 獲取其所有訂單
 		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
 		{
@@ -113,7 +106,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				?? throw new ArgumentException("找不到指定房間");
 
 			int nights = (dto.CheckOut - dto.CheckIn).Days;
-			if (nights <= 0)
+			if (nights < 0)
 			{
 				throw new ArgumentException("住宿天數必須大於 0");
 			}
@@ -248,8 +241,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					// 立即支付的回傳資料
 					PaymentRequired = true,
 					PaymentStatus = "pending",
-					EcpayFormHtml = ecpayFormHtml,
-					PaymentDeadline = null
+					PaymentDeadline = null,
+					EcpayFormHtml = ecpayFormHtml
 				};
 			}
 			else if (dto.PaymentTiming == "partial")
@@ -266,8 +259,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					// 延後支付的回傳資料
 					PaymentRequired = false,
 					PaymentStatus = "deferred",
-					EcpayFormHtml = null,
-					PaymentDeadline = booking.PaymentDeadline
+					PaymentDeadline = booking.PaymentDeadline,
+					EcpayFormHtml = null
 				};
 			}
 			else

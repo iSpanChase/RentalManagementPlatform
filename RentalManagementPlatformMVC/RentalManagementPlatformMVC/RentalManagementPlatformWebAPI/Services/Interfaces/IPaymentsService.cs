@@ -4,8 +4,6 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
 {
 	public interface IPaymentsService
 	{
-		// 取得所有付款紀錄(測試用)
-		Task<IEnumerable<PaymentsDto>> GetAllPaymentsAsync();
 		Task<PaymentCallbackResultDto> ProcessEcpayCallbackAsync(
 			string orderNumber,
 			bool isSuccess,
