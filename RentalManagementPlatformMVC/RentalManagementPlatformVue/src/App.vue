@@ -9,18 +9,27 @@ import SearchPopup from './components/SearchPopup.vue';
 import ScrollToTopButton from './components/ScrollToTopButton.vue';
 import TempNavComponent from './components/TempNavComponent.vue';
 import { startConnection, registerWarningHandler } from './router/modules/ReportForm/api/notificationService.ts';
+import NotificationBell from '@/router/modules/ReportForm/components/notification/NotificationBell.vue'
+import { useNotificationStore } from '@/stores/notificationStore';
 
 const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
+const notificationStore = useNotificationStore(); // 獲取 store 實例
 
 //SignalR 獲取通知
 onMounted(async () => {
+    // 1. 應用程式啟動時，立即從 localStorage 載入通知
+    notificationStore.loadFromLocalStorage();
+
+    // 2. 開始 SignalR 連線
     try {
         const userId = 47;
         await startConnection(userId);
+        console.log("SignalR 連線成功，並開始監聽通知...");
 
-        // 註冊一個處理器，當收到訊息時，用 alert 彈窗顯示
+        // 3. 註冊 SignalR 處理器，收到訊息時呼叫 store 的 action
         registerWarningHandler((message: string) => {
-            alert(`[即時通知]\n---------------------------------\n${message}`);
+            console.log(`收到新通知: ${message}`);
+            notificationStore.addNotification(message);
         });
     }
     catch (err) {
@@ -31,6 +40,12 @@ onMounted(async () => {
 
 <template>
     <div class="page-wrapper" :class="{'mobile-menu-visible': isMobileMenuOpen}">
+
+        <!-- 通知小鈴鐺 -->
+        <div class="global-notification-bell">
+            <NotificationBell />
+        </div>
+
 
         <ThePreloader />
 

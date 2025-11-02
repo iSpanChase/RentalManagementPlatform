@@ -267,19 +267,7 @@ onMounted(async () => {
         cards.push(created);
     }
 
-    //SignalR
-    try {
-        const hostId = 47;
-        await startConnection(hostId);
-
-        // 註冊一個處理器，當收到訊息時，用 alert 彈窗顯示
-        registerWarningHandler((message: string) => {
-            alert(`[房東即時通知]\n---------------------------------\n${message}`);
-        });
-    }
-    catch (err) {
-        console.error("SignalR 連線失敗: ", err);
-    }
+    
 });
 
 </script>
