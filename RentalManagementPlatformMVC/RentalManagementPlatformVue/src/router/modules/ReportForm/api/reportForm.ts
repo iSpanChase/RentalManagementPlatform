@@ -15,6 +15,7 @@ export interface RevenueConfig {
   startDate: string;
   endDate: string;
   groupBy: 'day' | 'week' | 'month';
+  chartType?: 'line' | 'bar' | 'pie';
 }
 
 export interface OccupancyConfig {

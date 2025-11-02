@@ -30,18 +30,18 @@ export const createRoom = async (roomData: RoomData): Promise<CreatedRoomRespons
       'Content-Type': 'multipart/form-data',
     },
   });
-  console.log('Raw backend response:', response);
-  return response.data;
+  const data = response.data ?? {};
+  const record = data as Record<string, unknown>;
   const roomId =
-    (typeof rawData.roomId === 'number' ? rawData.roomId : undefined) ??
-    (typeof rawData.RoomId === 'number' ? (rawData.RoomId as number) : undefined);
+    (typeof record.roomId === 'number' ? record.roomId : undefined) ??
+    (typeof record.RoomId === 'number' ? (record.RoomId as number) : undefined);
 
   if (roomId === undefined) {
     throw new Error('Room ID is missing in the create room response.');
   }
 
   return {
-    ...(rawData as Record<string, unknown>),
+    ...record,
     roomId,
   } as CreatedRoomResponse;
 };
