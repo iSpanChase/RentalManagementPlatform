@@ -1,5 +1,6 @@
 using Meilisearch;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
@@ -241,12 +242,23 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
 
-			builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
-            builder.Services.AddSignalR();
-            var app = builder.Build();
-
-			app.UseExceptionHandler(); // 全域異常處理中介軟體
-
+			            builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
+			            builder.Services.AddSignalR();
+			
+						// Configure Forwarded Headers for reverse proxy
+						builder.Services.Configure<ForwardedHeadersOptions>(options =>
+						{
+							options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+							options.KnownNetworks.Clear();
+							options.KnownProxies.Clear();
+						});
+			
+			            var app = builder.Build();
+			
+						// Use Forwarded Headers - must be one of the first middleware
+						app.UseForwardedHeaders();
+			
+						app.UseExceptionHandler(); // 全域異常處理中介軟體
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
