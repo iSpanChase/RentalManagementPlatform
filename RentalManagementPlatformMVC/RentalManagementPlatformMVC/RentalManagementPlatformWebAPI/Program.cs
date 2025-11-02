@@ -49,11 +49,10 @@ namespace RentalManagementPlatformWebAPI
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
-					policy.WithOrigins("http://localhost:5173",
-						"https://my-project-frontend.ngrok.app"); // <--- 將 ngrok URL 加入！
-					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
+                    policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "https://my-project-frontend.ngrok.app")
 						  .AllowAnyHeader()
-						  .AllowAnyMethod();
+						  .AllowAnyMethod()
+                          .AllowCredentials();
 				});
 			});
 
