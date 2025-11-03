@@ -59,9 +59,9 @@ const isSticky = computed(() => y.value > 100)
   padding: 12px 0;
 
   .container {
-    max-width: 1200px;
+    max-width: 100%; 
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 40px;
   }
 
   .header-flex {
@@ -71,13 +71,10 @@ const isSticky = computed(() => y.value > 100)
   }
 }
 
+
 .logo-link {
   display: block;
   transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
 
   .logo {
     height: 48px;
@@ -199,6 +196,12 @@ const isSticky = computed(() => y.value > 100)
     &:hover span {
       background: #BE9A78;
     }
+  }
+}
+
+@media (min-width: 1920px) {
+  .main-header .container {
+    padding: 0 60px;
   }
 }
 

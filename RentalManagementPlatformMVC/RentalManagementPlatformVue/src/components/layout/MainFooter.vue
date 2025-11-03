@@ -108,7 +108,7 @@ $hover-color: #ffffff;
 $divider-color: rgba(255, 255, 255, 0.3);
 
 .main-footer {
-  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  background: linear-gradient(135deg, #BE9A78 0%, #A08268 100%);
   color: $text-color;
   margin-top: auto;
   font-size: 14px;
@@ -120,9 +120,10 @@ $divider-color: rgba(255, 255, 255, 0.3);
   padding: 1.5rem 0 1.5rem;
 
   .container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 40px;
+    width: 100%; 
   }
 
   .footer-grid {
@@ -238,8 +239,18 @@ $divider-color: rgba(255, 255, 255, 0.3);
   }
 }
 
+@media (min-width: 1920px) {
+  .footer-main .container {
+    padding: 0 60px;
+  }
+}
+
 @media (max-width: 1024px) {
   .footer-main {
+    .container {
+      padding: 0 30px; // 調整平板的 padding
+    }
+
     .footer-grid {
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
@@ -250,6 +261,10 @@ $divider-color: rgba(255, 255, 255, 0.3);
 @media (max-width: 768px) {
   .footer-main {
     padding: 2rem 0 1.25rem;
+
+    .container {
+      padding: 0 20px; // 調整手機的 padding
+    }
 
     .footer-grid {
       grid-template-columns: 1fr;
@@ -270,6 +285,10 @@ $divider-color: rgba(255, 255, 255, 0.3);
 @media (max-width: 480px) {
   .footer-main {
     padding: 1.5rem 0 1rem;
+
+    .container {
+      padding: 0 15px;
+    }
   }
 }
 </style>

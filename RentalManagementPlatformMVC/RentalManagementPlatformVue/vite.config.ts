@@ -16,6 +16,12 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: [
+      'localhost',
+      '.ngrok.app',
+      '.ngrok.io',
+      'my-project-frontend.ngrok.app'
+    ],
     proxy: {
       '/api': {
         target: 'https://localhost:7230',
