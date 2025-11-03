@@ -116,6 +116,7 @@ watch(hotRooms, (rooms) => {
 
 .page-title {
   margin-bottom: 1rem;
+  margin-top: 2rem;
   padding: 0;
   background: none;
   color: #212529;
