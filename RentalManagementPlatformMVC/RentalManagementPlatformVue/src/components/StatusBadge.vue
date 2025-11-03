@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { getStatusText, getStatusClass } from '@/composables/useOrderStatus';
 
 const props = defineProps({
@@ -8,8 +9,8 @@ const props = defineProps({
   }
 });
 
-const statusText = getStatusText(props.status);
-const statusClass = getStatusClass(props.status);
+const statusText = computed(() => getStatusText(props.status));
+const statusClass = computed(() => getStatusClass(props.status));
 </script>
 
 <template>

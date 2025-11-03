@@ -75,9 +75,10 @@ let thisYear = new Date().getFullYear()
   z-index: 100;
 
   .header-content {
-    max-width: 1200px;
+    max-width: 100%; // 從 1200px 改為 1600px
     margin: 0 auto;
-    padding: 10px 20px;
+    padding: 10px 40px; // 從 20px 改為 40px
+    width: 100%; // 新增
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -126,9 +127,10 @@ let thisYear = new Date().getFullYear()
   padding: 0;
 
   .main-container {
-    max-width: 1200px;
+    max-width: 1600px; // 從 1200px 改為 1600px
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 30px 40px; // 從 20px 改為 40px
+    width: 100%; // 新增
     min-height: calc(100vh - 200px);
   }
 }
@@ -140,9 +142,10 @@ let thisYear = new Date().getFullYear()
   margin-top: auto;
 
   .footer-content {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 40px;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -200,10 +203,19 @@ let thisYear = new Date().getFullYear()
   }
 }
 
+@media (min-width: 1920px) {
+  .booking-header .header-content,
+  .booking-main .main-container,
+  .booking-footer .footer-content {
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+}
+
 @media (max-width: 768px) {
   .booking-header {
     .header-content {
-      padding: 12px 15px;
+      padding: 12px 20px;
       flex-direction: column;
       gap: 15px;
 
@@ -219,12 +231,13 @@ let thisYear = new Date().getFullYear()
 
   .booking-main {
     .main-container {
-      padding: 20px 15px;
+      padding: 20px 20px;
     }
   }
 
   .booking-footer {
     .footer-content {
+      padding: 0 20px;
       flex-direction: column;
       text-align: center;
       gap: 15px;
@@ -244,13 +257,25 @@ let thisYear = new Date().getFullYear()
 
 @media (max-width: 480px) {
   .booking-header {
+    .header-content {
+      padding: 12px 15px;
+    }
+
     .header-nav .nav-link {
       font-size: 12px;
       padding: 6px 12px;
     }
   }
 
+  .booking-main .main-container {
+    padding: 20px 15px;
+  }
+
   .booking-footer {
+    .footer-content {
+      padding: 0 15px;
+    }
+
     .footer-left {
       .footer-nav {
         flex-direction: column;
