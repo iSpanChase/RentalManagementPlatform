@@ -2,15 +2,7 @@
 import { ref, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { formatDate, formatPrice } from '@/composables/useBookingFormatters';
-import DateGuestEditor from './DateGuestEditor.vue';
-
-// ==================== Props ====================
-const props = defineProps({
-  showBasicPrice: {
-    type: Boolean,
-    default: false
-  }
-});
+import DateGuestEditorModal from './DateGuestEditorModal.vue';
 
 // ==================== Store ====================
 const bookingStore = useBookingStore();
@@ -84,22 +76,8 @@ const dateGuestEditor = ref(null);
       <hr />
 
       <div class="price-section">
-        <!-- 使用新的價格摘要元件 -->
-        <slot name="price-summary">
-          <!-- 預設顯示基本價格資訊 -->
-          <div v-if="showBasicPrice">
-            <h4>價格詳情</h4>
-            <div class="price-row">
-              <span>{{ bookingStore.nights }} 晚 x {{ formatPrice(bookingStore.bookingDraft.pricePerNight) }}</span>
-              <span>{{ formatPrice(bookingStore.subtotal) }}</span>
-            </div>
-            <hr />
-            <div class="price-row total">
-              <strong>總計 TWD</strong>
-              <strong>{{ formatPrice(bookingStore.totalPrice) }}</strong>
-            </div>
-          </div>
-        </slot>
+        <!-- 使用價格摘要元件 -->
+        <slot name="price-summary"></slot>
       </div>
     </div>
 
@@ -114,7 +92,7 @@ const dateGuestEditor = ref(null);
   </div>
 
   <!-- 日期和客人數編輯器 -->
-  <DateGuestEditor ref="dateGuestEditor" />
+  <DateGuestEditorModal ref="dateGuestEditor" />
 
 
   <Teleport to="body">
@@ -173,7 +151,6 @@ const dateGuestEditor = ref(null);
 </template>
 
 <style lang="scss" scoped>
-// 你的 SCSS 樣式 (保持不變)
 $border-color: #ddd;
 $divider-color: #ebebeb;
 $bg-muted: #f7f7f7;

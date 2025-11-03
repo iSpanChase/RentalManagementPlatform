@@ -56,6 +56,12 @@ defineExpose({
       <span>{{ formatPrice(bookingStore.subtotal) }}</span>
     </div>
 
+    <!-- 服務費 -->
+    <div class="price-row">
+      <span>服務費</span>
+      <span>{{ formatPrice(bookingStore.serviceFee) }}</span>
+    </div>
+
     <!-- 特別優惠 -->
     <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
       <span>特別優惠</span>

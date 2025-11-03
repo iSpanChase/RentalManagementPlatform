@@ -1,6 +1,6 @@
 // src/stores/bookingStore.js
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, readonly } from 'vue';
 import axios from 'axios';
 
 // ==================== API 基礎設定 ====================
@@ -71,6 +71,30 @@ export const useBookingStore = defineStore('booking', () => {
   // ==================== Actions ====================
 
   /**
+   * 格式化入住/退房時間為業界標準時間
+   * @param {string|Date} checkInDate - 入住日期
+   * @param {string|Date} checkOutDate - 退房日期
+   * @returns {Object} 格式化後的時間物件
+   */
+  const formatBookingDates = (checkInDate, checkOutDate) => {
+    // 創建 UTC 日期並直接設定為目標時間
+    // 這樣可以避免瀏覽器自動時區轉換
+
+    // 入住日期 + 下午3點 (15:00)
+    const checkInDateOnly = new Date(checkInDate).toISOString().split('T')[0];
+    const checkInUTC = new Date(`${checkInDateOnly}T15:00:00.000Z`);
+
+    // 退房日期 + 上午11點 (11:00)
+    const checkOutDateOnly = new Date(checkOutDate).toISOString().split('T')[0];
+    const checkOutUTC = new Date(`${checkOutDateOnly}T11:00:00.000Z`);
+
+    return {
+      checkIn: checkInUTC.toISOString(),
+      checkOut: checkOutUTC.toISOString()
+    };
+  };
+
+  /**
    * 設定訂房草稿
    */
   const setBookingDraft = (data) => {
@@ -102,24 +126,31 @@ export const useBookingStore = defineStore('booking', () => {
 
     isLoading.value = true;
     try {
+      // 格式化入住/退房時間為標準飯店時間
+      const formattedDates = formatBookingDates(
+        bookingDraft.value.checkIn,
+        bookingDraft.value.checkOut
+      );
+
       const orderData = {
         GuestId: bookingDraft.value.guestId,
         RoomId: bookingDraft.value.roomId,
         CouponId: bookingDraft.value.couponId || null, // 確保null而不是undefined
-        CheckIn: typeof bookingDraft.value.checkIn === 'string' ? bookingDraft.value.checkIn : new Date(bookingDraft.value.checkIn).toISOString(),
-        CheckOut: typeof bookingDraft.value.checkOut === 'string' ? bookingDraft.value.checkOut : new Date(bookingDraft.value.checkOut).toISOString(),
+        CheckIn: formattedDates.checkIn,  // 下午3點入住
+        CheckOut: formattedDates.checkOut, // 上午11點退房
         GuestCount: bookingDraft.value.guestCount,
-        Nights: nights.value,
-        PricePerNight: bookingDraft.value.pricePerNight,
-        Subtotal: subtotal.value, // 原始小計，保持不變
-        DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount), // 確保折扣金額不為負數
+        /**後端自行計算相關欄位 */
+        // Nights: nights.value,
+        // PricePerNight: bookingDraft.value.pricePerNight,
+        // Subtotal: subtotal.value,
+        // DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount),
         TotalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
         PaymentTiming: paymentData.paymentTiming,
         BillingInfo: {
           Name: paymentData.billingInfo.name,
           Email: paymentData.billingInfo.email,
           Phone: paymentData.billingInfo.phone,
-          Notes: paymentData.billingInfo.notes || null
+          Notes: paymentData.billingInfo.notes || null,
         },
         BillingAddress: {
           Country: paymentData.billingAddress.country,
@@ -127,13 +158,17 @@ export const useBookingStore = defineStore('booking', () => {
           Apartment: paymentData.billingAddress.apartment || null,
           City: paymentData.billingAddress.city,
           State: paymentData.billingAddress.state || null,
-          ZipCode: paymentData.billingAddress.zipCode
+          ZipCode: paymentData.billingAddress.zipCode,
         },
         PointsRedeemed: 0,
       };
 
-      // 添加調試日志
+      // 添加調試日誌
       console.log('Sending order data:', orderData);
+      console.log('入住時間 (應在資料庫顯示為 15:00:00):', formattedDates.checkIn);
+      console.log('退房時間 (應在資料庫顯示為 11:00:00):', formattedDates.checkOut);
+      console.log('原始入住日期:', bookingDraft.value.checkIn);
+      console.log('原始退房日期:', bookingDraft.value.checkOut);
 
       const response = await axios.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
         headers: { 'Content-Type': 'application/json' },
@@ -158,12 +193,53 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
+  // === 新的安全 API 方法 ===
+
   /**
-   * 取得使用者所有訂單
+   * 房客查看自己的預訂（新方法）
+   */
+  const fetchMyBookings = async (authenticatedGuestId) => {
+    isLoading.value = true;
+
+    try {
+      const response = await axios.get(`${API_BASE}/my-bookings/${authenticatedGuestId}`);
+      return response.data;
+    } catch (error) {
+      console.error('取得我的預訂失敗:', error);
+      throw new Error(error.response?.data?.message || '取得預訂資料失敗');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  /**
+   * 房東查看自己的訂單（新方法）
+   */
+  const fetchMyOrders = async (authenticatedHostId) => {
+    isLoading.value = true;
+
+    try {
+      const response = await axios.get(`${API_BASE}/my-orders/${authenticatedHostId}`);
+      return response.data;
+    } catch (error) {
+      console.error('取得我的訂單失敗:', error);
+      throw new Error(error.response?.data?.message || '取得訂單資料失敗');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // === 舊方法（標記為過時但保留） ===
+
+  /**
+   * @deprecated 請使用 fetchMyBookings 或 fetchMyOrders
    */
   const fetchBookingsByUser = async (userId) => {
+    console.warn('fetchBookingsByUser 已過時，請使用 fetchMyBookings');
+
     if (!userId) throw new Error('未提供使用者 ID');
     isLoading.value = true;
+
     try {
       const { data } = await axios.get(`${API_BASE}/bookings/user/${userId}`);
       return data;
@@ -175,11 +251,14 @@ export const useBookingStore = defineStore('booking', () => {
   };
 
   /**
-   * 取得房東所有訂單
+   * @deprecated 請使用 fetchMyOrders
    */
   const fetchOrdersByHost = async (hostId) => {
+    console.warn('fetchOrdersByHost 已過時，請使用 fetchMyOrders');
+
     if (!hostId) throw new Error('未提供房東 ID');
     isLoading.value = true;
+
     try {
       const { data } = await axios.get(`${API_BASE}/bookings/host/${hostId}`);
       return data;
@@ -243,8 +322,8 @@ export const useBookingStore = defineStore('booking', () => {
   // ==================== Return ====================
   return {
     // State
-    bookingDraft,
-    isLoading,
+    bookingDraft: bookingDraft,
+    isLoading: readonly(isLoading),
 
     // Getters
     hasBookingDraft,
@@ -260,6 +339,8 @@ export const useBookingStore = defineStore('booking', () => {
     setBookingDraft,
     clearBookingDraft,
     createBooking,
+    fetchMyBookings,
+    fetchMyOrders,
     fetchBookingsByUser,
     fetchOrdersByHost,
     fetchBookingByOrderNumber,

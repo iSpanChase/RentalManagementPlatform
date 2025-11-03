@@ -21,13 +21,12 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 			_configuration = configuration;
 
 			// 從 appsettings.json 讀取設定
-			_merchantId = _configuration["ECPay:MerchantId"] ?? "2000132";
-			_hashKey = _configuration["ECPay:HashKey"] ?? "5294y06JbISpM5x9";
-			_hashIV = _configuration["ECPay:HashIV"] ?? "v77hoKGq4kWxNNIS";
-			_ecpayUrl = _configuration["ECPay:PaymentUrl"] ?? "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5";
-			// ECPay URLs using paid ngrok static domains
-			_returnUrl = "https://my-project-backend.ngrok.app/api/payments/return"; // Official: Server-side, for backend notification
-			_orderResultUrl = "https://my-project-backend.ngrok.app/api/payments/redirect-handler"; // Official: Client-side, for user's browser (via backend redirect handler)
+			_merchantId = _configuration["ECPay:MerchantId"] ?? throw new ArgumentNullException("ECPay:MerchantId", "ECPay MerchantId 設定不能為空");
+			_hashKey = _configuration["ECPay:HashKey"] ?? throw new ArgumentNullException("ECPay:HashKey", "ECPay HashKey 設定不能為空");
+			_hashIV = _configuration["ECPay:HashIV"] ?? throw new ArgumentNullException("ECPay:HashIV", "ECPay HashIV 設定不能為空");
+			_ecpayUrl = _configuration["ECPay:PaymentUrl"] ?? throw new ArgumentNullException("ECPay:PaymentUrl", "ECPay PaymentUrl 設定不能為空");
+			_returnUrl = _configuration["ECPay:ReturnUrl"] ?? throw new ArgumentNullException("ECPay:ReturnUrl", "ECPay ReturnUrl 設定不能為空");
+			_orderResultUrl = _configuration["ECPay:OrderResultUrl"] ?? throw new ArgumentNullException("ECPay:OrderResultUrl", "ECPay OrderResultUrl 設定不能為空");
 		}
 
 		/// <summary>
