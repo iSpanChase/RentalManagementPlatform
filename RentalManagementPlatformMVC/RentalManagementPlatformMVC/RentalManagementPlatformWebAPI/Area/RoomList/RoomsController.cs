@@ -68,6 +68,14 @@ namespace RentalManagementPlatformWebAPI.Controllers
             return Ok(hotRooms);
         }
 
+        // GET: api/Rooms/host/5
+        [HttpGet("host/{hostId}")]
+        public async Task<ActionResult<IEnumerable<RoomSummaryResponseDto>>> GetRoomsByHostId(int hostId)
+        {
+            var rooms = await _queryService.GetRoomsByHostIdAsync(hostId);
+            return Ok(rooms);
+        }
+
         // GET: api/Rooms/5
         [HttpGet("{id}")]
         public async Task<ActionResult<RoomDetailsResponseDto>> GetRoomDetails(int id)

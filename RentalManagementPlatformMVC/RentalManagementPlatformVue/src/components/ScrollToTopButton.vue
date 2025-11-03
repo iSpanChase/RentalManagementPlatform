@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useWindowScroll, useScroll } from '@vueuse/core';
+import { useWindowScroll } from '@vueuse/core';
 import { computed } from 'vue';
 
 const { y } = useWindowScroll(); // Get current scroll position
@@ -7,11 +7,9 @@ const { y } = useWindowScroll(); // Get current scroll position
 // Show button when scrolled down more than 200px
 const showButton = computed(() => y.value > 200);
 
-// Use useScroll for programmatic scrolling
-const { y: scrollY, scrollTo } = useScroll(window);
-
+// Smoothly scroll back to the top
 const scrollToTop = () => {
-    scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 </script>
 

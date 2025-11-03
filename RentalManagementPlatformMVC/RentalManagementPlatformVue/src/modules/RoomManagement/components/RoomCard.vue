@@ -51,7 +51,7 @@ const fullAddress = computed(() => {
   if (props.room.cityName && props.room.districtName && props.room.addressLine) {
     return `${props.room.cityName}${props.room.districtName}${props.room.addressLine}`;
   }
-  return props.room.location || '地點未提供';
+  return '地點未提供';
 });
 </script>
 

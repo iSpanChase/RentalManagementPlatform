@@ -53,6 +53,11 @@ const router = createRouter({
           name: 'edit-room',
           component: () => import('../views/hosting/EditRoomView.vue'),
         },
+        {
+          path: '/hosting/rooms',
+          name: 'room-list',
+          component: () => import('../views/hosting/RoomListView.vue'),
+        },
 	{
       	  path:'/coupons',
       	  name:'coupons',

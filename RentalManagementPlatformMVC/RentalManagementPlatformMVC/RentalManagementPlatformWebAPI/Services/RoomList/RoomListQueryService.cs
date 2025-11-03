@@ -314,5 +314,36 @@ namespace RentalManagementPlatformWebAPI.Services
                 return roomSummaries;
             }
         }
+        public async Task<List<RoomSummaryResponseDto>> GetRoomsByHostIdAsync(int hostId)
+        {
+            var roomsWithUsers = await(from room in _repository.GetAll().Include(r => r.RoomPhotos)
+                                        where room.HostId == hostId
+                                        join user in _repository.GetUsers() on room.HostId equals user.UserId
+                                        select new { Room = room, User = user })
+                                        .ToListAsync();
+
+            var roomSummaries = new List<RoomSummaryResponseDto>();
+
+            foreach (var item in roomsWithUsers)
+            {
+                var summary = new RoomSummaryResponseDto
+                {
+                    RoomId = item.Room.RoomId,
+                    Title = item.Room.Title,
+                    Status = item.Room.Status,
+                    HostName = item.User.Name,
+                    IsDeleted = item.Room.IsDeleted
+                };
+
+                if (item.Room.RoomPhotos != null && item.Room.RoomPhotos.Any())
+                {
+                    var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(item.Room.RoomId);
+                    summary.MainImageUrl = photoUrls.FirstOrDefault();
+                }
+                roomSummaries.Add(summary);
+            }
+
+            return roomSummaries;
+        }
     }
 }
