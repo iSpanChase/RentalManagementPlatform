@@ -2,7 +2,7 @@
   <div class="search-view">
     <h1 class="page-title">My Rooms</h1>
     <div class="search-bar">
-      <router-link to="/hosting/rooms/new" class="btn btn-primary">Add New Room</router-link>
+      <button class="btn btn-primary" @click="goToCreateRoom">Add New Room</button>
     </div>
 
     <div v-if="isLoading">Loading...</div>
@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { getRoomsByHostId, deleteRoom as deleteRoomApi } from '@/api/roomApi';
 import { fetchRoomDetail, mapRoomDetailToCard, type RoomCard, type RoomDetail } from '@/api/roomSearchApi';
 import RoomCardComponent from '@/modules/RoomManagement/components/RoomCard.vue';
@@ -43,7 +44,8 @@ interface RoomCardViewModel {
   addressLine: string;
 }
 
-const HOST_ID = 1; // TODO: replace with authenticated host context
+const HOST_ID = 47; // TODO: replace with authenticated host context
+const router = useRouter();
 const roomCards = ref<RoomCard[]>([]);
 const isLoading = ref(true);
 const isError = ref(false);
@@ -129,7 +131,13 @@ const deleteRoom = async (roomId: number) => {
   }
 };
 
-onMounted(fetchRooms);
+const goToCreateRoom = () => {
+  router.push({ name: 'create-room', query: { hostId: String(HOST_ID) } });
+};
+
+onMounted(() => {
+  fetchRooms();
+});
 </script>
 
 <style scoped>

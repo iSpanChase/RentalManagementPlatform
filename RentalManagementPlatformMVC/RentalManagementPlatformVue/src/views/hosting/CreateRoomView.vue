@@ -38,15 +38,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import RoomForm from '@/components/forms/RoomForm.vue';
 import RoomPhotoManager from '@/components/hosting/RoomPhotoManager.vue';
 import { createRoom } from '@/api/roomApi.ts';
 import { fetchCities, fetchDistricts } from '@/api/locationApi.ts';
 
-const HOST_ID = 1; // TODO: replace with real authenticated host context
 const router = useRouter();
+const route = useRoute();
+const DEFAULT_HOST_ID = 47; // TODO: replace with real authenticated host context
+
+const hostId = computed(() => {
+  const raw = Array.isArray(route.query.hostId) ? route.query.hostId[0] : route.query.hostId;
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return DEFAULT_HOST_ID;
+});
 
 // Wizard step management
 const step = ref(1);
@@ -85,7 +95,7 @@ async function handleCityChange(cityId) {
 
 async function handleCreateRoom(formData) {
   try {
-    const payload = { ...formData, hostId: HOST_ID };
+    const payload = { ...formData, hostId: hostId.value };
     const newRoom = await createRoom(payload);
     alert('房源已成功建立！現在請上傳您的房源照片。');
     newlyCreatedRoomId.value = newRoom.roomId;
