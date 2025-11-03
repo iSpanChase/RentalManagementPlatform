@@ -27,40 +27,71 @@
         if (chartInstance)
             chartInstance.destroy();
 
-        // Access the 'points' array from props.data
-        const chartDataPoints = props.data && props.data.points ? props.data.points : [];
-
-        console.log("Chart Data Points:", chartDataPoints); // Debug log
-        console.log("Chart Canvas Element:", chartCanvas.value); // Debug log
+        const historicalPoints = props.data?.historicalPoints || props.data?.points || [];
+        const regressionPoints = props.data?.regressionPoints || [];
 
         if (!chartCanvas.value) {
             console.error("Canvas element not found for chart initialization.");
-            return; // Exit if canvas is not ready
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const datasets = [];
+
+        // Dataset 1: Historical Data (actuals)
+        if (historicalPoints.length > 0) {
+            datasets.push({
+                label: '歷史數據',
+                data: historicalPoints.map(p => ({ x: p.date, y: p[props.yAxisDataKey] })),
+                borderColor: 'rgba(150, 150, 150, 0.5)',
+                borderWidth: 1.5,
+                pointRadius: 0, // No dots
+                fill: false,
+            });
+        }
+
+        // Dataset 2: Regression Line (past and future)
+        if (regressionPoints.length > 0) {
+            datasets.push({
+                label: '趨勢線',
+                data: regressionPoints.map(p => ({ x: p.date, y: p[props.yAxisDataKey] })),
+                borderColor: '#4A90E2',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+                segment: {
+                    borderDash: ctx => {
+                        const pointDate = new Date(ctx.p1.parsed.x);
+                        return pointDate >= today ? [5, 5] : undefined; // Dashed for future, solid for past
+                    }
+                }
+            });
         }
 
         chartInstance = new Chart(chartCanvas.value, {
-            type: props.chartType,
+            type: 'line', // Always line chart for this complex view
             data: {
-                labels: chartDataPoints.map(d => d.date),
-                datasets: [{
-                    label: props.label,
-                    data: chartDataPoints.map(d => d[props.yAxisDataKey]), // Use yAxisDataKey here
-                    borderWidth: 2,
-                }]
+                datasets: datasets
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
-                        display: false
+                        display: true
                     }
                 },
                 scales: {
                     x: {
                         type: 'time',
                         time: {
-                            unit: props.timeUnit,
+                            unit: 'day', // More granular for this view
                             displayFormats: {
                                 day: 'yyyy-MM-dd',
                                 week: 'yyyy-MM-dd',
@@ -72,11 +103,11 @@
                             text: '日期'
                         }
                     },
-                    y: { // Explicitly define a Y-axis
-                        beginAtZero: true, // Start from zero
+                    y: { 
+                        beginAtZero: true, 
                         title: {
                             display: true,
-                            text: props.yAxisDataKey === 'revenue' ? '收益' : '入住率 (%)' // Dynamic title
+                            text: props.yAxisDataKey === 'revenue' ? '收益' : '入住率 (%)' 
                         }
                     }
                 }

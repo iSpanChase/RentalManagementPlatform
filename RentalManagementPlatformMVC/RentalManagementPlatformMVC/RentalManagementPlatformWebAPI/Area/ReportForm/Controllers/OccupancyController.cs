@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 
 namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 {
@@ -310,5 +311,95 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         
                     return Ok(analysis);
                 }
+
+        [HttpPost("GetOccupancyPrediction")]
+        public async Task<IActionResult> GetOccupancyPrediction([FromBody] PredictionRequestDto req)
+        {
+            const int historicalDays = 90;
+            var today = DateTime.Today;
+            var historicalStartDate = today.AddDays(-historicalDays);
+
+            var roomIdsToQuery = await GetRoomIdsToQuery(req.RoomIds);
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new OccupancyPredictionResponseDto { HistoricalPoints = new List<OccupancyPoint>(), RegressionPoints = new List<OccupancyPoint>() });
             }
+
+            // 1. Fetch historical data efficiently
+            var bookings = await _context.Bookings
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => (b.Status == "Completed" || b.Status == "Confirmed"))
+                .Where(b => b.CheckIn.Value < today && b.CheckOut.Value > historicalStartDate)
+                .Select(b => new { b.CheckIn, b.CheckOut })
+                .ToListAsync();
+
+            var dailyOccupiedCounts = new Dictionary<DateTime, int>();
+            foreach (var day in Enumerable.Range(0, historicalDays).Select(i => historicalStartDate.AddDays(i)))
+            {
+                int count = bookings.Count(b => b.CheckIn.Value.Date <= day && b.CheckOut.Value.Date > day);
+                dailyOccupiedCounts[day] = count;
+            }
+
+            var totalAvailableRooms = roomIdsToQuery.Count;
+            var historicalPoints = dailyOccupiedCounts.Select(kvp => new OccupancyPoint
+            {
+                Date = kvp.Key.ToString("yyyy-MM-dd"),
+                OccupancyRate = totalAvailableRooms > 0 ? Math.Round((double)kvp.Value / totalAvailableRooms * 100.0, 2) : 0
+            }).OrderBy(p => p.Date).ToList();
+
+            // 2. Simple Linear Regression for the entire period
+            var regressionPoints = new List<OccupancyPoint>();
+            if (historicalPoints.Count >= 30)
+            {
+                var trendData = historicalPoints.TakeLast(30).ToList();
+                var n = trendData.Count;
+                var sumX = Enumerable.Range(1, n).Sum(i => (long)i);
+                var sumY = trendData.Sum(p => p.OccupancyRate);
+                var sumXY = Enumerable.Range(1, n).Sum(i => (long)i * trendData[i - 1].OccupancyRate);
+                var sumX2 = Enumerable.Range(1, n).Sum(i => (long)i * i);
+
+                var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                var intercept = (sumY - slope * sumX) / n;
+
+                var trendStartDate = DateTime.Parse(trendData.First().Date);
+                var totalDays = historicalDays + req.ForecastDays;
+                for (int i = 0; i < totalDays; i++)
+                {
+                    var currentDate = historicalStartDate.AddDays(i);
+                    var predictionIndex = (currentDate - trendStartDate).Days + 1;
+
+                    var regressionRate = slope * predictionIndex + intercept;
+                    if (regressionRate < 0) regressionRate = 0;
+                    if (regressionRate > 100) regressionRate = 100;
+
+                    regressionPoints.Add(new OccupancyPoint
+                    {
+                        Date = currentDate.ToString("yyyy-MM-dd"),
+                        OccupancyRate = Math.Round(regressionRate, 2)
+                    });
+                }
+            }
+
+            return Ok(new OccupancyPredictionResponseDto
+            {
+                HistoricalPoints = historicalPoints,
+                RegressionPoints = regressionPoints
+            });
         }
+
+        private async Task<List<int>> GetRoomIdsToQuery(List<int> requestedRoomIds)
+        {
+            // TODO: Replace with actual host ID from user context
+            int hostId = 47;
+
+            var hostRoomsQuery = _context.RoomLists.Where(r => r.HostId == hostId);
+
+            if (requestedRoomIds != null && requestedRoomIds.Any())
+            {
+                hostRoomsQuery = hostRoomsQuery.Where(r => requestedRoomIds.Contains(r.RoomId));
+            }
+
+            return await hostRoomsQuery.Select(r => r.RoomId).ToListAsync();
+        }
+    }
+}

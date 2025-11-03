@@ -13,20 +13,20 @@ export function registerWarningHandler(handler: (message: string) => void) {
     });
 }
 
-// 啟動連線，並在連線成功後加入指定的房東群組
-export async function startConnection(hostId: number) {
+// 啟動連線，並在連線成功後訂閱指定的使用者群組
+export async function startConnection(userId: number) {
     try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
             await connection.start();
             console.log("SignalR Connected.");
 
-            // 連線成功後，呼叫後端 Hub 上的 JoinHostGroup 方法
-            await connection.invoke("JoinHostGroup", hostId.toString());
-            console.log(`Joined host group: host_${hostId}`);
+            // 連線成功後，呼叫後端 Hub 上的 JoinUserGroup 方法
+            await connection.invoke("JoinUserGroup", userId.toString());
+            console.log(`Joined user group: user_${userId}`);
         }
     } catch (err) {
         console.error("SignalR Connection Error: ", err);
         // 延遲 5 秒後重試
-        setTimeout(() => startConnection(hostId), 5000);
+        setTimeout(() => startConnection(userId), 5000);
     }
 }

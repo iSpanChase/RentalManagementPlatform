@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Project/iSpan-Group-Project/RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI/Repositories/**)",
+      "Read(//c/Project/iSpan-Group-Project/RentalManagementPlatformMVC/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

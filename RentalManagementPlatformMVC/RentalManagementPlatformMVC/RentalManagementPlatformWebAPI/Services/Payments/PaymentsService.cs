@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using RentalManagementPlatformWebAPI.DTOs.Payments;
+using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Repositories.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 
@@ -20,12 +21,6 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 			_mapper = mapper;
 			_ecpayService = ecpayService;
 			_logger = logger;
-		}
-
-		public async Task<IEnumerable<PaymentsDto>> GetAllPaymentsAsync()
-		{
-			var payments = await _paymentsRepository.GetAllPaymentsAsync();
-			return _mapper.Map<IEnumerable<PaymentsDto>>(payments);
 		}
 
 		// 處理綠界付款回調
@@ -150,20 +145,21 @@ namespace RentalManagementPlatformWebAPI.Services.Payments
 				_logger.LogInformation("訂單狀態更新成功");
 
 				// ==================== 6. 記錄付款資訊 ====================
-				/*
+				
 				var payment = new Payment
 				{
 					BookingId = booking.BookingId,
-					TradeNo = tradeNo,
 					Amount = tradeAmount,
-					PaymentDate = paymentDate,
-					PaymentType = paymentType,
+					Method = paymentType,
+					PaidAt = paymentDate,
+					PaymentRef = tradeNo,
+					OrderNumberSnapshot = orderNumber,
 					Status = isSuccess ? "Success" : "Failed",
 					CreatedAt = DateTime.Now
 				};
-				await _paymentRepository.CreateAsync(payment);
+				await _paymentsRepository.CreatePaymentAsync(payment);
 				_logger.LogInformation("付款記錄已建立");
-				*/
+				
 
 				// ==================== 7. 回傳結果 ====================
 				return new PaymentCallbackResultDto

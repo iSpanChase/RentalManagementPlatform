@@ -13,24 +13,13 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 			_context = context;
 		}
 
-		// 取得所有訂單(測試用)
-		public async Task<IEnumerable<Booking>> GetAllBookingsAsync()
-		{
-			return await _context.Bookings
-				.AsNoTracking()
-				.Include(b => b.Guest)
-				.Include(b => b.Coupon)
-				.Include(b => b.Payments)
-				.Include(b => b.Room)
-					.ThenInclude(r => r.Host)
-				.ToListAsync();
-		}
-
 		// 根據 GuestId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync 方法")]
 		public async Task<IEnumerable<Booking>> GetBookingsByGuestIdAsync(int guestId)
 		{
 			return await _context.Bookings
 				.AsNoTracking()
+				.AsSplitQuery()
 				.Where(b => b.GuestId == guestId)
 				.Include(b => b.Room) 
 					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
@@ -40,15 +29,47 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 		}
 
 		// 根據 HostId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync 方法")]
 		public async Task<IEnumerable<Booking>> GetOrdersByHostIdAsync(int hostId)
 		{
 			return await _context.Bookings
 				.AsNoTracking()
+				.AsSplitQuery()
 				.Include(b => b.Room)
 					.ThenInclude(r => r.Host) // 同時載入房東資訊
 				.Include(b => b.Room)
 					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
 				.Where(b => b.Room != null && b.Room.HostId == hostId) // 過濾出指定 HostId 的訂單
+				.Include(b => b.Guest)
+				.OrderByDescending(b => b.CreatedAt)
+				.ToListAsync();
+		}
+
+		// 根據已驗證的 GuestId 獲取其所有訂單
+		public async Task<IEnumerable<Booking>> GetMyBookingsAsync(int authenticatedGuestId)
+		{
+			return await _context.Bookings
+				.AsNoTracking()
+				.AsSplitQuery()
+				.Where(b => b.GuestId == authenticatedGuestId)
+				.Include(b => b.Room)
+					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
+				.Include(b => b.Guest) // 同時載入房客姓名
+				.OrderByDescending(b => b.CreatedAt)
+				.ToListAsync();
+		}
+
+		// 根據 HostId 獲取其所有訂單
+		public async Task<IEnumerable<Booking>> GetMyOrdersAsync(int authenticatedHostId)
+		{
+			return await _context.Bookings
+				.AsNoTracking()
+				.AsSplitQuery()
+				.Include(b => b.Room)
+					.ThenInclude(r => r.Host) // 同時載入房東資訊
+				.Include(b => b.Room)
+					.ThenInclude(r => r.RoomPhotos) // 同時載入房間照片
+				.Where(b => b.Room != null && b.Room.HostId == authenticatedHostId) // 過濾出指定 HostId 的訂單
 				.Include(b => b.Guest)
 				.OrderByDescending(b => b.CreatedAt)
 				.ToListAsync();

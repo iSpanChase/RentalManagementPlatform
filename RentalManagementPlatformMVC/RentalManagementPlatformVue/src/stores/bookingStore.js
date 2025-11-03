@@ -1,263 +1,337 @@
+// src/stores/bookingStore.js
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, readonly } from 'vue';
 import axios from 'axios';
 
+// ==================== API 基礎設定 ====================
+const API_BASE = 'https://localhost:7230/api';
+
+// ==================== Store ====================
 export const useBookingStore = defineStore('booking', () => {
   // ==================== State ====================
-  // 訂房草稿（前端建立訂單前的暫存資料）
   const bookingDraft = ref(null);
-
-  // 載入狀態
   const isLoading = ref(false);
 
   // ==================== Getters ====================
   const hasBookingDraft = computed(() => bookingDraft.value !== null);
 
-  // 計算住宿天數
   const nights = computed(() => {
     if (!bookingDraft.value) return 0;
-
     const checkIn = new Date(bookingDraft.value.checkIn);
     const checkOut = new Date(bookingDraft.value.checkOut);
     const diffTime = Math.abs(checkOut - checkIn);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   });
 
-  // 計算可退款日期（入住前7天）
   const refundableDate = computed(() => {
     if (!bookingDraft.value?.checkIn) return null;
+    const date = new Date(bookingDraft.value.checkIn);
+    date.setDate(date.getDate() - 7);
 
-    const checkInDate = new Date(bookingDraft.value.checkIn);
-    checkInDate.setDate(checkInDate.getDate() - 7); // 入住前7天
+    if (date < new Date()) {
+      return '無法退款(入住日期少於7天)';
+    }
 
-    return checkInDate.toLocaleDateString('zh-TW', {
+    return date.toLocaleDateString('zh-TW', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   });
 
-  // 計算小計（房價 x 天數）
+  const isRefundable = computed(() => {
+    if (!bookingDraft.value?.checkIn) return false;
+    const checkInDate = new Date(bookingDraft.value.checkIn);
+    const today = new Date();
+    // 將時間部分設為 0，僅比較日期
+    today.setHours(0, 0, 0, 0);
+    const diffTime = checkInDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 7;
+  });
+
   const subtotal = computed(() => {
     if (!bookingDraft.value) return 0;
     return bookingDraft.value.pricePerNight * nights.value;
   });
 
-  // 計算折扣金額（根據 coupon）
-  const discountAmount = computed(() => {
-    if (!bookingDraft.value?.coupon) return 0;
-    return bookingDraft.value.coupon.discountAmount || 0;
+  const serviceFee = computed(() => {
+    // 假設服務費為小計的 10%
+    return Math.round(subtotal.value * 0.1);
   });
 
-  // 計算總價
+  const discountAmount = computed(() => {
+    return bookingDraft.value?.coupon?.discountAmount || 0;
+  });
+
   const totalPrice = computed(() => {
-    if (!bookingDraft.value) return 0;
-    return subtotal.value - discountAmount.value;
+    return subtotal.value + serviceFee.value - discountAmount.value;
   });
 
   // ==================== Actions ====================
-  // 設定訂房草稿（從房源頁面傳入）
+
+  /**
+   * 格式化入住/退房時間為業界標準時間
+   * @param {string|Date} checkInDate - 入住日期
+   * @param {string|Date} checkOutDate - 退房日期
+   * @returns {Object} 格式化後的時間物件
+   */
+  const formatBookingDates = (checkInDate, checkOutDate) => {
+    // 創建 UTC 日期並直接設定為目標時間
+    // 這樣可以避免瀏覽器自動時區轉換
+
+    // 入住日期 + 下午3點 (15:00)
+    const checkInDateOnly = new Date(checkInDate).toISOString().split('T')[0];
+    const checkInUTC = new Date(`${checkInDateOnly}T15:00:00.000Z`);
+
+    // 退房日期 + 上午11點 (11:00)
+    const checkOutDateOnly = new Date(checkOutDate).toISOString().split('T')[0];
+    const checkOutUTC = new Date(`${checkOutDateOnly}T11:00:00.000Z`);
+
+    return {
+      checkIn: checkInUTC.toISOString(),
+      checkOut: checkOutUTC.toISOString()
+    };
+  };
+
+  /**
+   * 設定訂房草稿
+   */
   const setBookingDraft = (data) => {
     bookingDraft.value = {
-      // 訂單基本資料
       roomId: data.roomId,
       guestId: data.guestId,
       couponId: data.couponId || null,
       checkIn: data.checkIn,
       checkOut: data.checkOut,
       guestCount: data.guestCount || 1,
-
-      // 房源資訊
       roomTitle: data.roomTitle,
       roomImage: data.roomImage,
       pricePerNight: data.pricePerNight,
-
-      // 優惠券資訊
-      coupon: data.coupon || null, // { discountAmount: 808, ... }
+      coupon: data.coupon || null,
+      serviceFee: data.serviceFee || 0,
     };
   };
 
-  // 清除訂房資料
+  /** 清除草稿 */
   const clearBookingDraft = () => {
     bookingDraft.value = null;
   };
 
-  // 建立訂單並取得綠界付款表單
+  /**
+   * 建立訂單並取得綠界表單
+   */
   const createBooking = async (paymentData) => {
-    if (!bookingDraft.value) {
-      throw new Error('沒有訂房資料');
-    }
+    if (!bookingDraft.value) throw new Error('無訂房資料');
 
     isLoading.value = true;
-
     try {
-      // 準備送到後端的完整資料
-      const orderData = {
-        // 訂房基本資料
-        guestId: bookingDraft.value.guestId,
-        roomId: bookingDraft.value.roomId,
-        couponId: bookingDraft.value.couponId, // 注意：這裡的 couponId 可能與最終折扣不符，但本次修正目標是總價，此處暫不更動
-        checkIn: bookingDraft.value.checkIn,
-        checkOut: bookingDraft.value.checkOut,
-        guestCount: bookingDraft.value.guestCount,
-
-        // 價格資訊 (修正後)
-        nights: nights.value,
-        pricePerNight: bookingDraft.value.pricePerNight,
-        subtotal: subtotal.value, // 原始小計，保持不變
-        discountAmount: subtotal.value - paymentData.finalAmount, // 根據最終價格反推出正確的折扣金額
-        totalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
-
-        // 付款資訊
-        paymentTiming: paymentData.paymentTiming,
-        billingInfo: paymentData.billingInfo,
-        billingAddress: paymentData.billingAddress,
-
-        // 點數
-        pointsRedeemed: 0,
-      };
-
-      console.log('送出到後端的資料：', orderData);
-
-      // 呼叫後端 API
-      const response = await axios.post(
-        'https://localhost:7230/api/bookings/create-and-pay',
-        orderData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      // 格式化入住/退房時間為標準飯店時間
+      const formattedDates = formatBookingDates(
+        bookingDraft.value.checkIn,
+        bookingDraft.value.checkOut
       );
 
-      console.log('後端回應：', response.data);
+      const orderData = {
+        GuestId: bookingDraft.value.guestId,
+        RoomId: bookingDraft.value.roomId,
+        CouponId: bookingDraft.value.couponId || null, // 確保null而不是undefined
+        CheckIn: formattedDates.checkIn,  // 下午3點入住
+        CheckOut: formattedDates.checkOut, // 上午11點退房
+        GuestCount: bookingDraft.value.guestCount,
+        /**後端自行計算相關欄位 */
+        // Nights: nights.value,
+        // PricePerNight: bookingDraft.value.pricePerNight,
+        // Subtotal: subtotal.value,
+        // DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount),
+        TotalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
+        PaymentTiming: paymentData.paymentTiming,
+        BillingInfo: {
+          Name: paymentData.billingInfo.name,
+          Email: paymentData.billingInfo.email,
+          Phone: paymentData.billingInfo.phone,
+          Notes: paymentData.billingInfo.notes || null,
+        },
+        BillingAddress: {
+          Country: paymentData.billingAddress.country,
+          Street: paymentData.billingAddress.street,
+          Apartment: paymentData.billingAddress.apartment || null,
+          City: paymentData.billingAddress.city,
+          State: paymentData.billingAddress.state || null,
+          ZipCode: paymentData.billingAddress.zipCode,
+        },
+        PointsRedeemed: 0,
+      };
 
-      // 後端回傳的資料
-      const {
-        bookingId,
-        orderNumber,
-        ecpayFormHtml,
-        paymentRequired,
-        paymentStatus,
-        paymentDeadline,
-      } = response.data;
+      // 添加調試日誌
+      console.log('Sending order data:', orderData);
+      console.log('入住時間 (應在資料庫顯示為 15:00:00):', formattedDates.checkIn);
+      console.log('退房時間 (應在資料庫顯示為 11:00:00):', formattedDates.checkOut);
+      console.log('原始入住日期:', bookingDraft.value.checkIn);
+      console.log('原始退房日期:', bookingDraft.value.checkOut);
 
-      // 回傳結果
+      const response = await axios.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
       return {
-        bookingId,
-        orderNumber,
-        ecpayFormHtml,
-        paymentRequired,
-        paymentStatus,
-        paymentDeadline,
+        bookingId: response.data.bookingId,
+        orderNumber: response.data.orderNumber,
+        ecpayFormHtml: response.data.ecpayFormHtml,
+        paymentRequired: response.data.paymentRequired,
+        paymentStatus: response.data.paymentStatus,
+        paymentDeadline: response.data.paymentDeadline,
       };
     } catch (error) {
-      console.error('建立訂單失敗：', error);
-      console.error('錯誤詳情：', error.response?.data);
-      throw error;
+      console.error('Create booking error:', error);
+      console.error('Error response:', error.response?.data);
+
+      const msg = error.response?.data?.message || error.message || '建立訂單失敗';
+      throw new Error(msg);
     } finally {
       isLoading.value = false;
     }
   };
 
-  // 獲取指定使用者的所有訂單
-  const fetchUserBookings = async (userId) => {
-    if (!userId) {
-      throw new Error('未提供使用者 ID');
-    }
+  // === 新的安全 API 方法 ===
+
+  /**
+   * 房客查看自己的預訂（新方法）
+   */
+  const fetchMyBookings = async (authenticatedGuestId) => {
     isLoading.value = true;
+
     try {
-      const response = await axios.get(`https://localhost:7230/api/bookings/user/${userId}`);
+      const response = await axios.get(`${API_BASE}/my-bookings/${authenticatedGuestId}`);
       return response.data;
     } catch (error) {
-      console.error(`獲取使用者 ${userId} 的訂單失敗：`, error);
-      throw error;
+      console.error('取得我的預訂失敗:', error);
+      throw new Error(error.response?.data?.message || '取得預訂資料失敗');
     } finally {
       isLoading.value = false;
     }
   };
 
-  // 獲取指定房東的所有訂單
-  const fetchHostOrders = async (hostId) => {
+  /**
+   * 房東查看自己的訂單（新方法）
+   */
+  const fetchMyOrders = async (authenticatedHostId) => {
+    isLoading.value = true;
+
+    try {
+      const response = await axios.get(`${API_BASE}/my-orders/${authenticatedHostId}`);
+      return response.data;
+    } catch (error) {
+      console.error('取得我的訂單失敗:', error);
+      throw new Error(error.response?.data?.message || '取得訂單資料失敗');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // === 舊方法（標記為過時但保留） ===
+
+  /**
+   * @deprecated 請使用 fetchMyBookings 或 fetchMyOrders
+   */
+  const fetchBookingsByUser = async (userId) => {
+    console.warn('fetchBookingsByUser 已過時，請使用 fetchMyBookings');
+
+    if (!userId) throw new Error('未提供使用者 ID');
+    isLoading.value = true;
+
+    try {
+      const { data } = await axios.get(`${API_BASE}/bookings/user/${userId}`);
+      return data;
+    } catch (error) {
+      throw new Error('載入訂單失敗');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  /**
+   * @deprecated 請使用 fetchMyOrders
+   */
+  const fetchOrdersByHost = async (hostId) => {
+    console.warn('fetchOrdersByHost 已過時，請使用 fetchMyOrders');
+
     if (!hostId) throw new Error('未提供房東 ID');
     isLoading.value = true;
+
     try {
-      const response = await axios.get(`https://localhost:7230/api/bookings/host/${hostId}`);
-      return response.data;
+      const { data } = await axios.get(`${API_BASE}/bookings/host/${hostId}`);
+      return data;
     } catch (error) {
-      console.error(`獲取房東 ${hostId} 的訂單失敗：`, error);
-      throw error;
+      throw new Error('載入房東訂單失敗');
     } finally {
       isLoading.value = false;
     }
   };
 
-  // 獲取單一訂單詳情 (根據 orderNumber)
+  /**
+   * 根據訂單編號取得單一訂單
+   */
   const fetchBookingByOrderNumber = async (orderNumber) => {
-    if (!orderNumber) {
-      throw new Error('未提供訂單編號');
-    }
+    if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const response = await axios.get(`https://localhost:7230/api/bookings/ordernumber/${orderNumber}`);
-      return response.data;
+      const { data } = await axios.get(`${API_BASE}/bookings/ordernumber/${orderNumber}`);
+      return data;
     } catch (error) {
-      console.error(`獲取訂單 ${orderNumber} 失敗：`, error);
-      throw error;
+      throw new Error('找不到該訂單');
     } finally {
       isLoading.value = false;
     }
   };
 
-
-  // 為延後支付的訂單獲取付款表單
+  /**
+   * 取得延後付款表單
+   */
   const getDeferredPaymentForm = async (orderNumber) => {
-    if (!orderNumber) {
-      throw new Error('未提供訂單編號');
-    }
+    if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const response = await axios.get(
-        `https://localhost:7230/api/payments/deferred/${orderNumber}`
-      );
-      return response.data; // { success, orderNumber, ecpayFormHtml }
+      const { data } = await axios.get(`${API_BASE}/payments/deferred/${orderNumber}`);
+      return data;
     } catch (error) {
-      console.error(`為訂單 ${orderNumber} 獲取付款表單失敗：`, error);
-      throw error;
+      const msg = error.response?.data?.message || '無法取得付款表單';
+      throw new Error(msg);
     } finally {
       isLoading.value = false;
     }
   };
 
-  // 根據BookingId取消訂單
+  /**
+   * 取消訂單
+   */
   const cancelBooking = async (bookingId) => {
-    if (!bookingId) {
-      throw new Error('未提供訂單 ID');
-    }
+    if (!bookingId) throw new Error('未提供訂單 ID');
     isLoading.value = true;
     try {
-      const response = await axios.put(
-        `https://localhost:7230/api/bookings/cancel/${bookingId}`
-      );
-      return response.data;
+      const { data } = await axios.put(`${API_BASE}/bookings/cancel/${bookingId}`);
+      return data;
     } catch (error) {
-      console.error(`取消訂單 ${bookingId} 失敗：`, error);
-      throw error;
+      const msg = error.response?.data?.message || '取消訂單失敗';
+      throw new Error(msg);
     } finally {
       isLoading.value = false;
     }
   };
 
+  // ==================== Return ====================
   return {
     // State
-    bookingDraft,
-    isLoading,
+    bookingDraft: bookingDraft,
+    isLoading: readonly(isLoading),
 
     // Getters
     hasBookingDraft,
     nights,
     refundableDate,
+    isRefundable,
     subtotal,
+    serviceFee,
     discountAmount,
     totalPrice,
 
@@ -265,10 +339,17 @@ export const useBookingStore = defineStore('booking', () => {
     setBookingDraft,
     clearBookingDraft,
     createBooking,
-    fetchUserBookings,
-    fetchHostOrders,
+    fetchMyBookings,
+    fetchMyOrders,
+    fetchBookingsByUser,
+    fetchOrdersByHost,
     fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,
   };
+}, {
+  persist: {
+    paths: ['bookingDraft'],
+    storage: sessionStorage,
+  },
 });

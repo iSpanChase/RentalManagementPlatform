@@ -16,16 +16,8 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			_bookingService = bookingService;
 		}
 
-		// 取得所有訂單(測試用)
-		[HttpGet]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookingsAsync()
-		{
-			var bookings = await _bookingService.GetAllBookingsAsync();
-			return Ok(bookings);
-		}
-
-		// [開發用] 根據使用者ID獲取其所有訂單
-		// 未來與登入功能整合後，應改為從 HttpContext 的 Claims 獲取 userId，並加上 [Authorize]
+		// [開發用] 根據 HostId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingsAsync 方法")]
 		[HttpGet("user/{guestId}")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsByUserId(int guestId)
 		{
@@ -34,10 +26,27 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 		}
 
 		// [開發用] 根據 HostId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyOrdersAsync 方法")]
 		[HttpGet("host/{hostId}")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetOrdersByHostId(int hostId)
 		{
 			var bookings = await _bookingService.GetOrdersByHostIdAsync(hostId);
+			return Ok(bookings);
+		}
+
+		// 根據已驗證 GuestId 獲取其所有訂單
+		[HttpGet("my-bookings/{authenticatedGuestId}")]
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyBookings(int authenticatedGuestId)
+		{
+			var bookings = await _bookingService.GetMyBookingsAsync(authenticatedGuestId);
+			return Ok(bookings);
+		}
+
+		// 根據已驗證 HostId 獲取其所有訂單
+		[HttpGet("my-orders/{authenticatedHostId}")]
+		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyOrders(int authenticatedHostId)
+		{
+			var bookings = await _bookingService.GetMyOrdersAsync(authenticatedHostId);
 			return Ok(bookings);
 		}
 

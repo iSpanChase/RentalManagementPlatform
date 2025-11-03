@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
+using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 using RentalManagementPlatformWebAPI.Models;
 using System;
 using System.Linq;

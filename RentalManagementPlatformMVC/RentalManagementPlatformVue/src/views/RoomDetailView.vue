@@ -61,11 +61,11 @@
             <span class="price-amount">${{ roomDetail.pricePerNight }}</span>
             <span class="price-unit">night</span>
           </div>
-          
+
           <div class="booking-form">
-             <date-picker 
+             <date-picker
                 v-model:value="dateRange"
-                range 
+                range
                 placeholder="Select check-in & check-out date"
                 format="YYYY-MM-DD"
                 :editable="false"
@@ -79,7 +79,7 @@
 
           <button class="reserve-button" @click="handleReserve">Reserve</button>
           <p class="charge-notice">You won't be charged yet</p>
-          
+
           <div class="price-breakdown" v-if="dateRange && dateRange[0] && dateRange[1]">
             <div class="price-item">
                 <span>${{ roomDetail.pricePerNight }} x {{ nights }} nights</span>
@@ -87,12 +87,12 @@
             </div>
             <div class="price-item">
                 <span>Service fee</span>
-                <span>$50</span>
+                <span>${{ serviceFee }}</span>
             </div>
             <hr/>
             <div class="price-item total">
                 <span>Total</span>
-                <span>${{ roomDetail.pricePerNight * nights + 50 }}</span>
+                <span>${{ totalPriceWithFee }}</span>
             </div>
           </div>
         </div>
@@ -108,6 +108,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { fetchReviewsByRoomId, createReview } from '@/api/reviewApi';
 import { fetchRoomDetail, type RoomDetail } from '@/api/roomSearchApi';
 import { useBookingStore } from '@/stores/bookingStore.js';
+import { useAuthStore } from '@/stores/authStore.js';
 import ReviewList from '@/modules/RoomManagement/ReviewList.vue';
 import ReviewForm from '@/modules/RoomManagement/ReviewForm.vue';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
@@ -118,6 +119,7 @@ import 'vue-datepicker-next/index.css';
 const route = useRoute();
 const router = useRouter();
 const bookingStore = useBookingStore();
+const authStore = useAuthStore();
 const roomId = Number(route.params.id);
 
 // State for booking form
@@ -236,6 +238,18 @@ const nights = computed(() => {
     return diffDays > 0 ? diffDays : 0;
 });
 
+const serviceFee = computed(() => {
+  if (!roomDetail.value || nights.value <= 0) return 0;
+  const subtotal = roomDetail.value.pricePerNight * nights.value;
+  return Math.round(subtotal * 0.1); // 10% service fee
+});
+
+const totalPriceWithFee = computed(() => {
+  if (!roomDetail.value || nights.value <= 0) return 0;
+  const subtotal = roomDetail.value.pricePerNight * nights.value;
+  return subtotal + serviceFee.value;
+});
+
 // Query to fetch reviews
 const {
   data: reviews,
@@ -246,6 +260,13 @@ const {
   queryKey: ['reviews', roomId],
   queryFn: () => fetchReviewsByRoomId(roomId),
 });
+
+const toLocalISODateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const handleReserve = () => {
     if (!dateRange.value || dateRange.value.length < 2 || !dateRange.value[0] || !dateRange.value[1]) {
@@ -265,13 +286,14 @@ const handleReserve = () => {
 
     const bookingData = {
         roomId: roomDetail.value.roomId,
-        guestId: 1, // Placeholder for logged-in user ID
-        checkIn: (checkIn as Date).toISOString().split('T')[0],
-        checkOut: (checkOut as Date).toISOString().split('T')[0],
+        guestId: authStore.currentUser?.id,
+        checkIn: toLocalISODateString(checkIn as Date),
+        checkOut: toLocalISODateString(checkOut as Date),
         guestCount: guestCount.value,
         roomTitle: roomDetail.value.title,
         roomImage: roomDetail.value.mainImageUrl || galleryItems.value[0]?.src || '',
         pricePerNight: roomDetail.value.pricePerNight,
+        serviceFee: roomDetail.value.pricePerNight * nights.value * 0.1, // Example: 10% service fee
     };
 
     bookingStore.setBookingDraft(bookingData);

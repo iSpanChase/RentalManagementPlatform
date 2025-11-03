@@ -9,13 +9,13 @@ namespace RentalManagementPlatformWebAPI.Hubs
     public class NotificationHub : Hub
     {
         /// <summary>
-        /// 允許客戶端加入其 hostId 專屬的群組，確保通知只發送給相關的房東。
+        /// 允許客戶端加入其 userId 專屬的群組，確保通知只發送給相關的用戶。
         /// </summary>
-        /// <param name="hostId">要訂閱的房東 ID。</param>
-        public async Task JoinHostGroup(string hostId)
+        /// <param name="userId">要訂閱的用戶 ID。</param>
+        public async Task JoinUserGroup(string userId)
         {
             // 根據房東的 ID 建立一個群組名稱。
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"host_{hostId}");
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
         }
     }
 }

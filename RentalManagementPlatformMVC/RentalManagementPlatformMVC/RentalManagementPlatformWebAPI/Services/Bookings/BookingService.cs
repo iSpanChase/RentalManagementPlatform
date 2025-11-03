@@ -38,14 +38,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			_fileUrlResolver = fileUrlResolver; 
 		}
 
-		// 取得所有訂單(測試用)
-		public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
-		{
-			var bookings = await _bookingRepository.GetAllBookingsAsync();
-			return _mapper.Map<IEnumerable<BookingDto>>(bookings);
-		}
-
 		// 根據 GuestId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
 		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
 		{
 			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
@@ -74,6 +68,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		}
 
 		// 根據 HostId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
 		public async Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId)
 		{
 			var bookings = await _bookingRepository.GetOrdersByHostIdAsync(hostId);
@@ -100,6 +95,80 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			return bookingDtos;
 		}
 
+		// 根據已驗證 GuestId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetMyBookingsAsync(int authenticatedGuestId)
+		{
+			var bookings = await _bookingRepository.GetMyBookingsAsync(authenticatedGuestId);
+
+			if (bookings == null || !bookings.Any())
+			{
+				return Enumerable.Empty<BookingDto>();
+			}
+
+			var bookingDtos = new List<BookingDto>();
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+
+				// 設定房間主要圖片
+				if (booking.Room?.RoomPhotos?.Any() == true)
+				{
+					var mainPhoto = booking.Room.RoomPhotos
+						.OrderBy(p => p.SortOrder)
+						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+							booking.Room.RoomPhotos
+							.OrderBy(p => p.SortOrder)
+							.FirstOrDefault();
+
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+					}
+				}
+
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
+		}
+
+		// 根據已驗證 HostId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetMyOrdersAsync(int authenticatedHostId)
+		{
+			var bookings = await _bookingRepository.GetMyOrdersAsync(authenticatedHostId);
+
+			if (bookings == null || !bookings.Any())
+			{
+				return Enumerable.Empty<BookingDto>();
+			}
+
+			var bookingDtos = new List<BookingDto>();
+
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+
+				// 設定房間主要圖片
+				if (booking.Room?.RoomPhotos?.Any() == true)
+				{
+					var mainPhoto = booking.Room.RoomPhotos
+						.OrderBy(p => p.SortOrder)
+						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+							booking.Room.RoomPhotos
+							.OrderBy(p => p.SortOrder)
+							.FirstOrDefault();
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+					}
+				}
+
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
+		}
+
 		// 建立訂單並根據付款時機決定是否產生綠界表單
 		public async Task<CreateOrderAndPayResponseDto> CreateBookingWithPaymentAsync(CreateBookingWithPaymentDto dto)
 		{
@@ -113,7 +182,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				?? throw new ArgumentException("找不到指定房間");
 
 			int nights = (dto.CheckOut - dto.CheckIn).Days;
-			if (nights <= 0)
+			if (nights < 0)
 			{
 				throw new ArgumentException("住宿天數必須大於 0");
 			}
@@ -221,7 +290,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
             {
                 var hostId = room.HostId.Value;
                 string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
-                await _hubContext.Clients.Group($"host_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
+                await _hubContext.Clients.Group($"user_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
             }
 
             // ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
@@ -248,8 +317,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					// 立即支付的回傳資料
 					PaymentRequired = true,
 					PaymentStatus = "pending",
-					EcpayFormHtml = ecpayFormHtml,
-					PaymentDeadline = null
+					PaymentDeadline = null,
+					EcpayFormHtml = ecpayFormHtml
 				};
 			}
 			else if (dto.PaymentTiming == "partial")
@@ -266,8 +335,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 					// 延後支付的回傳資料
 					PaymentRequired = false,
 					PaymentStatus = "deferred",
-					EcpayFormHtml = null,
-					PaymentDeadline = booking.PaymentDeadline
+					PaymentDeadline = booking.PaymentDeadline,
+					EcpayFormHtml = null
 				};
 			}
 			else
@@ -309,7 +378,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 
 			booking.UpdatedAt = DateTime.Now;
 			await _bookingRepository.UpdateBookingAsync(booking);
-			return _mapper.Map<BookingDto>(booking);
+
+			var bookingDto = _mapper.Map<BookingDto>(booking);
+			if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
+			{
+				var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+				if (mainPhoto != null)
+				{
+					bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+				}
+			}
+			return bookingDto;
 		}
 
 		// 根據訂單編號獲取單一訂單詳情
