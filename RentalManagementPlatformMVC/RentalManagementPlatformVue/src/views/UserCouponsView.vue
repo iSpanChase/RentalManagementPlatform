@@ -42,6 +42,11 @@ const userId = 1 // 模擬目前登入使用者
 
 const { data: userCoupons, isLoading, isError, error } = useQuery({
   queryKey: ['userCoupons', userId],
-  queryFn: () => getUserCoupons(userId),
+  queryFn: async () => {
+    console.log(`[UserCouponsView] Fetching coupons for userId: ${userId}`);
+    const coupons = await getUserCoupons(userId);
+    console.log('[UserCouponsView] Fetched data:', coupons);
+    return coupons;
+  },
 })
 </script>

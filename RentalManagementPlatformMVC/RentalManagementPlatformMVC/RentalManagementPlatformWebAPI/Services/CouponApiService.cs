@@ -212,20 +212,19 @@ namespace RentalManagementPlatformWebAPI.Services
         {
             var userCoupons = await _couponRepository.GetUserCouponsByGuestIdAsync(userId);
 
-            return userCoupons.Select(cg => new UserCouponDto
-            {
-                CouponId = cg.Coupon.CouponId,
-                CouponName = cg.Coupon.CouponName,
-                Description = cg.Coupon.Description,
-                DiscountCode = cg.Coupon.DiscountCode,
-                Status = DetermineCouponStatus(cg),
-                EndAt = cg.Coupon.EndAt ?? DateTime.MaxValue,
-                StartAt = cg.Coupon.StartRentalPeriod ?? DateTime.MinValue, // 假設 StartRentalPeriod 是開始時間
-                DiscountMethod = cg.Coupon.DiscountMethod,
-                DiscountQuota = cg.Coupon.DiscountQuota ?? 0,
-                LowSpend = cg.Coupon.LowSpend
-            });
-        }
+                return userCoupons.Select(cg => new UserCouponDto
+                {
+                    CouponId = cg.Coupon.CouponId,
+                    CouponName = cg.Coupon.CouponName,
+                    Description = cg.Coupon.Description,
+                    DiscountCode = cg.Coupon.DiscountCode,
+                    Status = DetermineCouponStatus(cg),
+                    EndAt = cg.Coupon.EndAt ?? DateTime.MaxValue,
+                    StartAt = cg.Coupon.StartRentalPeriod ?? DateTime.MinValue, // 假設 StartRentalPeriod 是開始時間
+                    DiscountMethod = cg.Coupon.DiscountMethod,
+                    DiscountQuota = cg.Coupon.DiscountQuota ?? 0,
+                    LowSpend = cg.Coupon.LowSpend
+                });        }
 
         private string DetermineCouponStatus(CouponGuest couponGuest)
         {
@@ -242,8 +241,8 @@ namespace RentalManagementPlatformWebAPI.Services
                 _logger.LogInformation("Status: expired (CouponEndAt is in the past)");
                 return "expired";
             }
-            _logger.LogInformation("Status: unused");
-            return "unused";
+            _logger.LogInformation("Status: 可使用");
+            return "可使用";
         }
 
         public async Task<bool> RedeemPromoCodeAsync(RedeemPromoCodeRequestDto request)

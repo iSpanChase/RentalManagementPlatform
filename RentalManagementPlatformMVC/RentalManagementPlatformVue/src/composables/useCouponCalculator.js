@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { getUserCoupons, validateCoupon } from '../services/CouponService';
-import { useCouponStore } from '../stores/coupon.js';
+import { useCouponStore } from '../stores/couponStore.js';
 import { useBookingStore } from '../stores/bookingStore.js';
 import { useToast } from 'vue-toastification';
 
@@ -105,6 +105,7 @@ export function useCouponCalculator(cartInfo) {
 
   // 將從後端獲取的原始優惠券資料，轉換為 CouponSelector 元件所需的格式
   const couponOptions = computed(() => {
+    console.log('Raw user coupons before filtering:', userCoupons.value);
     const calculateDiscountValue = (coupon) => {
       if (coupon.discountMethod?.toLowerCase() === 'amount') {
         return coupon.discountQuota;
@@ -115,7 +116,7 @@ export function useCouponCalculator(cartInfo) {
       return 0;
     };
     return userCoupons.value
-      .filter(c => c.status === 'unused') // Only show unused coupons
+      .filter(c => c.status === '可使用') // Only show unused coupons
       .map(c => { 
         let disabled = false;
         let disabledMessage = '';
@@ -166,23 +167,21 @@ export function useCouponCalculator(cartInfo) {
     selectedCouponDescription.value = null; // 清除選定優惠券的描述
   }
 
-  // ----------------------------------------------------------------------------
-  // 回傳 API (Return Public API)
-  // ----------------------------------------------------------------------------
-  return {
-    // State
-    couponOptions,
-    selectedCouponId,
-    discountAmount,
-    finalPrice,
-    selectedCouponDescription, // 匯出選定優惠券的描述
-
-    // Methods
-    resetCouponState,
-    fetchUserCoupons, // 匯出重新獲取使用者優惠券的方法
-  };
-
-  // 新增一個方法來重新獲取使用者優惠券
+          // ----------------------------------------------------------------------------
+          // 回傳 API (Return Public API)
+          // ----------------------------------------------------------------------------
+          return {
+            // State
+            couponOptions,
+            selectedCouponId,
+            discountAmount,
+            finalPrice,
+            selectedCouponDescription, // 匯出選定優惠券的描述
+      
+            // Methods
+            resetCouponState,
+            fetchUserCoupons, // 匯出重新獲取使用者優惠券的方法
+          };  // 新增一個方法來重新獲取使用者優惠券
   async function fetchUserCoupons(userId) {
     if (!userId) return;
     try {

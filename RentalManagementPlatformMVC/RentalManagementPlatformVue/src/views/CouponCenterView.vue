@@ -73,7 +73,7 @@
 import { ref, computed, watch } from 'vue';
 import { useCouponStore } from '@/stores/couponStore.js';
 import { useQuery } from '@tanstack/vue-query';
-import { getUserCoupons } from '@/services/CouponService';
+import { getUserCoupons, getPublicCoupons } from '@/services/CouponService';
 import CouponList from '@/components/coupons/CouponList.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import CouponDetail from '@/components/coupons/CouponDetail.vue';
@@ -107,7 +107,22 @@ function closeModal() {
 // --- Data Fetching ---
 const { data: userCoupons, isLoading: isLoadingUser } = useQuery<Coupon[]>({
   queryKey: ['userCoupons', userId],
-  queryFn: () => getUserCoupons(userId.value as number),
+  queryFn: async () => {
+    console.log(`[CouponCenterView] Starting fetch for user coupons, userId: ${userId.value}`);
+    try {
+      const rawCoupons = await getUserCoupons(userId.value as number);
+      console.log('[CouponCenterView] Raw user coupons from API:', rawCoupons);
+      const now = new Date();
+      return rawCoupons.map((c: any) => ({
+        ...c,
+        isExpired: new Date(c.endAt) < now,
+        isAvailable: new Date(c.endAt) >= now && c.status !== 'used',
+      }));
+    } catch (err) {
+      console.error('[CouponCenterView] Error fetching user coupons:', err);
+      throw err; // Re-throw the error so that useQuery can handle it
+    }
+  },
   enabled: computed(() => typeof userId.value === 'number'),
   initialData: [],
 });
@@ -115,8 +130,13 @@ const { data: userCoupons, isLoading: isLoadingUser } = useQuery<Coupon[]>({
 const { data: publicCoupons, isLoading: isLoadingPublic } = useQuery<Coupon[]>({
   queryKey: ['publicCoupons'],
   queryFn: async () => {
-    await couponStore.fetchPublicCoupons();
-    return couponStore.publicCoupons;
+    const rawCoupons = await getPublicCoupons();
+    const now = new Date();
+    return rawCoupons.map((c: any) => ({
+      ...c,
+      isExpired: new Date(c.endAt) < now,
+      isAvailable: new Date(c.endAt) >= now && !c.isRedeemed, // Assuming isRedeemed is on the raw data
+    }));
   },
   initialData: [],
 });
@@ -130,12 +150,9 @@ const allCoupons = computed(() => {
   const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
   const claimable = publicCoupons.value.filter(p => !userCouponIds.has(p.couponId) && new Date(p.endAt) > now);
-  const usable = userCoupons.value.filter(c => c.status === 'unused' && new Date(c.endAt) > now).map(c => ({
-    ...c,
-    isExpiringSoon: new Date(c.endAt) <= threeDaysLater,
-  }));
-  const used = userCoupons.value.filter(c => c.status === 'used');
-  const expired = userCoupons.value.filter(c => c.status === 'expired' || new Date(c.endAt) <= now);
+  const usable = userCoupons.value.filter(c => (c.status === '可使用' || c.status === 'unused') && new Date(c.endAt) > now);
+  const used = userCoupons.value.filter(c => c.status === '已使用' || c.status === 'used');
+  const expired = userCoupons.value.filter(c => c.status === '已過期' || c.status === 'expired' || new Date(c.endAt) <= now);
   
   return { claimable, usable, used, expired };
 });

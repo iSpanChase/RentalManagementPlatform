@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTicketAlt } from '@fortawesome/free-solid-svg-icons';
 import RedeemButton from './RedeemButton.vue';
@@ -52,12 +52,16 @@ const props = defineProps({
   userId: { type: Number, required: true },
 });
 
+onMounted(() => {
+  console.log('[CouponCard] Created with props:', { coupon: props.coupon, userId: props.userId });
+});
+
 const emit = defineEmits(['gotoUse', 'showDetails']);
 
 // --- Date & Status Logic ---
 const isClaimed = computed(() => props.coupon.status !== undefined);
-const isUsed = computed(() => props.coupon.status === 'used');
-const isExpired = computed(() => new Date(props.coupon.endAt) <= new Date() || props.coupon.status === 'expired');
+const isUsed = computed(() => props.coupon.status === '已使用' || props.coupon.status === 'used');
+const isExpired = computed(() => new Date(props.coupon.endAt) <= new Date() || props.coupon.status === '已過期' || props.coupon.status === 'expired');
 
 // --- API & State Logic ---
 const couponStore = useCouponStore();
@@ -65,22 +69,36 @@ const queryClient = useQueryClient();
 const toast = useToast();
 
 const { mutate, isPending } = useMutation({
-  mutationFn: () => couponStore.claimCoupon(props.userId, props.coupon.discountCode),
+  mutationFn: () => {
+    console.log(`[CouponCard] Calling claimCoupon for userId: ${props.userId}, code: ${props.coupon.discountCode}`);
+    return couponStore.claimCoupon(props.userId, props.coupon.discountCode);
+  },
   onSuccess: (data) => { // data will be { message: "領取成功" }
+    console.log('[CouponCard] claimCoupon SUCCESS:', data);
     toast.success(data.message);
-    queryClient.invalidateQueries({ queryKey: ['userCoupons', props.userId] });
+    const userCouponsQueryKey = ['userCoupons', props.userId];
+    console.log('[CouponCard] Invalidating queryKey:', userCouponsQueryKey);
+    queryClient.invalidateQueries({ queryKey: userCouponsQueryKey });
     queryClient.invalidateQueries({ queryKey: ['publicCoupons'] });
   },
   onError: (error) => {
     const errorMessage = error.response?.data?.message || '領取時發生未知錯誤';
+    console.error('[CouponCard] claimCoupon ERROR:', error);
     toast.error(errorMessage);
   },
 });
 
 const handleAction = () => {
-  if (props.coupon.status === 'unused') {
+  console.log('[CouponCard] handleAction called.');
+  if (buttonState.value.disabled) {
+    console.log('[CouponCard] Action ignored. Button is disabled.');
+    return;
+  }
+
+  if (buttonState.value.text === '使用') {
     emit('gotoUse', props.coupon.couponId);
-  } else if (!props.coupon.isRedeemed && !isClaimed.value) { // Only mutate if not already redeemed and not claimed
+  } else if (buttonState.value.text === '領取') {
+    console.log('[CouponCard] Triggering mutation (mutate).');
     mutate();
   }
 };
@@ -90,8 +108,17 @@ const buttonState = computed(() => {
   if (isPending.value) return { text: '處理中', disabled: true };
   if (isUsed.value) return { text: '已使用', disabled: true };
   if (isExpired.value) return { text: '已過期', disabled: true };
-  if (props.coupon.isRedeemed) return { text: '已領取', disabled: true }; // New state
-  if (props.coupon.status === 'unused') return { text: '使用', disabled: false };
+
+  // If not used or expired, check if it's usable (status '可使用' or 'unused')
+  if (props.coupon.status === '可使用' || props.coupon.status === 'unused') {
+    return { text: '使用', disabled: false };
+  }
+
+  // This 'isRedeemed' check is for public coupons that have been claimed.
+  // It should show '已領取' and be disabled.
+  if (props.coupon.isRedeemed) return { text: '已領取', disabled: true };
+
+  // Default for public coupons that are claimable (not in user's list, not expired)
   return { text: '領取', disabled: false };
 });
 

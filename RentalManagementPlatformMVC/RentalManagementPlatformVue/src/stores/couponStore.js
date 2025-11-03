@@ -1,5 +1,3 @@
-//集中管理所有優惠券狀態(公開+user)
-// src/stores/couponStore.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
@@ -9,12 +7,14 @@ import {
   markCouponUsed
 } from '@/services/CouponService'
 
+/** @typedef {import('@/types/coupon').Coupon} Coupon */
+
 export const useCouponStore = defineStore('coupon', () => {
   /** -----------------------
    * 狀態 (State)
    * ----------------------- */
-  const publicCoupons = ref([])   // 所有可領取的公開優惠券
-  const userCoupons = ref([])     // 該使用者已領取的優惠券
+  const publicCoupons = ref(/** @type {Coupon[]} */ ([]))   // 所有可領取的公開優惠券
+  const userCoupons = ref(/** @type {Coupon[]} */ ([]))     // 該使用者已領取的優惠券
   const loading = ref(false)
   const error = ref(null)
 

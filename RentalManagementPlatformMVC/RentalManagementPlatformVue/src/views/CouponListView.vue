@@ -3,7 +3,7 @@
     <h2 class="mb-4">可領取優惠券</h2>
 
     <!-- 載入中狀態 -->
-    <div v-if="couponStore.isLoading" class="text-center py-5">
+    <div v-if="couponStore.loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">載入中...</span>
       </div>
@@ -19,16 +19,16 @@
     </div>
 
     <!-- 空狀態 -->
-    <div v-else-if="couponStore.coupons.length === 0 && !couponStore.isLoading" class="text-center py-5">
+    <div v-else-if="couponStore.publicCoupons.length === 0 && !couponStore.loading" class="text-center py-5">
       <img src="https://via.placeholder.com/150/007bff/ffffff?text=No+Coupons" alt="No Coupons" class="mb-3">
       <h3>目前沒有可領取的優惠券</h3>
       <p class="text-muted">敬請期待，新的優惠券將會陸續上架！</p>
-      <button class="btn btn-outline-primary mt-3" @click="couponStore.fetchCoupons()">重新整理</button>
+      <button class="btn btn-outline-primary mt-3" @click="couponStore.fetchPublicCoupons()">重新整理</button>
     </div>
 
     <!-- 優惠券列表 -->
     <div v-else class="row">
-      <div class="col-md-6 col-lg-4 mb-4" v-for="coupon in couponStore.coupons" :key="coupon.couponId">
+      <div class="col-md-6 col-lg-4 mb-4" v-for="coupon in couponStore.publicCoupons" :key="coupon.couponId">
         <CouponCard :coupon="coupon" />
       </div>
     </div>
@@ -39,15 +39,15 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useCouponStore } from '../stores/coupon.js';
+import { useCouponStore } from '../stores/couponStore.js';
 import CouponCard from '../components/coupons/CouponCard.vue';
 
 const couponStore = useCouponStore();
 
-console.log('View - couponStore.coupons:', couponStore.coupons); // <-- 加入這行
+console.log('View - couponStore.publicCoupons:', couponStore.publicCoupons); // <-- 加入這行
 
 onMounted(() => {
-  couponStore.fetchCoupons(); // 元件掛載時獲取優惠券列表
+  couponStore.fetchPublicCoupons(); // 元件掛載時獲取優惠券列表
 });
 </script>
 
