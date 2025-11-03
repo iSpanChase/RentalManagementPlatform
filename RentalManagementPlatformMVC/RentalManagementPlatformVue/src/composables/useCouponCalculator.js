@@ -1,8 +1,8 @@
-//coupon優惠券的邏輯處理,呼叫後端服務進行驗證
 import { ref, computed, onMounted, watch } from 'vue';
 import { getUserCoupons, validateCoupon } from '../services/CouponService';
 import { useCouponStore } from '../stores/coupon.js';
 import { useBookingStore } from '../stores/bookingStore.js';
+import { useToast } from 'vue-toastification';
 
 /**
  * @description 處理優惠券相關所有商業邏輯的 Vue Composable
@@ -21,7 +21,7 @@ export function useCouponCalculator(cartInfo) {
   const validationMessage = ref(''); // 驗證訊息
   const isError = ref(false); // 是否發生錯誤
 
-  const couponStore = useCouponStore(); // 引入 coupon store
+  const toast = useToast(); // 引入 toast
 
   // ----------------------------------------------------------------------------
   // 生命週期鉤子 (Lifecycle Hooks)
@@ -73,21 +73,17 @@ export function useCouponCalculator(cartInfo) {
       if (response.isValid) {
         discountAmount.value = response.discountAmount || 0;
         selectedCouponDescription.value = selected.description; // 設定選定優惠券的描述
-        couponStore.showToast(response.message || '優惠券已成功套用！', 'success');
+        toast.success(response.message || '優惠券已成功套用！');
       } else {
         resetCouponState();
         selectedCouponId.value = null;
-        couponStore.showToast(`無法使用：${response.message}`, 'error');
+        toast.error(`無法使用：${response.message}`);
       }
-    } catch (error) {
-      resetCouponState();
-      selectedCouponId.value = null;
-      couponStore.showToast(
-        `驗證時發生錯誤：${error.response?.data?.message || error.message}`,
-        'error'
-      );
-    }
-  });
+              } catch (error) {
+                resetCouponState();
+                selectedCouponId.value = null;
+                toast.error(`驗證時發生錯誤：${error.response?.data?.message || error.message}`);
+              }  });
 
   // 監聽外部傳入的 cartInfo，如果訂單金額或租期變動，就重新觸發一次驗證
   watch(
@@ -109,29 +105,48 @@ export function useCouponCalculator(cartInfo) {
 
   // 將從後端獲取的原始優惠券資料，轉換為 CouponSelector 元件所需的格式
   const couponOptions = computed(() => {
-    return userCoupons.value.map((c) => {
-      let disabled = false;
-      let disabledMessage = '';
-
-      if (c.lowSpend && cartInfo.value.totalAmount < c.lowSpend) {
-        disabled = true;
-        disabledMessage = `需滿 ${c.lowSpend} 元`;
-      } else if (c.status !== '可使用') {
-        disabled = true;
-        disabledMessage = c.status;
+    const calculateDiscountValue = (coupon) => {
+      if (coupon.discountMethod?.toLowerCase() === 'amount') {
+        return coupon.discountQuota;
       }
+      if (coupon.discountMethod?.toLowerCase() === 'percentage') {
+        return cartInfo.value.totalAmount * (1 - coupon.discountQuota / 100);
+      }
+      return 0;
+    };
+    return userCoupons.value
+      .filter(c => c.status === 'unused') // Only show unused coupons
+      .map(c => { 
+        let disabled = false;
+        let disabledMessage = '';
 
-      return {
-        couponId: c.couponId,
-        couponName: c.couponName,
-        description:
-          c.discountMethod === 'Percentage'
-            ? `${c.discountQuota}% 折扣`
-            : `折抵 ${c.discountQuota} 元`,
-        disabled,
-        disabledMessage,
-      };
-    });
+        if (c.lowSpend && cartInfo.value.totalAmount < c.lowSpend) {
+          disabled = true;
+          disabledMessage = `需滿 ${c.lowSpend} 元`;
+        }
+
+        return {
+          couponId: c.couponId,
+          couponName: c.couponName,
+          description: c.discountMethod?.toLowerCase() === 'percentage' ? `${c.discountQuota / 10}折` : `現金折抵 ${c.discountQuota} 元`,
+          disabled,
+          disabledMessage,
+          // Add original coupon data for sorting
+          discountMethod: c.discountMethod,
+          discountQuota: c.discountQuota,
+        };
+      })
+      .sort((a, b) => {
+        // 1. Sort by disabled status (eligible first)
+        if (a.disabled !== b.disabled) {
+          return a.disabled ? 1 : -1;
+        }
+
+        // 2. Sort by effective discount amount (descending)
+        const discountA = calculateDiscountValue(a);
+        const discountB = calculateDiscountValue(b);
+        return discountB - discountA;
+      });
   });
 
   // 最終應付金額

@@ -38,7 +38,7 @@ interface Coupon {
   status: string;
 } 
 
-const userId = 10 // 模擬目前登入使用者
+const userId = 1 // 模擬目前登入使用者
 
 const { data: userCoupons, isLoading, isError, error } = useQuery({
   queryKey: ['userCoupons', userId],

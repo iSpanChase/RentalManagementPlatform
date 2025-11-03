@@ -2,20 +2,35 @@ import api from '../api/axiosInstance';
 
 // 取得所有公開的優惠券清單
 export const getPublicCoupons = async () => {
+try{
   const response = await api.get('/CouponApi/list');
   return response.data;
+} catch (error) {
+    console.error('Error fetching public coupons:', error);
+    return [];
+  }
 };
 
 // 取得指定使用者的優惠券清單
 export const getUserCoupons = async (userId) => {
-  const response = await api.get(`/CouponApi/user/${userId}`);
-  return response.data;
+  try{
+    const response = await api.get(`/CouponApi/user/${userId}`);
+    return response.data;
+  }catch(error){
+    console.error('Error fetching public coupons:', error);
+    return [];
+  }
 };
 
 // 領取優惠券
 export const redeemCoupon = async (userId, discountCode) => {
-  const response = await api.post('/CouponApi/redeem', { userId, discountCode });
-  return response.data;
+  try{
+      const response = await api.post('/CouponApi/redeem', { userId, discountCode });
+      return response.data;
+  } catch (error) {
+      console.error('Error fetching user coupons::', error);
+      return { success: false, message: '領取優惠券時發生錯誤' };
+  }
 };
 
 /**
@@ -24,8 +39,13 @@ export const redeemCoupon = async (userId, discountCode) => {
  * @returns - 後端回傳的驗證結果
  */
 export const validateCoupon = async (request) => {
-  const response = await api.post('/CouponApi/validate', request);
-  return response.data;
+  try{
+      const response = await api.post('/CouponApi/validate', request);
+      return response.data;
+  }catch(error){
+    console.error('Error validating coupon:', error);
+    return { isValid: false, message: '驗證優惠券時發生錯誤'};
+  }
 };
 
 /**

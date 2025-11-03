@@ -83,11 +83,11 @@ namespace RentalManagementPlatformWebAPI.Services
             }
 
             // ☆ 4. 折扣額度合理性驗證
-            if (coupon.DiscountMethod == "Percentage" && (coupon.DiscountQuota <= 0 || coupon.DiscountQuota > 100))
+            if (coupon.DiscountMethod == "percentage" && (coupon.DiscountQuota <= 0 || coupon.DiscountQuota > 100))
             {
                 return new CouponValidationResponseDto { IsValid = false, ErrorCode = "ERR_INVALID_QUOTA", Message = "優惠券折扣額度設定不合理。" };
             }
-            if (coupon.DiscountMethod == "Amount" && coupon.DiscountQuota <= 0)
+            if (coupon.DiscountMethod == "amount" && coupon.DiscountQuota <= 0)
             {
                 return new CouponValidationResponseDto { IsValid = false, ErrorCode = "ERR_INVALID_QUOTA", Message = "優惠券折扣額度設定不合理。" };
             }
@@ -119,7 +119,7 @@ namespace RentalManagementPlatformWebAPI.Services
             }
             else if (coupon.DiscountMethod == "percentage")
             {
-                discountAmount = request.TotalAmount * ((coupon.DiscountQuota ?? 0) / 100m);
+                discountAmount = request.TotalAmount * ((100m - (coupon.DiscountQuota ?? 0)) / 100m);
             }
 
             // 確保折扣金額不超過總金額
@@ -229,10 +229,21 @@ namespace RentalManagementPlatformWebAPI.Services
 
         private string DetermineCouponStatus(CouponGuest couponGuest)
         {
-            // 判斷優惠券目前狀態
-            if (couponGuest.RemoveAt.HasValue) return "已使用"; // 新增：如果 RemoveAt 有值，表示已使用
-            if (couponGuest.Coupon.EndAt < DateTime.UtcNow) return "已過期";
-            return "可使用";
+            _logger.LogInformation("Determining status for CouponGuestId: {CouponGuestId}, RemoveAt: {RemoveAt}, CouponEndAt: {CouponEndAt}, CurrentTime: {CurrentTime}", 
+                couponGuest.CouponGuestId, couponGuest.RemoveAt, couponGuest.Coupon.EndAt, DateTime.UtcNow);
+
+            if (couponGuest.RemoveAt.HasValue) 
+            {
+                _logger.LogInformation("Status: used (RemoveAt has value)");
+                return "used";
+            }
+            if (couponGuest.Coupon.EndAt < DateTime.UtcNow) 
+            {
+                _logger.LogInformation("Status: expired (CouponEndAt is in the past)");
+                return "expired";
+            }
+            _logger.LogInformation("Status: unused");
+            return "unused";
         }
 
         public async Task<bool> RedeemPromoCodeAsync(RedeemPromoCodeRequestDto request)
@@ -258,6 +269,9 @@ namespace RentalManagementPlatformWebAPI.Services
                 CouponId = coupon.CouponId,
                 CreateAt = DateTime.UtcNow
             };
+
+            _logger.LogInformation("Attempting to add new CouponGuest: GuestId={GuestId}, CouponId={CouponId}, CreateAt={CreateAt}", 
+                newCouponGuest.GuestId, newCouponGuest.CouponId, newCouponGuest.CreateAt);
 
             try
             {

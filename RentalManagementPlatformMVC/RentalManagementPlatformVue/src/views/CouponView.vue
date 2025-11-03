@@ -28,7 +28,7 @@ onMounted(() => {
   console.log('CouponView component has mounted.');
 });
 
-const userId = 10; // 假設登入使用者 ID
+const userId = 20; // 假設登入使用者 ID
 
 const { data: coupons, isLoading, isError, error } = useQuery({
   queryKey: ['coupons'],

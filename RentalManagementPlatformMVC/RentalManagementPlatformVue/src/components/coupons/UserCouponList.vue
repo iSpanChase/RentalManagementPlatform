@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import CouponCard from './CouponCard.vue';
 import CouponDetailModal from './CouponDetailModal.vue';
-import { useCouponStore } from '@/stores/coupon.js';
+import { useCouponStore } from '@/stores/couponStroe.js';
 import type { Coupon } from '@/types/coupon';
 
 const userId = 1; // 模擬使用者 ID

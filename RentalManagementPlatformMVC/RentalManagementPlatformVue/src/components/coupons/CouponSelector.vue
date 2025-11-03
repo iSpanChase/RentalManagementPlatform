@@ -17,7 +17,7 @@
       >
         {{ coupon.couponName }}
         <span v-if="coupon.description"> ({{ coupon.description }})</span>
-        <span v-if="coupon.disabled" class="text-muted"> - {{ coupon.disabledMessage }}</span>
+        <!-- <span v-if="coupon.disabled" class="text-muted"> - {{ coupon.disabledMessage }}</span> -->
       </option>
     </select>
   </div>
