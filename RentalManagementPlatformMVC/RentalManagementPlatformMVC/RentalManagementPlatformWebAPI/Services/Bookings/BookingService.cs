@@ -39,6 +39,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		}
 
 		// 根據 GuestId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
 		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
 		{
 			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
@@ -67,6 +68,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		}
 
 		// 根據 HostId 獲取其所有訂單
+		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
 		public async Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId)
 		{
 			var bookings = await _bookingRepository.GetOrdersByHostIdAsync(hostId);
@@ -87,6 +89,80 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
 					}
 				}
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
+		}
+
+		// 根據已驗證 GuestId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetMyBookingsAsync(int authenticatedGuestId)
+		{
+			var bookings = await _bookingRepository.GetMyBookingsAsync(authenticatedGuestId);
+
+			if (bookings == null || !bookings.Any())
+			{
+				return Enumerable.Empty<BookingDto>();
+			}
+
+			var bookingDtos = new List<BookingDto>();
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+
+				// 設定房間主要圖片
+				if (booking.Room?.RoomPhotos?.Any() == true)
+				{
+					var mainPhoto = booking.Room.RoomPhotos
+						.OrderBy(p => p.SortOrder)
+						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+							booking.Room.RoomPhotos
+							.OrderBy(p => p.SortOrder)
+							.FirstOrDefault();
+
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+					}
+				}
+
+				bookingDtos.Add(bookingDto);
+			}
+
+			return bookingDtos;
+		}
+
+		// 根據已驗證 HostId 獲取其所有訂單
+		public async Task<IEnumerable<BookingDto>> GetMyOrdersAsync(int authenticatedHostId)
+		{
+			var bookings = await _bookingRepository.GetMyOrdersAsync(authenticatedHostId);
+
+			if (bookings == null || !bookings.Any())
+			{
+				return Enumerable.Empty<BookingDto>();
+			}
+
+			var bookingDtos = new List<BookingDto>();
+
+			foreach (var booking in bookings)
+			{
+				var bookingDto = _mapper.Map<BookingDto>(booking);
+
+				// 設定房間主要圖片
+				if (booking.Room?.RoomPhotos?.Any() == true)
+				{
+					var mainPhoto = booking.Room.RoomPhotos
+						.OrderBy(p => p.SortOrder)
+						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+							booking.Room.RoomPhotos
+							.OrderBy(p => p.SortOrder)
+							.FirstOrDefault();
+					if (mainPhoto != null)
+					{
+						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+					}
+				}
+
 				bookingDtos.Add(bookingDto);
 			}
 
@@ -302,7 +378,17 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 
 			booking.UpdatedAt = DateTime.Now;
 			await _bookingRepository.UpdateBookingAsync(booking);
-			return _mapper.Map<BookingDto>(booking);
+
+			var bookingDto = _mapper.Map<BookingDto>(booking);
+			if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
+			{
+				var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
+				if (mainPhoto != null)
+				{
+					bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
+				}
+			}
+			return bookingDto;
 		}
 
 		// 根據訂單編號獲取單一訂單詳情
