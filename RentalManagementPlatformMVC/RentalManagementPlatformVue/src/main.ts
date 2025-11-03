@@ -15,7 +15,7 @@ import {
     faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser,
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock,
     faHouse, faAddressBook, faStar, faCalendarDays, faUserGroup, faHashtag, faComments,
-    faQuestionCircle, faPhone
+    faQuestionCircle, faPhone, faEnvelope, faSearch
 } from '@fortawesome/free-solid-svg-icons'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
@@ -28,7 +28,7 @@ library.add(
     faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser,
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock,
     faHouse, faAddressBook, faStar, faCalendarDays, faUserGroup, faHashtag, faComments,
-    faQuestionCircle, faPhone
+    faQuestionCircle, faPhone, faSearch, faEnvelope
 );
 dom.watch()
 
