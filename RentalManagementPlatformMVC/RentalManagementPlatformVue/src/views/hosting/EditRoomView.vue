@@ -42,7 +42,7 @@
               @refresh="fetchDetails"
             />
             <hr class="my-4">
-            <button class="btn btn-success" @click="finishEditing">完成並前往首頁</button>
+            <button class="btn btn-success" @click="finishEditing">完成並返回房源列表</button>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ async function handleUpdateRoom(formData) {
 }
 
 function finishEditing() {
-    router.push({ path: '/' });
+  router.push({ path: '/hosting/rooms' });
 }
 
 </script>

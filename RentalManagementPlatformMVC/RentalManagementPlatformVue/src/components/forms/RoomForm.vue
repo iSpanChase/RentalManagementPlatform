@@ -1,13 +1,5 @@
 <template>
   <Form @submit="handleSubmit" :initial-values="initialData" v-slot="{ isSubmitting, values }">
-    
-    <!-- Host ID (for development) -->
-    <div class="mb-3">
-      <label for="hostId" class="form-label">房東 ID</label>
-      <Field name="hostId" type="number" class="form-control" :rules="isPositiveNumber" :disabled="mode === 'edit'" />
-      <ErrorMessage name="hostId" class="text-danger" />
-    </div>
-
     <div class="mb-3">
       <label for="title" class="form-label">房源標題</label>
       <Field name="title" type="text" class="form-control" :rules="isRequired" />
@@ -24,26 +16,72 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label for="cityId" class="form-label">城市</label>
-            <Field name="cityId" as="select" class="form-select" :rules="isRequired" @change="handleCityChange($event.target.value)" :disabled="mode === 'edit'">
-                <option value="" disabled>請選擇城市</option>
-                <option v-for="city in cities" :key="city.cityId" :value="city.cityId">{{ city.cityName }}</option>
-            </Field>
-            <ErrorMessage name="cityId" class="text-danger" />
+            <template v-if="mode === 'create'">
+                <Field
+                    name="cityId"
+                    as="select"
+                    class="form-select"
+                    :rules="isRequired"
+                    @change="handleCityChange($event.target.value)"
+                >
+                    <option value="" disabled>請選擇城市</option>
+                    <option v-for="city in cities" :key="city.cityId" :value="city.cityId">
+                        {{ city.cityName }}
+                    </option>
+                </Field>
+                <ErrorMessage name="cityId" class="text-danger" />
+            </template>
+            <template v-else>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="initialData?.cityName ?? ''"
+                    disabled
+                />
+            </template>
         </div>
         <div class="col-md-6 mb-3">
             <label for="districtId" class="form-label">區域</label>
-            <Field name="districtId" as="select" class="form-select" :disabled="mode === 'edit' || !values.cityId || districtsLoading" :rules="isRequired">
-                <option value="" disabled>請先選擇城市</option>
-                <option v-if="districtsLoading" value="" disabled>載入中...</option>
-                <option v-for="district in districts" :key="district.districtId" :value="district.districtId">{{ district.districtName }}</option>
-            </Field>
-            <ErrorMessage name="districtId" class="text-danger" />
+            <template v-if="mode === 'create'">
+                <Field
+                    name="districtId"
+                    as="select"
+                    class="form-select"
+                    :disabled="!values.cityId || districtsLoading"
+                    :rules="isRequired"
+                >
+                    <option value="" disabled>請先選擇城市</option>
+                    <option v-if="districtsLoading" value="" disabled>載入中...</option>
+                    <option v-for="district in districts" :key="district.districtId" :value="district.districtId">
+                        {{ district.districtName }}
+                    </option>
+                </Field>
+                <ErrorMessage name="districtId" class="text-danger" />
+            </template>
+            <template v-else>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="initialData?.districtName ?? ''"
+                    disabled
+                />
+            </template>
         </div>
     </div>
     <div class="mb-3">
         <label for="street" class="form-label">街道地址</label>
-        <Field name="street" type="text" class="form-control" :rules="isRequired" :disabled="mode === 'edit'" />
-        <ErrorMessage name="street" class="text-danger" />
+        <template v-if="mode === 'create'">
+            <Field name="street" type="text" class="form-control" :rules="isRequired" />
+            <ErrorMessage name="street" class="text-danger" />
+        </template>
+        <template v-else>
+            <input
+                type="text"
+                class="form-control"
+                :value="initialData?.addressLine ?? initialData?.street ?? ''"
+                disabled
+            />
+        </template>
     </div>
 
     <div class="row">

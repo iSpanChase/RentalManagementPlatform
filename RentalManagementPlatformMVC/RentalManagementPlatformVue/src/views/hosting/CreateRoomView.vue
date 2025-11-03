@@ -29,7 +29,7 @@
             @refresh="()=>{}" 
           />
           <hr class="my-4">
-          <button class="btn btn-success" @click="finishCreation">完成並前往首頁</button>
+          <button class="btn btn-success" @click="finishCreation">完成並返回房源列表</button>
         </div>
 
       </div>
@@ -45,6 +45,7 @@ import RoomPhotoManager from '@/components/hosting/RoomPhotoManager.vue';
 import { createRoom } from '@/api/roomApi.ts';
 import { fetchCities, fetchDistricts } from '@/api/locationApi.ts';
 
+const HOST_ID = 1; // TODO: replace with real authenticated host context
 const router = useRouter();
 
 // Wizard step management
@@ -84,7 +85,8 @@ async function handleCityChange(cityId) {
 
 async function handleCreateRoom(formData) {
   try {
-    const newRoom = await createRoom(formData);
+    const payload = { ...formData, hostId: HOST_ID };
+    const newRoom = await createRoom(payload);
     alert('房源已成功建立！現在請上傳您的房源照片。');
     newlyCreatedRoomId.value = newRoom.roomId;
     step.value = 2; // Move to the next step
@@ -95,7 +97,7 @@ async function handleCreateRoom(formData) {
 }
 
 function finishCreation() {
-    router.push({ path: '/' });
+  router.push({ path: '/hosting/rooms' });
 }
 
 </script>
