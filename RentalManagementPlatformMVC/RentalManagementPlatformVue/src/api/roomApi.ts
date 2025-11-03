@@ -6,6 +6,10 @@ interface RoomData {
   description: string;
   pricePerNight: number;
   maxGuests: number;
+  hostId?: number;
+  cityId?: number;
+  districtId?: number;
+  street?: string;
 }
 
 // Define an interface for the response of the createRoom API
@@ -64,4 +68,23 @@ export const updateRoom = async (roomId: number, roomData: Partial<RoomData>): P
       'Content-Type': 'multipart/form-data',
     },
   });
+};
+
+/**
+ * Fetches all rooms for a specific landlord.
+ * @param {number} hostId - The ID of the landlord.
+ * @returns {Promise<any>} A promise that resolves with the list of rooms.
+ */
+export const getRoomsByHostId = async (hostId: number) => {
+  const response = await apiClient.get(`/Rooms/host/${hostId}`);
+  return response.data;
+};
+
+/**
+ * Deletes a room.
+ * @param {number} roomId - The ID of the room to delete.
+ * @returns {Promise<void>}
+ */
+export const deleteRoom = async (roomId: number): Promise<void> => {
+  await apiClient.delete(`/Rooms/${roomId}`);
 };

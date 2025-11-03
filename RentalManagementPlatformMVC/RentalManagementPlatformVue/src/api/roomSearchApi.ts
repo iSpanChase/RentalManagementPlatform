@@ -357,7 +357,7 @@ export const mapRoomDetailToCard = (detail: RoomDetail): RoomCard => ({
   mainImageUrl: detail.mainImageUrl ?? detail.photoUrls[0],
 });
 
-const mapRoomSummaryToCard = (dto: RoomSummaryResponseDtoResponse): RoomCard => {
+export const mapRoomSummaryToCard = (dto: RoomSummaryResponseDtoResponse): RoomCard => {
   const detail = mapRoomDetailFromCache(dto);
   return mapRoomDetailToCard(detail);
 };
