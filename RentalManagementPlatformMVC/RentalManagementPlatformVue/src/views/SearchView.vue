@@ -116,6 +116,13 @@ watch(hotRooms, (rooms) => {
 
 .page-title {
   margin-bottom: 1rem;
+  padding: 0;
+  background: none;
+  color: #212529;
+  text-align: left;
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .search-bar {

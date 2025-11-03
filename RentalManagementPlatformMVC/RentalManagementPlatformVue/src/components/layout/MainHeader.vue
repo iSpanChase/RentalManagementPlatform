@@ -61,6 +61,7 @@
                       </ul>
                     </li>
                     <li><a href="about.html">About Us </a></li>
+                    <li><router-link to="/hosting/rooms">My Rooms</router-link></li>
                     <li class="dropdown">
                       <a href="#">Rooms</a>
                       <ul>
