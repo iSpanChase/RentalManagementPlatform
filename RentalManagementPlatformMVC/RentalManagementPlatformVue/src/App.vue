@@ -73,3 +73,28 @@ onMounted(async () => {
 
     <ScrollToTopButton />
 </template>
+
+<style scoped>
+/* 通知鈴鐺固定在右下角 */
+.global-notification-bell {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .global-notification-bell {
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-notification-bell {
+    bottom: 80px;
+    right: 15px;
+  }
+}
+</style>

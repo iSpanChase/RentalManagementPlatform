@@ -21,7 +21,7 @@ const router = createRouter({
         {
           path: '',
           name: 'home',
-          component: HomeView,
+          component: () => import('../views/SearchView.vue'),
         },
         {
           path: 'about',
@@ -37,6 +37,11 @@ const router = createRouter({
           path: '/search',
           name: 'search',
           component: () => import('../views/SearchView.vue'),
+        },
+        {
+          path: '/original-home',
+          name: 'original-home',
+          component: HomeView,
         },
         {
           path: '/hosting/rooms/new',
