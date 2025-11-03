@@ -82,7 +82,7 @@ const selectedFavoriteId = ref<number | null>(null);
 // ---------- component chooser and props generator ----------
 const cardBody = (c: Card) => {
   if (c.type === 'heatmap') return MapHeatmapCardComponent
-  if (c.type === 'revenue' || c.type === 'occupancy') return ChartCardComponent
+  if (c.type === 'revenue' || c.type === 'occupancy' || c.type === 'revenue_prediction' || c.type === 'occupancy_prediction') return ChartCardComponent
   if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
   if (c.type === 'revenue_source' || c.type === 'occupancy_source') return PieChartCardComponent
   
@@ -99,6 +99,14 @@ const getComponentProps = (c: Card) => {
             data: c.data,
             timeUnit: (c.config as any).groupBy,
             yAxisDataKey: type === 'revenue' ? 'revenue' : 'occupancyRate',
+            chartType: (c.config as any).chartType
+        };
+    }
+    if (type === 'revenue_prediction' || type === 'occupancy_prediction') {
+        return {
+            data: c.data,
+            timeUnit: 'day', // Prediction is always daily
+            yAxisDataKey: type === 'revenue_prediction' ? 'revenue' : 'occupancyRate',
             chartType: (c.config as any).chartType
         };
     }
@@ -267,19 +275,7 @@ onMounted(async () => {
         cards.push(created);
     }
 
-    //SignalR
-    try {
-        const hostId = 47;
-        await startConnection(hostId);
-
-        // 註冊一個處理器，當收到訊息時，用 alert 彈窗顯示
-        registerWarningHandler((message: string) => {
-            alert(`[房東即時通知]\n---------------------------------\n${message}`);
-        });
-    }
-    catch (err) {
-        console.error("SignalR 連線失敗: ", err);
-    }
+    
 });
 
 </script>

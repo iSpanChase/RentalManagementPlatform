@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
+using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 using RentalManagementPlatformWebAPI.Models;
 using System;
 using System.Globalization;
@@ -260,6 +261,92 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                 .ToListAsync();
 
             return Ok(analysis);
+        }
+
+        [HttpPost("GetRevenuePrediction")]
+        public async Task<IActionResult> GetRevenuePrediction([FromBody] PredictionRequestDto req)
+        {
+            const int historicalDays = 90;
+            var today = DateTime.Today;
+            var historicalStartDate = today.AddDays(-historicalDays);
+
+            var roomIdsToQuery = await GetRoomIdsToQuery(req.RoomIds);
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new RevenuePredictionResponseDto { HistoricalPoints = new List<RevenuePoint>(), RegressionPoints = new List<RevenuePoint>() });
+            }
+
+            // 1. Fetch historical data
+            var historicalQuery = _context.Bookings
+                .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= historicalStartDate && b.CheckIn.Value.Date < today);
+
+            var revenueByDay = await historicalQuery
+                .GroupBy(b => b.CheckIn.Value.Date)
+                .Select(g => new { Date = g.Key, Revenue = g.Sum(b => b.TotalPrice ?? 0) })
+                .ToDictionaryAsync(r => r.Date, r => r.Revenue);
+
+            var historicalPoints = Enumerable.Range(0, historicalDays)
+                .Select(i => historicalStartDate.AddDays(i))
+                .Select(day => new RevenuePoint
+                {
+                    Date = day.ToString("yyyy-MM-dd"),
+                    Revenue = revenueByDay.TryGetValue(day, out var revenue) ? revenue : 0
+                }).ToList();
+
+            // 2. Simple Linear Regression for the entire period
+            var regressionPoints = new List<RevenuePoint>();
+            if (historicalPoints.Count > 7) // Need enough data to predict
+            {
+                // Use last 30 days for a more stable trend calculation
+                var trendData = historicalPoints.TakeLast(30).ToList();
+                var n = trendData.Count;
+                var sumX = Enumerable.Range(1, n).Sum(i => (long)i); // Use long to avoid overflow
+                var sumY = trendData.Sum(p => (double)p.Revenue);
+                var sumXY = Enumerable.Range(1, n).Sum(i => (long)i * (double)trendData[i - 1].Revenue);
+                var sumX2 = Enumerable.Range(1, n).Sum(i => (long)i * i);
+
+                var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                var intercept = (sumY - slope * sumX) / n;
+
+                var totalDays = historicalDays + req.ForecastDays;
+                for (int i = 0; i < totalDays; i++)
+                {
+                    var date = historicalStartDate.AddDays(i);
+                    // Adjust index for prediction calculation, relative to the start of trend data
+                    var predictionIndex = (date - DateTime.Parse(trendData.First().Date)).Days + 1;
+                    var regressionRevenue = (decimal)(slope * predictionIndex + intercept);
+                    if (regressionRevenue < 0) regressionRevenue = 0;
+
+                    regressionPoints.Add(new RevenuePoint
+                    {
+                        Date = date.ToString("yyyy-MM-dd"),
+                        Revenue = regressionRevenue
+                    });
+                }
+            }
+
+            return Ok(new RevenuePredictionResponseDto
+            {
+                HistoricalPoints = historicalPoints,
+                RegressionPoints = regressionPoints
+            });
+        }
+
+        private async Task<List<int>> GetRoomIdsToQuery(List<int> requestedRoomIds)
+        {
+            // TODO: Replace with actual host ID from user context
+            int hostId = 47;
+
+            var hostRoomsQuery = _context.RoomLists.Where(r => r.HostId == hostId);
+
+            if (requestedRoomIds != null && requestedRoomIds.Any())
+            {
+                hostRoomsQuery = hostRoomsQuery.Where(r => requestedRoomIds.Contains(r.RoomId));
+            }
+
+            return await hostRoomsQuery.Select(r => r.RoomId).ToListAsync();
         }
     }
 }

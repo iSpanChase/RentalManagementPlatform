@@ -13,6 +13,8 @@
           <select class="form-select" v-model="localDraft.type">
             <option value="revenue">收益分析</option>
             <option value="occupancy">入住率</option>
+            <option value="revenue_prediction">收益預測</option>
+            <option value="occupancy_prediction">入住率預測</option>
             <option value="occupancy_kpi">入住率KPI</option>
             <option value="revenue_kpi">收益KPI</option>
             <option value="revenue_source">收益來源分析</option>
@@ -40,6 +42,14 @@
         <OccupancyConfigPanelComponent
           v-else-if="localDraft.type === 'occupancy'"
           v-model="(localDraft.config as OccupancyConfig)"
+        />
+        <RevenuePredictionConfigPanelComponent
+          v-else-if="localDraft.type === 'revenue_prediction'"
+          v-model="(localDraft.config as RevenuePredictionConfig)"
+        />
+        <OccupancyPredictionConfigPanelComponent
+          v-else-if="localDraft.type === 'occupancy_prediction'"
+          v-model="(localDraft.config as OccupancyPredictionConfig)"
         />
         <OccupancyKpiConfigPanelComponent
           v-else-if="localDraft.type === 'occupancy_kpi'"
@@ -74,13 +84,15 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig } from '../api/reportForm'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig, RevenuePredictionConfig, OccupancyPredictionConfig } from '../api/reportForm'
 import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
 import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
 import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
 import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
 import RevenueSourceConfigPanelComponent from './panels/RevenueSourceConfigPanelComponent.vue'
 import OccupancySourceConfigPanelComponent from './panels/OccupancySourceConfigPanelComponent.vue'
+import RevenuePredictionConfigPanelComponent from './panels/RevenuePredictionConfigPanelComponent.vue'
+import OccupancyPredictionConfigPanelComponent from './panels/OccupancyPredictionConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -112,6 +124,22 @@ const defaultByType = (type: CardType): any => {
       startDate: '2025-09-01',
       endDate: '2025-10-23',
       groupBy: 'month',
+      chartType: 'line',
+    }
+    return cfg
+  }
+  if (type === 'revenue_prediction') {
+    const cfg: RevenuePredictionConfig = {
+      propertyIds: [],
+      forecastDays: 30,
+      chartType: 'line',
+    }
+    return cfg
+  }
+  if (type === 'occupancy_prediction') {
+    const cfg: OccupancyPredictionConfig = {
+      propertyIds: [],
+      forecastDays: 30,
       chartType: 'line',
     }
     return cfg

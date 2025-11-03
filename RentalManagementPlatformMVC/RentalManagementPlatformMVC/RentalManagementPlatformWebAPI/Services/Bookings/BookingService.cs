@@ -290,7 +290,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
             {
                 var hostId = room.HostId.Value;
                 string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
-                await _hubContext.Clients.Group($"host_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
+                await _hubContext.Clients.Group($"user_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
             }
 
             // ==================== 6. 根據付款時機決定是否產生綠界表單 ====================

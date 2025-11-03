@@ -6,6 +6,7 @@ using Minio;
 using RentalManagementPlatformAPI.Repository;
 using RentalManagementPlatformMVC.Models;
 using RentalManagementPlatformWebAPI.Data;
+using RentalManagementPlatformWebAPI.Area.ReportForm.Services;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Hubs;
 using RentalManagementPlatformWebAPI.Mappings;
@@ -20,15 +21,12 @@ using RentalManagementPlatformWebAPI.Repositories.Property;
 using RentalManagementPlatformWebAPI.Repositories.Property.Interfaces;
 using RentalManagementPlatformWebAPI.Repository.Interfaces;
 using RentalManagementPlatformWebAPI.Services;
-using Meilisearch;
-using Minio;
-using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
-using StackExchange.Redis;
 using RentalManagementPlatformWebAPI.Services.Bookings;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
 using RentalManagementPlatformWebAPI.Services.Property;
 using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
+using StackExchange.Redis;
 using System.Reflection;
 using System.Text.Json;
 using RentalManagementPlatformWebAPI.Services.Interface;
@@ -51,11 +49,10 @@ namespace RentalManagementPlatformWebAPI
 			{
 				options.AddPolicy("AllowVue", policy =>
 				{
-					policy.WithOrigins("http://localhost:5173",
-						"https://my-project-frontend.ngrok.app"); // <--- 將 ngrok URL 加入！
-					policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")  // Vue 前端的網址
+                    policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "https://my-project-frontend.ngrok.app")
 						  .AllowAnyHeader()
-						  .AllowAnyMethod();
+						  .AllowAnyMethod()
+                          .AllowCredentials();
 				});
 			});
 
@@ -102,6 +99,10 @@ namespace RentalManagementPlatformWebAPI
             builder.Services.AddScoped<IMessageService, MessageService>();
 
             // DI�GDomain Services
+			//用戶個人推薦房源算法
+            builder.Services.AddScoped<RecommendationService>();
+
+            // DI：Domain Services
             builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 			builder.Services.AddScoped<IAuthService, AuthService>();

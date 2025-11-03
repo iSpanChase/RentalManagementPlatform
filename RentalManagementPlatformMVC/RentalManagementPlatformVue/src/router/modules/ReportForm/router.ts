@@ -1,13 +1,31 @@
-// src/modules/ReportForm/router.js
-export default [
+import type { RouteRecordRaw } from 'vue-router';
+
+const reportFormRoutes: RouteRecordRaw[] = [
     {
         path: '/ReportForm',
         name: 'ReportForm',
-        component: () => import('./layouts/ReportFormLayout.vue'), // ReportForm 的父頁面
+        component: () => import('./layouts/ReportFormLayout.vue'),
         meta: { layout: 'ReportForm', requiresAuth: true },
         children: [
-            { path: '', name: 'ReportForm.IndexView', component: () => import('./pages/IndexView.vue') },
-            { path: 'other', name: 'ReportForm.OtherView', component: () => import('./pages/OtherView.vue') }
+            {
+                path: '', name: 'ReportForm.IndexView', component: () => import(
+                    './pages/IndexView.vue')
+            },
+            {
+                path: 'other', name: 'ReportForm.OtherView', component: () => import(
+                    './pages/OtherView.vue')
+            }
         ]
-    }
-]
+    },
+    {
+        path: '/recommendations',
+        name: 'Recommendations',
+        component: () => import('./pages/RecommendationView.vue'),
+        meta: {
+            title: '推薦房間',
+            requiresAuth: false,
+        },
+    },
+];
+
+export default reportFormRoutes;

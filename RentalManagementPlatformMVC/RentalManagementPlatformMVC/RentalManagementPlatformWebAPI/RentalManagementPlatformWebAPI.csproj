@@ -24,4 +24,8 @@
     <PackageReference Include="Google.Apis.Auth" Version="1.64.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ChaseCheng.Global.Utilities\ChaseCheng.Global.Utilities.csproj" />
+  </ItemGroup>
+
 </Project>
