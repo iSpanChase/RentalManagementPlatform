@@ -136,7 +136,7 @@ onMounted(fetchRooms);
 .search-view {
   padding: 2rem;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto 0;
 }
 
 .page-title {
