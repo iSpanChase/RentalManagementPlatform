@@ -44,6 +44,11 @@ const bookingStore = useBookingStore();
                 <span>{{ formatPrice(bookingStore.subtotal) }}</span>
               </div>
 
+              <div class="price-row">
+                <span>服務費</span>
+                <span>{{ formatPrice(bookingStore.serviceFee) }}</span>
+              </div>
+
               <div class="price-row discount" v-if="bookingStore.discountAmount > 0">
                 <span>特別優惠</span>
                 <span class="green">-{{ formatPrice(bookingStore.discountAmount) }}</span>

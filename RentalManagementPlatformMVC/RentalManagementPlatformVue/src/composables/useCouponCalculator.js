@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { getUserCoupons, validateCoupon } from '../services/CouponService';
 import { useCouponStore } from '../stores/coupon.js';
+import { useBookingStore } from '../stores/bookingStore.js';
 
 /**
  * @description 處理優惠券相關所有商業邏輯的 Vue Composable
@@ -32,13 +33,17 @@ export function useCouponCalculator(cartInfo) {
   // ----------------------------------------------------------------------------
 
   // 監聽 userId 變化，當 userId 存在時才獲取優惠券
-  watch(() => cartInfo.value.userId, (newUserId) => {
-    // 暫時使用硬編碼的 userId = 1，直到會員模組完成
-    const userIdToFetch = newUserId || 1; 
-    if (userIdToFetch) {
-      fetchUserCoupons(userIdToFetch); 
-    }
-  }, { immediate: true });
+  watch(
+    () => cartInfo.value.userId,
+    (newUserId) => {
+      // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+      const userIdToFetch = newUserId || 1;
+      if (userIdToFetch) {
+        fetchUserCoupons(userIdToFetch);
+      }
+    },
+    { immediate: true }
+  );
 
   // 監聽使用者選擇的優惠券 ID，當 ID 變更時，觸發後端驗證
   watch(selectedCouponId, async (newId) => {
@@ -48,7 +53,7 @@ export function useCouponCalculator(cartInfo) {
       return;
     }
 
-    const selected = userCoupons.value.find(c => c.couponId === newId);
+    const selected = userCoupons.value.find((c) => c.couponId === newId);
     if (!selected) return;
 
     // 準備請求後端 API 的資料
@@ -74,11 +79,15 @@ export function useCouponCalculator(cartInfo) {
         selectedCouponId.value = null;
         couponStore.showToast(`無法使用：${response.message}`, 'error');
       }
-              } catch (error) {
-                resetCouponState();
-                selectedCouponId.value = null;
-                couponStore.showToast(`驗證時發生錯誤：${error.response?.data?.message || error.message}`, 'error');
-              }  });
+    } catch (error) {
+      resetCouponState();
+      selectedCouponId.value = null;
+      couponStore.showToast(
+        `驗證時發生錯誤：${error.response?.data?.message || error.message}`,
+        'error'
+      );
+    }
+  });
 
   // 監聽外部傳入的 cartInfo，如果訂單金額或租期變動，就重新觸發一次驗證
   watch(
@@ -100,7 +109,7 @@ export function useCouponCalculator(cartInfo) {
 
   // 將從後端獲取的原始優惠券資料，轉換為 CouponSelector 元件所需的格式
   const couponOptions = computed(() => {
-    return userCoupons.value.map(c => { 
+    return userCoupons.value.map((c) => {
       let disabled = false;
       let disabledMessage = '';
 
@@ -115,16 +124,20 @@ export function useCouponCalculator(cartInfo) {
       return {
         couponId: c.couponId,
         couponName: c.couponName,
-        description: c.discountMethod === 'Percentage' ? `${c.discountQuota}% 折扣` : `折抵 ${c.discountQuota} 元`,
+        description:
+          c.discountMethod === 'Percentage'
+            ? `${c.discountQuota}% 折扣`
+            : `折抵 ${c.discountQuota} 元`,
         disabled,
-        disabledMessage
+        disabledMessage,
       };
     });
   });
 
   // 最終應付金額
   const finalPrice = computed(() => {
-    const price = cartInfo.value.totalAmount - discountAmount.value;
+    const bookingStore = useBookingStore();
+    const price = cartInfo.value.totalAmount + bookingStore.serviceFee - discountAmount.value;
     return price < 0 ? 0 : price;
   });
 
@@ -151,7 +164,7 @@ export function useCouponCalculator(cartInfo) {
 
     // Methods
     resetCouponState,
-    fetchUserCoupons // 匯出重新獲取使用者優惠券的方法
+    fetchUserCoupons, // 匯出重新獲取使用者優惠券的方法
   };
 
   // 新增一個方法來重新獲取使用者優惠券
@@ -160,8 +173,8 @@ export function useCouponCalculator(cartInfo) {
     try {
       userCoupons.value = await getUserCoupons(userId);
     } catch (error) {
-      console.error("重新獲取使用者優惠券失敗：", error);
-      validationMessage.value = "無法載入您的優惠券列表。";
+      console.error('重新獲取使用者優惠券失敗：', error);
+      validationMessage.value = '無法載入您的優惠券列表。';
       isError.value = true;
     }
   }

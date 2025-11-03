@@ -32,10 +32,20 @@ export function useCancelBookingModal(allBookingsRef) {
       const response = await bookingStore.cancelBooking(bookingId);
       if (response?.success && response.booking) {
         toast.success(response.message || '訂單已成功取消');
-        // Update the allBookingsRef directly
-        allBookingsRef.value = allBookingsRef.value.map(b =>
-          b.bookingId === response.booking.bookingId ? response.booking : b
-        );
+        // Update the allBookingsRef directly - 保持原有資料，只更新狀態相關欄位
+        allBookingsRef.value = allBookingsRef.value.map(b => {
+          if (b.bookingId === response.booking.bookingId) {
+            return {
+              ...b, // 保持原有所有欄位
+              status: response.booking.status,
+              paymentStatus: response.booking.paymentStatus,
+              updatedAt: response.booking.updatedAt,
+              // 確保圖片URL存在
+              roomImageUrl: b.roomImageUrl || b.RoomImageUrl || response.booking.RoomImageUrl || response.booking.roomImageUrl
+            };
+          }
+          return b;
+        });
       } else {
         toast.error(response?.message || '取消失敗');
       }

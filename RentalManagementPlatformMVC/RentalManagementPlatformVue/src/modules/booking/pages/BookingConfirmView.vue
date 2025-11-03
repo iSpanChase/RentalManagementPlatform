@@ -32,12 +32,10 @@ onMounted(async () => {
       if (roomDetail) {
         // 取得今天日期作為入住日
         const checkInDate = new Date();
-        checkInDate.setHours(15, 0, 0, 0); // 下午 3 點
 
         // 退房為隔天上午 11 點
         const checkOutDate = new Date();
         checkOutDate.setDate(checkOutDate.getDate() + 1);
-        checkOutDate.setHours(11, 0, 0, 0);
 
         const bookingData = {
           roomId: roomDetail.roomId,

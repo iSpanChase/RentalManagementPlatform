@@ -5,23 +5,47 @@ let thisYear = new Date().getFullYear()
 <template>
   <div class="booking-layout">
     <header class="booking-header">
-      <router-link to="/">
-        <img src="../../../assets/images/logo.png" alt="logo">
-      </router-link>
+      <div class="header-content">
+        <router-link to="/" class="logo-link">
+          <img src="../../../assets/images/AirNest_Logo.png" alt="AirNest Logo">
+        </router-link>
+
+        <nav class="header-nav">
+          <router-link to="/help" class="nav-link">
+            <i class="fas fa-question-circle"></i>
+            需要協助
+          </router-link>
+        </nav>
+      </div>
     </header>
 
     <main class="booking-main">
-      <router-view />
+      <div class="main-container">
+        <router-view />
+      </div>
     </main>
 
     <footer class="booking-footer">
-      <p>© {{ thisYear }} KING HOTEL</p>
-      <span class="separator">·</span>
-      <nav class="footer-nav">
-        <a href="#">隱私</a>
-        <span class="separator">·</span>
-        <a href="#">相關條款</a>
-      </nav>
+      <div class="footer-content">
+        <div class="footer-left">
+          <p>© {{ thisYear }} AirNest</p>
+          <span class="separator">·</span>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">隱私政策</a>
+            <span class="separator">·</span>
+            <a href="#" class="footer-link">服務條款</a>
+            <span class="separator">·</span>
+            <a href="#" class="footer-link">公司資訊</a>
+          </nav>
+        </div>
+
+        <div class="footer-right">
+          <div class="support-info">
+            <i class="fas fa-phone"></i>
+            <span>客服專線：(02) 1234-5678</span>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
@@ -38,54 +62,204 @@ let thisYear = new Date().getFullYear()
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .booking-header {
-  background: #222222;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  padding: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 
-  img {
-    height: 2.5rem;
-    margin-left: 1rem;
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo-link {
+    transition: transform 0.2s ease;
+
+    img {
+      height: 3rem;
+      max-width: 200px;
+      object-fit: contain;
+    }
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      font-size: 14px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #f0f0f0;
+      }
+
+      i {
+        font-size: 16px;
+      }
+    }
   }
 }
 
 .booking-main {
   flex: 1;
-  padding: 20px 20px;
+  padding: 0;
+
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    min-height: calc(100vh - 200px);
+  }
 }
 
 .booking-footer {
-  background: #BE9A78;
+  background: linear-gradient(135deg, #BE9A78 0%, #A08268 100%);
   color: white;
-  text-align: center;
-  padding: 20px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  padding: 20px 0;
+  margin-top: auto;
 
-  p {
-    margin: 0;
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
   }
 
-  .separator {
-    margin: 0 5px;
-  }
-
-  .footer-nav {
+  .footer-left {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 10px;
+    flex-wrap: wrap;
 
-    a {
-      color: white;
-      text-decoration: none;
+    p {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .separator {
+      margin: 0 5px;
+      opacity: 0.7;
+    }
+
+    .footer-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      .footer-link {
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: rgba(255, 255, 255, 0.8);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .footer-right {
+    .support-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+
+      i {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-header {
+    .header-content {
+      padding: 12px 15px;
+      flex-direction: column;
+      gap: 15px;
+
+      .logo-link img {
+        height: 2.5rem;
+      }
+    }
+
+    .header-nav {
+      justify-content: center;
+    }
+  }
+
+  .booking-main {
+    .main-container {
+      padding: 20px 15px;
+    }
+  }
+
+  .booking-footer {
+    .footer-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 15px;
+
+      .footer-left {
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+
+        .footer-nav {
+          justify-content: center;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-header {
+    .header-nav .nav-link {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  }
+
+  .booking-footer {
+    .footer-left {
+      .footer-nav {
+        flex-direction: column;
+        gap: 8px;
+
+        .separator {
+          display: none;
+        }
+      }
     }
   }
 }
