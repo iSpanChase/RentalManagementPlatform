@@ -6,11 +6,7 @@ import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/auth';
 import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
-import { useOrderModal } from '@/composables/useOrderModal';
-import { useCancelBookingModal } from '@/composables/useCancelBookingModal';
 import SimplePaginator from '@/components/SimplePaginator.vue';
-import EmptyState from '@/components/EmptyState.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 
 const bookingStore = useBookingStore();
@@ -21,16 +17,12 @@ const auth = useAuthStore();
 const allBookings = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
-
+const selectedBooking = ref(null);
+const bookingToCancel = ref(null);
+const isCancelling = ref(false);
 
 // 使用共用的分頁邏輯
 const { currentPage, totalPages, paginatedItems: paginatedBookings, onPageChange } = usePagination(allBookings, 5);
-
-// 使用共用的訂單詳情 Modal 邏輯
-const { selectedItem: selectedBooking, viewDetails: viewBookingDetails } = useOrderModal('orderDetailModal', allBookings);
-
-// 使用共用的取消預訂 Modal 邏輯
-const { bookingToCancel, isCancelling, openCancelConfirmModal, confirmCancellation } = useCancelBookingModal(allBookings);
 
 /**
  * 立即付款
@@ -61,13 +53,114 @@ const handlePayNow = async (orderNumber) => {
 };
 
 /**
- * 重新導向到詳情頁面
+ * 查看預訂詳情
  */
-const handleViewDetails = (orderNumber) => {
-  router.push({
-    name: 'BookingDetail',
-    params: { orderNumber }
-  });
+const viewBookingDetails = (orderNumber, bookings) => {
+  const booking = bookings.find(b => b.orderNumber === orderNumber);
+  if (booking) {
+    selectedBooking.value = booking;
+  }
+};
+
+/**
+ * 聯繫房東
+ */
+const handleContactHost = () => {
+  toast.info('聯繫房東功能開發中...');
+};
+
+/**
+ * 重新預訂
+ */
+const handleRebook = (booking) => {
+  // 嘗試多種可能的房源 ID 欄位名稱
+  const roomId = booking.roomId || booking.RoomId || booking.room_id;
+
+  if (!roomId) {
+    console.log('Booking data:', booking); // 調試用
+    toast.error('無法找到房源資訊，請聯繫客服');
+    return;
+  }
+
+  try {
+    // 導向到房源詳情頁面
+    router.push({
+      name: 'room-detail',
+      params: { id: roomId.toString() }
+    });
+
+    toast.info('正在前往房源頁面，您可以重新預訂');
+  } catch (error) {
+    console.error('Navigation error:', error);
+    toast.error('頁面跳轉失敗，請稍後再試');
+  }
+};
+
+/**
+ * 開啟取消確認 Modal
+ */
+const openCancelConfirmModal = (booking) => {
+  bookingToCancel.value = booking;
+};
+
+/**
+ * 確認取消預訂
+ */
+const confirmCancellation = async () => {
+  if (!bookingToCancel.value) return;
+
+  // 嘗試多種可能的預訂 ID 欄位名稱
+  const bookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
+
+  if (!bookingId) {
+    toast.error('無法找到預訂資訊');
+    return;
+  }
+
+  isCancelling.value = true;
+  try {
+    const result = await bookingStore.cancelBooking(bookingId);
+
+    // 更新本地資料
+    const targetBookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
+    const index = allBookings.value.findIndex(b =>
+      (b.bookingId || b.BookingId || b.id) === targetBookingId
+    );
+    if (index !== -1) {
+      allBookings.value[index].paymentStatus = 'cancelled';
+    }
+
+    toast.success('預訂已成功取消');
+
+    // 關閉 Modal
+    setTimeout(() => {
+      const modal = document.getElementById('cancelConfirmModal');
+      if (modal) {
+        // 使用 Bootstrap 5 的方式
+        if (window.bootstrap) {
+          const bsModal = window.bootstrap.Modal.getInstance(modal);
+          if (bsModal) {
+            bsModal.hide();
+          }
+        } else {
+          // 如果沒有 Bootstrap JS，手動隱藏
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+          document.body.classList.remove('modal-open');
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.remove();
+          }
+        }
+      }
+    }, 500);
+
+    bookingToCancel.value = null;
+  } catch (error) {
+    toast.error(error.message || '取消預訂失敗');
+  } finally {
+    isCancelling.value = false;
+  }
 };
 
 /**
@@ -112,225 +205,227 @@ onMounted(async () => {
  * 重新載入資料
  */
 const reloadData = async () => {
-  await onMounted();
-};
+  isLoading.value = true;
+  isError.value = false;
 
-// 計算各種狀態的預訂數量（用於統計顯示）
-const bookingStats = computed(() => {
-  const stats = {
-    total: allBookings.value.length,
-    confirmed: 0,
-    pending: 0,
-    cancelled: 0,
-    completed: 0
-  };
-
-  allBookings.value.forEach(booking => {
-    switch (booking.status?.toLowerCase()) {
-      case 'confirmed':
-        stats.confirmed++;
-        break;
-      case 'pending':
-        stats.pending++;
-        break;
-      case 'cancelled':
-        stats.cancelled++;
-        break;
-      case 'completed':
-        stats.completed++;
-        break;
+  try {
+    const userId = auth.state.profile?.userId;
+    if (!userId) {
+      toast.error('無法獲取使用者資訊，請重新登入');
+      router.push({ name: 'LoginView' });
+      return;
     }
-  });
 
-  return stats;
-});
+    const fetchedBookings = await bookingStore.fetchMyBookings(userId);
+    allBookings.value = fetchedBookings || [];
+
+    if (allBookings.value.length === 0) {
+      toast.info('目前沒有任何預訂記錄');
+    }
+  } catch (error) {
+    console.error('載入預訂失敗:', error);
+    toast.error(error.message || '載入預訂資料失敗');
+    isError.value = true;
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
-  <div class="my-bookings-view">
-    <div class="header-section">
-      <h1 class="page-title">我的預訂</h1>
-      <p class="page-subtitle">管理您的住宿預訂</p>
+  <div class="my-bookings-page">
+    <h1>我的預訂</h1>
 
-      <!-- 統計卡片 -->
-      <div class="stats-grid" v-if="!isLoading && !isError">
-        <div class="stat-card">
-          <div class="stat-number">{{ bookingStats.total }}</div>
-          <div class="stat-label">總預訂</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ bookingStats.confirmed }}</div>
-          <div class="stat-label">已確認</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ bookingStats.pending }}</div>
-          <div class="stat-label">待處理</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ bookingStats.completed }}</div>
-          <div class="stat-label">已完成</div>
-        </div>
+    <!-- Loading -->
+    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>{{ bookingStore.isLoading ? '正在處理您的預訂...' : '正在載入預訂資料...' }}</p>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <LoadingSpinner v-if="isLoading" message="載入預訂資料中..." />
-
-    <!-- Error State -->
-    <div v-else-if="isError" class="error-state">
-      <EmptyState
-        title="載入失敗"
-        description="無法載入您的預訂資料，請重試"
-        action-text="重新載入"
-        @action="reloadData"
-      />
+    <!-- Error -->
+    <div v-else-if="isError" class="error-message-container">
+      <div class="error-card">
+        <h2>無法載入頁面</h2>
+        <p>抱歉，載入預訂資料時發生錯誤，請稍後再試。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+      </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="allBookings.length === 0" class="empty-state">
-      <EmptyState
-        title="暫無預訂記錄"
-        description="您還沒有任何預訂記錄，開始探索我們的房源吧！"
-        action-text="探索房源"
-        @action="router.push({ name: 'home' })"
-      />
+    <div v-else-if="allBookings.length === 0" class="error-message-container">
+      <div class="error-card">
+        <h2>尚無預訂</h2>
+        <p>您目前沒有任何預訂。</p>
+        <button @click="router.push({ name: 'home' })" class="btn-back-home">開始探索房源</button>
+      </div>
     </div>
 
-    <!-- Bookings List -->
-    <div v-else class="bookings-container">
+    <!-- Content -->
+    <div v-else class="container">
       <div class="bookings-list">
-        <div
-          v-for="booking in paginatedBookings"
-          :key="booking.bookingId"
-          class="booking-card"
-        >
-          <!-- 房源圖片 -->
-          <div class="booking-image">
-            <img
-              :src="booking.roomImage || '/placeholder-room.jpg'"
-              :alt="booking.roomTitle"
-              @error="$event.target.src = '/placeholder-room.jpg'"
-            />
-          </div>
-
-          <!-- 預訂資訊 -->
-          <div class="booking-info">
-            <div class="booking-header">
-              <h3 class="room-title">{{ booking.roomTitle }}</h3>
-              <StatusBadge :status="booking.status" />
+        <div v-for="booking in paginatedBookings" :key="booking.orderNumber" class="booking-card">
+            <div class="card-image-wrapper">
+              <img
+                :src="booking.roomImageUrl || 'https://placehold.co/220x180/EBEBEB/717171?text=Room'"
+                alt="房源圖片"
+                class="room-image"
+              />
             </div>
 
-            <div class="booking-details">
-              <div class="detail-row">
-                <span class="label">訂單編號：</span>
-                <span class="value">{{ booking.orderNumber }}</span>
+            <div class="card-details-wrapper">
+              <div class="card-section top-section">
+                <div class="room-info">
+                  <span class="room-location">{{ booking.billingCountry || '城市, 國家' }}</span>
+                  <h3>{{ booking.room }}</h3>
+                </div>
+                <StatusBadge :status="booking.paymentStatus" />
               </div>
-              <div class="detail-row">
-                <span class="label">入住日期：</span>
-                <span class="value">{{ formatDate(booking.checkIn) }}</span>
+
+              <div class="card-section mid-section">
+                <div class="info-item">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span>{{ formatDate(booking.checkIn) }} - {{ formatDate(booking.checkOut) }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="fa-solid fa-user-group"></i>
+                  <span>{{ booking.guestCount }} 位住客</span>
+                </div>
+                <div class="info-item order-number">
+                  <i class="fa-solid fa-hashtag"></i>
+                  <span>訂單: {{ booking.orderNumber }}</span>
+                </div>
               </div>
-              <div class="detail-row">
-                <span class="label">退房日期：</span>
-                <span class="value">{{ formatDate(booking.checkOut) }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">住客人數：</span>
-                <span class="value">{{ booking.guestCount }} 人</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">總金額：</span>
-                <span class="value price">NT$ {{ booking.totalPrice?.toLocaleString() }}</span>
+
+              <div class="card-section bottom-section">
+                <div class="total-price-area">
+                  <span>總金額</span>
+                  <p class="total-price-value">
+                    <strong>${{ booking.totalPrice.toLocaleString() }} TWD</strong>
+                  </p>
+                </div>
+                <div class="card-actions">
+                  <button
+                    v-if="booking.paymentStatus === 'deferred'"
+                    @click="handlePayNow(booking.orderNumber)"
+                    class="btn-pay-now"
+                    :disabled="isLoading"
+                  >
+                    立即付款
+                  </button>
+                  <button
+                    class="btn-contact"
+                    @click="handleContactHost"
+                    v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
+                  >
+                    聯繫房東
+                  </button>
+                  <button
+                    class="btn-cancel"
+                    @click="openCancelConfirmModal(booking)"
+                    v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
+                    :disabled="isCancelling || isLoading"
+                  >
+                    取消預訂
+                  </button>
+                  <button
+                    class="btn-rebook"
+                    @click="handleRebook(booking)"
+                    v-if="['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
+                    :disabled="isLoading || isCancelling"
+                  >
+                    重新預訂
+                  </button>
+                  <button
+                    class="btn-details"
+                    data-bs-toggle="modal"
+                    data-bs-target="#orderDetailModal"
+                    @click="viewBookingDetails(booking.orderNumber, allBookings)"
+                  >
+                    查看詳情
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-
-          <!-- 操作按鈕 -->
-          <div class="booking-actions">
-            <button
-              class="btn btn-outline"
-              @click="viewBookingDetails(booking)"
-            >
-              查看詳情
-            </button>
-
-            <button
-              v-if="booking.status === 'PendingPayment'"
-              class="btn btn-primary"
-              @click="handlePayNow(booking.orderNumber)"
-              :disabled="isLoading"
-            >
-              立即付款
-            </button>
-
-            <button
-              v-if="booking.status === 'Confirmed' && booking.isRefundable"
-              class="btn btn-danger"
-              @click="openCancelConfirmModal(booking)"
-              :disabled="isCancelling"
-            >
-              取消預訂
-            </button>
-          </div>
         </div>
       </div>
 
-      <!-- 分頁 -->
       <SimplePaginator
-        v-if="totalPages > 1"
         :current-page="currentPage"
         :total-pages="totalPages"
-        @page-change="onPageChange"
+        @page-changed="onPageChange"
       />
     </div>
+  </div>
 
+  <Teleport to="body">
     <!-- 訂單詳情 Modal -->
-    <div id="orderDetailModal" class="modal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" v-if="selectedBooking">
           <div class="modal-header">
-            <h5 class="modal-title">預訂詳情</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="orderDetailModalLabel">訂單詳情 #{{ selectedBooking.orderNumber }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body" v-if="selectedBooking">
-            <!-- 詳細資訊內容 -->
+          <div class="modal-body">
             <div class="detail-section">
-              <h6>基本資訊</h6>
-              <div class="row">
-                <div class="col-md-6">
-                  <p><strong>訂單編號：</strong>{{ selectedBooking.orderNumber }}</p>
-                  <p><strong>房源：</strong>{{ selectedBooking.roomTitle }}</p>
-                  <p><strong>狀態：</strong><StatusBadge :status="selectedBooking.status" /></p>
-                </div>
-                <div class="col-md-6">
-                  <p><strong>入住：</strong>{{ formatDate(selectedBooking.checkIn) }}</p>
-                  <p><strong>退房：</strong>{{ formatDate(selectedBooking.checkOut) }}</p>
-                  <p><strong>人數：</strong>{{ selectedBooking.guestCount }} 人</p>
-                </div>
+              <h6><i class="fa-solid fa-house"></i> 預訂房源</h6>
+              <div class="detail-row">
+                <p><strong>房源名稱:</strong></p>
+                <p>{{ selectedBooking.room }}</p>
+              </div>
+              <div class="detail-row">
+                <p><strong>入住/退房:</strong></p>
+                <p>{{ formatDate(selectedBooking.checkIn) }} - {{ formatDate(selectedBooking.checkOut) }} ({{ selectedBooking.guestCount }}人)</p>
+              </div>
+              <div class="detail-row">
+                <p><strong>訂單建立:</strong></p>
+                <p>{{ formatDate(selectedBooking.createdAt) }}</p>
+              </div>
+              <div class="detail-row">
+                <p><strong>目前狀態:</strong></p>
+                <p>
+                  <StatusBadge :status="selectedBooking.paymentStatus" />
+                </p>
               </div>
             </div>
-
-            <div class="detail-section" v-if="selectedBooking.billingInfo">
-              <h6>聯絡資訊</h6>
-              <p><strong>姓名：</strong>{{ selectedBooking.billingInfo.name }}</p>
-              <p><strong>Email：</strong>{{ selectedBooking.billingInfo.email }}</p>
-              <p><strong>電話：</strong>{{ selectedBooking.billingInfo.phone }}</p>
-            </div>
-
+            <hr>
             <div class="detail-section">
-              <h6>費用明細</h6>
-              <div class="price-breakdown">
-                <div class="price-row">
-                  <span>房費 ({{ selectedBooking.nights }}晚)</span>
-                  <span>NT$ {{ selectedBooking.subtotal?.toLocaleString() }}</span>
-                </div>
-                <div class="price-row">
-                  <span>服務費</span>
-                  <span>NT$ {{ selectedBooking.serviceFee?.toLocaleString() }}</span>
-                </div>
-                <div class="price-row total">
-                  <span>總計</span>
-                  <span>NT$ {{ selectedBooking.totalPrice?.toLocaleString() }}</span>
-                </div>
+              <h6><i class="fa-solid fa-credit-card"></i> 價格與付款</h6>
+              <div class="detail-row">
+                <p><strong>總金額:</strong></p>
+                <p class="price-value">TWD {{ selectedBooking.totalPrice.toLocaleString() }}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="detail-section">
+              <h6><i class="fa-solid fa-user"></i> 聯絡人資訊</h6>
+              <div class="detail-row">
+                <p><strong>姓名:</strong></p>
+                <p>{{ selectedBooking.contactName }}</p>
+              </div>
+              <div class="detail-row">
+                <p><strong>Email:</strong></p>
+                <p>{{ selectedBooking.contactEmail }}</p>
+              </div>
+              <div class="detail-row">
+                <p><strong>電話:</strong></p>
+                <p>{{ selectedBooking.contactPhone }}</p>
+              </div>
+              <div class="detail-row" v-if="selectedBooking.contactNotes">
+                <p><strong>特殊需求:</strong></p>
+                <p class="notes-text">{{ selectedBooking.contactNotes }}</p>
+              </div>
+            </div>
+            <hr>
+            <div class="detail-section">
+              <h6><i class="fa-solid fa-address-book"></i> 帳單地址</h6>
+              <div class="address-block">
+                {{ selectedBooking.billingCountry }}<br>
+                {{ selectedBooking.billingZipCode }} {{ selectedBooking.billingCity }}<br>
+                {{ selectedBooking.billingState }} {{ selectedBooking.billingStreet }}<br>
+                {{ selectedBooking.billingApartment }}
               </div>
             </div>
           </div>
@@ -342,298 +437,477 @@ const bookingStats = computed(() => {
     </div>
 
     <!-- 取消確認 Modal -->
-    <div id="cancelConfirmModal" class="modal" tabindex="-1">
-      <div class="modal-dialog">
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">確認取消預訂</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="cancelConfirmModalLabel">確認取消預訂</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body" v-if="bookingToCancel">
-            <p>您確定要取消以下預訂嗎？</p>
-            <div class="cancel-booking-info">
-              <p><strong>房源：</strong>{{ bookingToCancel.roomTitle }}</p>
-              <p><strong>訂單編號：</strong>{{ bookingToCancel.orderNumber }}</p>
-              <p><strong>入住日期：</strong>{{ formatDate(bookingToCancel.checkIn) }}</p>
-              <p><strong>總金額：</strong>NT$ {{ bookingToCancel.totalPrice?.toLocaleString() }}</p>
-            </div>
-            <div class="alert alert-warning">
-              <small>取消後將依照退款政策進行退款處理</small>
-            </div>
+          <div class="modal-body">
+            您確定要取消這筆訂單 (編號: {{ bookingToCancel?.orderNumber }}) 嗎？
+            <br>
+            <small class="text-muted">請注意，取消政策可能適用。</small>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">保留預訂</button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              @click="confirmCancellation"
-              :disabled="isCancelling"
-            >
-              {{ isCancelling ? '取消中...' : '確認取消' }}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isCancelling">關閉</button>
+            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isCancelling">
+              <span v-if="isCancelling" class="spinner-border spinner-border-sm" role="status"></span>
+              <span v-else>確認取消</span>
             </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
-.my-bookings-view {
-  padding: 20px;
-  max-width: 1200px;
+$primary-color: #222;
+$secondary-color: #008489;
+$danger-color: #d9534f;
+$border-color: #ebebeb;
+$background-light: #f9f9f9;
+$text-light: #717171;
+$text-dark: #484848;
+
+.my-bookings-page {
+  max-width: 1024px;
   margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
 
-  @media (max-width: 768px) {
-    padding: 16px;
-  }
-}
-
-.header-section {
-  margin-bottom: 32px;
-
-  .page-title {
-    font-size: 32px;
-    font-weight: 700;
+  h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-left: 10px;
+    margin-bottom: 20px;
     color: #222;
-    margin-bottom: 8px;
-
-    @media (max-width: 768px) {
-      font-size: 24px;
-    }
-  }
-
-  .page-subtitle {
-    color: #717171;
-    font-size: 16px;
-    margin-bottom: 24px;
   }
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-
-  .stat-card {
-    background: white;
-    border: 1px solid #ebebeb;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-
-    .stat-number {
-      font-size: 24px;
-      font-weight: 700;
-      color: #222;
-      margin-bottom: 4px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: #717171;
-    }
-  }
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.bookings-container {
-  .bookings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 32px;
-  }
-}
-
-.booking-card {
-  background: white;
-  border: 1px solid #ebebeb;
-  border-radius: 16px;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 200px 1fr auto;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: 200px auto auto;
-  }
-
-  .booking-image {
-    img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-  }
-
-  .booking-info {
-    padding: 20px;
-
-    .booking-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-
-      .room-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #222;
-        margin: 0;
-        flex: 1;
-        margin-right: 12px;
-      }
-    }
-
-    .booking-details {
-      .detail-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-
-        .label {
-          color: #717171;
-          font-size: 14px;
-        }
-
-        .value {
-          font-weight: 500;
-          color: #222;
-
-          &.price {
-            color: #ff5a5f;
-            font-weight: 600;
-          }
-        }
-      }
-    }
-  }
-
-  .booking-actions {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    justify-content: center;
-
-    @media (max-width: 768px) {
-      flex-direction: row;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 14px;
-
-      &.btn-outline {
-        background: white;
-        color: #222;
-        border: 1px solid #222;
-
-        &:hover {
-          background: #222;
-          color: white;
-        }
-      }
-
-      &.btn-primary {
-        background: #ff5a5f;
-        color: white;
-
-        &:hover {
-          background: #e04348;
-        }
-
-        &:disabled {
-          background: #ccc;
-          cursor: not-allowed;
-        }
-      }
-
-      &.btn-danger {
-        background: #dc3545;
-        color: white;
-
-        &:hover {
-          background: #c82333;
-        }
-
-        &:disabled {
-          background: #ccc;
-          cursor: not-allowed;
-        }
-      }
-    }
-  }
-}
-
-.error-state,
-.empty-state {
+/* Loading & Error Styles */
+.loading-overlay, .error-message-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 249, 250, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.loading-content, .error-card {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 350px;
+  width: 90%;
+
+  p {
+    margin-top: 16px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.error-card {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #d9534f;
+    margin-bottom: 15px;
+  }
+  p {
+    color: #484848;
+    line-height: 1.6;
+  }
+  .btn-back-home {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+      background-color: #0056b3;
+    }
+  }
+}
+
+.bookings-list {
+  display: grid;
+  gap: 24px;
+
+  .booking-card {
+    display: flex;
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-image-wrapper {
+      width: 220px;
+      flex-shrink: 0;
+
+      .room-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .card-details-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px;
+      gap: 12px;
+    }
+
+    .card-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .top-section {
+      .room-info {
+        .room-location {
+          display: block;
+          font-size: 14px;
+          color: $text-light;
+        }
+        h3 {
+          margin: 2px 0 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: $primary-color;
+        }
+      }
+    }
+
+    .mid-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 0;
+      border-top: 1px solid $border-color;
+      flex-grow: 1;
+      justify-content: center;
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        color: $text-dark;
+        font-size: 14px;
+
+        i {
+          margin-right: 10px;
+          color: $text-light;
+          width: 16px;
+          text-align: center;
+        }
+
+        &.order-number {
+          color: $text-light;
+          font-size: 13px;
+        }
+      }
+    }
+
+    .bottom-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid $border-color;
+      padding-top: 16px;
+
+      .total-price-area {
+        text-align: left;
+        span {
+          font-size: 13px;
+          color: $text-light;
+        }
+        .total-price-value {
+          margin: 0;
+          strong {
+            font-size: 20px;
+            font-weight: 700;
+            color: $primary-color;
+          }
+        }
+      }
+
+      .card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+    }
+  }
+}
+
+%btn-base {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-pay-now,
+.btn-details,
+.btn-contact,
+.btn-cancel,
+.btn-rebook {
+  @extend %btn-base;
+}
+
+.btn-details {
+  background-color: $background-light;
+  color: $primary-color;
+  border-color: #ddd;
+
+  &:hover {
+    background-color: $primary-color;
+    color: white;
+    border-color: $primary-color;
+  }
+}
+
+.btn-rebook {
+  background-color: $secondary-color;
+  color: white;
+  border-color: $secondary-color;
+
+  &:hover {
+    background-color: darken($secondary-color, 10%);
+    border-color: darken($secondary-color, 10%);
+  }
+}
+
+.btn-pay-now {
+  background-color: $secondary-color;
+  color: white;
+  border-color: $secondary-color;
+  box-shadow: 0 2px 8px rgba(0, 132, 137, 0.3);
+
+  &:hover {
+    background-color: darken($secondary-color, 10%);
+    border-color: darken($secondary-color, 10%);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    color: $text-light;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.btn-contact {
+  background-color: white;
+  color: $secondary-color;
+  border-color: $secondary-color;
+
+  &:hover {
+    background-color: $secondary-color;
+    color: white;
+  }
+}
+
+.btn-cancel {
+  background-color: white;
+  color: $danger-color;
+  border-color: $danger-color;
+
+  &:hover {
+    background-color: $danger-color;
+    color: white;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    color: $text-light;
+    cursor: not-allowed;
+  }
+}
+
+.order-status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-deferred,
+.status-unpaid { background-color: #fff3cd; color: #856404; }
+.status-completed,
+.status-paid { background-color: #d4edda; color: #155724; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+.status-refunded { background-color: #e2e3e5; color: #383d41; }
+
+.modal-content {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  .modal-header {
+    border-bottom: 1px solid $border-color;
+    padding: 20px 25px;
+    .modal-title { font-weight: 600; color: $primary-color; }
+  }
+
+  .modal-body { padding: 25px; }
 }
 
 .detail-section {
-  margin-bottom: 24px;
-
+  margin-bottom: 25px;
   h6 {
-    font-weight: 600;
-    color: #222;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ebebeb;
-  }
-
-  p {
-    margin-bottom: 8px;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: $primary-color;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #f0f0f0;
+    i { margin-right: 8px; color: $secondary-color; }
   }
 }
 
-.price-breakdown {
-  .price-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #f7f7f7;
+.detail-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  margin-bottom: 10px;
+  font-size: 14px;
+  align-items: start;
 
-    &.total {
-      font-weight: 600;
-      font-size: 16px;
-      border-bottom: none;
-      border-top: 2px solid #222;
-      margin-top: 8px;
-      padding-top: 12px;
-    }
-  }
+  p { margin: 0; line-height: 1.6; }
+  strong { color: $text-light; font-weight: 500; }
+  .price-value { font-weight: 700; color: $secondary-color; font-size: 16px; }
 }
 
-.cancel-booking-info {
-  background: #f8f9fa;
-  padding: 16px;
+.notes-text {
+  background-color: #f7f7f7;
+  padding: 10px;
   border-radius: 8px;
-  margin: 16px 0;
+  color: $primary-color;
+  white-space: pre-wrap;
+  font-style: italic;
+}
 
-  p {
-    margin-bottom: 8px;
-    font-size: 14px;
+.address-block {
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 8px;
+  line-height: 1.8;
+  color: $primary-color;
+  font-size: 14px;
+}
 
-    &:last-child {
-      margin-bottom: 0;
+hr { border-color: $border-color; margin: 20px 0; }
+
+.modal-footer {
+  border-top: 1px solid $border-color;
+  padding: 15px 25px;
+}
+
+.btn-secondary {
+  background-color: $text-light;
+  border-color: $text-light;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: darken($text-light, 10%);
+    border-color: darken($text-light, 10%);
+  }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 0 15px; }
+  .my-bookings-page { padding: 20px 0; }
+  h1 { font-size: 24px; margin-bottom: 20px; }
+
+  .bookings-list .booking-card {
+    flex-direction: column;
+    .card-image-wrapper { width: 100%; height: 200px; }
+    .card-details-wrapper { padding: 16px; gap: 16px; }
+    .bottom-section {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding-top: 12px;
+      .total-price-area { text-align: left; }
+      .card-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        .btn-pay-now { grid-column: 1 / -1; }
+      }
     }
   }
+
+  .modal-body { padding: 15px; }
+  .detail-row { grid-template-columns: 90px 1fr; }
+}
+
+.btn-danger {
+  background-color: $danger-color;
+  border-color: $danger-color;
+  color: white;
+
+  &:hover {
+    background-color: darken($danger-color, 10%);
+    border-color: darken($danger-color, 10%);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
