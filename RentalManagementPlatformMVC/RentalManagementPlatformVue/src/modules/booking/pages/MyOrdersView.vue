@@ -1,52 +1,53 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
-import { useOrderModal } from '@/composables/useOrderModal';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
-import EmptyState from '@/components/EmptyState.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
+const auth = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
 const allOrders = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
+const selectedOrder = ref(null);
 
 // 使用共用的分頁邏輯
 const { currentPage, totalPages, paginatedItems: paginatedOrders, onPageChange } = usePagination(allOrders, 5);
 
-// 使用共用的 Modal 邏輯
-const { selectedItem: selectedOrder, viewDetails } = useOrderModal('orderDetailModal');
-
 /**
- * 開啟訂單詳情 Modal
+ * 查看訂單詳情
  */
-const handleViewDetails = (orderNumber) => {
-  viewDetails(orderNumber, allOrders.value);
+const viewOrderDetails = (orderNumber, orders) => {
+  const order = orders.find(o => o.orderNumber === orderNumber);
+  if (order) {
+    selectedOrder.value = order;
+  }
 };
 
-onMounted(async () => {
+/**
+ * 重新載入資料
+ */
+const reloadData = async () => {
   isLoading.value = true;
   isError.value = false;
 
   try {
-    const hostId = authStore.currentHostId;
+    const hostId = auth.state.profile?.userId;
     if (!hostId) {
       toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
       isError.value = true;
       return;
     }
 
-    const fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
+    const fetchedOrders = await bookingStore.fetchMyOrders(hostId);
     allOrders.value = fetchedOrders || [];
 
     if (allOrders.value.length === 0) {
@@ -59,6 +60,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+onMounted(async () => {
+  // 檢查使用者是否已登入
+  if (!auth.isAuthenticated.value) {
+    toast.error('請先登入查看訂單記錄');
+    router.push({ name: 'LoginView' });
+    return;
+  }
+
+  await reloadData();
 });
 </script>
 
@@ -79,7 +91,7 @@ onMounted(async () => {
       <div class="error-card">
         <h2>無法載入頁面</h2>
         <p>抱歉，載入房客預訂資料時發生錯誤，請確認您的房東權限。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+        <button @click="reloadData()" class="btn-back-home">重新載入</button>
       </div>
     </div>
 
@@ -131,7 +143,7 @@ onMounted(async () => {
                   class="btn-details"
                   data-bs-toggle="modal"
                   data-bs-target="#orderDetailModal"
-                  @click="handleViewDetails(order.orderNumber)"
+                  @click="viewOrderDetails(order.orderNumber, allOrders)"
                 >
                   查看詳情 / 聯絡
                 </button>

@@ -119,7 +119,7 @@ import 'vue-datepicker-next/index.css';
 const route = useRoute();
 const router = useRouter();
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
+const auth = useAuthStore();
 const roomId = Number(route.params.id);
 
 // State for booking form

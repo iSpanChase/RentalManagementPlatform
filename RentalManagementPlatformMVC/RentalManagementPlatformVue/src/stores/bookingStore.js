@@ -1,7 +1,7 @@
 // src/stores/bookingStore.js
 import { defineStore } from 'pinia';
 import { ref, computed, readonly } from 'vue';
-import axios from 'axios';
+import api from '@/services/http'; // 使用統一的API客戶端，已集成auth處理
 
 // ==================== API 基礎設定 ====================
 const API_BASE = 'https://localhost:7230/api';
@@ -170,7 +170,7 @@ export const useBookingStore = defineStore('booking', () => {
       console.log('原始入住日期:', bookingDraft.value.checkIn);
       console.log('原始退房日期:', bookingDraft.value.checkOut);
 
-      const response = await axios.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
+      const response = await api.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -202,7 +202,7 @@ export const useBookingStore = defineStore('booking', () => {
     isLoading.value = true;
 
     try {
-      const response = await axios.get(`${API_BASE}/my-bookings/${authenticatedGuestId}`);
+      const response = await api.get(`${API_BASE}/bookings/my-bookings/${authenticatedGuestId}`);
       return response.data;
     } catch (error) {
       console.error('取得我的預訂失敗:', error);
@@ -219,7 +219,7 @@ export const useBookingStore = defineStore('booking', () => {
     isLoading.value = true;
 
     try {
-      const response = await axios.get(`${API_BASE}/my-orders/${authenticatedHostId}`);
+      const response = await api.get(`${API_BASE}/bookings/my-orders/${authenticatedHostId}`);
       return response.data;
     } catch (error) {
       console.error('取得我的訂單失敗:', error);
@@ -241,7 +241,7 @@ export const useBookingStore = defineStore('booking', () => {
     isLoading.value = true;
 
     try {
-      const { data } = await axios.get(`${API_BASE}/bookings/user/${userId}`);
+      const { data } = await api.get(`${API_BASE}/bookings/user/${userId}`);
       return data;
     } catch (error) {
       throw new Error('載入訂單失敗');
@@ -260,7 +260,7 @@ export const useBookingStore = defineStore('booking', () => {
     isLoading.value = true;
 
     try {
-      const { data } = await axios.get(`${API_BASE}/bookings/host/${hostId}`);
+      const { data } = await api.get(`${API_BASE}/bookings/host/${hostId}`);
       return data;
     } catch (error) {
       throw new Error('載入房東訂單失敗');
@@ -276,7 +276,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const { data } = await axios.get(`${API_BASE}/bookings/ordernumber/${orderNumber}`);
+      const { data } = await api.get(`${API_BASE}/bookings/ordernumber/${orderNumber}`);
       return data;
     } catch (error) {
       throw new Error('找不到該訂單');
@@ -292,7 +292,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const { data } = await axios.get(`${API_BASE}/payments/deferred/${orderNumber}`);
+      const { data } = await api.get(`${API_BASE}/payments/deferred/${orderNumber}`);
       return data;
     } catch (error) {
       const msg = error.response?.data?.message || '無法取得付款表單';
@@ -309,7 +309,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!bookingId) throw new Error('未提供訂單 ID');
     isLoading.value = true;
     try {
-      const { data } = await axios.put(`${API_BASE}/bookings/cancel/${bookingId}`);
+      const { data } = await api.put(`${API_BASE}/bookings/cancel/${bookingId}`);
       return data;
     } catch (error) {
       const msg = error.response?.data?.message || '取消訂單失敗';
