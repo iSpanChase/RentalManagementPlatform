@@ -79,7 +79,7 @@ onMounted(async () => {
 .global-notification-bell {
   position: fixed;
   bottom: 30px;
-  right: 30px;
+  left: 30px;
   z-index: 1000;
   transition: all 0.3s ease;
 }
