@@ -28,6 +28,11 @@ const statusClass = computed(() => getStatusClass(props.status));
   display: inline-block;
   white-space: nowrap;
 
+  &.status-pending {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
   &.status-deferred,
   &.status-unpaid {
     background-color: #fff3cd;
@@ -41,6 +46,11 @@ const statusClass = computed(() => getStatusClass(props.status));
   }
 
   &.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  &.status-failed {
     background-color: #f8d7da;
     color: #721c24;
   }

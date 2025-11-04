@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System.Text.RegularExpressions;
 
 namespace RentalManagementPlatformWebAPI.Hubs

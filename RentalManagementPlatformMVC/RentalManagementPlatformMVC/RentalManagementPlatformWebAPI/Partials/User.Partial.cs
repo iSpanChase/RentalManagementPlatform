@@ -8,5 +8,7 @@
 		public ICollection<HostSubscription> HostSubscriptions { get; set; } = new List<HostSubscription>();
 		public ICollection<PointLedger> PointLedgers { get; set; } = new List<PointLedger>();
 		public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+		public ICollection<EmailVerification> EmailVerifications { get; set; } = new List<EmailVerification>();
+
 	}
 }

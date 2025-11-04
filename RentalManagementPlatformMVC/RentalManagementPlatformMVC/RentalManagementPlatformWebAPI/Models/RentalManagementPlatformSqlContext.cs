@@ -33,9 +33,9 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
     public virtual DbSet<District> Districts { get; set; }
 
-    public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
+	public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
-    public virtual DbSet<FaqArticle> FaqArticles { get; set; }
+	public virtual DbSet<FaqArticle> FaqArticles { get; set; }
 
     public virtual DbSet<FaqCategory> FaqCategories { get; set; }
 
@@ -347,6 +347,43 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasColumnName("district_name");
         });
 
+		modelBuilder.Entity<EmailVerification>(e =>
+		{
+			e.ToTable("EmailVerifications");                         // 資料表名（照你的實際名稱，若不同請改）
+			e.HasKey(x => x.TokenId);
+
+			e.Property(x => x.TokenId)
+				.HasColumnName("token_Id");                          // INT IDENTITY
+
+			e.Property(x => x.UserId)
+				.HasColumnName("user_Id")
+				.IsRequired();
+
+			e.Property(x => x.TokenHash)
+				.HasColumnName("TokenHash")
+				.HasMaxLength(200)
+				.IsRequired();
+
+			e.Property(x => x.ExpiresAt)
+				.HasColumnName("Expires_At")
+				.IsRequired();
+
+			e.Property(x => x.IsUsed)
+				.HasColumnName("IsUsed")
+				.HasDefaultValue(false)
+				.IsRequired();
+
+			e.Property(x => x.CreatedAt)
+				.HasColumnName("created_At")
+				.HasDefaultValueSql("SYSUTCDATETIME()")
+				.IsRequired();
+
+            e.HasOne(e => e.User)
+                .WithMany(u => u.EmailVerifications)
+                .HasForeignKey(e => e.UserId);
+		});
+
+		modelBuilder.Entity<FaqArticle>(entity =>
         modelBuilder.Entity<EmailVerification>(entity =>
         {
             entity.HasKey(e => e.TokenId).HasName("PK__EMAIL_VE__CB3C9E178521D339");
@@ -365,7 +402,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("token_hash");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-        });
+        }));
 
         modelBuilder.Entity<FaqArticle>(entity =>
         {
@@ -1038,7 +1075,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(512)
                 .HasColumnName("username");
-        });
+			entity.Property(u => u.IsOperatorPending).HasColumnName("is_operator_pending");
+		});
 
         modelBuilder.Entity<UserFavoriteReport>(entity =>
         {

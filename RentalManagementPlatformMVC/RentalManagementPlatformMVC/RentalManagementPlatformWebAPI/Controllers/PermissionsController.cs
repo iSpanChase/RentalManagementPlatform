@@ -16,8 +16,16 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[Authorize(Policy = "Permissions.View")]
 		public async Task<List<PermissionDto>> Get() => await _svc.GetAllAsync();
 
+		[Authorize(Policy = "Permissions.View")]
+		[HttpGet("roles/{roleId:int}")]
+		public async Task<ActionResult<List<int>>> GetRolePermissionIds([FromRoute] int roleId)
+		{
+			var ids = await _svc.GetIdsByRoleAsync(roleId);
+			return Ok(ids);
+		}
+
 		[HttpPost("roles/{roleId:int}")]
-		[Authorize(Policy = "Permissions.Assign")]
+		[Authorize(Policy = "Permissions.ManagePermissions")]
 		public async Task<IActionResult> Assign([FromRoute] int roleId, [FromBody] AssignPermissionDto dto)
 		{
 			await _svc.AssignAsync(roleId, dto.PermissionIds);
@@ -25,7 +33,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		}
 
 		[HttpDelete("roles/{roleId:int}")]
-		[Authorize(Policy = "Permissions.Assign")]
+		[Authorize(Policy = "Permissions.ManagePermissions")]
 		public async Task<IActionResult> Remove([FromRoute] int roleId, [FromBody] AssignPermissionDto dto)
 		{
 			await _svc.RemoveAsync(roleId, dto.PermissionIds);

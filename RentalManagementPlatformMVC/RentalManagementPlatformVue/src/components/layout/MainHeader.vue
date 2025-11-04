@@ -1,9 +1,71 @@
 <script setup>
 import { computed } from 'vue'
 import { useWindowScroll } from '@vueuse/core'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 
 const { y } = useWindowScroll()
 const isSticky = computed(() => y.value > 100)
+
+/**
+ * 判斷是否已登入
+ * - 你的 store 先前有 isAuthenticated.value 與 state.accessToken
+ * - 若命名不同，改這裡即可
+ */
+const isLoggedIn = computed(() =>
+  (auth.isAuthenticated?.value === true) ||
+  !!auth.state?.accessToken
+)
+
+/** 目前頁面的完整路徑（登入後可導回） */
+const currentPath = computed(() => route.fullPath)
+
+/** 顯示名稱：優先顯示 profile.name，其次 email */
+const displayName = computed(() =>
+  auth.state?.profile?.name ||
+  auth.state?.profile?.email ||
+  '已登入'
+)
+
+/** 儀表板路由名稱（若你專案不是 'dashboard'，改成實際名稱） */
+const dashboardRouteName = 'dashboard'
+
+/** 登出流程 */
+const onLogout = async () => {
+  try {
+    // 1) 優先呼叫 store 的 logout（若有）
+    if (typeof auth.logout === 'function') {
+      await auth.logout()
+    } else {
+      // 2) Fallback：清除 token 與使用者資料
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+
+      if (auth.state) {
+        Object.assign(auth.state, {
+          accessToken: '',
+          refreshToken: '',
+          profile: null,
+          permissions: [],
+          roles: [],
+        })
+      }
+
+      // 3) 若 isAuthenticated 是 ref，安全地設為 false
+      if (isRef(auth.isAuthenticated)) {
+        auth.isAuthenticated.value = false
+      }
+    }
+  } catch (err) {
+    console.warn('登出時發生錯誤：', err)
+  } finally {
+    router.push({ name: 'home' }) // 或 { name: 'login' }
+  }
+}
 </script>
 
 <template>
@@ -27,20 +89,47 @@ const isSticky = computed(() => y.value > 100)
           </nav> -->
 
         <!-- Right Actions -->
-        <div class="right-actions">
-          <a href="#" class="login-link">
-            <i class="fas fa-user"></i>
-            登入
-          </a>
-          <button class="search-btn">
-            <i class="fas fa-search"></i>
-          </button>
-          <button class="mobile-menu-btn">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
+             <div class="ms-auto d-flex align-items-center gap-2">
+      <!-- 已登入：顯示帳號 & 登出 -->
+      <template v-if="isLoggedIn">
+        <span class="small opacity-75">
+          {{ displayName }}
+        </span>
+
+        <button
+          type="button"
+          class="btn btn-outline-light btn-sm"
+          @click="onLogout"
+        >
+          登出
+        </button>
+
+        <!-- （可選）進入個人頁或儀表板 -->
+        <RouterLink
+          class="btn btn-teal btn-sm"
+          :to="{ name: dashboardRouteName }"
+        >
+          儀表板
+        </RouterLink>
+      </template>
+
+      <!-- 未登入：顯示登入 / 註冊 -->
+      <template v-else>
+        <RouterLink
+          class="btn btn-outline-light btn-sm"
+          :to="{ name: 'login', query: { redirect: currentPath } }"
+        >
+          登入
+        </RouterLink>
+
+        <RouterLink
+          class="btn btn-light btn-sm"
+          :to="{ name: 'register', query: { redirect: currentPath } }"
+        >
+          註冊
+        </RouterLink>
+      </template>
+    </div>
       </div>
     </div>
   </header>
@@ -260,4 +349,32 @@ const isSticky = computed(() => y.value > 100)
     }
   }
 }
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.greeting {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+.ghost-button {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ghost-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.avatar-mini-wrap { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.avatar-mini { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; border: 1px solid #000000; }
 </style>
