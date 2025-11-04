@@ -30,4 +30,34 @@ public partial class Booking
     public string? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public int? GuestCount { get; set; }
+
+    public string? PaymentTiming { get; set; }
+
+    public string? PaymentStatus { get; set; }
+
+    public DateTime? PaymentDeadline { get; set; }
+
+    public string? ContactName { get; set; }
+
+    public string? ContactEmail { get; set; }
+
+    public string? ContactPhone { get; set; }
+
+    public string? ContactNotes { get; set; }
+
+    public string? BillingCountry { get; set; }
+
+    public string? BillingStreet { get; set; }
+
+    public string? BillingApartment { get; set; }
+
+    public string? BillingCity { get; set; }
+
+    public string? BillingState { get; set; }
+
+    public string? BillingZipCode { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
 }

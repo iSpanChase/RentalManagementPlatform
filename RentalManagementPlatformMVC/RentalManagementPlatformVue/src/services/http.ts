@@ -1,6 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
-
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:7230'
+import { useAuthStore } from '@/stores/auth'
 
 interface AuthHandlers {
     getAccessToken: () => string | null
@@ -9,7 +8,7 @@ interface AuthHandlers {
 }
 
 const api: AxiosInstance = axios.create({
-    baseURL: '/api',
+    baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
     withCredentials: true,
 })
 
@@ -20,14 +19,17 @@ export const registerAuthHandlers = (handlers: AuthHandlers) => {
 }
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    if (authHandlers) {
-        const token = authHandlers.getAccessToken()
-        if (token) {
-            config.headers = config.headers ?? {}
-            config.headers.Authorization = `Bearer ${token}`
-        }
-    }
-    return config
+  let token: string | null | undefined = authHandlers?.getAccessToken?.()
+  // handlers 尚未註冊或沒拿到值 → 從 localStorage 兜底
+  if (!token) {
+    token = localStorage.getItem('rmp.accessToken')
+  }
+  token = (token ?? '').toString().trim()
+  if (token.length > 10) {
+    config.headers = config.headers ?? {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
@@ -44,7 +46,7 @@ api.interceptors.response.use(
             !originalRequest._retry
         ) {
             const url = originalRequest.url ?? ''
-            if (url.includes('/api/Auth/refresh')) {
+            if (url.includes('/Auth/refresh')) {
                 authHandlers.onUnauthorized()
                 return Promise.reject(error)
             }
@@ -64,10 +66,10 @@ api.interceptors.response.use(
     },
 )
 
-// 啟動時自動把 localStorage 的 token 帶到 header
-const existing = localStorage.getItem('access_token')
-if (existing) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${existing}`
-}
+// // 啟動時自動把 localStorage 的 token 帶到 header
+// const existing = localStorage.getItem('access_token')
+// if (existing) {
+//     api.defaults.headers.common['Authorization'] = `Bearer ${existing}`
+// }
 
 export default api

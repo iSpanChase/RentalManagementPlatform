@@ -187,12 +187,8 @@ const login = async (request: LoginRequest) => {
     const { data } = await api.post<LoginResponse>('/Auth/login', request)
     setSession(data)
     // 立刻拉一次 /Users/me，確保拿到 gender / birthDate / address 等完整欄位
-    try {
-      await fetchProfile()
-      await fetchAbilities()
-    } catch {
-      // 即便失敗也不影響原本登入流程
-    }
+    try { await fetchProfile() } catch (e) { console.warn('fetchProfile after login:', e) }
+    try { await fetchAbilities() } catch (e) { console.warn('fetchAbilities after login:', e) }
     // 回傳最新的 profile（若成功）或原本登入回來的
     return state.profile ?? data
   } catch (error) {
@@ -203,19 +199,88 @@ const login = async (request: LoginRequest) => {
   }
 }
 
-/** 從後端取得「目前使用者」的 roles 與 permissions（即時） */
+// --- helpers：把各種 wire 格式轉成 roles/perms 字串陣列 ---
+type RoleLike = { code?: string } | string
+type PermLike = { code?: string } | string
+type AbilitiesWire =
+  | string[]                                               // 只有權限
+  | { roles?: string[]; perms?: string[]; permissions?: string[] }
+  | { roles?: RoleLike[]; permissions?: PermLike[] }
+
+function normalizeAbilities(input: AbilitiesWire | null | undefined) {
+  const roles: string[] = []
+  const perms: string[] = []
+
+  if (!input) return { roles, perms }
+
+  // 只有權限（string[]）
+  if (Array.isArray(input) && input.every(x => typeof x === 'string')) {
+    perms.push(...(input as string[]))
+    return { roles, perms }
+  }
+
+  // 物件回傳
+  const obj = input as any
+
+  // roles: string[] 或 RoleLike[]
+  const rawRoles: RoleLike[] = Array.isArray(obj.roles) ? obj.roles : []
+  rawRoles.forEach(r => {
+    if (typeof r === 'string') roles.push(r)
+    else if (r && typeof r.code === 'string') roles.push(r.code)
+  })
+
+  // permissions/perms: string[] 或 PermLike[]
+  const rawPerms: PermLike[] =
+    Array.isArray(obj.perms) ? obj.perms :
+    Array.isArray(obj.permissions) ? obj.permissions : []
+
+  rawPerms.forEach(p => {
+    if (typeof p === 'string') perms.push(p)
+    else if (p && typeof p.code === 'string') perms.push(p.code)
+  })
+
+  // 去重
+  return {
+    roles: Array.from(new Set(roles)),
+    perms: Array.from(new Set(perms)),
+  }
+}
+
+// --- 取 token（你原本已有）---
+const getToken = () =>
+  (state.accessToken || localStorage.getItem('rmp.accessToken') || '').toString().trim()
+
+/** 取「目前登入者」的角色與權限；登入後呼叫一次即可 */
 const fetchAbilities = async () => {
-  state.error = null
+  // 沒 token 不打，保留現狀（通常來自 login 回傳）
+  const token = getToken()
+  if (!token) return { roles: state.roles, permissions: state.permissions }
+
   try {
-    const { data } = await api.get<{ roles: string[]; perms: string[] }>('/Auth/me/abilities')
-    state.roles = Array.isArray(data?.roles) ? data.roles : []
-    state.permissions = Array.isArray(data?.perms) ? data.perms : []
+    const { data } = await api.get<AbilitiesWire>('/Auth/me/abilities', {
+      // 再保險帶一次 Bearer，避免極早期時機攔截器還沒生效
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const { roles, perms } = normalizeAbilities(data)
+
+    // 若 login 已帶回部份資料，這裡與後端最新結果「合併去重」
+    const mergedRoles = Array.from(new Set([...(state.roles || []), ...roles]))
+    const mergedPerms = Array.from(new Set([...(state.permissions || []), ...perms]))
+
+    state.roles = mergedRoles
+    state.permissions = mergedPerms
     persistSession()
+
     return { roles: state.roles, permissions: state.permissions }
-  } catch (error) {
-    // 若沒有這支 API，保留現狀（從 LoginResponse 來的陣列）
-    state.error = resolveErrorMessage(error)
-    // 可選：這裡不 throw，避免頁面啟動時卡住
+  } catch (err: any) {
+    const s = err?.response?.status
+    if (s === 401) {
+      // 不清 session，只是目前拿不到 abilities；保留 login 既有資料
+      console.warn('fetchAbilities 401 -> skip abilities this time')
+      return { roles: state.roles, permissions: state.permissions }
+    }
+    console.warn('fetchAbilities failed:', s, err?.response?.data)
     return { roles: state.roles, permissions: state.permissions }
   }
 }
@@ -283,24 +348,21 @@ const logout = async () => {
 
 /** 取得目前登入者的完整個人資料（UserProfile） */
 const fetchProfile = async () => {
-  state.error = null
-  try {
-    // ✅ 最小修正：沒有 token 就不呼叫 /Users/me，避免未登入時噴 401
-    const token = state.accessToken || localStorage.getItem(storageKeys.accessToken)
-    if (!token) return null
+  const token = getToken()
+  if (!token) return null
 
-    const { data } = await api.get<UserProfile>('/Users/me')
+  try {
+    const { data } = await api.get('/Users/me', {
+      headers: { Authorization: `Bearer ${token}` }, // ← 再保險帶一次
+    })
     state.profile = data
     persistSession()
     return data
   } catch (err: any) {
-    // 未登入 / token 失效：清理並不拋出，讓路由守衛接手導向
-    if (err?.response?.status === 401) {
-      clearSession()
-      return null
-    }
-    state.error = resolveErrorMessage(err)
-    throw err
+    const s = err?.response?.status
+    if (s === 401) { clearSession(); return null }
+    console.warn('fetchProfile failed:', s, err?.response?.data)
+    return null
   }
 }
 
@@ -333,26 +395,9 @@ const updateProfile = async (payload: UpdateProfileRequest) => {
   }
 }
 
-/** 啟動時從 localStorage 還原登入狀態，並把 Authorization 設回 Axios */
+// 直接讓 state 初始化的值生效，再補一次 header
 const restoreSession = () => {
-  try {
-    const raw = localStorage.getItem('auth.session')
-    if (!raw) return
-    const s = JSON.parse(raw)
-
-    state.accessToken = s?.accessToken || ''
-    state.refreshToken = s?.refreshToken || ''
-    state.profile = s?.profile || null
-    state.roles = Array.isArray(s?.roles) ? s.roles : []
-    state.permissions = Array.isArray(s?.permissions) ? s.permissions : []
-
-    if (state.accessToken) {
-      api.defaults.headers.common.Authorization = `Bearer ${state.accessToken}`
-    }
-  } catch {
-    // 壞掉的快取就清掉
-    clearSession()
-  }
+  applyAuthHeader(state.accessToken)
 }
 
 const getRoles = async () => {

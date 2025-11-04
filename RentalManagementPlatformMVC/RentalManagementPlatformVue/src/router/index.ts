@@ -1,86 +1,84 @@
-import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router';
+import MainLayout from '@/layouts/MainLayout.vue';
+import HomeView from '../views/HomeView.vue';
+import AuthenticatorRouter from '@/modules/Authenticator/router';
+import ReportFormRouter from './modules/ReportForm/router';
+import bookingRoutes from '@/modules/booking/router';
+import CouponCenterView from '../views/CouponCenterView.vue';
+import supportRoutes from '@/modules/faq/router'
+import { useAuthStore } from '@/stores/auth'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 1. 主頁面：用 MainLayout 包住
     {
       path: '/',
-      name: 'dashboard',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { requiresGuest: true },
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/RegisterView.vue'),
-      meta: { requiresGuest: true },
-    },
-    {
-      path: '/forgot-password',
-      name: 'forgot-password',
-      component: () => import('@/views/ForgotPasswordView.vue'),
-      meta: { requiresGuest: true },
-    },
-    {
-      path: '/roles',
-      name: 'roles',
-      component: () => import('@/views/RolesView.vue'),
-      meta: { requiresAuth: true, requiredPerms: ['Roles.View'] },
-    },
-    {
-      path: '/permissions',
-      name: 'permissions',
-      component: () => import('@/views/PermissionsView.vue'),
-      meta: { requiresAuth: true, requiredPerms: ['Permissions.View'] },
-    },
-    {
-      path: '/reset-password',
-      name: 'reset-password',
-      component: () => import('@/views/ResetPasswordView.vue'), meta: { requiresGuest: true }
-    },
-    {
-      path: '/admin/review-operators',
-      name: 'AdminReviewOperators',
-      component: () => import('@/views/AdminReviewOperators.vue'),
-      meta: { requiresAuth: true, perms: ['Admin.ApproveOperator'] } // 你現有的守門規則
-    },
-    {
-      path: '/verify-email',
-      name: 'VerifyEmail',
-      component: () => import('@/views/VerifyEmailView.vue'),
-      meta: { requiresAuth: false, public: true } // 不需登入
-    },
-    {
-      path: '/verify-email/success',
-      name: 'VerifyEmailSuccess',
-      component: () => import('@/views/VerifyEmailSuccessView.vue'),
-      meta: { public: true } // 不需登入
-    },
+      component: MainLayout,
+      children: [
         {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: () => import('@/views/NotFoundView.vue'),
+          path: '',
+          name: 'home',
+          component: () => import('../views/SearchView.vue'),
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('../views/AboutView.vue'),
+        },
+        {
+          path: 'rooms/:id',
+          name: 'room-detail',
+          component: () => import('../views/RoomDetailView.vue'),
+        },
+        {
+          path: '/search',
+          name: 'search',
+          component: () => import('../views/SearchView.vue'),
+        },
+        {
+          path: '/original-home',
+          name: 'original-home',
+          component: HomeView,
+        },
+        {
+          path: '/hosting/rooms/new',
+          name: 'create-room',
+          component: () => import('../views/hosting/CreateRoomView.vue'),
+        },
+        {
+          path: '/hosting/rooms/:id/edit',
+          name: 'edit-room',
+          component: () => import('../views/hosting/EditRoomView.vue'),
+        },
+        {
+          path: '/hosting/rooms',
+          name: 'room-list',
+          component: () => import('../views/hosting/RoomListView.vue'),
+        },
+        {
+          path: '/coupons',
+          name: 'coupons',
+          component: CouponCenterView
+        },
+        {
+          path: '/checkout',
+          name: 'Checkout',
+          component: () => import('../views/CheckoutPageView.vue')
+        },
+      ],
     },
-    {
-      path: '/forbidden',
-      name: 'Forbidden',
-      component: () => import('@/views/ForbiddenView.vue'),
-    },
+    // 2. 其他模組路由
+    ...ReportFormRouter,
+
+    // 3. 訂單路由（使用自己的 BookingLayout）
+    ...AuthenticatorRouter,
+    ...bookingRoutes,
+    ...supportRoutes,
+
   ],
-})
+});
 
 /** 依路由參數取得 redirect 目的地 */
 function getRedirectTarget(to: RouteLocationNormalized) {
@@ -103,11 +101,11 @@ const ensureProfileLoaded = async () => {
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-    // ★ 先還原 token & headers，避免第一發 /Users/me 變 401
+  // ★ 先還原 token & headers，避免第一發 /Users/me 變 401
   auth.restoreSession()
   const hasToken = !!localStorage.getItem('access_token')
 
-    // 需要登入的頁面才取個資；若沒有登入，等會一起導去登入或 Forbidden
+  // 需要登入的頁面才取個資；若沒有登入，等會一起導去登入或 Forbidden
   if (to.meta.requiresAuth || (Array.isArray(to.meta.requiredPerms) && to.meta.requiredPerms.length)) {
     if (!auth.state.profile) {
       await auth.fetchProfile() // 這裡 401 會被吞掉並清 session
@@ -118,7 +116,7 @@ router.beforeEach(async (to) => {
     }
     // 權限需求再補拉 abilities（你有實作就會更新；沒有就維持登入回傳）
     if (!auth.state.permissions?.length && auth.fetchAbilities) {
-      try { await auth.fetchAbilities() } catch {}
+      try { await auth.fetchAbilities() } catch { }
     }
     const need = (to.meta.requiredPerms as string[]) || []
     if (need.length && !need.every(auth.can)) {
@@ -175,4 +173,4 @@ router.beforeEach(async (to) => {
   return true
 })
 
-export default router
+export default router;

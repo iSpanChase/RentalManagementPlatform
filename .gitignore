@@ -537,4 +537,6 @@ test/
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,vue
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformWebAPI/appsettings.json
 RentalManagementPlatformMVC/RentalManagementPlatformMVC/RentalManagementPlatformMVC/appsettings.json
-RentalManagementPlatformMVC/RentalManagementPlatformVue/vite.config.ts
+/.env
+
+RentalManagementPlatformMVC/RentalManagementPlatformMVC/nul

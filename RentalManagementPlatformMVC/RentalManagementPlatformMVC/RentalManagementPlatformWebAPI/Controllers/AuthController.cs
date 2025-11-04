@@ -59,6 +59,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		}
 
 		[HttpGet("me/abilities")]
+		[Authorize]
 		public async Task<IActionResult> GetMyAbilities()
 		{
 			var sub = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub")?.Value;
