@@ -159,17 +159,42 @@ $text-dark: #222;
 $primary: #222;
 $accent: #008489;
 
+// Mobile-first 設計：從最小螢幕開始設計，然後向上擴展
 .right-section {
-  position: sticky;
-  top: 80px;
-  height: fit-content;
+  // Mobile: 不使用 sticky，正常流動
+  position: static;
+  height: auto;
+
+  // Tablet (768px+): 使用 sticky
+  @media (min-width: 768px) {
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+  }
 }
 
 .summary-card {
   border: 1px solid $border-color;
-  border-radius: 25px;
-  padding: 24px;
   background: white;
+  // Mobile
+  border-radius: 12px;
+  padding: 16px;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    padding: 24px;
+  }
+
+  // Desktop (992px+)
+  @media (min-width: 992px) {
+    border-radius: 25px;
+  }
 }
 
 .placeholder-card {
@@ -185,33 +210,107 @@ $accent: #008489;
 
 .property-info {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  // Mobile: 垂直排列
+  flex-direction: column;
+  gap: 12px;
+
   img {
-    width: 30rem;
-    height: 7rem;
     border-radius: 8px;
     object-fit: cover;
+    // Mobile: 全寬
+    width: 100%;
+    height: 150px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      height: 120px;
+    }
   }
+
   h4 {
     margin: 0;
-    font-size: 16px;
     font-weight: 600;
     color: $text-dark;
+    // Mobile
+    font-size: 16px;
+    line-height: 1.3;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 17px;
+    }
+  }
+
+  // Large mobile (480px+): 水平排列
+  @media (min-width: 480px) {
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    img {
+      width: 120px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    img {
+      width: 140px;
+      height: 90px;
+    }
+  }
+
+  // Desktop (992px+)
+  @media (min-width: 992px) {
+    img {
+      width: 160px;
+      height: 100px;
+    }
   }
 }
 
 .cancellation {
   margin: 16px 0;
-  strong { display: block; margin-bottom: 4px; }
-  p { font-size: 14px; color: $text-muted; margin: 0; }
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    // Mobile
+    font-size: 15px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 16px;
+    }
+  }
+
+  p {
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.4;
+    // Mobile
+    font-size: 14px;
+  }
+
   .full-cancellation {
     background: none;
     border: none;
     text-decoration: underline;
     cursor: pointer;
-    font-size: 14px;
     color: $text-dark;
+    // Mobile
+    font-size: 14px;
+    padding: 2px 0;
+    min-height: 32px; // 適合觸控的最小高度
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      min-height: auto;
+      padding: 0;
+    }
   }
 }
 
@@ -220,25 +319,53 @@ $accent: #008489;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+
   .btn-edit {
     background: none;
     border: none;
     text-decoration: underline;
     cursor: pointer;
-    font-size: 14px;
     color: $text-dark;
+    // Mobile
+    font-size: 14px;
+    padding: 4px 8px;
+    min-height: 32px; // 適合觸控的最小高度
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      padding: 0;
+      min-height: auto;
+    }
   }
 }
 
 .date-info {
   color: $text-muted;
-  font-size: 14px;
   margin-bottom: 16px;
+  line-height: 1.4;
+  // Mobile
+  font-size: 14px;
 }
 
 .price-section {
-  margin-top: 20px;
-  h4 { font-size: 18px; margin-bottom: 16px; }
+  // Mobile
+  margin-top: 16px;
+
+  h4 {
+    margin-bottom: 16px;
+    // Mobile
+    font-size: 17px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 18px;
+    }
+  }
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    margin-top: 20px;
+  }
 }
 
 .price-row {
@@ -257,21 +384,62 @@ $accent: #008489;
 hr {
   border: none;
   border-top: 1px solid $divider-color;
-  margin: 16px 0;
+  // Mobile
+  margin: 12px 0;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    margin: 16px 0;
+  }
 }
 
 .modal-content {
-  border-radius: 25px;
+  // Mobile
+  border-radius: 12px;
+
   .modal-title {
     width: 100%;
     text-align: center;
     font-weight: 600;
+    // Mobile
+    font-size: 18px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 20px;
+    }
   }
-  .modal-body { padding: 24px; }
+
+  .modal-body {
+    // Mobile
+    padding: 16px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      padding: 24px;
+    }
+  }
+
   .modal-footer {
     display: flex;
     justify-content: space-between;
-    padding: 16px 24px;
+    // Mobile
+    padding: 12px 16px;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      padding: 16px 24px;
+    }
+  }
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    border-radius: 16px;
+  }
+
+  // Desktop (992px+)
+  @media (min-width: 992px) {
+    border-radius: 25px;
   }
 }
 
@@ -309,11 +477,5 @@ hr {
 }
 
 
-@media (max-width: 768px) {
-  .right-section { position: static; }
-  .property-info {
-    flex-direction: column;
-    img { width: 100%; height: auto; }
-  }
-}
+// 移除舊的 media query，已整合到 mobile-first 設計中
 </style>

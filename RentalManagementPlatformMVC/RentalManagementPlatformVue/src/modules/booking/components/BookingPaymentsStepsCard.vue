@@ -321,36 +321,70 @@ const handleConfirmPayment = async () => {
 </template>
 
 <style lang="scss" scoped>
+// Mobile-first 設計：從最小螢幕開始設計，然後向上擴展
 .left-section {
   display: flex;
   flex-direction: column;
-  gap: 30px;
   max-width: 100%;
+  // Mobile
+  gap: 16px;
 
-  @media (max-width: 768px) {
-    gap: 16px;
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    gap: 20px;
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    gap: 24px;
+  }
+
+  // Desktop (992px+)
+  @media (min-width: 992px) {
+    gap: 30px;
   }
 }
 
 .step-card {
   border: 1px solid #ddd;
-  border-radius: 25px;
-  padding: 30px;
   transition: all 0.3s ease;
   background: white;
+  // Mobile
+  border-radius: 12px;
+  padding: 16px;
 
-  @media (max-width: 768px) {
-    padding: 20px;
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
     border-radius: 16px;
+    padding: 20px;
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    padding: 24px;
+  }
+
+  // Desktop (992px+)
+  @media (min-width: 992px) {
+    border-radius: 25px;
+    padding: 30px;
   }
 
   h3 {
-    margin-bottom: 16px;
-    font-size: 20px;
+    margin: 0 0 12px;
+    // Mobile
+    font-size: 18px;
 
-    @media (max-width: 768px) {
-      font-size: 18px;
-      margin-bottom: 12px;
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 19px;
+      margin-bottom: 14px;
+    }
+
+    // Tablet (768px+)
+    @media (min-width: 768px) {
+      font-size: 20px;
+      margin-bottom: 16px;
     }
   }
 
@@ -372,19 +406,27 @@ const handleConfirmPayment = async () => {
 
   > div > .btn-continue {
     width: 100%;
-    padding: 14px;
     background: #222;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 16px;
     transition: background 0.2s;
+    // Mobile
+    padding: 16px;
+    font-size: 16px;
+    margin-top: 16px;
+    min-height: 48px; // 適合觸控的最小高度
 
     &:hover {
       background: #000;
+    }
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      padding: 14px;
+      min-height: auto;
     }
   }
 }
@@ -433,28 +475,66 @@ const handleConfirmPayment = async () => {
 
 .payment-option {
   margin-bottom: 12px;
-  padding: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
   transition: border-color 0.2s;
+  // Mobile
+  padding: 12px;
 
   &:hover { border-color: #bbb; }
 
-  input[type="radio"] { margin-right: 12px; }
+  input[type="radio"] {
+    // Mobile: 更大的選擇區域
+    margin-right: 10px;
+    transform: scale(1.2);
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      margin-right: 12px;
+      transform: scale(1);
+    }
+  }
 
   label {
     cursor: pointer;
     display: block;
     width: 100%;
 
-    div { font-weight: 600; margin-bottom: 4px; }
+    div {
+      font-weight: 600;
+      margin-bottom: 4px;
+      // Mobile
+      font-size: 15px;
+
+      // Large mobile (480px+)
+      @media (min-width: 480px) {
+        font-size: 16px;
+      }
+    }
+
     small {
-      color: #666; line-height: 1.4;
-      a { color: #222; text-decoration: underline; &:hover { color: #000; } }
+      color: #666;
+      line-height: 1.4;
+      // Mobile
+      font-size: 13px;
+
+      a {
+        color: #222;
+        text-decoration: underline;
+        &:hover { color: #000; }
+      }
+
+      // Large mobile (480px+)
+      @media (min-width: 480px) {
+        font-size: 14px;
+      }
     }
   }
 
-  @media (max-width: 768px) { padding: 12px; }
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 16px;
+  }
 }
 
 .payment-form { margin-top: 16px; }
@@ -549,17 +629,26 @@ const handleConfirmPayment = async () => {
 
 .button-group {
   display: flex;
-  gap: 12px;
   margin-top: 16px;
+  // Mobile: 垂直排列
+  flex-direction: column;
+  gap: 12px;
 
   button {
-    flex: 1;
-    padding: 14px;
     border-radius: 8px;
-    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    // Mobile
+    padding: 16px;
+    font-size: 16px;
+    min-height: 48px; // 適合觸控的最小高度
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      padding: 14px;
+      min-height: auto;
+    }
   }
 
   .btn-back {
@@ -588,6 +677,15 @@ const handleConfirmPayment = async () => {
     color: #ccc;
     border-color: #ccc;
     cursor: not-allowed;
+  }
+
+  // Large mobile (480px+): 水平排列
+  @media (min-width: 480px) {
+    flex-direction: row;
+
+    button {
+      flex: 1;
+    }
   }
 }
 

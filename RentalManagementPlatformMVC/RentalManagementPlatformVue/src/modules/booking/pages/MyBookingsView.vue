@@ -345,28 +345,65 @@ $background-light: #f9f9f9;
 $text-light: #717171;
 $text-dark: #484848;
 
+// Mobile-first 設計：從最小螢幕開始設計，然後向上擴展
 .my-bookings-page {
-  max-width: 1024px;
-  margin: 0 auto;
-  padding: 20px;
+  // Mobile (320px+)
+  padding: 16px;
   min-height: 100vh;
+  margin: 0 auto;
 
   h1 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
-    margin-left: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     color: #222;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  // Small mobile (375px+)
+  @media (min-width: 375px) {
+    padding: 20px;
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+  }
+
+  // Large mobile / Small tablet (576px+)
+  @media (min-width: 576px) {
+    max-width: 540px;
+
+    h1 {
+      font-size: 28px;
+      text-align: left;
+      margin-left: 10px;
+    }
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    max-width: 720px;
+  }
+
+  // Large tablet / Small desktop (992px+)
+  @media (min-width: 992px) {
+    max-width: 900px;
+  }
+
+  // Desktop (1200px+)
+  @media (min-width: 1200px) {
+    max-width: 1024px;
   }
 }
 
 .container {
   width: 100%;
-  max-width: 900px;
   margin: 0 auto;
 }
 
-/* Loading & Error Styles */
+/* Loading & Error Styles - Mobile-first */
 .loading-overlay, .error-message-container {
   position: fixed;
   top: 0;
@@ -378,50 +415,106 @@ $text-dark: #484848;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  padding: 20px;
+  // Mobile
+  padding: 16px;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 20px;
+  }
 }
 
 .loading-content, .error-card {
   background: white;
-  padding: 40px;
-  border-radius: 16px;
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  max-width: 350px;
-  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 320px;
+  // Mobile
+  padding: 24px 20px;
 
   p {
-    margin-top: 16px;
+    margin-top: 12px;
     color: #333;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
+    line-height: 1.4;
+  }
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 32px 24px;
+    border-radius: 16px;
+    max-width: 350px;
+
+    p {
+      font-size: 16px;
+      margin-top: 16px;
+    }
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f0f0f0;
-  border-top: 4px solid #007bff;
+  // Mobile
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f0f0f0;
+    border-top: 4px solid #007bff;
+  }
 }
 
 .error-card {
   h2 {
-    font-size: 22px;
+    // Mobile
+    font-size: 18px;
     font-weight: 600;
     color: #d9534f;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    line-height: 1.3;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    // Tablet (768px+)
+    @media (min-width: 768px) {
+      font-size: 22px;
+    }
   }
+
   p {
     color: #484848;
-    line-height: 1.6;
+    line-height: 1.5;
+
+    // Tablet (768px+)
+    @media (min-width: 768px) {
+      line-height: 1.6;
+    }
   }
+
   .btn-back-home {
-    margin-top: 20px;
-    padding: 10px 20px;
+    // Mobile
+    margin-top: 16px;
+    padding: 12px 20px;
     background-color: #007bff;
     color: white;
     border: none;
@@ -429,31 +522,73 @@ $text-dark: #484848;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    width: 100%;
+    font-size: 14px;
+
     &:hover {
       background-color: #0056b3;
+    }
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      margin-top: 20px;
+      width: auto;
+      min-width: 120px;
+      font-size: 16px;
+      padding: 10px 20px;
     }
   }
 }
 
 .bookings-list {
   display: grid;
-  gap: 24px;
+  // Mobile
+  gap: 16px;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    gap: 20px;
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    gap: 24px;
+  }
 
   .booking-card {
-    display: flex;
     background: white;
     border: 1px solid $border-color;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     transition: box-shadow 0.3s ease;
+    // Mobile: 垂直布局
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
 
     &:hover {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+      &:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    // Tablet (768px+): 水平布局
+    @media (min-width: 768px) {
+      flex-direction: row;
     }
 
     .card-image-wrapper {
-      width: 220px;
+      // Mobile: 圖片在上方
+      width: 100%;
+      height: 200px;
       flex-shrink: 0;
 
       .room-image {
@@ -461,14 +596,36 @@ $text-dark: #484848;
         height: 100%;
         object-fit: cover;
       }
+
+      // Tablet (768px+): 圖片在左側
+      @media (min-width: 768px) {
+        width: 200px;
+        height: auto;
+      }
+
+      // Desktop (992px+): 更寬的圖片
+      @media (min-width: 992px) {
+        width: 220px;
+      }
     }
 
     .card-details-wrapper {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 20px 24px;
+      // Mobile
+      padding: 16px;
       gap: 12px;
+
+      // Large mobile (480px+)
+      @media (min-width: 480px) {
+        padding: 20px;
+      }
+
+      // Tablet (768px+)
+      @media (min-width: 768px) {
+        padding: 20px 24px;
+      }
     }
 
     .card-section {
@@ -478,6 +635,18 @@ $text-dark: #484848;
     }
 
     .top-section {
+      // Mobile: 垂直排列
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      // Large mobile (480px+): 水平排列
+      @media (min-width: 480px) {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0;
+      }
+
       .room-info {
         .room-location {
           display: block;
@@ -486,9 +655,16 @@ $text-dark: #484848;
         }
         h3 {
           margin: 2px 0 0;
-          font-size: 20px;
+          // Mobile
+          font-size: 18px;
           font-weight: 600;
           color: $primary-color;
+          line-height: 1.3;
+
+          // Large mobile (480px+)
+          @media (min-width: 480px) {
+            font-size: 20px;
+          }
         }
       }
     }
@@ -510,10 +686,15 @@ $text-dark: #484848;
         font-size: 14px;
 
         i {
-          margin-right: 10px;
+          margin-right: 8px;
           color: $text-light;
           width: 16px;
           text-align: center;
+
+          // Large mobile (480px+)
+          @media (min-width: 480px) {
+            margin-right: 10px;
+          }
         }
 
         &.order-number {
@@ -529,9 +710,20 @@ $text-dark: #484848;
       align-items: flex-end;
       border-top: 1px solid $border-color;
       padding-top: 16px;
+      // Mobile: 垂直排列
+      flex-direction: column;
+      gap: 12px;
+
+      // Large mobile (480px+): 水平排列
+      @media (min-width: 480px) {
+        flex-direction: row;
+        gap: 0;
+      }
 
       .total-price-area {
-        text-align: left;
+        // Mobile: 置中
+        text-align: center;
+
         span {
           font-size: 13px;
           color: $text-light;
@@ -539,32 +731,63 @@ $text-dark: #484848;
         .total-price-value {
           margin: 0;
           strong {
-            font-size: 20px;
+            // Mobile
+            font-size: 18px;
             font-weight: 700;
             color: $primary-color;
+
+            // Large mobile (480px+)
+            @media (min-width: 480px) {
+              font-size: 20px;
+            }
           }
+        }
+
+        // Large mobile (480px+): 靠左
+        @media (min-width: 480px) {
+          text-align: left;
         }
       }
 
       .card-actions {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        // Mobile: 置中
+        justify-content: center;
         gap: 8px;
+        width: 100%;
+
+        // Large mobile (480px+): 靠右
+        @media (min-width: 480px) {
+          justify-content: flex-end;
+          width: auto;
+        }
       }
     }
   }
 }
 
 %btn-base {
-  padding: 8px 14px;
+  // Mobile
+  padding: 10px 16px;
   border-radius: 8px;
   border: 1px solid;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  min-height: 44px; // 適合觸控的最小高度
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: auto;
+  }
 }
 
 .btn-pay-now,
