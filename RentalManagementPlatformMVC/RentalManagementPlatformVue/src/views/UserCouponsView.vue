@@ -22,9 +22,12 @@
 </template>
 
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
-import CouponCard from '@/components/coupons/CouponCard.vue'
-import { getUserCoupons } from '@/services/CouponService.js'
+import { computed } from 'vue';
+import { useQuery } from '@tanstack/vue-query';
+import CouponCard from '@/components/coupons/CouponCard.vue';
+import { getUserCoupons } from '@/services/CouponService.js';
+import { useAuthStore } from '@/stores/auth';
+
 // 暫時在本地定義 Coupon 型別，以解決模組找不到的問題
 interface Coupon {
   couponId: number;
@@ -38,15 +41,15 @@ interface Coupon {
   status: string;
 } 
 
-const userId = 1 // 模擬目前登入使用者
+const authStore = useAuthStore();
+const userId = computed(() => authStore.state.profile?.userId);
 
 const { data: userCoupons, isLoading, isError, error } = useQuery({
   queryKey: ['userCoupons', userId],
-  queryFn: async () => {
-    console.log(`[UserCouponsView] Fetching coupons for userId: ${userId}`);
-    const coupons = await getUserCoupons(userId);
-    console.log('[UserCouponsView] Fetched data:', coupons);
-    return coupons;
-  },
-})
+  // The query function will only run when `enabled` is true.
+  // The non-null assertion (!) is safe here because of the `enabled` check.
+  queryFn: () => getUserCoupons(userId.value!),
+  // This ensures the query does not run until the userId is available.
+  enabled: computed(() => !!userId.value),
+});
 </script>

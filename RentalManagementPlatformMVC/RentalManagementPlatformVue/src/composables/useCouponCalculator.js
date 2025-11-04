@@ -36,10 +36,12 @@ export function useCouponCalculator(cartInfo) {
   watch(
     () => cartInfo.value.userId,
     (newUserId) => {
-      // 暫時使用硬編碼的 userId = 1，直到會員模組完成
-      const userIdToFetch = newUserId || 1;
-      if (userIdToFetch) {
-        fetchUserCoupons(userIdToFetch);
+      if (newUserId) {
+        fetchUserCoupons(newUserId);
+      } else {
+        userCoupons.value = [];
+        selectedCouponId.value = null;
+        resetCouponState();
       }
     },
     { immediate: true }

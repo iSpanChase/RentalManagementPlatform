@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import { fetchRoomDetail } from '@/api/roomSearchApi';
 import { useToast } from 'vue-toastification';
 import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue';
@@ -36,10 +36,9 @@ onMounted(async () => {
         // 退房為隔天上午 11 點
         const checkOutDate = new Date();
         checkOutDate.setDate(checkOutDate.getDate() + 1);
-
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: authStore.currentUser?.id || 1, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+          guestId: authStore.state.profile?.userId, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
           guestCount: 1,
           roomTitle: roomDetail.title,
           roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
