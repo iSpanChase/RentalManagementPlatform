@@ -1,88 +1,80 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
-import http from '@/plugins/http'
+import { ref, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import ChatWindow from '@/components/ChatWindow.vue'
+import http from '@/plugins/http'
 import { useAuthStore } from '@/stores/faqauth'
 import { useChatStore } from '@/stores/chat'
 
-type TicketDto = {
-  id: string; title: string; userName: string; status: string; createdAt: string; updatedAt: string
-}
+type TicketDto = { id:string; title:string; userName:string; status:string; createdAt:string; updatedAt:string }
 
+const router = useRouter()
 const auth = useAuthStore()
 const chat = useChatStore()
 
-// 右下角浮動視窗開關
-const isOpen = ref(false)
-
-// 建單資料
+const isOpen = ref(false)          // 控制浮窗開合
 const title = ref('房租問題')
+const displayName = ref(auth.user?.name || '訪客')
 const ticket = ref<TicketDto | null>(null)
 
-// 預設顯示名稱：從 auth 取，沒有就給一個暫名
-const displayName = ref(auth.user?.name || '訪客')
-
-// 建單
-function makeId() {
-  return (crypto as any)?.randomUUID?.() ??
-    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0, v = c === 'x' ? r : (r & 0x3) | 0x8
-      return v.toString(16)
+function makeId(){
+  return crypto.randomUUID?.() ??
+    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c=>{
+      const r=(Math.random()*16)|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16)
     })
 }
 
-async function createTicket() {
-  try {
-    const { data } = await http.post<TicketDto>('/api/supporttickets', {
-      title: title.value,
-      userName: displayName.value
-    })
-    ticket.value = data
-
-    // 加入房間 & 推入預設訊息（前端版；你若已做後端自動訊息可以移除這段）
-    await chat.join(ticket.value.id)
-    ;(chat.messages[ticket.value.id] ||= []).push({
-      id: makeId(),
-      ticketId: ticket.value.id,
-      senderRole: 'agent',
-      senderName: '系統客服',
-      content: '您好，稍等片刻，將有專人為您服務。',
-      createdAt: new Date().toISOString()
-    })
-
-    await nextTick()
-  } catch {
-    // 沒有後端也能 Demo
-    const id = makeId()
-    ticket.value = {
-      id, title: title.value, userName: displayName.value,
-      status: 'open', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+// ★★★ 右下按鈕：先判斷角色
+async function onLauncherClick() {
+  // 🔹 如果尚未登入，就直接 mock 一個「訪客」
+  if (!auth.user) {
+    auth.user = {
+      userId: 'GUEST-' + Math.random().toString(36).substring(2, 8),
+      name: '訪客',
+      role: 'guest' as any
     }
-    await chat.join(id)
   }
+
+  // 🔹 若是客服 (agent) → 轉跳後台介面
+  if (auth.user.role === 'agent') {
+    router.push({ name: 'support-agent' })
+    return
+  }
+
+  // 🔹 一般使用者或訪客 → 開啟浮動聊天室
+  isOpen.value = !isOpen.value
 }
 
-// 切換開關
-function toggle() { isOpen.value = !isOpen.value }
+async function createTicket(){
+  const { data } = await http.post<TicketDto>('/api/supporttickets', {
+    title: title.value,
+    userName: displayName.value
+  })
+  ticket.value = data
+  await chat.join(ticket.value.id)
 
-// 讓使用者名稱預設成 auth 的名稱
-onMounted(() => {
-  if (!auth.user) auth.useMock('user')   // 你已有登入可拿掉
-  displayName.value = auth.user?.name || '訪客'
-})
+  // 前端版預設訊息（若後端已有自動訊息可刪）
+  ;(chat.messages[ticket.value.id] ||= []).push({
+    id: makeId(),
+    ticketId: ticket.value.id,
+    senderRole: 'agent',
+    senderName: '系統客服',
+    content: '您好，稍等片刻，將有專人為您服務。',
+    createdAt: new Date().toISOString()
+  })
+  await nextTick()
+}
 </script>
 
 <template>
-  <!-- 浮動按鈕（右下角） -->
-  <button class="chat-launcher" @click="toggle" aria-label="開啟客服視窗">
-    <!-- 簡單 SVG icon（不用額外套件） -->
+  <!-- 右下浮動按鈕 -->
+  <button class="chat-launcher" @click="onLauncherClick" aria-label="開啟客服">
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" fill="currentColor"/>
     </svg>
-    <span class="badge">1</span>
   </button>
 
-  <!-- 浮動聊天視窗 -->
+  <!-- 浮動聊天視窗（只在一般使用者且已開啟時顯示） -->
   <transition name="slide-up">
     <section v-if="isOpen" class="chat-widget" role="dialog" aria-modal="true">
       <header class="widget-head">
@@ -94,12 +86,11 @@ onMounted(() => {
           </div>
         </div>
         <div class="head-actions">
-          <button class="min" @click="isOpen = false" aria-label="最小化">—</button>
+          <button class="min" @click="isOpen=false">—</button>
         </div>
       </header>
 
       <div class="widget-body">
-        <!-- 尚未建立工單：先顯示簡易表單 -->
         <form v-if="!ticket" class="create-form" @submit.prevent="createTicket">
           <label class="row">
             <span>顯示名稱</span>

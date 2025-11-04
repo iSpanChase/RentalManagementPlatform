@@ -2,57 +2,203 @@
 import { ref, onMounted } from 'vue'
 import http from '@/plugins/http'
 import ChatWindow from '@/components/ChatWindow.vue'
+import { useChatStore } from '@/stores/chat'
 
-type TicketDto = { id: string; title: string; createdAt: string }
-const agentName = ref('Agent1')
+type TicketDto = {
+  id: string
+  title: string
+  userName: string
+  createdAt: string
+  updatedAt: string
+  status?: string
+}
+
+type UserProfile = {
+  name: string
+  email?: string
+  phone?: string
+  createdAt?: string
+  avatar?: string
+  note?: string
+}
+
+const chat = useChatStore()
+
+// 假資料: 之後可以從後端 /api/supporttickets 取代
 const tickets = ref<TicketDto[]>([])
-const opened = ref<TicketDto[]>([]) // 當前打開的多個房
+const selectedTicket = ref<TicketDto | null>(null)
+const selectedUser = ref<UserProfile | null>(null)
+const loading = ref(false)
 
-async function loadTickets() {
-  const { data } = await http.get<TicketDto[]>('/api/supporttickets?status=open')
+// 模擬抓取所有工單
+async function fetchTickets() {
+  loading.value = true
+  const { data } = await http.get('/api/supporttickets')
   tickets.value = data
+  loading.value = false
 }
 
-function openTicket(t: TicketDto) {
-  if (!opened.value.find(x => x.id === t.id)) opened.value.push(t)
+// 點選一個工單後
+async function openTicket(ticket: TicketDto) {
+  selectedTicket.value = ticket
+  await chat.join(ticket.id)
+
+  // 模擬抓取使用者資料
+  const { data } = await http.get(`/api/users/${ticket.userName}`)
+  selectedUser.value = data
 }
 
-function closePanel(id: string) {
-  opened.value = opened.value.filter(x => x.id !== id)
-}
-
-onMounted(loadTickets)
+onMounted(fetchTickets)
 </script>
 
 <template>
-  <div class="layout">
-    <aside>
-      <h4>待處理工單</h4>
-      <ul>
-        <li v-for="t in tickets" :key="t.id">
-          <button @click="openTicket(t)">{{ t.title }}（{{ new Date(t.createdAt).toLocaleTimeString() }}）</button>
+  <div class="agent-dashboard">
+    <!-- 左欄：會話列表 -->
+    <aside class="sidebar">
+      <h3>會話列表</h3>
+      <div v-if="loading" class="loading">載入中...</div>
+      <ul v-else>
+        <li
+          v-for="ticket in tickets"
+          :key="ticket.id"
+          :class="{ active: ticket.id === selectedTicket?.id }"
+          @click="openTicket(ticket)"
+        >
+          <div class="title">{{ ticket.title }}</div>
+          <div class="meta">
+            <span class="name">{{ ticket.userName }}</span>
+            <span class="time">{{ new Date(ticket.updatedAt).toLocaleTimeString() }}</span>
+          </div>
         </li>
       </ul>
     </aside>
 
-    <main>
-      <section v-for="t in opened" :key="t.id" class="panel">
-        <header class="panel-head">
-          <h4>{{ t.title }} <small>({{ t.id.slice(0,8) }})</small></h4>
-          <button @click="closePanel(t.id)">關閉面板</button>
-        </header>
-        <ChatWindow :ticket-id="t.id" role="agent" :display-name="agentName" />
-      </section>
-
-      <p v-if="!opened.length" class="placeholder">請從左側選擇工單</p>
+    <!-- 中欄：聊天區 -->
+    <main class="chat-area" v-if="selectedTicket">
+      <header class="chat-header">
+        <h3>{{ selectedTicket.title }}</h3>
+        <span class="user-name">與 {{ selectedTicket.userName }} 聊天中</span>
+      </header>
+      <div class="chat-body">
+        <ChatWindow :ticket-id="selectedTicket.id" role="agent" :display-name="'客服人員'" />
+      </div>
     </main>
+    <main class="chat-empty" v-else>
+      <p>請從左側選擇一個對話。</p>
+    </main>
+
+    <!-- 右欄：客戶資訊 -->
+    <aside class="profile" v-if="selectedUser">
+      <div class="profile-card">
+        <img :src="selectedUser.avatar || 'https://placekitten.com/100/100'" class="avatar" />
+        <h4>{{ selectedUser.name }}</h4>
+        <p><strong>信箱：</strong> {{ selectedUser.email || '未提供' }}</p>
+        <p><strong>電話：</strong> {{ selectedUser.phone || '未提供' }}</p>
+        <p><strong>建立時間：</strong> {{ selectedUser.createdAt || '不明' }}</p>
+        <label>備註：</label>
+        <textarea v-model="selectedUser.note" placeholder="輸入客服備註..."></textarea>
+        <button class="save-btn">儲存備註</button>
+      </div>
+    </aside>
   </div>
 </template>
 
 <style scoped>
-.layout{ display:grid; grid-template-columns:280px 1fr; gap:16px }
-aside{ border:1px solid #ddd; border-radius:8px; padding:12px }
-.panel{ border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:16px }
-.panel-head{ display:flex; align-items:center; justify-content:space-between }
-.placeholder{ border:1px dashed #bbb; border-radius:8px; padding:24px; text-align:center }
+.agent-dashboard {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  height: 100vh;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  padding: 12px;
+  overflow-y: auto;
+}
+.sidebar h3 {
+  margin-bottom: 12px;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar li {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sidebar li:hover {
+  background: #f3f4f6;
+}
+.sidebar li.active {
+  background: #2563eb;
+  color: white;
+}
+.sidebar .meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+}
+.chat-header {
+  padding: 10px 16px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+.chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.profile {
+  background: #fff;
+  border-left: 1px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
+}
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-card .avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.profile-card textarea {
+  min-height: 80px;
+  resize: none;
+}
+.save-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+.save-btn:hover {
+  background: #1d4ed8;
+}
+.chat-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #6b7280;
+}
 </style>
