@@ -22,6 +22,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import axios from 'axios';
 
 // 讓 Font Awesome 不自動插入 <style>，避免與 Vite 衝突
 config.autoAddCss = false

@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
@@ -13,7 +14,8 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    public class FavoriteReportsController : ControllerBase
+    [Authorize]
+    public class FavoriteReportsController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
 
@@ -26,8 +28,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFavoriteReports()
         {
-            // TODO: Replace with actual user ID from auth
-            int userId = 47;
+            int userId = CurrentUserId;
 
             var favorites = await _context.UserFavoriteReports
                 .Where(f => f.UserId == userId)
@@ -42,8 +43,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFavoriteReport(int id)
         {
-            // TODO: Replace with actual user ID from auth
-            int userId = 47;
+            int userId = CurrentUserId;
 
             var favorite = await _context.UserFavoriteReports
                 .FirstOrDefaultAsync(f => f.FavoriteId == id && f.UserId == userId);
@@ -78,8 +78,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                 return BadRequest("Name cannot exceed 20 characters.");
             }
 
-            // TODO: Replace with actual user ID from auth
-            int userId = 47;
+            int userId = CurrentUserId;
 
             var newFavorite = new UserFavoriteReport
             {
@@ -105,8 +104,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFavoriteReport(int id)
         {
-            // TODO: Replace with actual user ID from auth
-            int userId = 47;
+            int userId = CurrentUserId;
 
             var favorite = await _context.UserFavoriteReports
                 .FirstOrDefaultAsync(f => f.FavoriteId == id && f.UserId == userId);

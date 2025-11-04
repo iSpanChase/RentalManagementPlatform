@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("{id}/upload-image")]
+        [Authorize]
         public async Task<IActionResult> UploadImage(int id, [FromForm] UploadImageDto uploadDto)
         {
             if (uploadDto.ImageFile == null || uploadDto.ImageFile.Length == 0)
