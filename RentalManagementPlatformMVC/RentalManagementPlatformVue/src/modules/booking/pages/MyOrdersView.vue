@@ -6,41 +6,36 @@ import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
-import { useOrderModal } from '@/composables/useOrderModal';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
-import EmptyState from '@/components/EmptyState.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const bookingStore = useBookingStore();
 const auth = useAuthStore();
-
-// 檢查使用者是否已登入
-if (!auth.isAuthenticated.value) {
-  toast.error('請先登入查看訂單記錄');
-  router.push({ name: 'LoginView' });
-}
 const router = useRouter();
 const toast = useToast();
 
 const allOrders = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
+const selectedOrder = ref(null);
 
 // 使用共用的分頁邏輯
 const { currentPage, totalPages, paginatedItems: paginatedOrders, onPageChange } = usePagination(allOrders, 5);
 
-// 使用共用的 Modal 邏輯
-const { selectedItem: selectedOrder, viewDetails } = useOrderModal('orderDetailModal');
-
 /**
- * 開啟訂單詳情 Modal
+ * 查看訂單詳情
  */
-const handleViewDetails = (orderNumber) => {
-  viewDetails(orderNumber, allOrders.value);
+const viewOrderDetails = (orderNumber, orders) => {
+  const order = orders.find(o => o.orderNumber === orderNumber);
+  if (order) {
+    selectedOrder.value = order;
+  }
 };
 
-onMounted(async () => {
+/**
+ * 重新載入資料
+ */
+const reloadData = async () => {
   isLoading.value = true;
   isError.value = false;
 
@@ -65,6 +60,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+onMounted(async () => {
+  // 檢查使用者是否已登入
+  if (!auth.isAuthenticated.value) {
+    toast.error('請先登入查看訂單記錄');
+    router.push({ name: 'LoginView' });
+    return;
+  }
+
+  await reloadData();
 });
 </script>
 
@@ -85,7 +91,7 @@ onMounted(async () => {
       <div class="error-card">
         <h2>無法載入頁面</h2>
         <p>抱歉，載入房客預訂資料時發生錯誤，請確認您的房東權限。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+        <button @click="reloadData()" class="btn-back-home">重新載入</button>
       </div>
     </div>
 
@@ -137,7 +143,7 @@ onMounted(async () => {
                   class="btn-details"
                   data-bs-toggle="modal"
                   data-bs-target="#orderDetailModal"
-                  @click="handleViewDetails(order.orderNumber)"
+                  @click="viewOrderDetails(order.orderNumber, allOrders)"
                 >
                   查看詳情 / 聯絡
                 </button>
@@ -273,65 +279,28 @@ $background-light: #f9f9f9;
 $text-light: #717171;
 $text-dark: #484848;
 
-// Mobile-first 設計：從最小螢幕開始設計，然後向上擴展
 .host-orders-page {
-  // Mobile (320px+)
-  padding: 16px;
-  min-height: 100vh;
+  max-width: 1024px;
   margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
 
   h1 {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
-    margin-bottom: 16px;
+    margin-left: 10px;
+    margin-bottom: 20px;
     color: #222;
-    text-align: center;
-    padding: 0 8px;
-  }
-
-  // Small mobile (375px+)
-  @media (min-width: 375px) {
-    padding: 20px;
-
-    h1 {
-      font-size: 26px;
-      margin-bottom: 20px;
-    }
-  }
-
-  // Large mobile / Small tablet (576px+)
-  @media (min-width: 576px) {
-    max-width: 540px;
-
-    h1 {
-      font-size: 28px;
-      text-align: left;
-      margin-left: 10px;
-    }
-  }
-
-  // Tablet (768px+)
-  @media (min-width: 768px) {
-    max-width: 720px;
-  }
-
-  // Large tablet / Small desktop (992px+)
-  @media (min-width: 992px) {
-    max-width: 900px;
-  }
-
-  // Desktop (1200px+)
-  @media (min-width: 1200px) {
-    max-width: 1024px;
   }
 }
 
 .container {
   width: 100%;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-/* Loading & Error Styles - Mobile-first */
+/* Loading & Error Styles */
 .loading-overlay, .error-message-container {
   position: fixed;
   top: 0;
@@ -343,106 +312,50 @@ $text-dark: #484848;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  // Mobile
-  padding: 16px;
-
-  // Large mobile (480px+)
-  @media (min-width: 480px) {
-    padding: 20px;
-  }
+  padding: 20px;
 }
 
 .loading-content, .error-card {
   background: white;
-  border-radius: 12px;
+  padding: 40px;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 320px;
-  // Mobile
-  padding: 24px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 350px;
+  width: 90%;
 
   p {
-    margin-top: 12px;
+    margin-top: 16px;
     color: #333;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
-    line-height: 1.4;
-  }
-
-  // Large mobile (480px+)
-  @media (min-width: 480px) {
-    padding: 32px 24px;
-    border-radius: 16px;
-    max-width: 350px;
-
-    p {
-      font-size: 16px;
-      margin-top: 16px;
-    }
-  }
-
-  // Tablet (768px+)
-  @media (min-width: 768px) {
-    padding: 40px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 }
 
 .loading-spinner {
-  // Mobile
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f0f0f0;
-  border-top: 3px solid #007bff;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
-
-  // Large mobile (480px+)
-  @media (min-width: 480px) {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f0f0f0;
-    border-top: 4px solid #007bff;
-  }
 }
 
 .error-card {
   h2 {
-    // Mobile
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
     color: #d9534f;
-    margin-bottom: 12px;
-    line-height: 1.3;
-
-    // Large mobile (480px+)
-    @media (min-width: 480px) {
-      font-size: 20px;
-      margin-bottom: 15px;
-    }
-
-    // Tablet (768px+)
-    @media (min-width: 768px) {
-      font-size: 22px;
-    }
+    margin-bottom: 15px;
   }
-
   p {
     color: #484848;
-    line-height: 1.5;
-
-    // Tablet (768px+)
-    @media (min-width: 768px) {
-      line-height: 1.6;
-    }
+    line-height: 1.6;
   }
-
   .btn-back-home {
-    // Mobile
-    margin-top: 16px;
-    padding: 12px 20px;
+    margin-top: 20px;
+    padding: 10px 20px;
     background-color: #007bff;
     color: white;
     border: none;
@@ -450,91 +363,39 @@ $text-dark: #484848;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
-    width: 100%;
-    font-size: 14px;
-
     &:hover {
       background-color: #0056b3;
-    }
-
-    // Large mobile (480px+)
-    @media (min-width: 480px) {
-      margin-top: 20px;
-      width: auto;
-      min-width: 120px;
-      font-size: 16px;
-      padding: 10px 20px;
     }
   }
 }
 
 .orders-list {
   display: grid;
-  // Mobile
-  gap: 16px;
-
-  // Large mobile (480px+)
-  @media (min-width: 480px) {
-    gap: 20px;
-  }
+  gap: 20px;
 
   .order-card {
+    display: flex;
+    align-items: center;
     background: white;
     border: 1px solid $border-color;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    padding: 20px;
+    gap: 20px;
     transition: box-shadow 0.3s ease;
-    // Mobile: 垂直布局
-    display: flex;
-    flex-direction: column;
-    border-radius: 12px;
-    padding: 16px;
-    gap: 16px;
 
     &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    // Large mobile (480px+)
-    @media (min-width: 480px) {
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      padding: 20px;
-      gap: 20px;
-
-      &:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      }
-    }
-
-    // Tablet (768px+): 水平布局
-    @media (min-width: 768px) {
-      flex-direction: row;
-      align-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .guest-avatar-wrapper {
-      // Mobile: 頭像在上方，居中
-      align-self: center;
       flex-shrink: 0;
-
       .guest-avatar {
-        // Mobile
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid $border-color;
-
-        // Large mobile (480px+)
-        @media (min-width: 480px) {
-          width: 80px;
-          height: 80px;
-        }
-      }
-
-      // Tablet (768px+): 頭像在左側
-      @media (min-width: 768px) {
-        align-self: flex-start;
       }
     }
 
@@ -551,33 +412,11 @@ $text-dark: #484848;
       align-items: flex-start;
     }
 
-    .top-section {
-      // Mobile: 垂直排列
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      text-align: center;
-
-      .guest-info h3 {
-        margin: 0;
-        // Mobile
-        font-size: 18px;
-        font-weight: 600;
-        color: $primary-color;
-
-        // Large mobile (480px+)
-        @media (min-width: 480px) {
-          font-size: 20px;
-        }
-      }
-
-      // Large mobile (480px+): 水平排列
-      @media (min-width: 480px) {
-        flex-direction: row;
-        align-items: flex-start;
-        text-align: left;
-        gap: 0;
-      }
+    .top-section .guest-info h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: $primary-color;
     }
 
     .mid-section {
@@ -590,65 +429,26 @@ $text-dark: #484848;
         display: flex;
         align-items: center;
         color: $text-dark;
-        font-size: 14px;
-        // Mobile: 居中對齊
-        justify-content: center;
+        font-size: 15px;
 
         i {
-          margin-right: 8px;
+          margin-right: 10px;
           color: $text-light;
           width: 16px;
           text-align: center;
-
-          // Large mobile (480px+)
-          @media (min-width: 480px) {
-            margin-right: 10px;
-          }
         }
 
-        &.date-info {
-          font-weight: 500;
-          // Large mobile (480px+)
-          @media (min-width: 480px) {
-            font-size: 15px;
-          }
-        }
-        &.room-info {
-          font-size: 13px;
-          color: $text-light;
-
-          // Large mobile (480px+)
-          @media (min-width: 480px) {
-            font-size: 14px;
-          }
-        }
-
-        // Large mobile (480px+): 靠左對齊
-        @media (min-width: 480px) {
-          justify-content: flex-start;
-        }
+        &.date-info { font-weight: 500; }
+        &.room-info { font-size: 14px; color: $text-light; }
       }
     }
 
     .bottom-section {
       align-items: center;
-      // Mobile: 垂直排列
-      flex-direction: column;
-      gap: 12px;
-      text-align: center;
-
       .price-preview {
-        // Mobile
         font-size: 16px;
         font-weight: 600;
         color: $primary-color;
-      }
-
-      // Large mobile (480px+): 水平排列
-      @media (min-width: 480px) {
-        flex-direction: row;
-        gap: 0;
-        text-align: left;
       }
     }
   }
@@ -672,28 +472,15 @@ $text-dark: #484848;
   background-color: $secondary-color;
   color: $primary-color;
   border: 1px solid darken($secondary-color, 10%);
+  padding: 10px 18px;
   border-radius: 8px;
   font-weight: 600;
-  transition: all 0.2s;
-  // Mobile
-  padding: 12px 20px;
   font-size: 14px;
-  width: 100%;
-  min-height: 44px; // 適合觸控的最小高度
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.2s;
 
   &:hover {
     background-color: darken($secondary-color, 10%);
     border-color: darken($secondary-color, 15%);
-  }
-
-  // Large mobile (480px+)
-  @media (min-width: 480px) {
-    padding: 10px 18px;
-    width: auto;
-    min-height: auto;
   }
 }
 
