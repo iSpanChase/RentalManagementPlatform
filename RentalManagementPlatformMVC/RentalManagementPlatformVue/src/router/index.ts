@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vu
 import MainLayout from '@/layouts/MainLayout.vue';
 import HomeView from '../views/HomeView.vue';
 import AuthenticatorRouter from '@/modules/Authenticator/router';
-import ReportFormRouter from './modules/ReportForm/router';
+import ReportFormRouter from '@/modules/reportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import CouponCenterView from '../views/CouponCenterView.vue';
 import supportRoutes from '@/modules/faq/router'
@@ -72,8 +72,15 @@ const router = createRouter({
     // 2. 其他模組路由
     ...ReportFormRouter,
 
+
+    // 2. 其他模組路由
+    ...ReportFormRouter,
+
     // 3. 訂單路由（使用自己的 BookingLayout）
     ...AuthenticatorRouter,
+    ...bookingRoutes,
+    ...supportRoutes,
+    // 3. 訂單路由（使用自己的 BookingLayout）
     ...bookingRoutes,
     ...supportRoutes,
 

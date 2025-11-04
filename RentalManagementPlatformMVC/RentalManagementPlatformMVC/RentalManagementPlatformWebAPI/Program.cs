@@ -27,7 +27,6 @@ using RentalManagementPlatformWebAPI.Repositories.Property.Interfaces;
 using RentalManagementPlatformWebAPI.Repository.Interfaces;
 using RentalManagementPlatformWebAPI.Services;
 using RentalManagementPlatformWebAPI.Services.Bookings;
-using RentalManagementPlatformWebAPI.Services.Interface;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
 using RentalManagementPlatformWebAPI.Services.Property;

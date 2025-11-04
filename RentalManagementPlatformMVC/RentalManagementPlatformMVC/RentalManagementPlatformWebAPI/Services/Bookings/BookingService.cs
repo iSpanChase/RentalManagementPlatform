@@ -16,26 +16,26 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		private readonly ICouponRepository _couponRepository;
 		private readonly IMapper _mapper;
 		private readonly ECPayService _ecpayService;
-        private readonly IHubContext<NotificationHub> _hubContext;
+		private readonly IHubContext<NotificationHub> _hubContext;
 		private readonly IFileUrlResolver _fileUrlResolver; // 注入 IFileUrlResolver
 
 		public BookingService(
-				IBookingRepository bookingRepository, 
-				IRoomRepository roomRepository, 
-				ICouponRepository couponRepository, 
-				IMapper mapper, 
-				ECPayService ecpayService, 
+				IBookingRepository bookingRepository,
+				IRoomRepository roomRepository,
+				ICouponRepository couponRepository,
+				IMapper mapper,
+				ECPayService ecpayService,
 				IHubContext<NotificationHub> hubContext,
 				IFileUrlResolver fileUrlResolver
-			) 
+			)
 		{
 			_bookingRepository = bookingRepository;
 			_roomRepository = roomRepository;
 			_couponRepository = couponRepository;
 			_mapper = mapper;
 			_ecpayService = ecpayService;
-            _hubContext = hubContext;
-			_fileUrlResolver = fileUrlResolver; 
+			_hubContext = hubContext;
+			_fileUrlResolver = fileUrlResolver;
 		}
 
 		// 根據 GuestId 獲取其所有訂單
@@ -115,7 +115,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				{
 					var mainPhoto = booking.Room.RoomPhotos
 						.OrderBy(p => p.SortOrder)
-						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+						.FirstOrDefault(p => p.PhotoType == "Cover") ??
 							booking.Room.RoomPhotos
 							.OrderBy(p => p.SortOrder)
 							.FirstOrDefault();
@@ -153,7 +153,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				{
 					var mainPhoto = booking.Room.RoomPhotos
 						.OrderBy(p => p.SortOrder)
-						.FirstOrDefault(p => p.PhotoType == "Cover") ?? 
+						.FirstOrDefault(p => p.PhotoType == "Cover") ??
 							booking.Room.RoomPhotos
 							.OrderBy(p => p.SortOrder)
 							.FirstOrDefault();
@@ -278,23 +278,24 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				PointsEarned = (int)Math.Floor(dto.TotalPrice * 0.01m)  // 1% 回饋
 			};
 
-			                        // ==================== 5. 儲存訂單到資料庫 ====================
-			            			await _bookingRepository.CreateBookingAsync(booking);
+			// ==================== 5. 儲存訂單到資料庫 ====================
+			await _bookingRepository.CreateBookingAsync(booking);
+
 			Console.WriteLine($"訂單建立成功：{orderNumber}");
 			Console.WriteLine($"付款時機：{dto.PaymentTiming}");
 			Console.WriteLine($"付款狀態：{booking.PaymentStatus}");
 
-            // ==================== 5-1. 發送新訂單即時通知給房東 ====================
-            if (room != null && room.HostId.HasValue)
-            {
-                var hostId = room.HostId.Value;
-                string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
-                await _hubContext.Clients.Group($"user_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
-            }
+			// ==================== 5-1. 發送新訂單即時通知給房東 ====================
+			if (room != null && room.HostId.HasValue)
+			{
+				var hostId = room.HostId.Value;
+				string message = $"新訂單通知：您的房源 '{room.Title}' 有一筆新訂單 (訂單編號: {booking.OrderNumber})，入住日：{booking.CheckIn:yyyy-MM-dd}。";
+				await _hubContext.Clients.Group($"user_{hostId}").SendAsync("ReceiveWarning", message);//傳message給"ReceiveWarning"監聽器
+			}
 
-            // ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
+			// ==================== 6. 根據付款時機決定是否產生綠界表單 ====================
 
-            if (dto.PaymentTiming == "full")
+			if (dto.PaymentTiming == "full")
 			{
 				// ========== 立即支付：產生綠界表單 ==========
 				Console.WriteLine("立即支付：產生綠界表單...");
