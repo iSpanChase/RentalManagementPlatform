@@ -30,7 +30,6 @@ using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
 using StackExchange.Redis;
 using System.Reflection;
 using System.Text.Json;
-using RentalManagementPlatformWebAPI.Services.Interface;
 
 namespace RentalManagementPlatformWebAPI
 {

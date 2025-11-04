@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOs;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {

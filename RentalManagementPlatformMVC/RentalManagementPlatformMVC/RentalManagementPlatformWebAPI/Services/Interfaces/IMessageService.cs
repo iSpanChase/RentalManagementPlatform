@@ -1,6 +1,6 @@
 ﻿using RentalManagementPlatformWebAPI.DTOs;
 
-namespace RentalManagementPlatformWebAPI.Services.Interface;
+namespace RentalManagementPlatformWebAPI.Services.Interfaces;
 
 public interface IMessageService
 {
