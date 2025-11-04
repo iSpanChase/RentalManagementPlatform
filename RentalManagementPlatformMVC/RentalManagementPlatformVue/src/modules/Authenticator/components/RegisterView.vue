@@ -53,7 +53,7 @@
           <div class="form-group">
             <label for="password">密碼</label>
             <div class="input-group">
-              <input :type="showPwd ? 'text' : 'password'" v-model="form.password" required minlength="6" autocomplete="new-password" placeholder="至少 6 碼" class="form-control" />
+              <input :type="showPwd ? 'text' : 'password'" v-model="form.passwordHash" required minlength="6" autocomplete="new-password" placeholder="至少 6 碼" class="form-control" />
               <button type="button" class="btn-toggle-visibility" @click="showPwd = !showPwd">
                 {{ showPwd ? '隱藏' : '顯示' }}
               </button>
@@ -98,7 +98,7 @@ const form = reactive({
   gender: '',
   birthDate: '',
   address: '',
-  password: '',
+  passwordHash: '',
   confirmPassword: '',
   phone: '',
   profileImageUrl: '',
@@ -135,18 +135,18 @@ const handleSubmit = async () => {
   if (!form.address.trim()) missing.push('地址')
   const ymd = normalizeYmd(form.birthDate)
   if (!ymd) missing.push('生日')
-  if (!form.password) missing.push('密碼')
+  if (!form.passwordHash) missing.push('密碼')
   if (!form.confirmPassword) missing.push('確認密碼')
 
   if (missing.length) {
     msg.value = `請完整填寫：${missing.join('、')}`
     return
   }
-  if (form.password.length < 6) {
+  if (form.passwordHash.length < 6) {
     msg.value = '密碼至少 6 碼'
     return
   }
-  if (form.password !== form.confirmPassword) {
+  if (form.passwordHash !== form.confirmPassword) {
     msg.value = '兩次密碼不一致'
     return
   }
@@ -156,7 +156,7 @@ const handleSubmit = async () => {
     await auth.register({
       roleCode: form.roleCode,
       email: form.email.trim(),
-      passwordHash: form.password,
+      passwordHash: form.passwordHash,
       name: form.name.trim(),
       username: form.username.trim(),
       phone: form.phone.trim() || '',
@@ -171,7 +171,7 @@ const handleSubmit = async () => {
 
     const emailForVerify = form.email.trim();
     // Redirect to a page that tells the user to check their email
-    await router.push({ path: '/verify-email', query: { email: emailForVerify } });
+    await router.push({ name: 'VerifyEmailView', query: { email: emailForVerify } });
     
   } catch (err: any) {
     ok.value = false

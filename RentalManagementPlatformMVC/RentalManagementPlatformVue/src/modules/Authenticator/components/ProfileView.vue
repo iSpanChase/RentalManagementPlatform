@@ -82,9 +82,13 @@
               </div>
               <div class="actions">
                 <router-link class="link" :to="{ name: 'VerifyEmailView', query: { email: auth.state.profile.email } }">前往驗證頁</router-link>
-                <button type="button" @click="resendVerification" :disabled="resendPending || !isValidEmail">
-                  {{ resendPending ? '寄送中…' : '重寄驗證信' }}
-                </button>
+              <button
+                type="button"
+                @click="onResendVerification"
+                :disabled="resendPending || !isValidEmail"
+              >
+                {{ resendPending ? '寄送中…' : '重寄驗證信' }}
+              </button>
               </div>
               <div v-if="resentOnce" class="hint">已送出（若帳號不存在或已驗證，系統不會顯示更多資訊）。</div>
             </div>
@@ -114,16 +118,16 @@ const resentOnce = ref(false)
 const email = computed(() => auth.state.profile?.email ?? '')
 const isValidEmail = computed(() => !!email.value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value))
 
-const resendVerification = async () => {
-   if (!isValidEmail.value) return
-   resendPending.value = true
-   try {
-     await http.post('/Auth/resend-verification', { email: email.value })
-     resentOnce.value = true
-   } finally {
-     resendPending.value = false
-   }
- }
+const onResendVerification = async () => {
+  if (!isValidEmail.value) return
+  resendPending.value = true
+  try {
+    await auth.resendVerification(email.value) // ← 改用 store 方法
+    resentOnce.value = true
+  } finally {
+    resendPending.value = false
+  }
+}
 
 const previewUrl = computed(() => {
   const src = (form.profileImageUrl || '').trim()

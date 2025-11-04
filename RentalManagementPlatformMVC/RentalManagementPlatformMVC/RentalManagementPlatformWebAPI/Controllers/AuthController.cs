@@ -209,13 +209,17 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
 			try
 			{
-				await _emailVerify.CreateAndSendAsync(user.UserId, user.Email!, HttpContext.RequestAborted, BuildApiBase(Request));
+				await _emailVerify.CreateAndSendAsync(
+					user.UserId, user.Email!, HttpContext.RequestAborted, BuildApiBase(Request));
+				return Ok(new { sent = true });
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Resend verification failed. Email={Email}", dto.Email);
+				if (_env.IsDevelopment())
+					return StatusCode(500, new { message = ex.Message, type = ex.GetType().Name });
+				return StatusCode(500, new { message = "寄信失敗，請稍後再試或聯絡管理員。" });
 			}
-			return Ok();
 		}
 
 		// ===== Email 驗證：點擊信中連結完成驗證 =====
