@@ -286,7 +286,7 @@ const handleReserve = () => {
 
     const bookingData = {
         roomId: roomDetail.value.roomId,
-        guestId: authStore.state.profile?.userId,
+        guestId: auth.state.profile?.userId,
         checkIn: toLocalISODateString(checkIn as Date),
         checkOut: toLocalISODateString(checkOut as Date),
         guestCount: guestCount.value,
