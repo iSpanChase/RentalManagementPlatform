@@ -24,5 +24,7 @@ namespace RentalManagementPlatformWebAPI.Repositories
 
 		/// <summary>該角色是否仍被任何使用者使用（用於刪除前檢查）</summary>
 		Task<bool> HasUsersAsync(int roleId);
+		Task<List<string>> GetCodesByUserIdAsync(int userId);
+		Task<List<int>> GetUserIdsByRoleIdAsync(int roleId);
 	}
 }

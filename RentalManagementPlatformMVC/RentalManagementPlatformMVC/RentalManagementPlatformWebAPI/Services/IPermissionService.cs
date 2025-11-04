@@ -7,5 +7,6 @@ namespace RentalManagementPlatformWebAPI.Services
 		Task<List<PermissionDto>> GetAllAsync();
 		Task AssignAsync(int roleId, IEnumerable<int> permissionIds);
 		Task RemoveAsync(int roleId, IEnumerable<int> permissionIds);
+		Task<List<int>> GetIdsByRoleAsync(int roleId);
 	}
 }

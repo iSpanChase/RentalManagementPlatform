@@ -1,13 +1,17 @@
 using Meilisearch;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
 using RentalManagementPlatformAPI.Repository;
 using RentalManagementPlatformMVC.Models;
-using RentalManagementPlatformWebAPI.Data;
 using RentalManagementPlatformWebAPI.Area.ReportForm.Services;
+using RentalManagementPlatformWebAPI.Auth;
+using RentalManagementPlatformWebAPI.Data;
 using RentalManagementPlatformWebAPI.DTOs; // For MinioSettings
 using RentalManagementPlatformWebAPI.Hubs;
 using RentalManagementPlatformWebAPI.Mappings;
@@ -29,6 +33,7 @@ using RentalManagementPlatformWebAPI.Services.Property;
 using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
 using StackExchange.Redis;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 
 namespace RentalManagementPlatformWebAPI
@@ -59,6 +64,32 @@ namespace RentalManagementPlatformWebAPI
 			// 業務資料庫連線註冊
 			builder.Services.AddDbContext<RentalManagementPlatformSqlContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("RentalManagementPlatformSql")));
+
+			// JWT Authentication（一定要把預設方案設為 JwtBearer）
+			builder.Services
+				.AddAuthentication(options =>
+				{
+					options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+					options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+				})
+				.AddJwtBearer(options =>
+				{
+					options.RequireHttpsMetadata = false; // dev 可關掉，prod 建議開
+					options.SaveToken = true;
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,
+						ValidIssuer = builder.Configuration["Jwt:Issuer"],
+						ValidateAudience = true,
+						ValidAudience = builder.Configuration["Jwt:Audience"],
+						ValidateIssuerSigningKey = true,
+						IssuerSigningKey = new SymmetricSecurityKey(
+							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+						),
+						ValidateLifetime = true,
+						ClockSkew = TimeSpan.Zero
+					};
+				});
 
 			// Redis 註冊
 			// 註冊 IConnectionMultiplexer 作為單例，提供給整個應用程式共用一個 Redis 連線。
@@ -118,6 +149,20 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+			// DI：Email Sender（SmtpEmailSender）
+			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+			//builder.Services.AddScoped<IEmailSender, EmailSender>();
+			builder.Services.Configure<EmailVerificationOptions>(
+				builder.Configuration.GetSection("EmailVerification"));
+			builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+
+			// DI：Auth Claims Transformation & Policy Provider
+			builder.Services.AddMemoryCache();
+			builder.Services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
+			builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+
+			// Swagger（補 Schema Id / JWT / DateOnly/TimeOnly 對應）
 			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
 			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
@@ -272,6 +317,7 @@ namespace RentalManagementPlatformWebAPI
 
 			app.UseAuthentication();
 			app.UseAuthorization();
+			app.UseStaticFiles();
 
 			app.MapControllers();
             app.MapHub<NotificationHub>("/notificationHub");

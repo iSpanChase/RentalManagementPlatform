@@ -14,6 +14,9 @@ namespace RentalManagementPlatformWebAPI.Repositories
 		public Task<User?> GetByEmailAsync(string email) =>
 			_db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
+		public Task<User?> GetByUsernameAsync(string username) =>
+			_db.Users.FirstOrDefaultAsync(u => u.Username == username);
+
 		public Task<User?> GetByProviderAsync(string provider, string subject) =>
 			_db.Users.FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderSubject == subject);
 

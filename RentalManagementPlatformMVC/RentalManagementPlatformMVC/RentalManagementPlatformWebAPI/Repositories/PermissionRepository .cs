@@ -35,11 +35,15 @@ namespace RentalManagementPlatformWebAPI.Repositories
 			await _db.SaveChangesAsync();
 		}
 
-		public Task<List<string>> GetCodesByUserIdAsync(int userId) =>
-			_db.UserRoles
-				.Where(ur => ur.UserId == userId)
-				.SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.PermCode))
-				.Distinct()
-				.ToListAsync();
+		public Task<List<string>> GetCodesByUserIdAsync(int userId) =>_db.UserRoles
+			.Where(ur => ur.UserId == userId)
+			.SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.PermCode))
+			.Distinct()
+			.ToListAsync();
+
+		public Task<List<int>> GetPermissionIdsByRoleIdAsync(int roleId) =>_db.RolePermissions
+		   .Where(rp => rp.RoleId == roleId)
+		   .Select(rp => rp.PermissionId)
+		   .ToListAsync();
 	}
 }

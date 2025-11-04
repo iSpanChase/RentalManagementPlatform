@@ -38,6 +38,5 @@ public partial class User
     public string? ProviderSubject { get; set; }
 
     public DateTime? LastLoginAt { get; set; }
-
     public bool IsOperatorPending { get; set; }
 }
