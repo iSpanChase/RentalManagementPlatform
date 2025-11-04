@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from '@/stores/auth';
 
 // 先載 CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -34,15 +35,17 @@ dom.watch()
 
 const app = createApp(App)
 const pinia = createPinia();
+app.use(pinia);
 pinia.use(piniaPluginPersistedstate);
 const queryClient = new QueryClient();
+const auth = useAuthStore()
+// 先把 rmp.accessToken 塞回 state + applyAuthHeader（你在 auth.ts 已實作）
+auth.restoreSession()
 
+app.use(router)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 
-app.use(pinia);
-
-app.use(router);
 app.use(VueQueryPlugin, { queryClient });
 app.use(Toast, {
     transition: 'Vue-Toastification__bounce',
@@ -63,3 +66,5 @@ app.use(Toast, {
 });
 
 app.mount('#app')
+
+

@@ -6,6 +6,10 @@ using RentalManagementPlatformWebAPI.Repositories;
 
 namespace RentalManagementPlatformWebAPI.Services
 {
+	public sealed class PendingOperatorException : Exception
+	{
+		public PendingOperatorException(string message) : base(message) { }
+	}
 	public class AuthService : IAuthService
 	{
 		private readonly IUserRepository _users;
@@ -42,12 +46,26 @@ namespace RentalManagementPlatformWebAPI.Services
 			var vr = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
 			if (vr == PasswordVerificationResult.Failed)
 				throw new UnauthorizedAccessException("帳號或密碼錯誤");
+			var roleCodes = await _roles.GetCodesByUserIdAsync(user.UserId) ?? new List<string>();
+			var permCodes = await _perms.GetCodesByUserIdAsync(user.UserId) ?? new List<string>();
+			if (user.IsOperatorPending == true)              // ★ 新增：Operator 待審核
+			{
+				if (roleCodes.Any(rc => string.Equals(rc, "OPERATOR", StringComparison.OrdinalIgnoreCase)))
+				{
+					// 已經有 OPERATOR 角色了 → 自動清除待審核旗標
+					user.IsOperatorPending = false;
+					await _users.SaveChangesAsync();
+				}
+				else
+				{
+					throw new PendingOperatorException("此帳號的系統管理員身分尚未審核通過");
+				}
+			}
 
 			user.LastLoginAt = DateTime.UtcNow;
 			await _users.SaveChangesAsync();
 
-			var (roles, perms) = await GetRoleAndPermCodesAsync(user.UserId);
-			var pair = _jwt.Create(user.UserId, user.Email, user.Name ?? "", roles, perms);
+			var pair = _jwt.Create(user.UserId, user.Email ?? "", user.Name ?? user.Username ?? user.Email ?? "",roleCodes, permCodes);
 
 			var days = int.TryParse(_cfg["Jwt:RefreshTokenDays"], out var d) ? d : 7;
 			await _refreshRepo.AddAsync(new RefreshToken
@@ -65,8 +83,8 @@ namespace RentalManagementPlatformWebAPI.Services
 				ExpiresAt = pair.ExpiresAt,
 				RefreshToken = pair.RefreshToken,
 				Profile = MapProfile(user),
-				Roles = roles,
-				Permissions = perms
+				Roles = roleCodes,
+				Permissions = permCodes
 			};
 		}
 
@@ -203,7 +221,7 @@ namespace RentalManagementPlatformWebAPI.Services
 			Name = u.Name ?? "",
 			Username = u.Username ?? "",
 			Phone = u.Phone ?? "",
-			ProfileImageurl = u.ProfileImageurl ?? ""
+			ProfileImageUrl = u.ProfileImageurl ?? ""
 		};
 
 		private static string MakeUsernameFromEmail(string email)

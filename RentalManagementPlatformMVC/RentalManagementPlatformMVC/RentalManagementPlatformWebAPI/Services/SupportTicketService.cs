@@ -1,7 +1,7 @@
 ﻿using RentalManagementPlatformWebAPI.Data;
 using RentalManagementPlatformWebAPI.DTOs;
 using RentalManagementPlatformWebAPI.Entities;
-using RentalManagementPlatformWebAPI.Services.Interface;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 
 namespace RentalManagementPlatformWebAPI.Services
 {

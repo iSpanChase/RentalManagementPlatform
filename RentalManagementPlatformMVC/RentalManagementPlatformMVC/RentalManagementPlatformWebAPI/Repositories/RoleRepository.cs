@@ -41,5 +41,17 @@ namespace RentalManagementPlatformWebAPI.Repositories
 
 		public Task<bool> HasUsersAsync(int roleId) =>
 			_db.UserRoles.AnyAsync(x => x.RoleId == roleId);
+
+		public Task<List<string>> GetCodesByUserIdAsync(int userId) => _db.UserRoles
+			.Where(ur => ur.UserId == userId)
+			.Select(ur => ur.Role.RoleCode)
+			.Distinct()
+			.ToListAsync();
+
+		public Task<List<int>> GetUserIdsByRoleIdAsync(int roleId) =>_db.UserRoles
+			.Where(ur => ur.RoleId == roleId)
+			.Select(ur => ur.UserId)
+			.Distinct()
+			.ToListAsync();
 	}
 }

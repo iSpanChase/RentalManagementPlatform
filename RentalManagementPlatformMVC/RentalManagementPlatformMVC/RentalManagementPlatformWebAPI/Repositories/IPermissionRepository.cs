@@ -8,5 +8,6 @@ namespace RentalManagementPlatformWebAPI.Repositories
 		Task AssignToRoleAsync(int roleId, IEnumerable<int> permissionIds);
 		Task RemoveFromRoleAsync(int roleId, IEnumerable<int> permissionIds);
 		Task<List<string>> GetCodesByUserIdAsync(int userId);
+		Task<List<int>> GetPermissionIdsByRoleIdAsync(int roleId);
 	}
 }
