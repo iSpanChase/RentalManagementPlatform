@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { formatDate } from '@/composables/useBookingFormatters';
@@ -13,7 +13,13 @@ import EmptyState from '@/components/EmptyState.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
+const auth = useAuthStore();
+
+// 檢查使用者是否已登入
+if (!auth.isAuthenticated.value) {
+  toast.error('請先登入查看訂單記錄');
+  router.push({ name: 'LoginView' });
+}
 const router = useRouter();
 const toast = useToast();
 
@@ -39,14 +45,14 @@ onMounted(async () => {
   isError.value = false;
 
   try {
-    const hostId = authStore.currentHostId;
+    const hostId = auth.state.profile?.userId;
     if (!hostId) {
       toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
       isError.value = true;
       return;
     }
 
-    const fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
+    const fetchedOrders = await bookingStore.fetchMyOrders(hostId);
     allOrders.value = fetchedOrders || [];
 
     if (allOrders.value.length === 0) {

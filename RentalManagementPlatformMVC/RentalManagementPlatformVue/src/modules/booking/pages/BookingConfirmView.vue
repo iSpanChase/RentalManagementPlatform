@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import { fetchRoomDetail } from '@/api/roomSearchApi';
 import { useToast } from 'vue-toastification';
 import BookingPaymentsStepsCard from '../components/BookingPaymentsStepsCard.vue';
@@ -13,13 +13,22 @@ const bookingStore = useBookingStore();
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const authStore = useAuthStore();
+const auth = useAuthStore();
 
 const isLoading = ref(true);
 const isError = ref(false);
 
 // 價格摘要元件引用
 const priceSummary = ref(null);
+
+// 檢查使用者是否已登入
+if (!auth.isAuthenticated.value) {
+  toast.error('請先登入後再進行訂房');
+  router.push({
+    name: 'LoginView',
+    query: { redirect: route.fullPath }
+  });
+}
 
 onMounted(async () => {
   isLoading.value = true;
@@ -30,6 +39,13 @@ onMounted(async () => {
     try {
       const roomDetail = await fetchRoomDetail(roomId);
       if (roomDetail) {
+        // 再次確認使用者已登入且有profile資料
+        if (!auth.state.profile?.userId) {
+          toast.error('無法取得使用者資訊，請重新登入');
+          router.push({ name: 'LoginView', query: { redirect: route.fullPath } });
+          return;
+        }
+
         // 取得今天日期作為入住日
         const checkInDate = new Date();
 
@@ -39,7 +55,7 @@ onMounted(async () => {
 
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: authStore.currentUser?.id || 1, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+          guestId: auth.state.profile.userId, // 使用auth store中的userId
           guestCount: 1,
           roomTitle: roomDetail.title,
           roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
@@ -80,7 +96,7 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
     <!-- Loading -->
     <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
       <div class="loading-content">
-        <div class="loading-spinner"></div> 
+        <div class="loading-spinner"></div>
         <p>{{ bookingStore.isLoading ? '正在處理您的訂單...' : '正在載入房源資訊...' }}</p>
       </div>
     </div>
