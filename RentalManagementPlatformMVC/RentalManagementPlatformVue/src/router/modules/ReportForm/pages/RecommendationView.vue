@@ -59,10 +59,8 @@ const displayedRooms = computed(() => {
     name: room.title,
     price: room.pricePerNight,
     rating: room.ratingAvg,
-    imageUrl: room.mainImageUrl,
-    cityName: room.cityName,
-    districtName: room.districtName,
-    addressLine: room.addressLine,
+    imageUrl: room.imageUrl,
+    location: room.address,
   }));
 });
 

@@ -4,11 +4,11 @@
     <label for="coupon-select">選擇優惠券：</label>
     <select
       id="coupon-select"
-      :value="modelValue"
+      :value="modelValue || ''"
       @change="onSelectChange"
       class="form-select"
     >
-      <option :value="null">不使用優惠券</option>
+      <option value="">不使用優惠券</option>
       <option
         v-for="coupon in coupons"
         :key="coupon.couponId"
@@ -17,7 +17,7 @@
       >
         {{ coupon.couponName }}
         <span v-if="coupon.description"> ({{ coupon.description }})</span>
-        <span v-if="coupon.disabled" class="text-muted"> - {{ coupon.disabledMessage }}</span>
+        <!-- <span v-if="coupon.disabled" class="text-muted"> - {{ coupon.disabledMessage }}</span> -->
       </option>
     </select>
   </div>
@@ -51,7 +51,7 @@ const emit = defineEmits<{
 
 function onSelectChange(event: Event) {
   const selectedId = (event.target as HTMLSelectElement).value;
-  emit('update:modelValue', selectedId ? Number(selectedId) : null);
+  emit('update:modelValue', selectedId && selectedId !== '' ? Number(selectedId) : null);
 }
 </script>
 

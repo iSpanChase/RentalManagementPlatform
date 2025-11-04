@@ -1,13 +1,28 @@
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useIntersectionObserver } from '@vueuse/core';
+import { ref } from 'vue';
+import type { Ref } from 'vue';
+import { useIntersectionObserver, type UseIntersectionObserverOptions } from '@vueuse/core';
 
-export function useWowAnimation(elementRef: Ref<HTMLElement | null>, options?: IntersectionObserverInit) {
+type WowAnimationOptions = Pick<IntersectionObserverInit, 'rootMargin' | 'threshold'>;
+
+export function useWowAnimation(elementRef: Ref<HTMLElement | null>, options?: WowAnimationOptions) {
     const isVisible = ref(false);
     const hasAnimated = ref(false); // To ensure animation only plays once
 
+    const observerOptions: UseIntersectionObserverOptions = {
+        threshold: options?.threshold ?? 0.1,
+        rootMargin: options?.rootMargin,
+    };
+
     const { stop } = useIntersectionObserver(
         elementRef,
-        ([{ isIntersecting }]) => {
+        (entries) => {
+            const entry = entries[0];
+            if (!entry) {
+                return;
+            }
+
+            const { isIntersecting } = entry;
+
             if (isIntersecting && !hasAnimated.value) {
                 isVisible.value = true;
                 hasAnimated.value = true; // Mark as animated
@@ -18,7 +33,7 @@ export function useWowAnimation(elementRef: Ref<HTMLElement | null>, options?: I
                 // hasAnimated.value = false;
             }
         },
-        options || { threshold: 0.1 } // Default options, can be customized
+        observerOptions
     );
 
     return { isVisible };

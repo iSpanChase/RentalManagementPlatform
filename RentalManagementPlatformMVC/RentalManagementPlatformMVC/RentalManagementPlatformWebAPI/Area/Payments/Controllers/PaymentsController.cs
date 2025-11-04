@@ -155,54 +155,10 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 		[HttpPost("redirect-handler")]
 		public IActionResult EcpayFrontendRedirect()
 		{
-		    _logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
+			_logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
 
 			// 導向到前端的訂單頁面，並帶上userId參數 (測試用)
 			return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings");
-		}
-		
-		/// 測試用：手動觸發回調（開發時使用）
-		/// 正式環境請移除此方法或加上權限驗證
-		/// </summary>
-		[HttpGet("test-callback")]
-		public async Task<IActionResult> TestCallback(string orderNumber, bool success = true)
-		{
-			_logger.LogInformation($"測試付款回調");
-			_logger.LogInformation($"訂單編號：{orderNumber}");
-			_logger.LogInformation($"模擬結果：{(success ? "成功" : "失敗")}");
-
-			try
-			{
-				// 模擬付款
-				var result = await _paymentsService.ProcessEcpayCallbackAsync(
-					orderNumber: orderNumber,
-					isSuccess: success,
-					tradeNo: "TEST" + DateTime.Now.ToString("yyyyMMddHHmmss"),
-					tradeAmount: 6996,
-					paymentDate: DateTime.Now,
-					paymentType: "Credit_CreditCard"
-				);
-
-				return Ok(new
-				{
-					message = "測試回調完成",
-					orderNumber = orderNumber,
-					success = result.Success,
-					paymentStatus = result.PaymentStatus,
-					orderStatus = result.OrderStatus,
-					resultMessage = result.Message
-				});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError($"測試回調失敗：{ex.Message}");
-
-				return BadRequest(new
-				{
-					message = "測試失敗",
-					error = ex.Message
-				});
-			}
 		}
 	}
 }

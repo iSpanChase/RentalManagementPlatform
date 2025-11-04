@@ -29,7 +29,7 @@
             @refresh="()=>{}" 
           />
           <hr class="my-4">
-          <button class="btn btn-success" @click="finishCreation">完成並前往首頁</button>
+          <button class="btn btn-success" @click="finishCreation">完成並返回房源列表</button>
         </div>
 
       </div>
@@ -38,14 +38,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import RoomForm from '@/components/forms/RoomForm.vue';
 import RoomPhotoManager from '@/components/hosting/RoomPhotoManager.vue';
 import { createRoom } from '@/api/roomApi.ts';
 import { fetchCities, fetchDistricts } from '@/api/locationApi.ts';
 
 const router = useRouter();
+const route = useRoute();
+const DEFAULT_HOST_ID = 47; // TODO: replace with real authenticated host context
+
+const hostId = computed(() => {
+  const raw = Array.isArray(route.query.hostId) ? route.query.hostId[0] : route.query.hostId;
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return DEFAULT_HOST_ID;
+});
 
 // Wizard step management
 const step = ref(1);
@@ -84,7 +95,8 @@ async function handleCityChange(cityId) {
 
 async function handleCreateRoom(formData) {
   try {
-    const newRoom = await createRoom(formData);
+    const payload = { ...formData, hostId: hostId.value };
+    const newRoom = await createRoom(payload);
     alert('房源已成功建立！現在請上傳您的房源照片。');
     newlyCreatedRoomId.value = newRoom.roomId;
     step.value = 2; // Move to the next step
@@ -95,7 +107,7 @@ async function handleCreateRoom(formData) {
 }
 
 function finishCreation() {
-    router.push({ path: '/' });
+  router.push({ path: '/hosting/rooms' });
 }
 
 </script>

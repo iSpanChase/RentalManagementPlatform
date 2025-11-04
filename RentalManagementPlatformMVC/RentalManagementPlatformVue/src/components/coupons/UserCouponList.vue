@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import CouponCard from './CouponCard.vue';
 import CouponDetailModal from './CouponDetailModal.vue';
-import { useCouponStore } from '@/stores/coupon.js';
+import { useCouponStore } from '@/stores/couponStore.js';
 import type { Coupon } from '@/types/coupon';
 
 const userId = 1; // 模擬使用者 ID
@@ -14,13 +14,13 @@ const selectedCoupon = ref<Coupon | null>(null);
 
 // 元件掛載時從 store 獲取該使用者的優惠券
 onMounted(() => {
-  couponStore.fetchCoupons(userId);
+  couponStore.fetchUserCoupons(userId);
 });
 
 function onRedeem(code: string) {
   alert(`領取成功: ${code}`);
   // 重新獲取優惠券列表以更新狀態
-  couponStore.fetchCoupons(userId);
+  couponStore.fetchUserCoupons(userId);
 }
 
 function showDetail(coupon: Coupon) {
@@ -32,11 +32,11 @@ function showDetail(coupon: Coupon) {
 <template>
   <div>
     <h1>我的優惠券</h1>
-    <div v-if="couponStore.isLoading">載入中...</div>
+    <div v-if="couponStore.loading">載入中...</div>
     <div v-else-if="couponStore.error">{{ couponStore.error }}</div>
     <div v-else class="grid">
       <CouponCard
-        v-for="c in couponStore.coupons"
+        v-for="c in couponStore.userCoupons"
         :key="c.couponId"
         :coupon="c"
         :userId="userId"

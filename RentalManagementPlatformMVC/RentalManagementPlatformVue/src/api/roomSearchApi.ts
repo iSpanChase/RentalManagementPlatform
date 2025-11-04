@@ -195,30 +195,36 @@ const mapRoomPhotos = (rawPhotos: unknown): RoomPhoto[] => {
     return [];
   }
 
-  return rawPhotos
-    .map((item) => {
-      if (!item || typeof item !== 'object') {
-        return null;
-      }
+  const photos: Array<RoomPhoto | null> = rawPhotos.map((item) => {
+    if (!item || typeof item !== 'object') {
+      return null;
+    }
 
-      const data = item as Record<string, unknown>;
-      const photoId =
-        coalesceValue<number>(data, 'photo_id', 'photoId', 'id') ?? 0;
-      const url =
-        coalesceValue<string>(data, 'url', 'photo_url', 'photoUrl') ?? '';
-      const sortOrder =
-        coalesceValue<number>(data, 'sort_order', 'sortOrder');
+    const data = item as Record<string, unknown>;
+    const photoId =
+      coalesceValue<number>(data, 'photo_id', 'photoId', 'id') ?? 0;
+    const url =
+      coalesceValue<string>(data, 'url', 'photo_url', 'photoUrl') ?? '';
+    const sortOrder =
+      coalesceValue<number>(data, 'sort_order', 'sortOrder');
 
-      if (photoId === 0 || !url) {
-        return null;
-      }
+    if (photoId === 0 || !url) {
+      return null;
+    }
 
-      return {
-        photoId,
-        url,
-        sortOrder: sortOrder ?? undefined,
-      } satisfies RoomPhoto;
-    })
+    const photo: RoomPhoto = {
+      photoId,
+      url,
+    };
+
+    if (typeof sortOrder === 'number') {
+      photo.sortOrder = sortOrder;
+    }
+
+    return photo;
+  });
+
+  return photos
     .filter((photo): photo is RoomPhoto => photo !== null)
     .sort((a, b) => {
       const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
@@ -351,7 +357,7 @@ export const mapRoomDetailToCard = (detail: RoomDetail): RoomCard => ({
   mainImageUrl: detail.mainImageUrl ?? detail.photoUrls[0],
 });
 
-const mapRoomSummaryToCard = (dto: RoomSummaryResponseDtoResponse): RoomCard => {
+export const mapRoomSummaryToCard = (dto: RoomSummaryResponseDtoResponse): RoomCard => {
   const detail = mapRoomDetailFromCache(dto);
   return mapRoomDetailToCard(detail);
 };

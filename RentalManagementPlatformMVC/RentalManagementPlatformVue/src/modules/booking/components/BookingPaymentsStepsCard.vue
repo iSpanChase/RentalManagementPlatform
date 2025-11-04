@@ -151,8 +151,6 @@ const handleConfirmPayment = async () => {
     }
   }
 };
-
-// 移除硬編碼的測試資料，交由 BillingForm 元件自行管理初始化
 </script>
 
 <template>
@@ -339,6 +337,7 @@ const handleConfirmPayment = async () => {
   border-radius: 25px;
   padding: 30px;
   transition: all 0.3s ease;
+  background: white;
 
   @media (max-width: 768px) {
     padding: 20px;

@@ -1,7 +1,8 @@
-//coupon優惠券的邏輯處理,呼叫後端服務進行驗證
 import { ref, computed, onMounted, watch } from 'vue';
 import { getUserCoupons, validateCoupon } from '../services/CouponService';
-import { useCouponStore } from '../stores/coupon.js';
+import { useCouponStore } from '../stores/couponStore.js';
+import { useBookingStore } from '../stores/bookingStore.js';
+import { useToast } from 'vue-toastification';
 
 /**
  * @description 處理優惠券相關所有商業邏輯的 Vue Composable
@@ -20,7 +21,7 @@ export function useCouponCalculator(cartInfo) {
   const validationMessage = ref(''); // 驗證訊息
   const isError = ref(false); // 是否發生錯誤
 
-  const couponStore = useCouponStore(); // 引入 coupon store
+  const toast = useToast(); // 引入 toast
 
   // ----------------------------------------------------------------------------
   // 生命週期鉤子 (Lifecycle Hooks)
@@ -32,13 +33,17 @@ export function useCouponCalculator(cartInfo) {
   // ----------------------------------------------------------------------------
 
   // 監聽 userId 變化，當 userId 存在時才獲取優惠券
-  watch(() => cartInfo.value.userId, (newUserId) => {
-    // 暫時使用硬編碼的 userId = 1，直到會員模組完成
-    const userIdToFetch = newUserId || 1; 
-    if (userIdToFetch) {
-      fetchUserCoupons(userIdToFetch); 
-    }
-  }, { immediate: true });
+  watch(
+    () => cartInfo.value.userId,
+    (newUserId) => {
+      // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+      const userIdToFetch = newUserId || 1;
+      if (userIdToFetch) {
+        fetchUserCoupons(userIdToFetch);
+      }
+    },
+    { immediate: true }
+  );
 
   // 監聽使用者選擇的優惠券 ID，當 ID 變更時，觸發後端驗證
   watch(selectedCouponId, async (newId) => {
@@ -48,7 +53,7 @@ export function useCouponCalculator(cartInfo) {
       return;
     }
 
-    const selected = userCoupons.value.find(c => c.couponId === newId);
+    const selected = userCoupons.value.find((c) => c.couponId === newId);
     if (!selected) return;
 
     // 準備請求後端 API 的資料
@@ -68,16 +73,16 @@ export function useCouponCalculator(cartInfo) {
       if (response.isValid) {
         discountAmount.value = response.discountAmount || 0;
         selectedCouponDescription.value = selected.description; // 設定選定優惠券的描述
-        couponStore.showToast(response.message || '優惠券已成功套用！', 'success');
+        toast.success(response.message || '優惠券已成功套用！');
       } else {
         resetCouponState();
         selectedCouponId.value = null;
-        couponStore.showToast(`無法使用：${response.message}`, 'error');
+        toast.error(`無法使用：${response.message}`);
       }
               } catch (error) {
                 resetCouponState();
                 selectedCouponId.value = null;
-                couponStore.showToast(`驗證時發生錯誤：${error.response?.data?.message || error.message}`, 'error');
+                toast.error(`驗證時發生錯誤：${error.response?.data?.message || error.message}`);
               }  });
 
   // 監聽外部傳入的 cartInfo，如果訂單金額或租期變動，就重新觸發一次驗證
@@ -100,31 +105,55 @@ export function useCouponCalculator(cartInfo) {
 
   // 將從後端獲取的原始優惠券資料，轉換為 CouponSelector 元件所需的格式
   const couponOptions = computed(() => {
-    return userCoupons.value.map(c => { 
-      let disabled = false;
-      let disabledMessage = '';
-
-      if (c.lowSpend && cartInfo.value.totalAmount < c.lowSpend) {
-        disabled = true;
-        disabledMessage = `需滿 ${c.lowSpend} 元`;
-      } else if (c.status !== '可使用') {
-        disabled = true;
-        disabledMessage = c.status;
+    console.log('Raw user coupons before filtering:', userCoupons.value);
+    const calculateDiscountValue = (coupon) => {
+      if (coupon.discountMethod?.toLowerCase() === 'amount') {
+        return coupon.discountQuota;
       }
+      if (coupon.discountMethod?.toLowerCase() === 'percentage') {
+        return cartInfo.value.totalAmount * (1 - coupon.discountQuota / 100);
+      }
+      return 0;
+    };
+    return userCoupons.value
+      .filter(c => c.status === '可使用') // Only show unused coupons
+      .map(c => { 
+        let disabled = false;
+        let disabledMessage = '';
 
-      return {
-        couponId: c.couponId,
-        couponName: c.couponName,
-        description: c.discountMethod === 'Percentage' ? `${c.discountQuota}% 折扣` : `折抵 ${c.discountQuota} 元`,
-        disabled,
-        disabledMessage
-      };
-    });
+        if (c.lowSpend && cartInfo.value.totalAmount < c.lowSpend) {
+          disabled = true;
+          disabledMessage = `需滿 ${c.lowSpend} 元`;
+        }
+
+        return {
+          couponId: c.couponId,
+          couponName: c.couponName,
+          description: c.discountMethod?.toLowerCase() === 'percentage' ? `${c.discountQuota / 10}折` : `現金折抵 ${c.discountQuota} 元`,
+          disabled,
+          disabledMessage,
+          // Add original coupon data for sorting
+          discountMethod: c.discountMethod,
+          discountQuota: c.discountQuota,
+        };
+      })
+      .sort((a, b) => {
+        // 1. Sort by disabled status (eligible first)
+        if (a.disabled !== b.disabled) {
+          return a.disabled ? 1 : -1;
+        }
+
+        // 2. Sort by effective discount amount (descending)
+        const discountA = calculateDiscountValue(a);
+        const discountB = calculateDiscountValue(b);
+        return discountB - discountA;
+      });
   });
 
   // 最終應付金額
   const finalPrice = computed(() => {
-    const price = cartInfo.value.totalAmount - discountAmount.value;
+    const bookingStore = useBookingStore();
+    const price = cartInfo.value.totalAmount + bookingStore.serviceFee - discountAmount.value;
     return price < 0 ? 0 : price;
   });
 
@@ -138,30 +167,28 @@ export function useCouponCalculator(cartInfo) {
     selectedCouponDescription.value = null; // 清除選定優惠券的描述
   }
 
-  // ----------------------------------------------------------------------------
-  // 回傳 API (Return Public API)
-  // ----------------------------------------------------------------------------
-  return {
-    // State
-    couponOptions,
-    selectedCouponId,
-    discountAmount,
-    finalPrice,
-    selectedCouponDescription, // 匯出選定優惠券的描述
-
-    // Methods
-    resetCouponState,
-    fetchUserCoupons // 匯出重新獲取使用者優惠券的方法
-  };
-
-  // 新增一個方法來重新獲取使用者優惠券
+          // ----------------------------------------------------------------------------
+          // 回傳 API (Return Public API)
+          // ----------------------------------------------------------------------------
+          return {
+            // State
+            couponOptions,
+            selectedCouponId,
+            discountAmount,
+            finalPrice,
+            selectedCouponDescription, // 匯出選定優惠券的描述
+      
+            // Methods
+            resetCouponState,
+            fetchUserCoupons, // 匯出重新獲取使用者優惠券的方法
+          };  // 新增一個方法來重新獲取使用者優惠券
   async function fetchUserCoupons(userId) {
     if (!userId) return;
     try {
       userCoupons.value = await getUserCoupons(userId);
     } catch (error) {
-      console.error("重新獲取使用者優惠券失敗：", error);
-      validationMessage.value = "無法載入您的優惠券列表。";
+      console.error('重新獲取使用者優惠券失敗：', error);
+      validationMessage.value = '無法載入您的優惠券列表。';
       isError.value = true;
     }
   }

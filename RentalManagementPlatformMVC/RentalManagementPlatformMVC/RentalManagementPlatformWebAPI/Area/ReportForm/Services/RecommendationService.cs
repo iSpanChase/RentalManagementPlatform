@@ -3,6 +3,7 @@ using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Recommendation;
 using RentalManagementPlatformWebAPI.Models;
 using StackExchange.Redis;
 using System;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System.Text.Json;
 
 namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
@@ -11,13 +12,15 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
     {
         private readonly RentalManagementPlatformSqlContext _context;
         private readonly IDatabase _redisDb;
+        private readonly IFileUrlResolver _urlResolver; // Assuming IFileUrlResolver will be in API's Services.Interfaces
         private const string RecommendationCachePrefix = "recommendation:user:";
         private const string RecommendationPopularCachePrefix = "recommendation:popular:";
 
-        public RecommendationService(RentalManagementPlatformSqlContext context, IConnectionMultiplexer redis)
+        public RecommendationService(RentalManagementPlatformSqlContext context, IConnectionMultiplexer redis, IFileUrlResolver urlResolver)
         {
             _context = context;
             _redisDb = redis.GetDatabase();
+            _urlResolver = urlResolver;
         }
 
         public async Task<HashSet<int>> GetPopularRoomId(int topN, string? gender = null)
@@ -102,17 +105,26 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 // 未登入用戶：回傳全站熱門房源
                 var popularRoomIds = await GetPopularRoomId(topN);
 
-                recommendations = await _context.RoomLists
-                   .Where(r => popularRoomIds.Contains(r.RoomId))
-                   .Select(
-                    r => new RecommendedRoomDto
-                        {
-                            RoomId = r.RoomId,
-                            Title = r.Title ?? "N/A",
-                            PricePerNight = r.PricePerNight ?? 0,
-                            ImageUrl = r.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault()!.ObjectKey
-                        }
-                    ).ToListAsync();
+                recommendations = (
+                    await _context.RoomLists
+                     .Where(r => popularRoomIds.Contains(r.RoomId) && r.Address != null)
+                     .Include(r => r.Address).ThenInclude(a => a.District).ThenInclude(d => d.City)
+                      .ToListAsync()
+                      )
+                      .Select(
+                     r => new RecommendedRoomDto
+                     {
+                         RoomId = r.RoomId,
+                         Title = r.Title ?? "N/A",
+                         PricePerNight = r.PricePerNight ?? 0,
+                         Address = $"{r.Address?.District?.City?.CityName}{r.Address?.District?.DistrictName}{r.Address?.Street}"
+                     }
+                    ).ToList();
+                foreach ( var r in recommendations)
+                {
+                    var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(r.RoomId);
+                    r.ImageUrl = photoUrls.ToList().FirstOrDefault();
+                }
             }
 
             // 4. 計算過期時間並存入 Redis 
@@ -207,7 +219,8 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 {
                     RoomId = room.RoomId,
                     Title = room.Title ?? "N/A",
-                    PricePerNight = room.PricePerNight ?? 0
+                    PricePerNight = room.PricePerNight ?? 0,
+                    Address = $"{room.Address?.District?.City?.CityName}{room.Address?.District?.DistrictName}{room.Address?.Street}",
                     // 圖片 URL 最後再統一處理，避免在迴圈中查詢資料庫
                 }, score));
             }
@@ -220,17 +233,10 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .ToList();
 
             // 為選出的 Top N 房源，補上圖片 URL
-            var topRoomIds = topRooms.Select(r => r.RoomId).ToList();
-            var photos = await _context.RoomPhotos
-               .Where(p => topRoomIds.Contains(p.RoomId.Value) && p.SortOrder == 1)
-               .ToDictionaryAsync(p => p.RoomId.Value, p => p.ObjectKey);
-
             foreach (var room in topRooms)
             {
-                if (photos.TryGetValue(room.RoomId, out var imageUrl))
-                {
-                    room.ImageUrl = imageUrl;
-                }
+                var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(room.RoomId);
+                room.ImageUrl = photoUrls.FirstOrDefault();
             }
 
             return topRooms;

@@ -43,7 +43,7 @@
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center text-danger">
               折抵金額
-              <span>- {{ discountAmount }} 元</span>
+              <!-- <span>- {{ discountAmount }} 元</span> -->
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
               最終應付金額
