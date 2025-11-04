@@ -1,7 +1,7 @@
-<!-- src/modules/reportForm/pages/OtherView.vue -->
+<!-- src/modules/ReportForm/pages/OtherView.vue -->
 <template>
 <div>
-<h1>ReportForm Other</h1>
+<h1>Report Form Other</h1>
 <router-link :to="{ name: 'ReportForm.IndexView' }">Index</router-link>
 <router-view />
 </div>

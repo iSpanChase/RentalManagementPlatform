@@ -8,8 +8,8 @@ import TheHiddenSidebar from './components/TheHiddenSidebar.vue';
 import SearchPopup from './components/SearchPopup.vue';
 import ScrollToTopButton from './components/ScrollToTopButton.vue';
 import TempNavComponent from './components/TempNavComponent.vue';
-import { startConnection, registerWarningHandler } from './router/modules/ReportForm/api/notificationService.ts';
-import NotificationBell from '@/router/modules/ReportForm/components/notification/NotificationBell.vue'
+import { startConnection, registerWarningHandler } from './modules/ReportForm/api/notificationService.ts';
+import NotificationBell from '@/modules/ReportForm/components/notification/NotificationBell.vue'
 import { useNotificationStore } from '@/stores/notificationStore';
 
 const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
