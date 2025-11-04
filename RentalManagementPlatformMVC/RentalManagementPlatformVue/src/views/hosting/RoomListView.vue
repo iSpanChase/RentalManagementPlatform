@@ -29,7 +29,7 @@
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { getRoomsByHostId, deleteRoom as deleteRoomApi } from '@/api/roomApi';
+import { getMyRooms, deleteRoom as deleteRoomApi } from '@/api/roomApi';
 import { fetchRoomDetail, mapRoomDetailToCard, type RoomCard, type RoomDetail } from '@/api/roomSearchApi';
 import RoomCardComponent from '@/modules/RoomManagement/components/RoomCard.vue';
 
@@ -44,7 +44,6 @@ interface RoomCardViewModel {
   addressLine: string;
 }
 
-const HOST_ID = 47; // TODO: replace with authenticated host context
 const router = useRouter();
 const roomCards = ref<RoomCard[]>([]);
 const isLoading = ref(true);
@@ -72,7 +71,7 @@ const fetchRooms = async () => {
   try {
     isLoading.value = true;
     isError.value = false;
-    const summaries = await getRoomsByHostId(HOST_ID);
+    const summaries = await getMyRooms();
     if (!Array.isArray(summaries)) {
       throw new Error('Unexpected response when fetching host rooms.');
     }
@@ -132,7 +131,7 @@ const deleteRoom = async (roomId: number) => {
 };
 
 const goToCreateRoom = () => {
-  router.push({ name: 'create-room', query: { hostId: String(HOST_ID) } });
+  router.push({ name: 'create-room' });
 };
 
 onMounted(() => {
