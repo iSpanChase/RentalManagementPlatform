@@ -9,6 +9,8 @@
  */
 export const getStatusText = (status) => {
   switch (status) {
+    case 'pending':
+      return '處理中';
     case 'deferred':
     case 'unpaid':
       return '待付款';
@@ -19,6 +21,8 @@ export const getStatusText = (status) => {
       return '已取消';
     case 'refunded':
       return '已退款';
+     case 'failed':
+      return '付款失敗';
     default:
       return status || '未知狀態';
   }
