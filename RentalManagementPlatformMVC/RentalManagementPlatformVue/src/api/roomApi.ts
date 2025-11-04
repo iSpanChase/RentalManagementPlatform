@@ -26,6 +26,10 @@ export const createRoom = async (roomData: RoomData): Promise<CreatedRoomRespons
   const formData = new FormData();
   // Append keys and values from roomData to formData
   (Object.keys(roomData) as Array<keyof RoomData>).forEach(key => {
+    if (key === 'hostId') {
+      // 讓後端依 JWT 自動指定 HostId
+      return;
+    }
     formData.append(key, String(roomData[key]));
   });
 
@@ -75,8 +79,14 @@ export const updateRoom = async (roomId: number, roomData: Partial<RoomData>): P
  * @param {number} hostId - The ID of the landlord.
  * @returns {Promise<any>} A promise that resolves with the list of rooms.
  */
-export const getRoomsByHostId = async (hostId: number) => {
-  const response = await apiClient.get(`/Rooms/host/${hostId}`);
+export const getRoomsByHostId = async (_hostId: number) => {
+  // 為了相容既有呼叫，忽略傳入參數，改用登入者身份
+  const response = await apiClient.get(`/Rooms/host/me`);
+  return response.data;
+};
+
+export const getMyRooms = async () => {
+  const response = await apiClient.get(`/Rooms/host/me`);
   return response.data;
 };
 
