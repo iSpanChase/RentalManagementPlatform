@@ -10,7 +10,7 @@
         @click="handleDropdownOpen"
     >
         <!-- 鈴鐺 SVG 圖示 -->
-        <FontAwesomeIcon :icon="['fas', 'bell']" />
+        <FontAwesomeIcon :icon="faBell" />
 
         <!-- 未讀紅點，當有未讀訊息時顯示 -->
         <span v-if="notificationStore.hasUnread" class="red-dot"></span>
@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
     import { faBell } from '@fortawesome/free-solid-svg-icons'
+    import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
     import { useNotificationStore } from '@/stores/notificationStore';
 
     // 1. 獲取 Pinia store 的實例

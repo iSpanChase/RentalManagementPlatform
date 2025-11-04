@@ -278,9 +278,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				PointsEarned = (int)Math.Floor(dto.TotalPrice * 0.01m)  // 1% 回饋
 			};
 
-			// ==================== 5. 儲存訂單到資料庫 ====================
-			await _bookingRepository.CreateBookingAsync(booking);
-
+			                        // ==================== 5. 儲存訂單到資料庫 ====================
+			            			await _bookingRepository.CreateBookingAsync(booking);
 			Console.WriteLine($"訂單建立成功：{orderNumber}");
 			Console.WriteLine($"付款時機：{dto.PaymentTiming}");
 			Console.WriteLine($"付款狀態：{booking.PaymentStatus}");

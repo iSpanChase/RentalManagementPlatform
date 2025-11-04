@@ -5,8 +5,7 @@ import exampleARouter from './modules/exampleA/router';
 import exampleBRouter from './modules/exampleB/router';
 import ReportFormRouter from './modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
-import UserCouponsView from '../views/UserCouponsView.vue'
-import CouponListView from '../views/CouponListView.vue'
+import CouponCenterView from '../views/CouponCenterView.vue';
 import supportRoutes from '@/modules/faq/router'
 
 
@@ -61,18 +60,13 @@ const router = createRouter({
 	{
       	  path:'/coupons',
       	  name:'coupons',
-      	  component:CouponListView
+      	  component: CouponCenterView
     	},
     	{
       	  path: '/checkout',
      	  name: 'Checkout',
       	  component: () => import('../views/CheckoutPageView.vue')
     	},
-	{ 
-	  path: '/user-coupons', 
-	  name: 'UserCoupons', 
-	  component: UserCouponsView 
-	},
       ],
     },
 

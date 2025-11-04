@@ -1,243 +1,266 @@
 <template>
-  <div :class="['coupon-card', statusClass]">
-    <div class="coupon-left">
-      <div class="coupon-icon">
-        <!-- Assuming FontAwesome is available and configured -->
-        <font-awesome-icon icon="house" />
-        <span>優惠券</span>
-      </div>
-      <div class="coupon-type"></div>
+  <div class="coupon-card">
+    <!-- Expiring Soon Banner -->
+    <div v-if="coupon.isExpiringSoon" class="expiring-soon-banner">
+      <span>即將到期</span>
     </div>
-    <div class="coupon-right">
-      <div class="coupon-header">
-        <h3 class="coupon-name">{{ coupon.couponName }}</h3>
-        <RedeemButton
-          :couponId="coupon.couponId"
-          :couponStatus="derivedCouponStatus"
-          :disabled="!coupon.isAvailable"
-          :userId="userId"
-        />
+
+    <!-- Top Section -->
+    <div class="top-section">
+      <div class="discount-value">{{ discountValue }}</div>
+      <div class="discount-unit">
+      <img v-if="discountUnit === '__IMAGE_COUPON__'" :src="couponImage" alt="優惠" class="w-1 h-1" />
+      <span v-else>{{ discountUnit }}</span>
+    </div>
+    </div>
+
+    <!-- Middle Section -->
+    <div class="middle-section" @click="$emit('showDetails', coupon)">
+      <div class="coupon-name">
+        <font-awesome-icon :icon="faTicketAlt" class="icon" />
+        <span>{{ coupon.couponName }}</span>
       </div>
-      <!-- <p v-if="coupon.claimError" class="text-danger mt-1 small">{{ coupon.claimError }}</p> -->
-      <p class="coupon-perk">{{ formattedDiscount }}</p>
-      <p class="coupon-min-spend">低消 ${{ coupon.lowSpend }}起</p>
-      <div class="coupon-footer">
-        <span class="coupon-expiry">
-          <font-awesome-icon icon="clock" /> {{ formattedExpiryDate }}
-        </span>
-        <a href="#" class="usage-instructions" @click.prevent="showDescriptionModal = true">使用說明</a>
-      </div>
+      <p class="description">{{ coupon.description || '暫無詳細說明' }}</p>
+      <p class="expiry-date">有效期限至 {{ formattedExpiryDate }}</p>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+      <RedeemButton 
+        :text="buttonState.text"
+        :disabled="buttonState.disabled"
+        :loading="isPending"
+        :customClass="'redeem-style'"
+        @click="handleAction"
+      />
     </div>
   </div>
-  <!-- Coupon Description Modal -->
-  <CouponDescriptionModal
-    :show="showDescriptionModal"
-    :description="coupon.description"
-    @close="showDescriptionModal = false"
-  />
 </template>
 
 <script setup>
-import RedeemButton from './RedeemButton.vue'
-import { computed } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faHouse, faClock } from '@fortawesome/free-solid-svg-icons'
-import CouponDescriptionModal from './CouponDescriptionModal.vue' // Import the modal component
-import { ref } from 'vue' // Import ref for reactive state
-
-library.add(faHouse, faClock)
-
-const showDescriptionModal = ref(false) // Reactive state for modal visibility
+import { computed, onMounted } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faTicketAlt } from '@fortawesome/free-solid-svg-icons';
+import RedeemButton from './RedeemButton.vue';
+import couponImage from '@/image/coupon.png';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { useCouponStore } from '../../stores/couponStore.js';
+import { useToast } from 'vue-toastification';
 
 const props = defineProps({
   coupon: { type: Object, required: true },
   userId: { type: Number, required: true },
 });
 
-const statusClass = computed(() => {
-  if (props.coupon.isClaiming) return 'status-claiming';
-  if (props.coupon.isRedeemed) return 'status-redeemed';
-  if (props.coupon.isExpired) return 'status-expired';
-  if (props.coupon.isAvailable) return 'status-available';
+onMounted(() => {
+  console.log('[CouponCard] Created with props:', { coupon: props.coupon, userId: props.userId });
+});
+
+const emit = defineEmits(['gotoUse', 'showDetails']);
+
+// --- Date & Status Logic ---
+const isClaimed = computed(() => props.coupon.status !== undefined);
+const isUsed = computed(() => props.coupon.status === '已使用' || props.coupon.status === 'used');
+const isExpired = computed(() => new Date(props.coupon.endAt) <= new Date() || props.coupon.status === '已過期' || props.coupon.status === 'expired');
+
+// --- API & State Logic ---
+const couponStore = useCouponStore();
+const queryClient = useQueryClient();
+const toast = useToast();
+
+const { mutate, isPending } = useMutation({
+  mutationFn: () => {
+    console.log(`[CouponCard] Calling claimCoupon for userId: ${props.userId}, code: ${props.coupon.discountCode}`);
+    return couponStore.claimCoupon(props.userId, props.coupon.discountCode);
+  },
+  onSuccess: (data) => { // data will be { message: "領取成功" }
+    console.log('[CouponCard] claimCoupon SUCCESS:', data);
+    toast.success(data.message);
+    const userCouponsQueryKey = ['userCoupons', props.userId];
+    console.log('[CouponCard] Invalidating queryKey:', userCouponsQueryKey);
+    queryClient.invalidateQueries({ queryKey: userCouponsQueryKey });
+    queryClient.invalidateQueries({ queryKey: ['publicCoupons'] });
+  },
+  onError: (error) => {
+    const errorMessage = error.response?.data?.message || '領取時發生未知錯誤';
+    console.error('[CouponCard] claimCoupon ERROR:', error);
+    toast.error(errorMessage);
+  },
+});
+
+const handleAction = () => {
+  console.log('[CouponCard] handleAction called.');
+  if (buttonState.value.disabled) {
+    console.log('[CouponCard] Action ignored. Button is disabled.');
+    return;
+  }
+
+  if (buttonState.value.text === '使用') {
+    emit('gotoUse', props.coupon.couponId);
+  } else if (buttonState.value.text === '領取') {
+    console.log('[CouponCard] Triggering mutation (mutate).');
+    mutate();
+  }
+};
+
+// --- Computed Properties for Display ---
+const buttonState = computed(() => {
+  if (isPending.value) return { text: '處理中', disabled: true };
+  if (isUsed.value) return { text: '已使用', disabled: true };
+  if (isExpired.value) return { text: '已過期', disabled: true };
+
+  // If not used or expired, check if it's usable (status '可使用' or 'unused')
+  if (props.coupon.status === '可使用' || props.coupon.status === 'unused') {
+    return { text: '使用', disabled: false };
+  }
+
+  // This 'isRedeemed' check is for public coupons that have been claimed.
+  // It should show '已領取' and be disabled.
+  if (props.coupon.isRedeemed) return { text: '已領取', disabled: true };
+
+  // Default for public coupons that are claimable (not in user's list, not expired)
+  return { text: '領取', disabled: false };
+});
+
+const discountValue = computed(() => {
+  if (props.coupon.discountMethod === 'Percentage') return `${props.coupon.discountQuota}`;
+  if (props.coupon.discountMethod === 'Amount') return `$${props.coupon.discountQuota}`;
   return '';
-})
-
-const derivedCouponStatus = computed(() => {
-  if (props.coupon.isRedeemed) return 'redeemed';
-  if (props.coupon.isExpired) return 'expired';
-  return 'available'; // 如果沒有被領取也沒有過期，那麼它就是可用的
 });
 
-// 格式化折扣資訊
-const formattedDiscount = computed(() => {
-  if(props.coupon.discountMethod === 'Percentage') return `${(100 - (props.coupon.discountQuota || 0)) / 10} 折`
-  if(props.coupon.discountMethod === 'Amount') return `折抵 $${props.coupon.discountQuota}`
-  return '查看詳情'
-})
-
-// 格式化最低消費
-const formattedMinSpend = computed(() => {
-  return props.coupon.lowSpend ? `滿 ${props.coupon.lowSpend} 元可用` : '無最低消費';
+const discountUnit = computed(() => {
+  if (props.coupon.discountMethod === 'Percentage') return '% OFF';
+  if (props.coupon.discountMethod === 'Amount') return '折抵';
+  return '__IMAGE_COUPON__'; // Special string to indicate image display
 });
 
-// 格式化過期日期
 const formattedExpiryDate = computed(() => {
   const date = new Date(props.coupon.endAt);
-  return `有效期限至 ${date.toLocaleDateString()}`;
+  return date.toLocaleDateString();
 });
 </script>
 
 <style scoped>
 .coupon-card {
-  display: flex;
-  border-radius: 8px;
+  background: #2d3748; /* Dark Slate Gray */
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px #D4AF37, 0 4px 12px rgba(0, 0, 0, 0.4); /* Gold border + heavier shadow */
   overflow: hidden;
-  margin: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-}
-
-.coupon-left {
-  background-color: #28a745; /* A shade of green */
-  color: #fff;
-  padding: 15px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 120px; /* Fixed width for the left section */
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); /* Basic rectangle, will add perforation */
+  font-family: 'Inter', sans-serif;
+  width: 230px;
+  position: relative; /* Needed for pseudo-elements */
+  border: 2px solid transparent; /* For inner border effect */
 }
 
-/* Perforation effect for the left side */
-.coupon-left::after {
+.coupon-card::before,
+.coupon-card::after {
   content: '';
   position: absolute;
-  right: -10px; /* Adjust to control how much it overlaps */
-  top: 0;
-  bottom: 0;
-  width: 20px; /* Width of the perforation area */
-  background: radial-gradient(circle at 0 50%, transparent 8px, #28a745 8px) repeat-y;
-  background-size: 100% 20px; /* Adjust 20px for the size of each 'tear' */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px; /* Size of the notch */
+  height: 20px; /* Size of the notch */
+  background: #1a202c; /* Match the bottom section background */
+  border: 2px solid #D4AF37; /* Gold border */
+  border-radius: 50%;
+  z-index: 1; /* Ensure it's above the card content */
 }
 
-.coupon-icon {
-  font-size: 3em;
-  margin-bottom: 5px;
+.coupon-card::before {
+  left: -10px; /* Half of the width to make it centered on the edge */
+}
+
+.coupon-card::after {
+  right: -10px; /* Half of the width to make it centered on the edge */
+}
+
+.top-section {
+  background-color: transparent;
+  color: #D4AF37; /* Gold */
+  padding: 20px 16px 16px;
+  text-align: center;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  border-bottom: 1px dashed #D4AF37; /* Gold dashed line */
 }
 
-.coupon-icon span {
-  font-size: 0.4em;
+.discount-value {
+  font-family: 'serif'; /* More elegant font */
+  font-size: 3rem;
   font-weight: bold;
 }
 
-.coupon-type {
-  font-size: 0.9em;
+.discount-unit {
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.coupon-right {
-  flex-grow: 1;
-  padding: 15px;
+.middle-section {
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.coupon-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 5px;
+  gap: 12px;
+  border-bottom: 1px dashed #D4AF37;
 }
 
 .coupon-name {
-  font-size: 1.1em;
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-  flex-grow: 1; /* 允許標題佔據可用空間 */
-  min-width: 0; /* 允許標題在空間不足時縮小 */
-  overflow: hidden; /* 隱藏超出部分的文字 */
-  white-space: nowrap; /* 防止文字換行 */
-  text-overflow: ellipsis; /* 超出部分顯示省略號 */
-}
-
-.coupon-perk {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #e61e4d; /* Reddish color for discount */
-  margin-bottom: 5px;
-}
-
-.coupon-min-spend {
-  font-size: 0.85em;
-  color: #717171;
-  margin-bottom: 10px;
-}
-
-.coupon-footer {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f7fafc; /* Off-white */
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 0.8em;
-  color: #717171;
+  gap: 8px;
 }
 
-.coupon-expiry svg {
-  margin-right: 5px;
+.icon {
+  color: #D4AF37; /* Gold */
 }
 
-.usage-instructions {
-  color: #007bff; /* Blue link */
-  text-decoration: none;
+.description, .expiry-date {
+  font-size: 0.875rem;
+  color: #a0aec0; /* Lighter gray */
 }
 
-/* Status specific styles */
-.coupon-card.status-expired {
-  filter: grayscale(100%);
-  opacity: 0.7;
-  cursor: not-allowed;
+.bottom-section {
+  padding: 16px;
+  background-color: #1a202c; /* Even darker slate */
+  margin-top: auto; /* Push to bottom */
 }
 
-.coupon-card.status-expired .usage-instructions {
-  pointer-events: none;
-  color: #aaa;
+/* Custom style for the redeem button */
+:deep(.redeem-style) {
+  width: 100%;
+  background: linear-gradient(145deg, #e7c55c, #D4AF37); /* Gold gradient */
+  color: #2d3748; /* Dark text */
+  font-weight: bold;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.status-redeemed .coupon-left {
-  background-color: #aaa; /* Grey out for redeemed */
+:deep(.redeem-style:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
 }
 
-.status-redeemed .coupon-right {
-  opacity: 0.7; /* Opacity for redeemed */
-}
-
-.status-expired .coupon-left {
-  background-color: #aaa; /* Grey out for expired */
-}
-
-.coupon-card.status-claiming {
-  filter: brightness(90%); /* 領取中時稍微變暗 */
-  cursor: wait; /* 鼠標顯示等待狀態 */
-}
-
-/* Style for RedeemButton to match the image's button */
-.coupon-header .redeem-button {
-  border: 1px solid #28a745; /* Green border */
-  color: #28a745;
-  background-color: transparent;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.8em;
-}
-
-.coupon-header .redeem-button:disabled {
-  border-color: #aaa;
-  color: #aaa;
+.expiring-soon-banner {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background-color: #e53e3e; /* Red-600 */
+  color: white;
+  padding: 4px 8px;
+  font-size: 0.75rem; /* 12px */
+  font-weight: bold;
+  border-top-right-radius: 12px;
+  border-bottom-left-radius: 8px;
+  z-index: 3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 </style>
