@@ -395,6 +395,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 		public async Task<BookingDto?> GetBookingByOrderNumberAsync(string orderNumber)
 		{
 			var booking = await _bookingRepository.GetBookingByOrderNumberAsync(orderNumber);
+			
 			if (booking == null)
 			{
 				return null;
@@ -410,6 +411,13 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				}
 			}
 			return bookingDto;
+		}
+
+		// 根據訂單ID獲取單一訂單詳情
+		public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
+		{
+			var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
+			return booking != null ? _mapper.Map<BookingDto>(booking) : null;
 		}
 
 		// ==================== 內部使用方法 ====================
