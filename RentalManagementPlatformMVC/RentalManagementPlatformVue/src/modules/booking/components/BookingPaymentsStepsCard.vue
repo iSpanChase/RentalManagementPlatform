@@ -337,6 +337,7 @@ const handleConfirmPayment = async () => {
   border-radius: 25px;
   padding: 30px;
   transition: all 0.3s ease;
+  background: white;
 
   @media (max-width: 768px) {
     padding: 20px;

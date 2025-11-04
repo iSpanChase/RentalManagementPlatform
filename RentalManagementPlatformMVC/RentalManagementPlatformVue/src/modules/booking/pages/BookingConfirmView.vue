@@ -48,7 +48,6 @@ onMounted(async () => {
           checkOut: checkOutDate.toISOString()
         };
         bookingStore.setBookingDraft(bookingData);
-        toast.success('房源資料已載入!');
       } else {
         throw new Error('找不到房源資料');
       }
