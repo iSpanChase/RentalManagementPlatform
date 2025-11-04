@@ -3,26 +3,33 @@ import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/authStore.js';
 import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
+import { useOrderModal } from '@/composables/useOrderModal';
+import { useCancelBookingModal } from '@/composables/useCancelBookingModal';
 import SimplePaginator from '@/components/SimplePaginator.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 
 const bookingStore = useBookingStore();
 const router = useRouter();
 const toast = useToast();
-const auth = useAuthStore();
+const authStore = useAuthStore();
 
 const allBookings = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
-const selectedBooking = ref(null);
-const bookingToCancel = ref(null);
-const isCancelling = ref(false);
 
 // 使用共用的分頁邏輯
 const { currentPage, totalPages, paginatedItems: paginatedBookings, onPageChange } = usePagination(allBookings, 5);
+
+// 使用共用的訂單詳情 Modal 邏輯
+const { selectedItem: selectedBooking, viewDetails: viewBookingDetails } = useOrderModal('orderDetailModal', allBookings);
+
+// 使用共用的取消預訂 Modal 邏輯
+const { bookingToCancel, isCancelling, openCancelConfirmModal, confirmCancellation } = useCancelBookingModal(allBookings);
 
 /**
  * 立即付款
@@ -43,22 +50,12 @@ const handlePayNow = async (orderNumber) => {
         toast.error('無法載入付款表單，請聯繫客服');
       }
     } else {
-      toast.error(result.message || '付款表單產生失敗');
+      toast.error(result.message || '獲取付款表單失敗');
     }
   } catch (error) {
-    toast.error(error.message || '立即付款失敗');
+    toast.error(error.message || '付款失敗，請稍後再試');
   } finally {
     isLoading.value = false;
-  }
-};
-
-/**
- * 查看預訂詳情
- */
-const viewBookingDetails = (orderNumber, bookings) => {
-  const booking = bookings.find(b => b.orderNumber === orderNumber);
-  if (booking) {
-    selectedBooking.value = booking;
   }
 };
 
@@ -66,127 +63,33 @@ const viewBookingDetails = (orderNumber, bookings) => {
  * 聯繫房東
  */
 const handleContactHost = () => {
-  toast.info('聯繫房東功能開發中...');
+  toast.info('聯繫房東功能開發中');
 };
 
 /**
  * 重新預訂
  */
 const handleRebook = (booking) => {
-  // 嘗試多種可能的房源 ID 欄位名稱
-  const roomId = booking.roomId || booking.RoomId || booking.room_id;
-
-  if (!roomId) {
-    console.log('Booking data:', booking); // 調試用
-    toast.error('無法找到房源資訊，請聯繫客服');
+  if (!booking || !booking.roomId) {
+    toast.error('無法獲取房源資訊，請稍後再試');
     return;
   }
-
-  try {
-    // 導向到房源詳情頁面
-    router.push({
-      name: 'room-detail',
-      params: { id: roomId.toString() }
-    });
-
-    toast.info('正在前往房源頁面，您可以重新預訂');
-  } catch (error) {
-    console.error('Navigation error:', error);
-    toast.error('頁面跳轉失敗，請稍後再試');
-  }
+  router.push({ name: 'BookingConfirmView', query: { roomId: booking.roomId } });
 };
 
-/**
- * 開啟取消確認 Modal
- */
-const openCancelConfirmModal = (booking) => {
-  bookingToCancel.value = booking;
-};
-
-/**
- * 確認取消預訂
- */
-const confirmCancellation = async () => {
-  if (!bookingToCancel.value) return;
-
-  // 嘗試多種可能的預訂 ID 欄位名稱
-  const bookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
-
-  if (!bookingId) {
-    toast.error('無法找到預訂資訊');
-    return;
-  }
-
-  isCancelling.value = true;
-  try {
-    const result = await bookingStore.cancelBooking(bookingId);
-
-    // 更新本地資料
-    const targetBookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
-    const index = allBookings.value.findIndex(b =>
-      (b.bookingId || b.BookingId || b.id) === targetBookingId
-    );
-    if (index !== -1) {
-      allBookings.value[index].paymentStatus = 'cancelled';
-    }
-
-    toast.success('預訂已成功取消');
-
-    // 關閉 Modal
-    setTimeout(() => {
-      const modal = document.getElementById('cancelConfirmModal');
-      if (modal) {
-        // 使用 Bootstrap 5 的方式
-        if (window.bootstrap) {
-          const bsModal = window.bootstrap.Modal.getInstance(modal);
-          if (bsModal) {
-            bsModal.hide();
-          }
-        } else {
-          // 如果沒有 Bootstrap JS，手動隱藏
-          modal.style.display = 'none';
-          modal.classList.remove('show');
-          document.body.classList.remove('modal-open');
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) {
-            backdrop.remove();
-          }
-        }
-      }
-    }, 500);
-
-    bookingToCancel.value = null;
-  } catch (error) {
-    toast.error(error.message || '取消預訂失敗');
-  } finally {
-    isCancelling.value = false;
-  }
-};
-
-/**
- * 載入我的預訂
- */
 onMounted(async () => {
-  // 檢查使用者是否已登入
-  if (!auth.isAuthenticated.value) {
-    toast.error("請先登入查看預訂記錄");
-    router.push({ name: "LoginView" });
-    return;
-  }
-
   isLoading.value = true;
   isError.value = false;
 
   try {
-    const userId = auth.state.profile?.userId;
+    const userId = authStore.currentUser?.id;
     if (!userId) {
-      toast.error('無法獲取使用者資訊，請重新登入');
-      router.push({ name: 'LoginView' });
+      toast.error('無法獲取使用者資訊，請先登入');
+      isError.value = true;
       return;
     }
 
-    // 使用新的fetchMyBookings方法
-    const fetchedBookings = await bookingStore.fetchMyBookings(userId);
+    const fetchedBookings = await bookingStore.fetchBookingsByUser(userId);
     allBookings.value = fetchedBookings || [];
 
     if (allBookings.value.length === 0) {
@@ -201,35 +104,6 @@ onMounted(async () => {
   }
 });
 
-/**
- * 重新載入資料
- */
-const reloadData = async () => {
-  isLoading.value = true;
-  isError.value = false;
-
-  try {
-    const userId = auth.state.profile?.userId;
-    if (!userId) {
-      toast.error('無法獲取使用者資訊，請重新登入');
-      router.push({ name: 'LoginView' });
-      return;
-    }
-
-    const fetchedBookings = await bookingStore.fetchMyBookings(userId);
-    allBookings.value = fetchedBookings || [];
-
-    if (allBookings.value.length === 0) {
-      toast.info('目前沒有任何預訂記錄');
-    }
-  } catch (error) {
-    console.error('載入預訂失敗:', error);
-    toast.error(error.message || '載入預訂資料失敗');
-    isError.value = true;
-  } finally {
-    isLoading.value = false;
-  }
-};
 </script>
 
 <template>
@@ -471,28 +345,65 @@ $background-light: #f9f9f9;
 $text-light: #717171;
 $text-dark: #484848;
 
+// Mobile-first 設計：從最小螢幕開始設計，然後向上擴展
 .my-bookings-page {
-  max-width: 1024px;
-  margin: 0 auto;
-  padding: 20px;
+  // Mobile (320px+)
+  padding: 16px;
   min-height: 100vh;
+  margin: 0 auto;
 
   h1 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
-    margin-left: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     color: #222;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  // Small mobile (375px+)
+  @media (min-width: 375px) {
+    padding: 20px;
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+  }
+
+  // Large mobile / Small tablet (576px+)
+  @media (min-width: 576px) {
+    max-width: 540px;
+
+    h1 {
+      font-size: 28px;
+      text-align: left;
+      margin-left: 10px;
+    }
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    max-width: 720px;
+  }
+
+  // Large tablet / Small desktop (992px+)
+  @media (min-width: 992px) {
+    max-width: 900px;
+  }
+
+  // Desktop (1200px+)
+  @media (min-width: 1200px) {
+    max-width: 1024px;
   }
 }
 
 .container {
   width: 100%;
-  max-width: 900px;
   margin: 0 auto;
 }
 
-/* Loading & Error Styles */
+/* Loading & Error Styles - Mobile-first */
 .loading-overlay, .error-message-container {
   position: fixed;
   top: 0;
@@ -504,50 +415,106 @@ $text-dark: #484848;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  padding: 20px;
+  // Mobile
+  padding: 16px;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 20px;
+  }
 }
 
 .loading-content, .error-card {
   background: white;
-  padding: 40px;
-  border-radius: 16px;
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  max-width: 350px;
-  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 320px;
+  // Mobile
+  padding: 24px 20px;
 
   p {
-    margin-top: 16px;
+    margin-top: 12px;
     color: #333;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
+    line-height: 1.4;
+  }
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 32px 24px;
+    border-radius: 16px;
+    max-width: 350px;
+
+    p {
+      font-size: 16px;
+      margin-top: 16px;
+    }
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f0f0f0;
-  border-top: 4px solid #007bff;
+  // Mobile
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f0f0f0;
+    border-top: 4px solid #007bff;
+  }
 }
 
 .error-card {
   h2 {
-    font-size: 22px;
+    // Mobile
+    font-size: 18px;
     font-weight: 600;
     color: #d9534f;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    line-height: 1.3;
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    // Tablet (768px+)
+    @media (min-width: 768px) {
+      font-size: 22px;
+    }
   }
+
   p {
     color: #484848;
-    line-height: 1.6;
+    line-height: 1.5;
+
+    // Tablet (768px+)
+    @media (min-width: 768px) {
+      line-height: 1.6;
+    }
   }
+
   .btn-back-home {
-    margin-top: 20px;
-    padding: 10px 20px;
+    // Mobile
+    margin-top: 16px;
+    padding: 12px 20px;
     background-color: #007bff;
     color: white;
     border: none;
@@ -555,31 +522,73 @@ $text-dark: #484848;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    width: 100%;
+    font-size: 14px;
+
     &:hover {
       background-color: #0056b3;
+    }
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      margin-top: 20px;
+      width: auto;
+      min-width: 120px;
+      font-size: 16px;
+      padding: 10px 20px;
     }
   }
 }
 
 .bookings-list {
   display: grid;
-  gap: 24px;
+  // Mobile
+  gap: 16px;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    gap: 20px;
+  }
+
+  // Tablet (768px+)
+  @media (min-width: 768px) {
+    gap: 24px;
+  }
 
   .booking-card {
-    display: flex;
     background: white;
     border: 1px solid $border-color;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     transition: box-shadow 0.3s ease;
+    // Mobile: 垂直布局
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
 
     &:hover {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    // Large mobile (480px+)
+    @media (min-width: 480px) {
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+      &:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    // Tablet (768px+): 水平布局
+    @media (min-width: 768px) {
+      flex-direction: row;
     }
 
     .card-image-wrapper {
-      width: 220px;
+      // Mobile: 圖片在上方
+      width: 100%;
+      height: 200px;
       flex-shrink: 0;
 
       .room-image {
@@ -587,14 +596,36 @@ $text-dark: #484848;
         height: 100%;
         object-fit: cover;
       }
+
+      // Tablet (768px+): 圖片在左側
+      @media (min-width: 768px) {
+        width: 200px;
+        height: auto;
+      }
+
+      // Desktop (992px+): 更寬的圖片
+      @media (min-width: 992px) {
+        width: 220px;
+      }
     }
 
     .card-details-wrapper {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 20px 24px;
+      // Mobile
+      padding: 16px;
       gap: 12px;
+
+      // Large mobile (480px+)
+      @media (min-width: 480px) {
+        padding: 20px;
+      }
+
+      // Tablet (768px+)
+      @media (min-width: 768px) {
+        padding: 20px 24px;
+      }
     }
 
     .card-section {
@@ -604,6 +635,18 @@ $text-dark: #484848;
     }
 
     .top-section {
+      // Mobile: 垂直排列
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      // Large mobile (480px+): 水平排列
+      @media (min-width: 480px) {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0;
+      }
+
       .room-info {
         .room-location {
           display: block;
@@ -612,9 +655,16 @@ $text-dark: #484848;
         }
         h3 {
           margin: 2px 0 0;
-          font-size: 20px;
+          // Mobile
+          font-size: 18px;
           font-weight: 600;
           color: $primary-color;
+          line-height: 1.3;
+
+          // Large mobile (480px+)
+          @media (min-width: 480px) {
+            font-size: 20px;
+          }
         }
       }
     }
@@ -636,10 +686,15 @@ $text-dark: #484848;
         font-size: 14px;
 
         i {
-          margin-right: 10px;
+          margin-right: 8px;
           color: $text-light;
           width: 16px;
           text-align: center;
+
+          // Large mobile (480px+)
+          @media (min-width: 480px) {
+            margin-right: 10px;
+          }
         }
 
         &.order-number {
@@ -655,9 +710,20 @@ $text-dark: #484848;
       align-items: flex-end;
       border-top: 1px solid $border-color;
       padding-top: 16px;
+      // Mobile: 垂直排列
+      flex-direction: column;
+      gap: 12px;
+
+      // Large mobile (480px+): 水平排列
+      @media (min-width: 480px) {
+        flex-direction: row;
+        gap: 0;
+      }
 
       .total-price-area {
-        text-align: left;
+        // Mobile: 置中
+        text-align: center;
+
         span {
           font-size: 13px;
           color: $text-light;
@@ -665,32 +731,63 @@ $text-dark: #484848;
         .total-price-value {
           margin: 0;
           strong {
-            font-size: 20px;
+            // Mobile
+            font-size: 18px;
             font-weight: 700;
             color: $primary-color;
+
+            // Large mobile (480px+)
+            @media (min-width: 480px) {
+              font-size: 20px;
+            }
           }
+        }
+
+        // Large mobile (480px+): 靠左
+        @media (min-width: 480px) {
+          text-align: left;
         }
       }
 
       .card-actions {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        // Mobile: 置中
+        justify-content: center;
         gap: 8px;
+        width: 100%;
+
+        // Large mobile (480px+): 靠右
+        @media (min-width: 480px) {
+          justify-content: flex-end;
+          width: auto;
+        }
       }
     }
   }
 }
 
 %btn-base {
-  padding: 8px 14px;
+  // Mobile
+  padding: 10px 16px;
   border-radius: 8px;
   border: 1px solid;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  min-height: 44px; // 適合觸控的最小高度
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Large mobile (480px+)
+  @media (min-width: 480px) {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: auto;
+  }
 }
 
 .btn-pay-now,

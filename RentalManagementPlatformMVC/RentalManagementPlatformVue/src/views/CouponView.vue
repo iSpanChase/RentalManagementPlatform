@@ -20,7 +20,8 @@
 import { useQuery } from '@tanstack/vue-query'
 import { getPublicCoupons } from '../services/CouponService.ts'
 import CouponCard from '../components/coupons/CouponCard.vue'
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
 console.log('CouponView component is setting up...');
 
@@ -28,7 +29,8 @@ onMounted(() => {
   console.log('CouponView component has mounted.');
 });
 
-const userId = 1; // 假設登入使用者 ID
+const authStore = useAuthStore();
+const userId = computed(() => authStore.state.profile?.userId);
 
 const { data: coupons, isLoading, isError, error } = useQuery({
   queryKey: ['coupons'],

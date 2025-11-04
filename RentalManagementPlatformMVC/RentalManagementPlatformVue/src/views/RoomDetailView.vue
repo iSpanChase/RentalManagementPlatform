@@ -108,7 +108,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { fetchReviewsByRoomId, createReview } from '@/api/reviewApi';
 import { fetchRoomDetail, type RoomDetail } from '@/api/roomSearchApi';
 import { useBookingStore } from '@/stores/bookingStore.js';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import ReviewList from '@/modules/RoomManagement/ReviewList.vue';
 import ReviewForm from '@/modules/RoomManagement/ReviewForm.vue';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
@@ -119,7 +119,7 @@ import 'vue-datepicker-next/index.css';
 const route = useRoute();
 const router = useRouter();
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
+const auth = useAuthStore();
 const roomId = Number(route.params.id);
 
 // State for booking form
@@ -286,7 +286,7 @@ const handleReserve = () => {
 
     const bookingData = {
         roomId: roomDetail.value.roomId,
-        guestId: authStore.currentUser?.id,
+        guestId: auth.state.profile?.userId,
         checkIn: toLocalISODateString(checkIn as Date),
         checkOut: toLocalISODateString(checkOut as Date),
         guestCount: guestCount.value,

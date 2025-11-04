@@ -1,26 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import CouponCard from './CouponCard.vue';
 import CouponDetailModal from './CouponDetailModal.vue';
 import { useCouponStore } from '@/stores/couponStore.js';
+import { useAuthStore } from '@/stores/auth';
 import type { Coupon } from '@/types/coupon';
 
-const userId = 1; // 模擬使用者 ID
+const authStore = useAuthStore();
+const userId = computed(() => authStore.state.profile?.userId);
 
 const couponStore = useCouponStore();
 
 const detailVisible = ref(false);
 const selectedCoupon = ref<Coupon | null>(null);
 
-// 元件掛載時從 store 獲取該使用者的優惠券
-onMounted(() => {
-  couponStore.fetchUserCoupons(userId);
-});
+// 監聽 userId，並在獲取到後加載優惠券
+watch(userId, (newUserId) => {
+  if (newUserId) {
+    couponStore.fetchUserCoupons(newUserId);
+  }
+}, { immediate: true });
+
 
 function onRedeem(code: string) {
   alert(`領取成功: ${code}`);
   // 重新獲取優惠券列表以更新狀態
-  couponStore.fetchUserCoupons(userId);
+  if (userId.value) {
+    couponStore.fetchUserCoupons(userId.value);
+  }
 }
 
 function showDetail(coupon: Coupon) {

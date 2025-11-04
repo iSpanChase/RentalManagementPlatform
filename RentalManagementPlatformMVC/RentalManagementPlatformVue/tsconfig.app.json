@@ -1,4 +1,4 @@
-// tsconfig.app.json (修改建議)
+//  tsconfig.app.json (修改建議)
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": [

@@ -15,7 +15,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    public class OccupancyController : ControllerBase
+    public class OccupancyController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
 
@@ -27,8 +27,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpPost("GetOccupancy")]
         public async Task<IActionResult> GetOccupancy([FromBody] RevenueRequestDto req)
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             List<int> roomIdsToQuery;
 
@@ -203,8 +202,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpPost("GetOccupancyKpi")]
         public async Task<IActionResult> GetOccupancyKpi([FromBody] OccupancyKpiRequestDto req)
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             List<int> roomIdsToQuery;
 
@@ -266,8 +264,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                 [HttpPost("GetOccupancySourceAnalysis")]
                 public async Task<IActionResult> GetOccupancySourceAnalysis([FromBody] AnalysisRequestDto req)
                 {
-                    // TODO: 之後需從登入資訊取得 HostId
-                    int hostId = 47;
+                    int hostId = CurrentUserId;
         
                     List<int> roomIdsToQuery;
         
@@ -389,8 +386,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
         private async Task<List<int>> GetRoomIdsToQuery(List<int> requestedRoomIds)
         {
-            // TODO: Replace with actual host ID from user context
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             var hostRoomsQuery = _context.RoomLists.Where(r => r.HostId == hostId);
 
