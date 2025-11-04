@@ -1,6 +1,6 @@
 BEGIN TRAN;
 
-DECLARE @UserId INT = 225;  -- 你要刪的 user_id
+DECLARE @UserId INT = 229;  -- 你要刪的 user_id
 
 -- 先刪關聯表中的記錄
 DELETE FROM USER_ROLES
