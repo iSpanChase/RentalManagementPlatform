@@ -87,36 +87,36 @@ const router = createRouter({
   ],
 })
 
-/** 角色導向與權限保護 */
-router.beforeEach((to) => {
-  const faqauth = useAuthStore()
+// /** 角色導向與權限保護 */
+// router.beforeEach((to) => {
+//   const faqauth = useAuthStore()
 
-  // 暫時沒登入資料就 mock（日後換 /api/users/me）
-  if (!faqauth.user) faqauth.useMock('user') // 或 'agent' 測試
+//   // 暫時沒登入資料就 mock（日後換 /api/users/me）
+//   if (!faqauth.user) faqauth.useMock('user') // 或 'agent' 測試
 
-  // 進 /support 根據角色導頁
-  if (to.path === '/support') {
-    // 沒登入就 mock
-    if (!faqauth.user) faqauth.useMock('user')
+//   // 進 /support 根據角色導頁
+//   if (to.path === '/support') {
+//     // 沒登入就 mock
+//     if (!faqauth.user) faqauth.useMock('user')
 
-    const role = faqauth.user?.role ?? 'user'   // fallback
-    return role === 'agent'
-      ? { name: 'support-agent' }
-      : { name: 'support-customer' }
-  }
+//     const role = faqauth.user?.role ?? 'user'   // fallback
+//     return role === 'agent'
+//       ? { name: 'support-agent' }
+//       : { name: 'support-customer' }
+//   }
 
-  // 有宣告 meta.role 的頁面做守門
-  const need = to.meta.role as ('user' | 'agent') | undefined
-  if (!need) return true
+//   // 有宣告 meta.role 的頁面做守門
+//   const need = to.meta.role as ('user' | 'agent') | undefined
+//   if (!need) return true
 
-  const role = faqauth.user?.role ?? 'user'   // 沒有 user 就當作一般使用者
-  if (role !== need) {
-    return role === 'agent'
-      ? { name: 'support-agent' }
-      : { name: 'support-customer' }
-  }
-  return true
-})
+//   const role = faqauth.user?.role ?? 'user'   // 沒有 user 就當作一般使用者
+//   if (role !== need) {
+//     return role === 'agent'
+//       ? { name: 'support-agent' }
+//       : { name: 'support-customer' }
+//   }
+//   return true
+// })
 
 
 /** 依路由參數取得 redirect 目的地 */
