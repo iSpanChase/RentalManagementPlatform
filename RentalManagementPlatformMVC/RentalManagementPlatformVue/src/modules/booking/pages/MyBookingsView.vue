@@ -25,8 +25,60 @@ const selectedBooking = ref(null);
 const bookingToCancel = ref(null);
 const isCancelling = ref(false);
 
-// 使用共用的分頁邏輯
-const { currentPage, totalPages, paginatedItems: paginatedBookings, onPageChange } = usePagination(allBookings, 5);
+// 篩選和排序狀態
+const statusFilter = ref('');
+const sortBy = ref('newest');
+const searchKeyword = ref('');
+
+// 篩選和排序後的訂單
+const filteredAndSortedBookings = computed(() => {
+  let filtered = [...allBookings.value];
+
+  // 狀態篩選
+  if (statusFilter.value) {
+    filtered = filtered.filter((booking) => booking.paymentStatus === statusFilter.value);
+  }
+
+  // 關鍵字搜尋（房源名稱、訂單編號）
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase().trim();
+    filtered = filtered.filter(
+      (booking) =>
+        booking.room?.toLowerCase().includes(keyword) ||
+        booking.orderNumber?.toLowerCase().includes(keyword)
+    );
+  }
+
+  // 排序
+  filtered.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'newest':
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case 'oldest':
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case 'checkin-asc':
+        return new Date(a.checkIn) - new Date(b.checkIn);
+      case 'checkin-desc':
+        return new Date(b.checkIn) - new Date(a.checkIn);
+      case 'amount-high':
+        return b.totalPrice - a.totalPrice;
+      case 'amount-low':
+        return a.totalPrice - b.totalPrice;
+      default:
+        return 0;
+    }
+  });
+
+  return filtered;
+});
+
+// 使用篩選後的資料進行分頁
+const {
+  currentPage,
+  totalPages,
+  paginatedItems: paginatedBookings,
+  onPageChange,
+} = usePagination(filteredAndSortedBookings, 5);
 
 /**
  * 立即付款
@@ -60,7 +112,7 @@ const handlePayNow = async (orderNumber) => {
  * 查看預訂詳情
  */
 const viewBookingDetails = (orderNumber, bookings) => {
-  const booking = bookings.find(b => b.orderNumber === orderNumber);
+  const booking = bookings.find((b) => b.orderNumber === orderNumber);
   if (booking) {
     selectedBooking.value = booking;
   }
@@ -90,7 +142,7 @@ const handleRebook = (booking) => {
     // 導向到房源詳情頁面
     router.push({
       name: 'room-detail',
-      params: { id: roomId.toString() }
+      params: { id: roomId.toString() },
     });
 
     toast.info('正在前往房源頁面，您可以重新預訂');
@@ -114,7 +166,8 @@ const confirmCancellation = async () => {
   if (!bookingToCancel.value) return;
 
   // 嘗試多種可能的預訂 ID 欄位名稱
-  const bookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
+  const bookingId =
+    bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
 
   if (!bookingId) {
     toast.error('無法找到預訂資訊');
@@ -126,9 +179,12 @@ const confirmCancellation = async () => {
     const result = await bookingStore.cancelBooking(bookingId);
 
     // 更新本地資料
-    const targetBookingId = bookingToCancel.value.bookingId || bookingToCancel.value.BookingId || bookingToCancel.value.id;
-    const index = allBookings.value.findIndex(b =>
-      (b.bookingId || b.BookingId || b.id) === targetBookingId
+    const targetBookingId =
+      bookingToCancel.value.bookingId ||
+      bookingToCancel.value.BookingId ||
+      bookingToCancel.value.id;
+    const index = allBookings.value.findIndex(
+      (b) => (b.bookingId || b.BookingId || b.id) === targetBookingId
     );
     if (index !== -1) {
       allBookings.value[index].paymentStatus = 'cancelled';
@@ -149,8 +205,8 @@ const confirmCancellation = async () => {
 onMounted(async () => {
   // 檢查使用者是否已登入
   if (!auth.isAuthenticated.value) {
-    toast.error("請先登入查看預訂記錄");
-    router.push({ name: "LoginView" });
+    toast.error('請先登入查看預訂記錄');
+    router.push({ name: 'LoginView' });
     return;
   }
 
@@ -179,6 +235,15 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+/**
+ * 清除所有篩選條件
+ */
+const clearFilters = () => {
+  statusFilter.value = '';
+  searchKeyword.value = '';
+  sortBy.value = 'newest';
+};
 
 /**
  * 重新載入資料
@@ -243,92 +308,153 @@ const reloadData = async () => {
 
     <!-- Content -->
     <div v-else class="container">
+      <!-- 篩選和排序控制 -->
+      <div class="filter-controls">
+        <div class="filter-section">
+          <div class="search-box">
+            <input
+              type="text"
+              v-model="searchKeyword"
+              placeholder="搜尋房源名稱或訂單編號..."
+              class="search-input"
+            />
+            <i class="fa-solid fa-search search-icon"></i>
+            <button v-if="searchKeyword" @click="searchKeyword = ''" class="clear-btn">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+
+          <div class="filter-dropdowns">
+            <select v-model="statusFilter" class="filter-select">
+              <option value="">所有狀態</option>
+              <option value="pending">待付款</option>
+              <option value="deferred">延後付款</option>
+              <option value="completed">已付款</option>
+              <option value="cancelled">已取消</option>
+              <option value="refunded">已退款</option>
+            </select>
+
+            <select v-model="sortBy" class="sort-select">
+              <option value="newest">最新訂單</option>
+              <option value="oldest">最舊訂單</option>
+              <option value="checkin-asc">入住日期（近到遠）</option>
+              <option value="checkin-desc">入住日期（遠到近）</option>
+              <option value="amount-high">金額（高到低）</option>
+              <option value="amount-low">金額（低到高）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="results-info">
+          <span class="results-count">
+            找到 {{ filteredAndSortedBookings.length }} 筆訂單
+            <span v-if="allBookings.length !== filteredAndSortedBookings.length">
+              （共 {{ allBookings.length }} 筆）
+            </span>
+          </span>
+
+          <button v-if="statusFilter || searchKeyword" @click="clearFilters" class="clear-all-btn">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            清除篩選
+          </button>
+        </div>
+      </div>
+
       <div class="bookings-list">
         <div v-for="booking in paginatedBookings" :key="booking.orderNumber" class="booking-card">
-            <div class="card-image-wrapper">
-              <img
-                :src="booking.roomImageUrl || 'https://placehold.co/220x180/EBEBEB/717171?text=Room'"
-                alt="房源圖片"
-                class="room-image"
-              />
+          <div class="card-image-wrapper">
+            <img
+              :src="booking.roomImageUrl || 'https://placehold.co/220x180/EBEBEB/717171?text=Room'"
+              alt="房源圖片"
+              class="room-image"
+            />
+          </div>
+
+          <div class="card-details-wrapper">
+            <div class="card-section top-section">
+              <div class="room-info">
+                <span class="room-location">{{ booking.billingCountry || '城市, 國家' }}</span>
+                <h3>{{ booking.room }}</h3>
+              </div>
+              <StatusBadge :status="booking.paymentStatus" />
             </div>
 
-            <div class="card-details-wrapper">
-              <div class="card-section top-section">
-                <div class="room-info">
-                  <span class="room-location">{{ booking.billingCountry || '城市, 國家' }}</span>
-                  <h3>{{ booking.room }}</h3>
-                </div>
-                <StatusBadge :status="booking.paymentStatus" />
+            <div class="card-section mid-section">
+              <div class="info-item">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>{{ formatDate(booking.checkIn) }} - {{ formatDate(booking.checkOut) }}</span>
               </div>
-
-              <div class="card-section mid-section">
-                <div class="info-item">
-                  <i class="fa-solid fa-calendar-days"></i>
-                  <span>{{ formatDate(booking.checkIn) }} - {{ formatDate(booking.checkOut) }}</span>
-                </div>
-                <div class="info-item">
-                  <i class="fa-solid fa-user-group"></i>
-                  <span>{{ booking.guestCount }} 位住客</span>
-                </div>
-                <div class="info-item order-number">
-                  <i class="fa-solid fa-hashtag"></i>
-                  <span>訂單: {{ booking.orderNumber }}</span>
-                </div>
+              <div class="info-item">
+                <i class="fa-solid fa-user-group"></i>
+                <span>{{ booking.guestCount }} 位住客</span>
               </div>
-
-              <div class="card-section bottom-section">
-                <div class="total-price-area">
-                  <span>總金額</span>
-                  <p class="total-price-value">
-                    <strong>${{ booking.totalPrice.toLocaleString() }} TWD</strong>
-                  </p>
-                </div>
-                <div class="card-actions">
-                  <button
-                    v-if="booking.paymentStatus === 'deferred'"
-                    @click="handlePayNow(booking.orderNumber)"
-                    class="btn-pay-now"
-                    :disabled="isLoading"
-                  >
-                    立即付款
-                  </button>
-                  <button
-                    class="btn-contact"
-                    @click="handleContactHost"
-                    v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
-                  >
-                    聯繫房東
-                  </button>
-                  <button
-                    class="btn-cancel"
-                    data-bs-toggle="modal"
-                    data-bs-target="#cancelConfirmModal"
-                    @click="openCancelConfirmModal(booking)"
-                    v-if="canCancelBooking && booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
-                    :disabled="isCancelling || isLoading"
-                  >
-                    取消預訂
-                  </button>
-                  <button
-                    class="btn-rebook"
-                    @click="handleRebook(booking)"
-                    v-if="canCreateBooking && ['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
-                    :disabled="isLoading || isCancelling"
-                  >
-                    重新預訂
-                  </button>
-                  <button
-                    class="btn-details"
-                    data-bs-toggle="modal"
-                    data-bs-target="#orderDetailModal"
-                    @click="viewBookingDetails(booking.orderNumber, allBookings)"
-                  >
-                    查看詳情
-                  </button>
-                </div>
+              <div class="info-item order-number">
+                <i class="fa-solid fa-hashtag"></i>
+                <span>訂單: {{ booking.orderNumber }}</span>
               </div>
             </div>
+
+            <div class="card-section bottom-section">
+              <div class="total-price-area">
+                <span>總金額</span>
+                <p class="total-price-value">
+                  <strong>${{ booking.totalPrice.toLocaleString() }} TWD</strong>
+                </p>
+              </div>
+              <div class="card-actions">
+                <button
+                  v-if="booking.paymentStatus === 'deferred'"
+                  @click="handlePayNow(booking.orderNumber)"
+                  class="btn-pay-now"
+                  :disabled="isLoading"
+                >
+                  立即付款
+                </button>
+                <button
+                  class="btn-contact"
+                  @click="handleContactHost"
+                  v-if="
+                    booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'
+                  "
+                >
+                  聯繫房東
+                </button>
+                <button
+                  class="btn-cancel"
+                  data-bs-toggle="modal"
+                  data-bs-target="#cancelConfirmModal"
+                  @click="openCancelConfirmModal(booking)"
+                  v-if="
+                    canCancelBooking &&
+                    booking.paymentStatus !== 'cancelled' &&
+                    booking.paymentStatus !== 'refunded'
+                  "
+                  :disabled="isCancelling || isLoading"
+                >
+                  取消預訂
+                </button>
+                <button
+                  class="btn-rebook"
+                  @click="handleRebook(booking)"
+                  v-if="
+                    canCreateBooking &&
+                    ['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)
+                  "
+                  :disabled="isLoading || isCancelling"
+                >
+                  重新預訂
+                </button>
+                <button
+                  class="btn-details"
+                  data-bs-toggle="modal"
+                  data-bs-target="#orderDetailModal"
+                  @click="viewBookingDetails(booking.orderNumber, allBookings)"
+                >
+                  查看詳情
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -342,12 +468,25 @@ const reloadData = async () => {
 
   <Teleport to="body">
     <!-- 訂單詳情 Modal -->
-    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="orderDetailModal"
+      tabindex="-1"
+      aria-labelledby="orderDetailModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" v-if="selectedBooking">
           <div class="modal-header">
-            <h5 class="modal-title" id="orderDetailModalLabel">訂單詳情 #{{ selectedBooking.orderNumber }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="orderDetailModalLabel">
+              訂單詳情 #{{ selectedBooking.orderNumber }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <div class="detail-section">
@@ -358,7 +497,10 @@ const reloadData = async () => {
               </div>
               <div class="detail-row">
                 <p><strong>入住/退房:</strong></p>
-                <p>{{ formatDate(selectedBooking.checkIn) }} - {{ formatDate(selectedBooking.checkOut) }} ({{ selectedBooking.guestCount }}人)</p>
+                <p>
+                  {{ formatDate(selectedBooking.checkIn) }} -
+                  {{ formatDate(selectedBooking.checkOut) }} ({{ selectedBooking.guestCount }}人)
+                </p>
               </div>
               <div class="detail-row">
                 <p><strong>訂單建立:</strong></p>
@@ -371,7 +513,7 @@ const reloadData = async () => {
                 </p>
               </div>
             </div>
-            <hr>
+            <hr />
             <div class="detail-section">
               <h6><i class="fa-solid fa-credit-card"></i> 價格與付款</h6>
               <div class="detail-row">
@@ -379,7 +521,7 @@ const reloadData = async () => {
                 <p class="price-value">TWD {{ selectedBooking.totalPrice.toLocaleString() }}</p>
               </div>
             </div>
-            <hr>
+            <hr />
             <div class="detail-section">
               <h6><i class="fa-solid fa-user"></i> 聯絡人資訊</h6>
               <div class="detail-row">
@@ -399,13 +541,13 @@ const reloadData = async () => {
                 <p class="notes-text">{{ selectedBooking.contactNotes }}</p>
               </div>
             </div>
-            <hr>
+            <hr />
             <div class="detail-section">
               <h6><i class="fa-solid fa-address-book"></i> 帳單地址</h6>
               <div class="address-block">
-                {{ selectedBooking.billingCountry }}<br>
-                {{ selectedBooking.billingZipCode }} {{ selectedBooking.billingCity }}<br>
-                {{ selectedBooking.billingState }} {{ selectedBooking.billingStreet }}<br>
+                {{ selectedBooking.billingCountry }}<br />
+                {{ selectedBooking.billingZipCode }} {{ selectedBooking.billingCity }}<br />
+                {{ selectedBooking.billingState }} {{ selectedBooking.billingStreet }}<br />
                 {{ selectedBooking.billingApartment }}
               </div>
             </div>
@@ -418,22 +560,50 @@ const reloadData = async () => {
     </div>
 
     <!-- 取消確認 Modal -->
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="cancelConfirmModal"
+      tabindex="-1"
+      aria-labelledby="cancelConfirmModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="cancelConfirmModalLabel">確認取消預訂</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             您確定要取消這筆訂單 (編號: {{ bookingToCancel?.orderNumber }}) 嗎？
-            <br>
+            <br />
             <small class="text-muted">請注意，取消政策可能適用。</small>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isCancelling">關閉</button>
-            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isCancelling" data-bs-dismiss="modal">
-              <span v-if="isCancelling" class="spinner-border spinner-border-sm" role="status"></span>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              :disabled="isCancelling"
+            >
+              關閉
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="confirmCancellation"
+              :disabled="isCancelling"
+              data-bs-dismiss="modal"
+            >
+              <span
+                v-if="isCancelling"
+                class="spinner-border spinner-border-sm"
+                role="status"
+              ></span>
               <span v-else>確認取消</span>
             </button>
           </div>
@@ -474,7 +644,8 @@ $text-dark: #484848;
 }
 
 /* Loading & Error Styles */
-.loading-overlay, .error-message-container {
+.loading-overlay,
+.error-message-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -488,7 +659,8 @@ $text-dark: #484848;
   padding: 20px;
 }
 
-.loading-content, .error-card {
+.loading-content,
+.error-card {
   background: white;
   padding: 40px;
   border-radius: 16px;
@@ -765,11 +937,23 @@ $text-dark: #484848;
 }
 
 .status-deferred,
-.status-unpaid { background-color: #fff3cd; color: #856404; }
+.status-unpaid {
+  background-color: #fff3cd;
+  color: #856404;
+}
 .status-completed,
-.status-paid { background-color: #d4edda; color: #155724; }
-.status-cancelled { background-color: #f8d7da; color: #721c24; }
-.status-refunded { background-color: #e2e3e5; color: #383d41; }
+.status-paid {
+  background-color: #d4edda;
+  color: #155724;
+}
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+.status-refunded {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
 
 .modal-content {
   border-radius: 15px;
@@ -778,10 +962,15 @@ $text-dark: #484848;
   .modal-header {
     border-bottom: 1px solid $border-color;
     padding: 20px 25px;
-    .modal-title { font-weight: 600; color: $primary-color; }
+    .modal-title {
+      font-weight: 600;
+      color: $primary-color;
+    }
   }
 
-  .modal-body { padding: 25px; }
+  .modal-body {
+    padding: 25px;
+  }
 }
 
 .detail-section {
@@ -793,7 +982,10 @@ $text-dark: #484848;
     color: $primary-color;
     padding-bottom: 5px;
     border-bottom: 1px dashed #f0f0f0;
-    i { margin-right: 8px; color: $secondary-color; }
+    i {
+      margin-right: 8px;
+      color: $secondary-color;
+    }
   }
 }
 
@@ -804,9 +996,19 @@ $text-dark: #484848;
   font-size: 14px;
   align-items: start;
 
-  p { margin: 0; line-height: 1.6; }
-  strong { color: $text-light; font-weight: 500; }
-  .price-value { font-weight: 700; color: $secondary-color; font-size: 16px; }
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+  strong {
+    color: $text-light;
+    font-weight: 500;
+  }
+  .price-value {
+    font-weight: 700;
+    color: $secondary-color;
+    font-size: 16px;
+  }
 }
 
 .notes-text {
@@ -827,7 +1029,10 @@ $text-dark: #484848;
   font-size: 14px;
 }
 
-hr { border-color: $border-color; margin: 20px 0; }
+hr {
+  border-color: $border-color;
+  margin: 20px 0;
+}
 
 .modal-footer {
   border-top: 1px solid $border-color;
@@ -848,32 +1053,53 @@ hr { border-color: $border-color; margin: 20px 0; }
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 15px; }
-  .my-bookings-page { padding: 20px 0; }
-  h1 { font-size: 24px; margin-bottom: 20px; }
+  .container {
+    padding: 0 15px;
+  }
+  .my-bookings-page {
+    padding: 20px 0;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
 
   .bookings-list .booking-card {
     flex-direction: column;
-    .card-image-wrapper { width: 100%; height: 200px; }
-    .card-details-wrapper { padding: 16px; gap: 16px; }
+    .card-image-wrapper {
+      width: 100%;
+      height: 200px;
+    }
+    .card-details-wrapper {
+      padding: 16px;
+      gap: 16px;
+    }
     .bottom-section {
       flex-direction: column;
       align-items: stretch;
       gap: 12px;
       padding-top: 12px;
-      .total-price-area { text-align: left; }
+      .total-price-area {
+        text-align: left;
+      }
       .card-actions {
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
-        .btn-pay-now { grid-column: 1 / -1; }
+        .btn-pay-now {
+          grid-column: 1 / -1;
+        }
       }
     }
   }
 
-  .modal-body { padding: 15px; }
-  .detail-row { grid-template-columns: 90px 1fr; }
+  .modal-body {
+    padding: 15px;
+  }
+  .detail-row {
+    grid-template-columns: 90px 1fr;
+  }
 }
 
 .btn-danger {
@@ -888,7 +1114,182 @@ hr { border-color: $border-color; margin: 20px 0; }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// 篩選控制樣式
+.filter-controls {
+  background: white;
+  border: 1px solid $border-color;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $text-light;
+      font-size: 14px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: $secondary-color;
+        box-shadow: 0 0 0 3px rgba(0, 132, 137, 0.1);
+      }
+
+      &::placeholder {
+        color: $text-light;
+      }
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: $text-light;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1;
+
+      &:hover {
+        background: #f0f0f0;
+        color: $text-dark;
+      }
+    }
+  }
+
+  .filter-dropdowns {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .filter-select,
+    .sort-select {
+      padding: 10px 12px;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: $text-dark;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      min-width: 140px;
+
+      &:focus {
+        outline: none;
+        border-color: $secondary-color;
+      }
+
+      &:hover {
+        border-color: #bbb;
+      }
+    }
+  }
+
+  .results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid $border-color;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .results-count {
+      font-size: 14px;
+      color: $text-light;
+
+      span {
+        color: $text-light;
+        font-weight: normal;
+      }
+    }
+
+    .clear-all-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      color: #856404;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #ffc107;
+        color: white;
+      }
+
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// 手機版響應式調整
+@media (max-width: 768px) {
+  .filter-controls {
+    padding: 16px;
+
+    .filter-dropdowns {
+      .filter-select,
+      .sort-select {
+        flex: 1;
+        min-width: auto;
+      }
+    }
+
+    .results-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
 }
 </style>

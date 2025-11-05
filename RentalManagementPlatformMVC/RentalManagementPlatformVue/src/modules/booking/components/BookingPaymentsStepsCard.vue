@@ -135,7 +135,7 @@ const handleConfirmPayment = async () => {
         alert('無法載入付款表單，請聯繫客服');
       }
     } else {
-      await router.push('/booking/mybookings');
+      await router.push('/my-bookings');
       bookingStore.clearBookingDraft();
     }
   } catch (error) {

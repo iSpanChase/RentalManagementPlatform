@@ -69,7 +69,7 @@ defineExpose({
     </div>
 
     <!-- 優惠券選擇器 -->
-    <div v-if="showCouponSelector" class="coupon-section">
+    <div class="coupon-section" v-if="showCouponSelector">
       <CouponSelector
         :coupons="couponOptions"
         v-model="selectedCouponId"
@@ -77,7 +77,7 @@ defineExpose({
     </div>
 
     <!-- 優惠券折扣 -->
-    <div v-if="discountAmount > 0" class="price-row discount">
+    <div class="price-row discount" v-if="discountAmount > 0">
       <span>優惠券折扣</span>
       <span class="green">-{{ formatPrice(discountAmount) }}</span>
     </div>
@@ -92,16 +92,14 @@ defineExpose({
 
     <!-- 價格明細按鈕 -->
     <button
-      v-if="showDetailsButton"
       class="btn-details"
       data-bs-toggle="modal"
       data-bs-target="#priceSummaryDetailsModal"
+      v-if="showDetailsButton"
     >
       價格明細
     </button>
 
-    <!-- 額外插槽供自定義內容 -->
-    <slot name="additional-content"></slot>
   </div>
 
   <!-- 價格明細 Modal -->

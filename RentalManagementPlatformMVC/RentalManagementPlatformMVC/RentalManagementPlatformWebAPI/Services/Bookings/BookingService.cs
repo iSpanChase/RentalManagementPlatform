@@ -174,6 +174,30 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			// 回饋點數
 			int pointsEarned = (int)Math.Floor(totalPrice * 0.01m);
 
+			// 付款期限計算：使用 UTC 時間，入住前 7 天，但如果入住日期距離現在少於 7 天，則付款期限為今天
+			DateTime todayUtc = DateTime.UtcNow.Date;
+			DateTime checkInDateUtc = dto.CheckIn.ToUniversalTime().Date;
+			int daysUntilCheckIn = (checkInDateUtc - todayUtc).Days;
+
+			Console.WriteLine($"Debug 付款期限計算 (UTC):");
+			Console.WriteLine($"今天日期 UTC (todayUtc): {todayUtc}");
+			Console.WriteLine($"入住日期 UTC (checkInDateUtc): {checkInDateUtc}");
+			Console.WriteLine($"距離天數 (daysUntilCheckIn): {daysUntilCheckIn}");
+
+			DateTime paymentDeadline;
+			if (daysUntilCheckIn >= 7)
+			{
+				// 入住日期距離現在 >= 7 天：付款期限為入住前 7 天的 23:59:59 UTC
+				paymentDeadline = checkInDateUtc.AddDays(-7).AddHours(23).AddMinutes(59).AddSeconds(59);
+			}
+			else
+			{
+				// 入住日期距離現在 < 7 天：付款期限為今天 23:59:59 UTC
+				paymentDeadline = todayUtc.AddHours(23).AddMinutes(59).AddSeconds(59);
+			}
+
+			Console.WriteLine($"計算的付款期限 UTC (paymentDeadline): {paymentDeadline}");
+
 			// ==================== 3. 生成訂單編號 ====================
 			string orderNumber = await GenerateBookingNumberAsync();
 
@@ -184,12 +208,12 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				GuestId = dto.GuestId,
 				RoomId = dto.RoomId,
 				CouponId = dto.CouponId,
-				CheckIn = dto.CheckIn,
-				CheckOut = dto.CheckOut,
+				CheckIn = dto.CheckIn.ToUniversalTime(),  // 轉換為 UTC
+				CheckOut = dto.CheckOut.ToUniversalTime(),  // 轉換為 UTC
 				TotalPrice = dto.TotalPrice,
 				OrderNumber = orderNumber,
 				Status = "Pending",  // 訂單狀態：等待確認
-				CreatedAt = DateTime.Now,
+				CreatedAt = DateTime.UtcNow,  // 使用 UTC
 				CommissionRateSnapshot = 0.15m,
 
 				// 住宿資訊
@@ -199,8 +223,8 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				// 關鍵：根據付款時機設定付款狀態
 				PaymentStatus = dto.PaymentTiming == "full" ? "pending" : "deferred",
 
-				// 設定付款期限（入住前一天）
-				PaymentDeadline = dto.CheckIn.AddDays(-7).Date.AddHours(23).AddMinutes(59).AddSeconds(59),
+				// 設定付款期限（UTC）
+				PaymentDeadline = paymentDeadline,
 
 				// 聯絡人資訊
 				ContactName = dto.BillingInfo.Name,
@@ -319,7 +343,7 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 				booking.PaymentStatus = "cancelled";
 			}
 
-			booking.UpdatedAt = DateTime.Now;
+			booking.UpdatedAt = DateTime.UtcNow;  // 使用 UTC
 			await _bookingRepository.UpdateBookingAsync(booking);
 
 			var bookingDto = _mapper.Map<BookingDto>(booking);
