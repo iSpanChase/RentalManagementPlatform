@@ -51,10 +51,9 @@ onMounted(async () => {
         // 退房為隔天上午 11 點
         const checkOutDate = new Date();
         checkOutDate.setDate(checkOutDate.getDate() + 1);
-
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: auth.state.profile.userId, // 使用auth store中的userId
+          guestId: authStore.state.profile?.userId, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
           guestCount: 1,
           roomTitle: roomDetail.title,
           roomImage:

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
@@ -14,7 +15,8 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    public class RevenueController : ControllerBase
+    [Authorize]
+    public class RevenueController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
 
@@ -26,8 +28,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpPost("GetRevenue")]
         public async Task<IActionResult> GetRevenue([FromBody] RevenueRequestDto req)
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             List<int> roomIdsToQuery;
 
@@ -177,8 +178,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpPost("GetRevenueKpi")]
         public async Task<IActionResult> GetRevenueKpi([FromBody] RevenueKpiRequestDto req)
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             List<int> roomIdsToQuery;
 
@@ -217,8 +217,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         [HttpPost("GetRevenueSourceAnalysis")]
         public async Task<IActionResult> GetRevenueSourceAnalysis([FromBody] AnalysisRequestDto req)
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             List<int> roomIdsToQuery;
 
@@ -336,8 +335,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
         private async Task<List<int>> GetRoomIdsToQuery(List<int> requestedRoomIds)
         {
-            // TODO: Replace with actual host ID from user context
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             var hostRoomsQuery = _context.RoomLists.Where(r => r.HostId == hostId);
 

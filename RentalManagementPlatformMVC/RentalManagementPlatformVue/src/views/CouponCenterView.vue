@@ -82,12 +82,11 @@ import { useRouter } from 'vue-router';
 import { faFilter, faSort, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 type TabKey = 'claimable' | 'usable' | 'used' | 'expired';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/auth';
 
 // --- Basic Setup ---
 const authStore = useAuthStore();
-const userId = computed(() => authStore.currentUser?.id);
-const couponStore = useCouponStore();
+const userId = computed(() => authStore.state.profile?.userId);const couponStore = useCouponStore();
 const router = useRouter();
 const searchQuery = ref('');
 

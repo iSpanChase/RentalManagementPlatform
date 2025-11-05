@@ -1,5 +1,5 @@
 
-import axios from 'axios';
+import apiClient from '@/api/axiosInstance';
 
 // src/modules/ReportForm/api/reportForm.ts
 export type CardType = 'revenue' | 'occupancy' | 'heatmap' | 'occupancy_kpi' | 'revenue_kpi' | 'revenue_source' | 'occupancy_source' | 'revenue_prediction' | 'occupancy_prediction';
@@ -93,7 +93,7 @@ export interface FavoriteReportDetail extends FavoriteReport {
 // ---- Favorite Report API ----
 export async function getFavoriteReports(): Promise<FavoriteReport[]> {
     try {
-        const response = await axios.get('/api/ReportForm/FavoriteReports');
+        const response = await apiClient.get('/ReportForm/FavoriteReports');
         return response.data;
     } catch (error) {
         console.error('Error fetching favorite reports:', error);
@@ -103,7 +103,7 @@ export async function getFavoriteReports(): Promise<FavoriteReport[]> {
 
 export async function loadFavoriteReport(id: number): Promise<FavoriteReportDetail | null> {
     try {
-        const response = await axios.get(`/api/ReportForm/FavoriteReports/${id}`);
+        const response = await apiClient.get(`/ReportForm/FavoriteReports/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error loading favorite report ${id}:`, error);
@@ -113,7 +113,7 @@ export async function loadFavoriteReport(id: number): Promise<FavoriteReportDeta
 
 export async function saveFavoriteReport(name: string, content: string): Promise<FavoriteReport | null> {
     try {
-        const response = await axios.post('/api/ReportForm/FavoriteReports', { name, content });
+        const response = await apiClient.post('/ReportForm/FavoriteReports', { name, content });
         return response.data;
     } catch (error) {
         console.error('Error saving favorite report:', error);
@@ -123,7 +123,7 @@ export async function saveFavoriteReport(name: string, content: string): Promise
 
 export async function deleteFavoriteReport(id: number): Promise<boolean> {
     try {
-        await axios.delete(`/api/ReportForm/FavoriteReports/${id}`);
+        await apiClient.delete(`/ReportForm/FavoriteReports/${id}`);
         return true;
     } catch (error) {
         console.error(`Error deleting favorite report ${id}:`, error);
@@ -180,7 +180,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
     
     try {
-        const response = await axios.post('/api/ReportForm/Revenue/GetRevenue', requestDto);
+        const response = await apiClient.post('/ReportForm/Revenue/GetRevenue', requestDto);
         // The backend returns an array of { Date, Revenue }, wrap it in a 'points' property
         return { points: response.data };
     } catch (error) {
@@ -200,7 +200,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancy', requestDto);
+        const response = await apiClient.post('/ReportForm/Occupancy/GetOccupancy', requestDto);
         return { points: response.data };
     } catch (error) {
         console.error('Error fetching occupancy data:', error);
@@ -216,7 +216,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancyKpi', requestDto);
+        const response = await apiClient.post('/ReportForm/Occupancy/GetOccupancyKpi', requestDto);
         return response.data; // e.g., { occupancyRate: 85.5 }
     } catch (error) {
         console.error('Error fetching occupancy KPI data:', error);
@@ -232,7 +232,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Revenue/GetRevenueKpi', requestDto);
+        const response = await apiClient.post('/ReportForm/Revenue/GetRevenueKpi', requestDto);
         return response.data; // e.g., { totalRevenue: 12345 }
     } catch (error) {
         console.error('Error fetching revenue KPI data:', error);
@@ -248,7 +248,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Revenue/GetRevenueSourceAnalysis', requestDto);
+        const response = await apiClient.post('/ReportForm/Revenue/GetRevenueSourceAnalysis', requestDto);
         return { points: response.data }; // e.g., [{ roomTitle: 'Room A', totalRevenue: 5000 }]
     } catch (error) {
         console.error('Error fetching revenue source data:', error);
@@ -264,7 +264,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancySourceAnalysis', requestDto);
+        const response = await apiClient.post('/ReportForm/Occupancy/GetOccupancySourceAnalysis', requestDto);
         return { points: response.data }; // e.g., [{ roomTitle: 'Room A', bookingCount: 5 }]
     } catch (error) {
         console.error('Error fetching occupancy source data:', error);
@@ -280,7 +280,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Revenue/GetRevenuePrediction', requestDto);
+        const response = await apiClient.post('/ReportForm/Revenue/GetRevenuePrediction', requestDto);
         return response.data; // Expects { historicalPoints: [], predictedPoints: [] }
     } catch (error) {
         console.error('Error fetching revenue prediction data, returning mock data:', error);
@@ -309,7 +309,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
     };
 
     try {
-        const response = await axios.post('/api/ReportForm/Occupancy/GetOccupancyPrediction', requestDto);
+        const response = await apiClient.post('/ReportForm/Occupancy/GetOccupancyPrediction', requestDto);
         return response.data; // Expects { historicalPoints: [], predictedPoints: [] }
     } catch (error) {
         console.error('Error fetching occupancy prediction data, returning mock data:', error);

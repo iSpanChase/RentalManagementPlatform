@@ -25,9 +25,9 @@
             type="email"
             v-model.trim="resendEmail"
             placeholder="your@email.com"
-            @keyup.enter="resend"
+            @keyup.enter="onResendVerification"
           />
-          <button :disabled="resendPending || !isValidEmail" @click="resend">
+          <button :disabled="resendPending || !isValidEmail" @click="onResendVerification">
             {{ resendPending ? '寄送中…' : '重寄驗證信' }}
           </button>
           <p v-if="resendDone" class="hint">
@@ -49,9 +49,13 @@
             type="email"
             v-model.trim="resendEmail"
             placeholder="your@email.com"
-            @keyup.enter="resend"
+            @keyup.enter="onResendVerification"
           />
-          <button :disabled="resendPending || !isValidEmail" @click="resend">
+          <button
+            type="button"
+            @click="onResendVerification"
+            :disabled="resendPending || !isValidEmail"
+          >
             {{ resendPending ? '寄送中…' : '重寄驗證信' }}
           </button>
           <p v-if="resendDone" class="hint">
@@ -89,12 +93,10 @@ const token = ref<string>((route.query.token as string) || '')
 
 const resendEmail = ref<string>(email.value || '')
 const resendPending = ref<boolean>(false)
+const resentOnce = ref(false)
 const resendDone = ref<boolean>(false)
 
-const isValidEmail = computed(() =>
-  !!resendEmail.value &&
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resendEmail.value)
-)
+const isValidEmail = computed(() => !!email.value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value))
 
 const isSuccessPage = computed(() => route.path.endsWith('/success'))
 
@@ -129,21 +131,15 @@ onMounted(async () => {
   }
 })
 
-async function resend() {
+const onResendVerification = async () => {
   if (!isValidEmail.value) return
   resendPending.value = true
-  resendDone.value = false
-  message.value = ''
   try {
-    await http.post('/Auth/resend-verification', { email: resendEmail.value })
-    resendDone.value = true
-    // 可選：給個友善提示
-    message.value = '如果該帳號尚未驗證，已重新寄出驗證信，請至信箱收信。'
-  } catch (err: any) {
-    // 為避免洩漏帳號是否存在，仍回一般提示
-    message.value =
-      err?.response?.data?.message ||
-      '已送出重寄請求，請稍後再試或檢查垃圾信件匣。'
+    await auth.resendVerification(email.value) // 確保 store 有此方法（上一回我已提供最小補丁）
+    resentOnce.value = true
+  } catch (err) {
+    // 可選：顯示錯誤訊息
+    console.error('[resend-verification failed]', err)
   } finally {
     resendPending.value = false
   }

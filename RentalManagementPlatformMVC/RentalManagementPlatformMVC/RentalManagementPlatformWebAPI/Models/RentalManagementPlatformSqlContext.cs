@@ -383,27 +383,6 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasForeignKey(e => e.UserId);
 		});
 
-		modelBuilder.Entity<FaqArticle>(entity =>
-        modelBuilder.Entity<EmailVerification>(entity =>
-        {
-            entity.HasKey(e => e.TokenId).HasName("PK__EMAIL_VE__CB3C9E178521D339");
-
-            entity.ToTable("EMAIL_VERIFICATIONS");
-
-            entity.HasIndex(e => new { e.UserId, e.IsUsed }, "IX_EMAIL_VERIFICATIONS_user_id_is_used");
-
-            entity.Property(e => e.TokenId).HasColumnName("token_id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(sysutcdatetime())")
-                .HasColumnName("created_at");
-            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
-            entity.Property(e => e.IsUsed).HasColumnName("is_used");
-            entity.Property(e => e.TokenHash)
-                .HasMaxLength(200)
-                .HasColumnName("token_hash");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-        }));
-
         modelBuilder.Entity<FaqArticle>(entity =>
         {
             entity.HasKey(e => e.FaqArticlesId).HasName("PK__FAQ_ARTI__B0FC36A6F90A2542");
