@@ -23,10 +23,9 @@ const priceSummary = ref(null);
 
 // 檢查使用者是否已登入
 if (!auth.isAuthenticated.value) {
-  toast.error('請先登入後再進行訂房');
   router.push({
     name: 'LoginView',
-    query: { redirect: route.fullPath }
+    query: { redirect: route.fullPath },
   });
 }
 
@@ -57,10 +56,11 @@ onMounted(async () => {
           guestId: authStore.state.profile?.userId, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
           guestCount: 1,
           roomTitle: roomDetail.title,
-          roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
+          roomImage:
+            roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
           pricePerNight: roomDetail.pricePerNight,
           checkIn: checkInDate.toISOString(),
-          checkOut: checkOutDate.toISOString()
+          checkOut: checkOutDate.toISOString(),
         };
         bookingStore.setBookingDraft(bookingData);
       } else {
@@ -72,8 +72,7 @@ onMounted(async () => {
     } finally {
       isLoading.value = false;
     }
-  }
-  else {
+  } else {
     if (!bookingStore.hasBookingDraft) {
       toast.error('訂房資料不存在，請重新選擇房源');
       isError.value = true;
@@ -82,7 +81,6 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
-
 
 // 取得最終價格的計算值
 const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore.totalPrice);
@@ -218,7 +216,8 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
 }
 
 /* Loading & Error Styles - Mobile-first */
-.loading-overlay, .error-message-container {
+.loading-overlay,
+.error-message-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -238,7 +237,8 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
   }
 }
 
-.loading-content, .error-card {
+.loading-content,
+.error-card {
   background: white;
   border-radius: 12px;
   text-align: center;
@@ -355,7 +355,11 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

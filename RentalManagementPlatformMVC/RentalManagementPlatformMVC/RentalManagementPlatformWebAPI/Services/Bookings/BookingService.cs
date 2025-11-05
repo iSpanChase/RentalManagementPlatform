@@ -38,63 +38,6 @@ namespace RentalManagementPlatformWebAPI.Services.Bookings
 			_fileUrlResolver = fileUrlResolver;
 		}
 
-		// 根據 GuestId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
-		public async Task<IEnumerable<BookingDto>> GetBookingsByUserAsync(int guestId)
-		{
-			var bookings = await _bookingRepository.GetBookingsByGuestIdAsync(guestId);
-
-			if (bookings == null || !bookings.Any())
-			{
-				throw new ArgumentException("找不到該使用者的訂單");
-			}
-
-			var bookingDtos = new List<BookingDto>();
-			foreach (var booking in bookings)
-			{
-				var bookingDto = _mapper.Map<BookingDto>(booking);
-				if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
-				{
-					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
-					if (mainPhoto != null)
-					{
-						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
-					}
-				}
-				bookingDtos.Add(bookingDto);
-			}
-
-			return bookingDtos;
-		}
-
-		// 根據 HostId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyBookingAsync")]
-		public async Task<IEnumerable<BookingDto>> GetOrdersByHostIdAsync(int hostId)
-		{
-			var bookings = await _bookingRepository.GetOrdersByHostIdAsync(hostId);
-			if (bookings == null || !bookings.Any())
-			{
-				throw new ArgumentException("找不到該房東的訂單");
-			}
-
-			var bookingDtos = new List<BookingDto>();
-			foreach (var booking in bookings)
-			{
-				var bookingDto = _mapper.Map<BookingDto>(booking);
-				if (booking.Room != null && booking.Room.RoomPhotos != null && booking.Room.RoomPhotos.Any())
-				{
-					var mainPhoto = booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault(p => p.PhotoType == "Cover") ?? booking.Room.RoomPhotos.OrderBy(p => p.SortOrder).FirstOrDefault();
-					if (mainPhoto != null)
-					{
-						bookingDto.RoomImageUrl = await _fileUrlResolver.GetPhotoUrlAsync(mainPhoto);
-					}
-				}
-				bookingDtos.Add(bookingDto);
-			}
-
-			return bookingDtos;
-		}
-
 		// 根據已驗證 GuestId 獲取其所有訂單
 		public async Task<IEnumerable<BookingDto>> GetMyBookingsAsync(int authenticatedGuestId)
 		{

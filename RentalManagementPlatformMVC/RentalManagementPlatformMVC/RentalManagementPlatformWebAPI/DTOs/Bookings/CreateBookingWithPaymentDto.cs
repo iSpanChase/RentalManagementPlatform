@@ -29,16 +29,16 @@ namespace RentalManagementPlatformWebAPI.DTOs.Bookings
 
 		// ==================== 價格資訊（前端計算好的） ====================
 
-		[Required]
-		public int Nights { get; set; }
+		//[Required]
+		//public int Nights { get; set; }
 
-		[Required]
-		public decimal PricePerNight { get; set; }
+		//[Required]
+		//public decimal PricePerNight { get; set; }
 
-		[Required]
-		public decimal Subtotal { get; set; }
+		//[Required]
+		//public decimal Subtotal { get; set; }
 
-		public decimal DiscountAmount { get; set; }
+		//public decimal DiscountAmount { get; set; }
 
 		[Required]
 		public decimal TotalPrice { get; set; }
