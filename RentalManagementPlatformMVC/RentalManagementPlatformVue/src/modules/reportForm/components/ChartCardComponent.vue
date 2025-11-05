@@ -24,11 +24,13 @@
     );
 
     function drawChart() {
-        if (chartInstance)
+        if (chartInstance) {
             chartInstance.destroy();
+        }
 
         const historicalPoints = props.data?.historicalPoints || props.data?.points || [];
         const regressionPoints = props.data?.regressionPoints || [];
+        const isPrediction = regressionPoints.length > 0;
 
         if (!chartCanvas.value) {
             console.error("Canvas element not found for chart initialization.");
@@ -42,19 +44,28 @@
 
         // Dataset 1: Historical Data (actuals)
         if (historicalPoints.length > 0) {
-            datasets.push({
+            const historicalDataset = {
                 label: '歷史數據',
                 data: historicalPoints.map(p => ({ x: p.date, y: p[props.yAxisDataKey] })),
-                borderColor: 'rgba(150, 150, 150, 0.5)',
+                backgroundColor: 'rgba(150, 150, 150, 0.5)',
+                borderColor: 'rgba(150, 150, 150, 1)',
                 borderWidth: 1.5,
-                pointRadius: 0, // No dots
+                pointRadius: 0,
                 fill: false,
-            });
+            };
+
+            // For prediction charts, historical data can be a different type
+            if (isPrediction) {
+                historicalDataset.type = props.chartType;
+            }
+            
+            datasets.push(historicalDataset);
         }
 
         // Dataset 2: Regression Line (past and future)
-        if (regressionPoints.length > 0) {
+        if (isPrediction) {
             datasets.push({
+                type: 'line', // This dataset is always a line
                 label: '趨勢線',
                 data: regressionPoints.map(p => ({ x: p.date, y: p[props.yAxisDataKey] })),
                 borderColor: '#4A90E2',
@@ -64,14 +75,14 @@
                 segment: {
                     borderDash: ctx => {
                         const pointDate = new Date(ctx.p1.parsed.x);
-                        return pointDate >= today ? [5, 5] : undefined; // Dashed for future, solid for past
+                        return pointDate >= today ? [5, 5] : undefined;
                     }
                 }
             });
         }
 
         chartInstance = new Chart(chartCanvas.value, {
-            type: 'line', // Always line chart for this complex view
+            type: props.chartType, // Base chart type
             data: {
                 datasets: datasets
             },
@@ -91,7 +102,7 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'day', // More granular for this view
+                            unit: 'day',
                             displayFormats: {
                                 day: 'yyyy-MM-dd',
                                 week: 'yyyy-MM-dd',
@@ -103,11 +114,11 @@
                             text: '日期'
                         }
                     },
-                    y: { 
-                        beginAtZero: true, 
+                    y: {
+                        beginAtZero: true,
                         title: {
                             display: true,
-                            text: props.yAxisDataKey === 'revenue' ? '收益' : '入住率 (%)' 
+                            text: props.yAxisDataKey === 'revenue' ? '收益' : '入住率 (%)'
                         }
                     }
                 }
