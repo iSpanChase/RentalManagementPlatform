@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
@@ -18,6 +19,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據已驗證 GuestId 獲取其所有訂單
 		[HttpGet("my-bookings/{authenticatedGuestId}")]
+		[Authorize(Policy = "Booking.View")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyBookings(int authenticatedGuestId)
 		{
 			var bookings = await _bookingService.GetMyBookingsAsync(authenticatedGuestId);
@@ -26,6 +28,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據已驗證 HostId 獲取其所有訂單
 		[HttpGet("my-orders/{authenticatedHostId}")]
+		[Authorize(Policy = "Booking.ManageAll")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyOrders(int authenticatedHostId)
 		{
 			var bookings = await _bookingService.GetMyOrdersAsync(authenticatedHostId);
@@ -34,6 +37,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據訂單編號獲取單一訂單詳情
 		[HttpGet("ordernumber/{orderNumber}")]
+		[Authorize(Policy = "Booking.View")]
 		public async Task<ActionResult<BookingDto>> GetBookingByOrderNumber(string orderNumber)
 		{
 			var booking = await _bookingService.GetBookingByOrderNumberAsync(orderNumber);
@@ -46,6 +50,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
+		[Authorize(Policy = "Booking.Create")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
 			[FromBody] CreateBookingWithPaymentDto dto)
 		{
@@ -77,6 +82,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據 BookingId 取消訂單
 		[HttpPut("cancel/{bookingId}")]
+		[Authorize(Policy = "Booking.Cancel")]
 		public async Task<IActionResult> CancelBookingAsync(int bookingId)
 		{
 			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
