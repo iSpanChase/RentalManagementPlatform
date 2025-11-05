@@ -16,24 +16,6 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			_bookingService = bookingService;
 		}
 
-		// [開發用] 根據 HostId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyBookingsAsync 方法")]
-		[HttpGet("user/{guestId}")]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsByUserId(int guestId)
-		{
-			var bookings = await _bookingService.GetBookingsByUserAsync(guestId);
-			return Ok(bookings);
-		}
-
-		// [開發用] 根據 HostId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyOrdersAsync 方法")]
-		[HttpGet("host/{hostId}")]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetOrdersByHostId(int hostId)
-		{
-			var bookings = await _bookingService.GetOrdersByHostIdAsync(hostId);
-			return Ok(bookings);
-		}
-
 		// 根據已驗證 GuestId 獲取其所有訂單
 		[HttpGet("my-bookings/{authenticatedGuestId}")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyBookings(int authenticatedGuestId)

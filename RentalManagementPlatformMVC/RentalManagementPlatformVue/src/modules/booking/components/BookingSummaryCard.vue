@@ -35,7 +35,12 @@ const dateGuestEditor = ref(null);
           <strong>可免費取消</strong>
           <p>
             {{ bookingStore.refundableDate }}前取消可以全額退款。
-            <button type="button" class="full-cancellation" data-bs-toggle="modal" data-bs-target="#cancellationModal">
+            <button
+              type="button"
+              class="full-cancellation"
+              data-bs-toggle="modal"
+              data-bs-target="#cancellationModal"
+            >
               完整政策
             </button>
           </p>
@@ -44,7 +49,12 @@ const dateGuestEditor = ref(null);
           <strong>不可退款</strong>
           <p>
             此預訂在入住前7天內將無法退款。
-            <button type="button" class="full-cancellation" data-bs-toggle="modal" data-bs-target="#cancellationModal">
+            <button
+              type="button"
+              class="full-cancellation"
+              data-bs-toggle="modal"
+              data-bs-target="#cancellationModal"
+            >
               完整政策
             </button>
           </p>
@@ -55,19 +65,32 @@ const dateGuestEditor = ref(null);
 
       <div class="info-row">
         <strong>日期</strong>
-        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#dateChangeModal" @click="dateGuestEditor?.initDatePickers">
+        <button
+          type="button"
+          class="btn-edit"
+          data-bs-toggle="modal"
+          data-bs-target="#dateChangeModal"
+          @click="dateGuestEditor?.initDatePickers"
+        >
           變更
         </button>
       </div>
       <div class="date-info">
-        <strong>{{ formatDate(bookingStore.bookingDraft.checkIn, 'checkIn') }}</strong> 至 <strong>{{ formatDate(bookingStore.bookingDraft.checkOut, 'checkOut') }}</strong>
+        <strong>{{ formatDate(bookingStore.bookingDraft.checkIn, 'checkIn') }}</strong> 至
+        <strong>{{ formatDate(bookingStore.bookingDraft.checkOut, 'checkOut') }}</strong>
       </div>
 
       <hr />
 
       <div class="info-row">
         <strong>客人</strong>
-        <button type="button" class="btn-edit" data-bs-toggle="modal" data-bs-target="#guestsChangeModal" @click="dateGuestEditor?.initGuestsPicker">
+        <button
+          type="button"
+          class="btn-edit"
+          data-bs-toggle="modal"
+          data-bs-target="#guestsChangeModal"
+          @click="dateGuestEditor?.initGuestsPicker"
+        >
           變更
         </button>
       </div>
@@ -94,7 +117,6 @@ const dateGuestEditor = ref(null);
   <!-- 日期和客人數編輯器 -->
   <DateGuestEditorModal ref="dateGuestEditor" />
 
-
   <Teleport to="body">
     <div
       class="modal fade"
@@ -109,7 +131,12 @@ const dateGuestEditor = ref(null);
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="cancellationModalLabel">《取消政策》</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="關閉"
+            ></button>
           </div>
           <div class="modal-body">
             <div class="policy-section">
@@ -204,7 +231,10 @@ $accent: #008489;
   justify-content: center;
   .placeholder-content {
     text-align: center;
-    p { margin: 0; font-size: 14px; }
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
   }
 }
 
@@ -242,7 +272,7 @@ $accent: #008489;
     }
   }
 
-  // Large mobile (480px+): 水平排列
+  // Large mobile (480px+)
   @media (min-width: 480px) {
     flex-direction: row;
     gap: 16px;
@@ -304,7 +334,7 @@ $accent: #008489;
     // Mobile
     font-size: 14px;
     padding: 2px 0;
-    min-height: 32px; // 適合觸控的最小高度
+    min-height: 32px;
 
     // Large mobile (480px+)
     @media (min-width: 480px) {
@@ -329,7 +359,7 @@ $accent: #008489;
     // Mobile
     font-size: 14px;
     padding: 4px 8px;
-    min-height: 32px; // 適合觸控的最小高度
+    min-height: 32px;
 
     // Large mobile (480px+)
     @media (min-width: 480px) {
@@ -373,7 +403,9 @@ $accent: #008489;
   justify-content: space-between;
   margin-bottom: 12px;
   font-size: 14px;
-  &.discount .green { color: $accent; }
+  &.discount .green {
+    color: $accent;
+  }
   &.total {
     font-size: 16px;
     padding-top: 12px;
@@ -446,10 +478,25 @@ hr {
 .policy-item {
   padding: 10px 0;
   display: flex;
-  .policy-inner-item2 { margin-left: 4rem; }
-  .policy-label { color: $text-dark; font-size: 16px; margin-bottom: 8px; }
-  .policy-date { color: $text-muted; font-size: 14px; margin-bottom: 8px; }
-  .policy-description { color: $accent; font-size: 14px; font-weight: 500; margin: 0; }
+  .policy-inner-item2 {
+    margin-left: 4rem;
+  }
+  .policy-label {
+    color: $text-dark;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .policy-date {
+    color: $text-muted;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .policy-description {
+    color: $accent;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+  }
 }
 
 .policy-divider {
@@ -463,19 +510,33 @@ hr {
   padding: 16px;
   border-radius: 8px;
   margin-top: 16px;
-  .policy-note { color: $text-muted; font-size: 12px; margin-bottom: 16px; text-align: start; }
-  .refund-info h6 { color: $text-dark; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-  .refund-info p { color: $text-muted; font-size: 13px; line-height: 1.4; margin: 0; }
+  .policy-note {
+    color: $text-muted;
+    font-size: 12px;
+    margin-bottom: 16px;
+    text-align: start;
+  }
+  .refund-info h6 {
+    color: $text-dark;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .refund-info p {
+    color: $text-muted;
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0;
+  }
   .policy-link {
     color: $accent;
     font-size: 13px;
     text-decoration: underline;
     display: block;
     text-align: start;
-    &:hover { color: darken($accent, 10%); }
+    &:hover {
+      color: darken($accent, 10%);
+    }
   }
 }
-
-
-// 移除舊的 media query，已整合到 mobile-first 設計中
 </style>

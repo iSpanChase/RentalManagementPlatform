@@ -131,30 +131,6 @@ const confirmCancellation = async () => {
     }
 
     toast.success('預訂已成功取消');
-
-    // 關閉 Modal
-    setTimeout(() => {
-      const modal = document.getElementById('cancelConfirmModal');
-      if (modal) {
-        // 使用 Bootstrap 5 的方式
-        if (window.bootstrap) {
-          const bsModal = window.bootstrap.Modal.getInstance(modal);
-          if (bsModal) {
-            bsModal.hide();
-          }
-        } else {
-          // 如果沒有 Bootstrap JS，手動隱藏
-          modal.style.display = 'none';
-          modal.classList.remove('show');
-          document.body.classList.remove('modal-open');
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) {
-            backdrop.remove();
-          }
-        }
-      }
-    }, 500);
-
     bookingToCancel.value = null;
   } catch (error) {
     toast.error(error.message || '取消預訂失敗');
@@ -180,7 +156,6 @@ onMounted(async () => {
   try {
     const userId = auth.state.profile?.userId;
     if (!userId) {
-      toast.error('無法獲取使用者資訊，請重新登入');
       router.push({ name: 'LoginView' });
       return;
     }
@@ -237,7 +212,7 @@ const reloadData = async () => {
     <h1>我的預訂</h1>
 
     <!-- Loading -->
-    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+    <div v-if="(isLoading || bookingStore.isLoading) && !isCancelling" class="loading-overlay">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <p>{{ bookingStore.isLoading ? '正在處理您的預訂...' : '正在載入預訂資料...' }}</p>
@@ -323,6 +298,8 @@ const reloadData = async () => {
                   </button>
                   <button
                     class="btn-cancel"
+                    data-bs-toggle="modal"
+                    data-bs-target="#cancelConfirmModal"
                     @click="openCancelConfirmModal(booking)"
                     v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
                     :disabled="isCancelling || isLoading"
@@ -451,7 +428,7 @@ const reloadData = async () => {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isCancelling">關閉</button>
-            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isCancelling">
+            <button type="button" class="btn btn-danger" @click="confirmCancellation" :disabled="isCancelling" data-bs-dismiss="modal">
               <span v-if="isCancelling" class="spinner-border spinner-border-sm" role="status"></span>
               <span v-else>確認取消</span>
             </button>

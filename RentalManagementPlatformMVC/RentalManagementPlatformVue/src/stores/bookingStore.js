@@ -1,6 +1,6 @@
 // src/stores/bookingStore.js
 import { defineStore } from 'pinia';
-import { ref, computed, readonly } from 'vue';
+import { ref, computed } from 'vue';
 import api from '@/services/http'; // 使用統一的API客戶端，已集成auth處理
 
 // ==================== API 基礎設定 ====================
@@ -139,11 +139,6 @@ export const useBookingStore = defineStore('booking', () => {
         CheckIn: formattedDates.checkIn,  // 下午3點入住
         CheckOut: formattedDates.checkOut, // 上午11點退房
         GuestCount: bookingDraft.value.guestCount,
-        /**後端自行計算相關欄位 */
-        // Nights: nights.value,
-        // PricePerNight: bookingDraft.value.pricePerNight,
-        // Subtotal: subtotal.value,
-        // DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount),
         TotalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
         PaymentTiming: paymentData.paymentTiming,
         BillingInfo: {
@@ -163,13 +158,6 @@ export const useBookingStore = defineStore('booking', () => {
         PointsRedeemed: 0,
       };
 
-      // 添加調試日誌
-      console.log('Sending order data:', orderData);
-      console.log('入住時間 (應在資料庫顯示為 15:00:00):', formattedDates.checkIn);
-      console.log('退房時間 (應在資料庫顯示為 11:00:00):', formattedDates.checkOut);
-      console.log('原始入住日期:', bookingDraft.value.checkIn);
-      console.log('原始退房日期:', bookingDraft.value.checkOut);
-
       const response = await api.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
         headers: { 'Content-Type': 'application/json' },
       });
@@ -177,10 +165,10 @@ export const useBookingStore = defineStore('booking', () => {
       return {
         bookingId: response.data.bookingId,
         orderNumber: response.data.orderNumber,
-        ecpayFormHtml: response.data.ecpayFormHtml,
         paymentRequired: response.data.paymentRequired,
         paymentStatus: response.data.paymentStatus,
         paymentDeadline: response.data.paymentDeadline,
+        ecpayFormHtml: response.data.ecpayFormHtml,
       };
     } catch (error) {
       console.error('Create booking error:', error);
@@ -193,10 +181,8 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
-  // === 新的安全 API 方法 ===
-
   /**
-   * 房客查看自己的預訂（新方法）
+   * 房客查看自己的預訂
    */
   const fetchMyBookings = async (authenticatedGuestId) => {
     isLoading.value = true;
@@ -213,7 +199,7 @@ export const useBookingStore = defineStore('booking', () => {
   };
 
   /**
-   * 房東查看自己的訂單（新方法）
+   * 房東查看自己的訂單
    */
   const fetchMyOrders = async (authenticatedHostId) => {
     isLoading.value = true;
@@ -224,46 +210,6 @@ export const useBookingStore = defineStore('booking', () => {
     } catch (error) {
       console.error('取得我的訂單失敗:', error);
       throw new Error(error.response?.data?.message || '取得訂單資料失敗');
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  // === 舊方法（標記為過時但保留） ===
-
-  /**
-   * @deprecated 請使用 fetchMyBookings 或 fetchMyOrders
-   */
-  const fetchBookingsByUser = async (userId) => {
-    console.warn('fetchBookingsByUser 已過時，請使用 fetchMyBookings');
-
-    if (!userId) throw new Error('未提供使用者 ID');
-    isLoading.value = true;
-
-    try {
-      const { data } = await api.get(`${API_BASE}/bookings/user/${userId}`);
-      return data;
-    } catch (error) {
-      throw new Error('載入訂單失敗');
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  /**
-   * @deprecated 請使用 fetchMyOrders
-   */
-  const fetchOrdersByHost = async (hostId) => {
-    console.warn('fetchOrdersByHost 已過時，請使用 fetchMyOrders');
-
-    if (!hostId) throw new Error('未提供房東 ID');
-    isLoading.value = true;
-
-    try {
-      const { data } = await api.get(`${API_BASE}/bookings/host/${hostId}`);
-      return data;
-    } catch (error) {
-      throw new Error('載入房東訂單失敗');
     } finally {
       isLoading.value = false;
     }
@@ -323,7 +269,7 @@ export const useBookingStore = defineStore('booking', () => {
   return {
     // State
     bookingDraft: bookingDraft,
-    isLoading: readonly(isLoading),
+    isLoading: isLoading,
 
     // Getters
     hasBookingDraft,
@@ -341,8 +287,6 @@ export const useBookingStore = defineStore('booking', () => {
     createBooking,
     fetchMyBookings,
     fetchMyOrders,
-    fetchBookingsByUser,
-    fetchOrdersByHost,
     fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,
