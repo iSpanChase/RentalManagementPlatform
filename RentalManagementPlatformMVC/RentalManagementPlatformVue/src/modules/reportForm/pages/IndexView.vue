@@ -57,7 +57,7 @@
 import { computed, reactive, ref, onMounted } from 'vue'
 import BaseCardComponent from '../components/BaseCardComponent.vue'
 import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
-import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
+
 import ChartCardComponent from '../components/ChartCardComponent.vue'
 import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
 import PieChartCardComponent from '../components/cardInfos/PieChartCardComponent.vue'
@@ -81,7 +81,7 @@ const selectedFavoriteId = ref<number | null>(null);
 
 // ---------- component chooser and props generator ----------
 const cardBody = (c: Card) => {
-  if (c.type === 'heatmap') return MapHeatmapCardComponent
+  
   if (c.type === 'revenue' || c.type === 'occupancy' || c.type === 'revenue_prediction' || c.type === 'occupancy_prediction') return ChartCardComponent
   if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
   if (c.type === 'revenue_source' || c.type === 'occupancy_source') return PieChartCardComponent
@@ -264,16 +264,7 @@ async function onDeleteFavorite() {
 onMounted(async () => {
     await fetchFavorites();
 
-    // (optional) example: add one default card for demo
-    if (cards.length === 0) {
-        const created = await createCard({
-            type: 'heatmap',
-            title: '地區收益熱力（示意）',
-            subtitle: '本月',
-            config: { propertyIds: [], center: { lat: 25.0330, lng: 121.5654 }, zoom: 10 } as any
-        });
-        cards.push(created);
-    }
+
 
     
 });
