@@ -2,15 +2,20 @@ import type { RouteRecordRaw } from 'vue-router';
 
 const reportFormRoutes: RouteRecordRaw[] = [
     {
-        path: '/ReportForm',
-        name: 'ReportForm',
-        component: () => import('./layouts/ReportFormLayout.vue'),
-        meta: { layout: 'ReportForm', requiresAuth: true },
+        path: '/reportForm',
+        name: 'reportForm',
+        component: () => import('@/layouts/MainLayout.vue'),
         children: [
             {
-                path: '', name: 'ReportForm.IndexView', component: () => import(
-                    './pages/IndexView.vue')
-            },
+                path: '',
+                name: 'ReportForm.IndexView',
+                component: () => import('@/modules/reportForm/pages/IndexView.vue'),
+                meta: {
+                    title: '報表分析',
+                    requiresAuth: true,
+                    requiredPerms: ['ReportForm.View'],
+                },
+            }
         ]
     },
     {
@@ -20,7 +25,7 @@ const reportFormRoutes: RouteRecordRaw[] = [
             {
                 path: '',
                 name: 'Recommendations',
-                component: () => import('./pages/RecommendationView.vue'),
+                component: () => import('@/modules/reportForm/pages/RecommendationView.vue'),
                 meta: {
                     title: '推薦房間',
                     requiresAuth: false,

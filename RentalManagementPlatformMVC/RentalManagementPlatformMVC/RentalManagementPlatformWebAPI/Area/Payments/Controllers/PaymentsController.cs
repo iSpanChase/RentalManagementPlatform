@@ -158,7 +158,7 @@ namespace RentalManagementPlatformWebAPI.Area.Payments.Controllers
 			_logger.LogInformation("收到綠界 OrderResultURL 請求，準備導向前端訂單頁面。");
 
 			// 導向到前端的訂單頁面，並帶上userId參數 (測試用)
-			return Redirect($"https://my-project-frontend.ngrok.app/booking/mybookings");
+			return Redirect($"http://localhost:5173/my-bookings");
 		}
 	}
 }

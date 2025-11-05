@@ -5,9 +5,8 @@ import AuthenticatorRouter from '@/modules/Authenticator/router';
 import ReportFormRouter from '@/modules/reportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import CouponCenterView from '../views/CouponCenterView.vue';
-import supportRoutes from '@/modules/faq/router'
-import { useAuthStore } from '@/stores/auth'
-
+import supportRoutes from '@/modules/faq/router';
+import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -67,8 +66,30 @@ const router = createRouter({
           name: 'Checkout',
           component: () => import('../views/CheckoutPageView.vue')
         },
+        {
+          path: '/my-bookings',
+          name: 'MyBookings',
+          component: () => import('@/modules/booking/pages/MyBookingsView.vue'),
+          meta: {
+            requiresAuth: true,
+            requiredPerms: ['Booking.View'],
+          },
+        },
+        {
+          path: '/my-orders',
+          name: 'MyOrders',
+          component: () => import('@/modules/booking/pages/MyOrdersView.vue'),
+          meta: {
+            requiresAuth: true,
+            requiredPerms: ['Booking.ManageAll'],
+          },
+        },
       ],
     },
+    // 2. 其他模組路由
+    ...ReportFormRouter,
+
+
     // 2. 其他模組路由
     ...ReportFormRouter,
 
@@ -96,7 +117,7 @@ const ensureProfileLoaded = async () => {
       console.warn('無法取得使用者資料', err)
     }
   }
-}
+};
 
 router.beforeEach(async (to) => {
   // ★ callback 路由一律放行（不要做登入檢查/導轉）
@@ -161,7 +182,7 @@ router.beforeEach(async (to) => {
     }
 
     // 沒登入也沒 token
-    return { name: 'login', query: { redirect: to.fullPath } }
+    return { name: 'login', query: { redirect: to.fullPath } };
   }
 
   // 僅允許訪客的頁面（/login）

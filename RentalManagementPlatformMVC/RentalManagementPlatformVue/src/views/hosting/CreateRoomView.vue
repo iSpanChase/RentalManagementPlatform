@@ -47,16 +47,9 @@ import { fetchCities, fetchDistricts } from '@/api/locationApi.ts';
 
 const router = useRouter();
 const route = useRoute();
-const DEFAULT_HOST_ID = 47; // TODO: replace with real authenticated host context
+// HostId 由後端依 JWT 決定，前端不硬編
 
-const hostId = computed(() => {
-  const raw = Array.isArray(route.query.hostId) ? route.query.hostId[0] : route.query.hostId;
-  const parsed = Number(raw);
-  if (Number.isFinite(parsed) && parsed > 0) {
-    return parsed;
-  }
-  return DEFAULT_HOST_ID;
-});
+
 
 // Wizard step management
 const step = ref(1);
@@ -95,7 +88,7 @@ async function handleCityChange(cityId) {
 
 async function handleCreateRoom(formData) {
   try {
-    const payload = { ...formData, hostId: hostId.value };
+    const payload = { ...formData };
     const newRoom = await createRoom(payload);
     alert('房源已成功建立！現在請上傳您的房源照片。');
     newlyCreatedRoomId.value = newRoom.roomId;

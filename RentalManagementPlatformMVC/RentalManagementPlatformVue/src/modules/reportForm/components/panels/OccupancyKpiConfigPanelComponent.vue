@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
+import apiClient from '@/api/axiosInstance';
 import type { OccupancyKpiConfig } from '../../api/reportForm';
 
 const props = defineProps<{ modelValue: OccupancyKpiConfig }>();
@@ -12,8 +12,8 @@ const hostRooms = ref<{ roomId: number; title: string }[]>([]);
 // Fetch host rooms on mount
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/ReportForm/Rooms/ForHost');
-    hostRooms.value = response.data;
+    const { data } = await apiClient.get('/ReportForm/Rooms/ForHost');
+    hostRooms.value = data;
   } catch (error) {
     console.error('Failed to fetch host rooms:', error);
   }

@@ -15,7 +15,7 @@ const router = useRouter();
 const toast = useToast();
 const auth = useAuthStore();
 
-const isLoading = ref(true);
+const isLoading = ref(false);
 const isError = ref(false);
 
 // 價格摘要元件引用
@@ -23,10 +23,9 @@ const priceSummary = ref(null);
 
 // 檢查使用者是否已登入
 if (!auth.isAuthenticated.value) {
-  toast.error('請先登入後再進行訂房');
   router.push({
     name: 'LoginView',
-    query: { redirect: route.fullPath }
+    query: { redirect: route.fullPath },
   });
 }
 
@@ -42,7 +41,10 @@ onMounted(async () => {
         // 再次確認使用者已登入且有profile資料
         if (!auth.state.profile?.userId) {
           toast.error('無法取得使用者資訊，請重新登入');
-          router.push({ name: 'LoginView', query: { redirect: route.fullPath } });
+          router.push({
+            name: 'LoginView',
+            query: { redirect: route.fullPath },
+          });
           return;
         }
 
@@ -54,13 +56,14 @@ onMounted(async () => {
         checkOutDate.setDate(checkOutDate.getDate() + 1);
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: authStore.state.profile?.userId, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+          guestId: authStore.state.profile?.userId,
           guestCount: 1,
           roomTitle: roomDetail.title,
-          roomImage: roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
+          roomImage:
+            roomDetail.mainImageUrl || (roomDetail.photoUrls && roomDetail.photoUrls[0]) || '',
           pricePerNight: roomDetail.pricePerNight,
           checkIn: checkInDate.toISOString(),
-          checkOut: checkOutDate.toISOString()
+          checkOut: checkOutDate.toISOString(),
         };
         bookingStore.setBookingDraft(bookingData);
       } else {
@@ -72,8 +75,7 @@ onMounted(async () => {
     } finally {
       isLoading.value = false;
     }
-  }
-  else {
+  } else {
     if (!bookingStore.hasBookingDraft) {
       toast.error('訂房資料不存在，請重新選擇房源');
       isError.value = true;
@@ -82,7 +84,6 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
-
 
 // 取得最終價格的計算值
 const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore.totalPrice);
@@ -93,7 +94,7 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
     <h1>確認預定</h1>
 
     <!-- Loading -->
-    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+    <div class="loading-overlay" v-if="isLoading || bookingStore.isLoading">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <p>{{ bookingStore.isLoading ? '正在處理您的訂單...' : '正在載入房源資訊...' }}</p>
@@ -101,16 +102,16 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
     </div>
 
     <!-- Error -->
-    <div v-else-if="isError" class="error-message-container">
+    <div class="error-message-container" v-else-if="isError">
       <div class="error-card">
         <h2>無法載入頁面</h2>
         <p>抱歉，載入房源資訊時發生錯誤，或該房源不存在。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+        <button class="btn-back-home" @click="router.push({ name: 'home' })">返回首頁</button>
       </div>
     </div>
 
     <!-- Content -->
-    <div v-else-if="bookingStore.hasBookingDraft" class="container">
+    <div class="container" v-else-if="bookingStore.hasBookingDraft">
       <!-- 左側:付款步驟 -->
       <BookingPaymentsStepsCard :total-price="finalPrice" />
 
@@ -218,7 +219,8 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
 }
 
 /* Loading & Error Styles - Mobile-first */
-.loading-overlay, .error-message-container {
+.loading-overlay,
+.error-message-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -238,7 +240,8 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
   }
 }
 
-.loading-content, .error-card {
+.loading-content,
+.error-card {
   background: white;
   border-radius: 12px;
   text-align: center;
@@ -355,7 +358,11 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

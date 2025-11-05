@@ -67,6 +67,15 @@ let uppy = null;
 let lightbox = null;
 const apiBaseUrl = apiClient.defaults.baseURL?.replace(/\/$/, '');
 
+const getAccessToken = () => {
+  return (
+    localStorage.getItem('rmp.accessToken') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('jwt_token') ||
+    ''
+  );
+}
+
 // --- Uppy Logic ---
 const setupUppy = () => {
   if (uppy) uppy.close();
@@ -78,6 +87,8 @@ const setupUppy = () => {
       allowedFileTypes: ['image/*'],
     },
   })
+  // 預設照片類型，避免後端收到空字串
+  
   .use(Dashboard, {
     inline: true,
     target: uppyContainer.value,
@@ -89,6 +100,13 @@ const setupUppy = () => {
       ? `${apiBaseUrl}/Rooms/${props.roomId}/upload-image`
       : `/api/Rooms/${props.roomId}/upload-image`,
     fieldName: 'ImageFile',
+    allowedMetaFields: ['PhotoType'],
+    headers: () => {
+      const token = getAccessToken();
+      return token && token.trim().length > 0
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+    },
     // Note: Uppy sends the file and metadata separately. 
     // The backend `UploadImageDto` will need to handle this.
     // For simplicity, we are not adding extra metadata here for now.

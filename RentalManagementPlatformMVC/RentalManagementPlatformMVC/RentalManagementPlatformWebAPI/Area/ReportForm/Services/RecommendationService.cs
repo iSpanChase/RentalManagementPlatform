@@ -117,13 +117,16 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                          RoomId = r.RoomId,
                          Title = r.Title ?? "N/A",
                          PricePerNight = r.PricePerNight ?? 0,
-                         Address = $"{r.Address?.District?.City?.CityName}{r.Address?.District?.DistrictName}{r.Address?.Street}"
+                         AddressLine = $"{r.Address?.District?.City?.CityName}{r.Address?.District?.DistrictName}{r.Address?.Street}",
+                         CityName = r.Address?.District?.City?.CityName,
+                         DistrictName = r.Address?.District?.DistrictName,
+                         Street = r.Address?.Street
                      }
                     ).ToList();
                 foreach ( var r in recommendations)
                 {
                     var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(r.RoomId);
-                    r.ImageUrl = photoUrls.ToList().FirstOrDefault();
+                    r.mainImageUrl = photoUrls.ToList().FirstOrDefault();
                 }
             }
 
@@ -142,9 +145,9 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
 
             // 1a. 獲取使用者基本資料 (性別)
             var guest = await _context.Users.FindAsync(guestId);
-            //判斷使用者是否具有房客權限，若無，回傳空結果
+            //判斷使用者是否存在，若無，回傳空結果
             bool isGuest = await _context.UserRoles
-                .AnyAsync(ur => ur.UserId == guestId && ur.Role.RoleCode == "TENANT");
+                .AnyAsync(ur => ur.UserId == guestId);
             if (!isGuest ) return new List<RecommendedRoomDto>();
 
             // 1b. 獲取使用者的歷史訂單，並從中分析出偏好
@@ -152,6 +155,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .Where(b => b.GuestId == guestId && (b.Status == "Completed" || b.Status == "Confirmed"))
                 .Include(b => b.Room)
                 .ThenInclude(r => r.Address)
+                .ThenInclude(a => a.District)
                 .ToListAsync();
 
             var pastRoomIds = pastBookings.Select(b => b.RoomId).OfType<int>().ToHashSet();
@@ -176,6 +180,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .Where(r => !r.IsDeleted && r.Status == "上架中")
                 .Include(r => r.Address)
                 .ThenInclude(a => a.District)
+                .ThenInclude(d => d.City)
                 .ToListAsync();
 
 
@@ -220,7 +225,10 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                     RoomId = room.RoomId,
                     Title = room.Title ?? "N/A",
                     PricePerNight = room.PricePerNight ?? 0,
-                    Address = $"{room.Address?.District?.City?.CityName}{room.Address?.District?.DistrictName}{room.Address?.Street}",
+                    AddressLine = $"{room.Address?.District?.City?.CityName}{room.Address?.District?.DistrictName}{room.Address?.Street}",
+                    CityName = room.Address?.District?.City?.CityName,
+                    DistrictName = room.Address?.District?.DistrictName,
+                    Street = room.Address?.Street,
                     // 圖片 URL 最後再統一處理，避免在迴圈中查詢資料庫
                 }, score));
             }
@@ -236,7 +244,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
             foreach (var room in topRooms)
             {
                 var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(room.RoomId);
-                room.ImageUrl = photoUrls.FirstOrDefault();
+                room.mainImageUrl = photoUrls.FirstOrDefault();
             }
 
             return topRooms;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOs.Bookings;
 using RentalManagementPlatformWebAPI.Models;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
@@ -16,26 +17,9 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 			_bookingService = bookingService;
 		}
 
-		// [開發用] 根據 HostId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyBookingsAsync 方法")]
-		[HttpGet("user/{guestId}")]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsByUserId(int guestId)
-		{
-			var bookings = await _bookingService.GetBookingsByUserAsync(guestId);
-			return Ok(bookings);
-		}
-
-		// [開發用] 根據 HostId 獲取其所有訂單
-		[Obsolete("此方法已過時，請使用 GetMyOrdersAsync 方法")]
-		[HttpGet("host/{hostId}")]
-		public async Task<ActionResult<IEnumerable<BookingDto>>> GetOrdersByHostId(int hostId)
-		{
-			var bookings = await _bookingService.GetOrdersByHostIdAsync(hostId);
-			return Ok(bookings);
-		}
-
 		// 根據已驗證 GuestId 獲取其所有訂單
 		[HttpGet("my-bookings/{authenticatedGuestId}")]
+		[Authorize(Policy = "Booking.View")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyBookings(int authenticatedGuestId)
 		{
 			var bookings = await _bookingService.GetMyBookingsAsync(authenticatedGuestId);
@@ -44,6 +28,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據已驗證 HostId 獲取其所有訂單
 		[HttpGet("my-orders/{authenticatedHostId}")]
+		[Authorize(Policy = "Booking.ManageAll")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyOrders(int authenticatedHostId)
 		{
 			var bookings = await _bookingService.GetMyOrdersAsync(authenticatedHostId);
@@ -52,6 +37,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據訂單編號獲取單一訂單詳情
 		[HttpGet("ordernumber/{orderNumber}")]
+		[Authorize(Policy = "Booking.View")]
 		public async Task<ActionResult<BookingDto>> GetBookingByOrderNumber(string orderNumber)
 		{
 			var booking = await _bookingService.GetBookingByOrderNumberAsync(orderNumber);
@@ -64,6 +50,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 建立訂單並產生綠界付款表單
 		[HttpPost("create-and-pay")]
+		[Authorize(Policy = "Booking.Create")]
 		public async Task<ActionResult<CreateOrderAndPayResponseDto>> CreateBookingWithPaymentAsync(
 			[FromBody] CreateBookingWithPaymentDto dto)
 		{
@@ -95,6 +82,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據 BookingId 取消訂單
 		[HttpPut("cancel/{bookingId}")]
+		[Authorize(Policy = "Booking.Cancel")]
 		public async Task<IActionResult> CancelBookingAsync(int bookingId)
 		{
 			var result = await _bookingService.CancelBookingByIdAsync(bookingId);

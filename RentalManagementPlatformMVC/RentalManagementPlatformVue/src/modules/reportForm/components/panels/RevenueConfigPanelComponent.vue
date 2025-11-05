@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
+import apiClient from '@/api/axiosInstance';
 import type { RevenueConfig } from '../../api/reportForm';
 
 const props = defineProps<{ modelValue: RevenueConfig }>();
@@ -12,8 +12,8 @@ const hostRooms = ref<{ roomId: number; title: string }[]>([]);
 // 在元件掛載時獲取房源資料
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/ReportForm/Rooms/ForHost');
-    hostRooms.value = response.data;
+    const { data } = await apiClient.get('/ReportForm/Rooms/ForHost');
+    hostRooms.value = data;
   } catch (error) {
     console.error('Failed to fetch host rooms:', error);
   }
@@ -70,7 +70,6 @@ function updateField(key: keyof RevenueConfig, value: any) {
             <select class="form-select" :value="modelValue.chartType" @change="(e) => updateField('chartType', (e.target as HTMLInputElement).value)">
                 <option value="line">折線圖</option>
                 <option value="bar">長條圖</option>
-                <option value="pie">圓餅圖</option>
             </select>
         </div>
     </div>

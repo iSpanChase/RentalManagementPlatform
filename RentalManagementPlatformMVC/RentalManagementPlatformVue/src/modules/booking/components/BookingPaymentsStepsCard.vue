@@ -10,8 +10,8 @@ import BillingForm from './BillingForm.vue';
 const props = defineProps({
   totalPrice: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
 });
 
 // ==================== 狀態管理 ====================
@@ -26,7 +26,7 @@ const currentStep = ref(1);
 const stepCompleted = ref({
   step1: false,
   step2: false,
-  step3: false
+  step3: false,
 });
 
 // 付款時間選擇
@@ -38,7 +38,7 @@ const billingFormData = ref({
     name: '',
     email: '',
     phone: '',
-    notes: ''
+    notes: '',
   },
   billingAddress: {
     street: '',
@@ -46,14 +46,14 @@ const billingFormData = ref({
     city: '',
     state: '',
     zipCode: '',
-    country: 'TW'
-  }
+    country: 'TW',
+  },
 });
 
 // 表單驗證狀態
 const formValidation = ref({
   isValid: false,
-  errors: {}
+  errors: {},
 });
 
 // 帳單表單引用
@@ -117,7 +117,7 @@ const handleConfirmPayment = async () => {
       finalAmount: props.totalPrice,
       paymentTiming: selectedPaymentTiming.value,
       billingInfo: billingFormData.value.billingInfo,
-      billingAddress: billingFormData.value.billingAddress
+      billingAddress: billingFormData.value.billingAddress,
     };
 
     const result = await bookingStore.createBooking(paymentData);
@@ -135,9 +135,7 @@ const handleConfirmPayment = async () => {
         alert('無法載入付款表單，請聯繫客服');
       }
     } else {
-      // 延後付款：跳轉我的訂單
-      toast.info('訂單已建立成功！您選擇了延後付款。');
-      await router.push('/booking/mybookings');
+      await router.push('/my-bookings');
       bookingStore.clearBookingDraft();
     }
   } catch (error) {
@@ -155,19 +153,19 @@ const handleConfirmPayment = async () => {
 
 <template>
   <div class="left-section">
-
     <!-- Step 1: 選擇付款時間 -->
-    <div
-      class="step-card"
-      :class="{ active: currentStep === 1, completed: stepCompleted.step1 }"
-    >
+    <div class="step-card" :class="{ active: currentStep === 1, completed: stepCompleted.step1 }">
       <div class="step-header">
         <h3>1。選擇付款時間</h3>
         <button
           v-if="stepCompleted.step1 && currentStep !== 1"
           type="button"
           class="btn-change"
-          @click="currentStep = 1; stepCompleted.step1 = false; stepCompleted.step2 = false"
+          @click="
+            currentStep = 1;
+            stepCompleted.step1 = false;
+            stepCompleted.step2 = false;
+          "
         >
           更改
         </button>
@@ -175,19 +173,35 @@ const handleConfirmPayment = async () => {
 
       <div v-if="currentStep === 1">
         <div class="payment-option">
-          <input type="radio" id="full" name="payment" value="full" v-model="selectedPaymentTiming">
+          <input
+            type="radio"
+            id="full"
+            name="payment"
+            value="full"
+            v-model="selectedPaymentTiming"
+          />
           <label for="full">
             <div>立即支付 {{ formatPrice(Math.round(props.totalPrice)) }}</div>
           </label>
         </div>
 
         <div class="payment-option" :class="{ disabled: bookingStore.isRefundable === false }">
-          <input type="radio" id="partial" name="payment" value="partial" v-model="selectedPaymentTiming" :disabled="!bookingStore.isRefundable">
+          <input
+            type="radio"
+            id="partial"
+            name="payment"
+            value="partial"
+            v-model="selectedPaymentTiming"
+            :disabled="!bookingStore.isRefundable"
+          />
           <label for="partial">
             <div>立即支付 $0 TWD</div>
-            <small v-if="bookingStore.isRefundable === false" class="text-muted">此訂單不符合延後付款資格</small>
+            <small v-if="bookingStore.isRefundable === false" class="text-muted"
+              >此訂單不符合延後付款資格</small
+            >
             <small v-else>
-              將於 {{ bookingStore.refundableDate }} 收取 {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
+              將於 {{ bookingStore.refundableDate }} 收取
+              {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
               <a href="#">更多資訊</a>
             </small>
           </label>
@@ -201,7 +215,8 @@ const handleConfirmPayment = async () => {
           立即支付 {{ formatPrice(Math.round(props.totalPrice)) }}
         </p>
         <p v-else>
-          已於 {{ bookingStore.refundableDate }} 收取 {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
+          已於 {{ bookingStore.refundableDate }} 收取
+          {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
         </p>
       </div>
     </div>
@@ -209,7 +224,11 @@ const handleConfirmPayment = async () => {
     <!-- Step 2: 付款資訊 -->
     <div
       class="step-card"
-      :class="{ active: currentStep === 2, completed: stepCompleted.step2, disabled: currentStep < 2 }"
+      :class="{
+        active: currentStep === 2,
+        completed: stepCompleted.step2,
+        disabled: currentStep < 2,
+      }"
     >
       <div class="step-header">
         <h3>2。付款資訊</h3>
@@ -217,7 +236,10 @@ const handleConfirmPayment = async () => {
           v-if="stepCompleted.step2 && currentStep !== 2"
           type="button"
           class="btn-change"
-          @click="currentStep = 2; stepCompleted.step2 = false"
+          @click="
+            currentStep = 2;
+            stepCompleted.step2 = false;
+          "
         >
           更改
         </button>
@@ -241,10 +263,22 @@ const handleConfirmPayment = async () => {
         <div class="supported-cards">
           <span class="label">支援卡別：</span>
           <div class="card-logos">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="VISA">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="AMEX">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/JCB_logo.svg/320px-JCB_logo.svg.png" alt="JCB">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
+              alt="VISA"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+              alt="Mastercard"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg"
+              alt="AMEX"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/JCB_logo.svg/320px-JCB_logo.svg.png"
+              alt="JCB"
+            />
           </div>
         </div>
 
@@ -280,18 +314,19 @@ const handleConfirmPayment = async () => {
       <div v-else-if="stepCompleted.step2" class="step-summary">
         <div class="summary-icon"><i class="fa-solid fa-check"></i></div>
         <div>
-          <p><strong>{{ billingFormData.billingInfo.name }}</strong></p>
+          <p>
+            <strong>{{ billingFormData.billingInfo.name }}</strong>
+          </p>
           <p class="text-muted">{{ billingFormData.billingInfo.email }}</p>
-          <p class="text-muted">{{ billingFormData.billingAddress.city }}, {{ billingFormData.billingAddress.country }}</p>
+          <p class="text-muted">
+            {{ billingFormData.billingAddress.city }}, {{ billingFormData.billingAddress.country }}
+          </p>
         </div>
       </div>
     </div>
 
     <!-- Step 3: 查看預訂 -->
-    <div
-      class="step-card"
-      :class="{ active: currentStep === 3, disabled: currentStep < 3 }"
-    >
+    <div class="step-card" :class="{ active: currentStep === 3, disabled: currentStep < 3 }">
       <h3>3。查看預訂</h3>
 
       <div v-if="currentStep === 3">
@@ -300,7 +335,12 @@ const handleConfirmPayment = async () => {
         </label>
 
         <div class="button-group">
-          <button type="button" class="btn-back" @click="handleBack" :disabled="bookingStore.isLoading">
+          <button
+            type="button"
+            class="btn-back"
+            @click="handleBack"
+            :disabled="bookingStore.isLoading"
+          >
             返回
           </button>
           <button
@@ -316,7 +356,6 @@ const handleConfirmPayment = async () => {
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -417,7 +456,7 @@ const handleConfirmPayment = async () => {
     padding: 16px;
     font-size: 16px;
     margin-top: 16px;
-    min-height: 48px; // 適合觸控的最小高度
+    min-height: 48px;
 
     &:hover {
       background: #000;
@@ -437,7 +476,9 @@ const handleConfirmPayment = async () => {
   align-items: center;
   margin-bottom: 16px;
 
-  h3 { margin: 0; }
+  h3 {
+    margin: 0;
+  }
 }
 
 .btn-change {
@@ -451,7 +492,9 @@ const handleConfirmPayment = async () => {
   padding: 4px 8px;
   transition: color 0.2s;
 
-  &:hover { color: #000; }
+  &:hover {
+    color: #000;
+  }
 }
 
 .step-summary {
@@ -462,9 +505,18 @@ const handleConfirmPayment = async () => {
   color: #717171;
   font-size: 14px;
 
-  p { margin: 0; line-height: 1.5; }
-  .text-muted { color: #717171; font-size: 14px; }
-  strong { color: #222; font-weight: 600; }
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+  .text-muted {
+    color: #717171;
+    font-size: 14px;
+  }
+  strong {
+    color: #222;
+    font-weight: 600;
+  }
 }
 
 .summary-icon {
@@ -481,9 +533,11 @@ const handleConfirmPayment = async () => {
   // Mobile
   padding: 12px;
 
-  &:hover { border-color: #bbb; }
+  &:hover {
+    border-color: #bbb;
+  }
 
-  input[type="radio"] {
+  input[type='radio'] {
     // Mobile: 更大的選擇區域
     margin-right: 10px;
     transform: scale(1.2);
@@ -521,7 +575,9 @@ const handleConfirmPayment = async () => {
       a {
         color: #222;
         text-decoration: underline;
-        &:hover { color: #000; }
+        &:hover {
+          color: #000;
+        }
       }
 
       // Large mobile (480px+)
@@ -537,7 +593,9 @@ const handleConfirmPayment = async () => {
   }
 }
 
-.payment-form { margin-top: 16px; }
+.payment-form {
+  margin-top: 16px;
+}
 
 .payment-method-header {
   display: flex;
@@ -549,12 +607,23 @@ const handleConfirmPayment = async () => {
   border-radius: 8px;
   border: 1px solid #e0e0e0;
 
-  .payment-icon { font-size: 24px; flex-shrink: 0; }
-  strong { display: block; margin-bottom: 8px; font-size: 16px; }
+  .payment-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
 }
 
 .payment-description {
-  .text-muted { font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
+  .text-muted {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
 }
 
 .security-badges {
@@ -582,15 +651,21 @@ const handleConfirmPayment = async () => {
   margin-bottom: 24px;
   flex-wrap: wrap;
 
-  .label { font-size: 14px; color: #666; font-weight: 500; }
+  .label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+  }
   .card-logos {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    img { height: 24px; width: auto; }
+    img {
+      height: 24px;
+      width: auto;
+    }
   }
 }
-
 
 .info-box {
   display: flex;
@@ -601,13 +676,26 @@ const handleConfirmPayment = async () => {
   border-radius: 8px;
   margin: 24px 0;
 
-  .info-icon { font-size: 24px; flex-shrink: 0; }
+  .info-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
   .info-content {
     flex: 1;
-    strong { display: block; margin-bottom: 8px; color: #1976d2; }
+    strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #1976d2;
+    }
     ul {
-      margin: 0; padding-left: 20px;
-      li { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
+      margin: 0;
+      padding-left: 20px;
+      li {
+        color: #555;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 4px;
+      }
     }
   }
 }
@@ -622,9 +710,19 @@ const handleConfirmPayment = async () => {
   border-radius: 8px;
   margin-bottom: 16px;
 
-  i { color: #ff9800; font-size: 20px; flex-shrink: 0; }
-  span { font-size: 14px; color: #856404; line-height: 1.5; }
-  strong { font-weight: 600; }
+  i {
+    color: #ff9800;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  span {
+    font-size: 14px;
+    color: #856404;
+    line-height: 1.5;
+  }
+  strong {
+    font-weight: 600;
+  }
 }
 
 .button-group {
@@ -642,7 +740,7 @@ const handleConfirmPayment = async () => {
     // Mobile
     padding: 16px;
     font-size: 16px;
-    min-height: 48px; // 適合觸控的最小高度
+    min-height: 48px;
 
     // Large mobile (480px+)
     @media (min-width: 480px) {
@@ -656,7 +754,9 @@ const handleConfirmPayment = async () => {
     color: #222;
     border: 1px solid #222;
 
-    &:hover { background: #f7f7f7; }
+    &:hover {
+      background: #f7f7f7;
+    }
   }
 
   .btn-continue {
@@ -668,8 +768,13 @@ const handleConfirmPayment = async () => {
     justify-content: center;
     gap: 8px;
 
-    &:hover:not(:disabled) { background: #000; }
-    &:disabled { background: #ccc; cursor: not-allowed; }
+    &:hover:not(:disabled) {
+      background: #000;
+    }
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
   }
 
   .btn-back:disabled {
@@ -699,6 +804,8 @@ const handleConfirmPayment = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
