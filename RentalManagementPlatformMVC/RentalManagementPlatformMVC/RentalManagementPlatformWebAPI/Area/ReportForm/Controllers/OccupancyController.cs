@@ -1,20 +1,21 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Area.ReportForm.DTO;
+using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 using RentalManagementPlatformWebAPI.Models;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using RentalManagementPlatformWebAPI.Area.ReportForm.DTO.Report;
 
 namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 {
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
-    [ApiController]
+    [Authorize(Policy = "ReportCards.View")]
     public class OccupancyController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
@@ -259,55 +260,55 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
                 : 0;
 
             return Ok(new { occupancyRate = Math.Round(occupancyRate, 2) });
-                }
-        
-                [HttpPost("GetOccupancySourceAnalysis")]
-                public async Task<IActionResult> GetOccupancySourceAnalysis([FromBody] AnalysisRequestDto req)
+        }
+
+        [HttpPost("GetOccupancySourceAnalysis")]
+        public async Task<IActionResult> GetOccupancySourceAnalysis([FromBody] AnalysisRequestDto req)
+        {
+            int hostId = CurrentUserId;
+
+            List<int> roomIdsToQuery;
+
+            if (req.RoomIds == null || !req.RoomIds.Any())
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId)
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+            else
+            {
+                roomIdsToQuery = await _context.RoomLists
+                    .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
+                    .Select(r => r.RoomId)
+                    .ToListAsync();
+            }
+
+            if (!roomIdsToQuery.Any())
+            {
+                return Ok(new List<OccupancySourceDataPoint>());
+            }
+
+            var startDate = DateTime.Today.AddDays(-req.Days);
+            var endDate = DateTime.Today;
+
+            var analysis = await _context.Bookings
+                .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
+                .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
+                .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= startDate && b.CheckIn.Value.Date <= endDate)
+                .GroupBy(b => new { b.RoomId, b.Room.Title })
+                .Select(g => new OccupancySourceDataPoint
                 {
-                    int hostId = CurrentUserId;
-        
-                    List<int> roomIdsToQuery;
-        
-                    if (req.RoomIds == null || !req.RoomIds.Any())
-                    {
-                        roomIdsToQuery = await _context.RoomLists
-                            .Where(r => r.HostId == hostId)
-                            .Select(r => r.RoomId)
-                            .ToListAsync();
-                    }
-                    else
-                    {
-                        roomIdsToQuery = await _context.RoomLists
-                            .Where(r => r.HostId == hostId && req.RoomIds.Contains(r.RoomId))
-                            .Select(r => r.RoomId)
-                            .ToListAsync();
-                    }
-        
-                    if (!roomIdsToQuery.Any())
-                    {
-                        return Ok(new List<OccupancySourceDataPoint>());
-                    }
-        
-                    var startDate = DateTime.Today.AddDays(-req.Days);
-                    var endDate = DateTime.Today;
-        
-                    var analysis = await _context.Bookings
-                        .Where(b => b.RoomId.HasValue && roomIdsToQuery.Contains(b.RoomId.Value))
-                        .Where(b => b.Status == "Completed" || b.Status == "Confirmed")
-                        .Where(b => b.CheckIn.HasValue && b.CheckIn.Value.Date >= startDate && b.CheckIn.Value.Date <= endDate)
-                        .GroupBy(b => new { b.RoomId, b.Room.Title })
-                        .Select(g => new OccupancySourceDataPoint
-                        {
-                            RoomId = g.Key.RoomId.Value,
-                            RoomTitle = g.Key.Title,
-                            BookingCount = g.Count()
-                        })
-                        .Where(r => r.BookingCount > 0)
-                        .OrderByDescending(r => r.BookingCount)
-                        .ToListAsync();
-        
-                    return Ok(analysis);
-                }
+                    RoomId = g.Key.RoomId.Value,
+                    RoomTitle = g.Key.Title,
+                    BookingCount = g.Count()
+                })
+                .Where(r => r.BookingCount > 0)
+                .OrderByDescending(r => r.BookingCount)
+                .ToListAsync();
+
+            return Ok(analysis);
+        }
 
         [HttpPost("GetOccupancyPrediction")]
         public async Task<IActionResult> GetOccupancyPrediction([FromBody] PredictionRequestDto req)
