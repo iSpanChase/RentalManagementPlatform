@@ -1,5 +1,5 @@
 <script setup>
-let thisYear = new Date().getFullYear()
+let thisYear = new Date().getFullYear();
 </script>
 
 <template>
@@ -7,7 +7,7 @@ let thisYear = new Date().getFullYear()
     <header class="booking-header">
       <div class="header-content">
         <router-link to="/" class="logo-link">
-          <img src="../../../assets/images/AirNest_Logo.png" alt="AirNest Logo">
+          <img src="../../../assets/images/AirNest_Logo.png" alt="AirNest Logo" />
         </router-link>
 
         <nav class="header-nav">
@@ -136,7 +136,7 @@ let thisYear = new Date().getFullYear()
 }
 
 .booking-footer {
-  background: linear-gradient(135deg, #BE9A78 0%, #A08268 100%);
+  background: linear-gradient(135deg, #be9a78 0%, #a08268 100%);
   color: white;
   padding: 20px 0;
   margin-top: auto;
