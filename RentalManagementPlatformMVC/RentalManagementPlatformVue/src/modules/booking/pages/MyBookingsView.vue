@@ -14,6 +14,10 @@ const router = useRouter();
 const toast = useToast();
 const auth = useAuthStore();
 
+// 權限檢查方法
+const canCancelBooking = auth.can('Booking.Cancel');
+const canCreateBooking = auth.can('Booking.Create');
+
 const allBookings = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
@@ -301,7 +305,7 @@ const reloadData = async () => {
                     data-bs-toggle="modal"
                     data-bs-target="#cancelConfirmModal"
                     @click="openCancelConfirmModal(booking)"
-                    v-if="booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
+                    v-if="canCancelBooking && booking.paymentStatus !== 'cancelled' && booking.paymentStatus !== 'refunded'"
                     :disabled="isCancelling || isLoading"
                   >
                     取消預訂
@@ -309,7 +313,7 @@ const reloadData = async () => {
                   <button
                     class="btn-rebook"
                     @click="handleRebook(booking)"
-                    v-if="['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
+                    v-if="canCreateBooking && ['cancelled', 'completed', 'refunded'].includes(booking.paymentStatus)"
                     :disabled="isLoading || isCancelling"
                   >
                     重新預訂

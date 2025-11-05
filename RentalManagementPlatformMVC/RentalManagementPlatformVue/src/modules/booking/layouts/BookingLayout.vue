@@ -11,7 +11,7 @@ let thisYear = new Date().getFullYear()
         </router-link>
 
         <nav class="header-nav">
-          <router-link to="/help" class="nav-link">
+          <router-link to="/" class="nav-link">
             <i class="fas fa-question-circle"></i>
             需要協助
           </router-link>

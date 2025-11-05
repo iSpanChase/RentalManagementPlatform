@@ -117,13 +117,16 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                          RoomId = r.RoomId,
                          Title = r.Title ?? "N/A",
                          PricePerNight = r.PricePerNight ?? 0,
-                         Address = $"{r.Address?.District?.City?.CityName}{r.Address?.District?.DistrictName}{r.Address?.Street}"
+                         AddressLine = $"{r.Address?.District?.City?.CityName}{r.Address?.District?.DistrictName}{r.Address?.Street}",
+                         CityName = r.Address?.District?.City?.CityName,
+                         DistrictName = r.Address?.District?.DistrictName,
+                         Street = r.Address?.Street
                      }
                     ).ToList();
                 foreach ( var r in recommendations)
                 {
                     var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(r.RoomId);
-                    r.ImageUrl = photoUrls.ToList().FirstOrDefault();
+                    r.mainImageUrl = photoUrls.ToList().FirstOrDefault();
                 }
             }
 
@@ -220,7 +223,10 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                     RoomId = room.RoomId,
                     Title = room.Title ?? "N/A",
                     PricePerNight = room.PricePerNight ?? 0,
-                    Address = $"{room.Address?.District?.City?.CityName}{room.Address?.District?.DistrictName}{room.Address?.Street}",
+                    AddressLine = $"{room.Address?.District?.City?.CityName}{room.Address?.District?.DistrictName}{room.Address?.Street}",
+                    CityName = room.Address?.District?.City?.CityName,
+                    DistrictName = room.Address?.District?.DistrictName,
+                    Street = room.Address?.Street,
                     // 圖片 URL 最後再統一處理，避免在迴圈中查詢資料庫
                 }, score));
             }
@@ -236,7 +242,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
             foreach (var room in topRooms)
             {
                 var photoUrls = await _urlResolver.GetRoomPhotoUrlsAsync(room.RoomId);
-                room.ImageUrl = photoUrls.FirstOrDefault();
+                room.mainImageUrl = photoUrls.FirstOrDefault();
             }
 
             return topRooms;
