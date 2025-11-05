@@ -18,7 +18,7 @@ const dateGuestEditor = ref(null);
 
 <template>
   <div class="right-section">
-    <div v-if="hasBookingData" class="summary-card">
+    <div class="summary-card" v-if="hasBookingData">
       <div class="property-info">
         <router-link to="/">
           <img :src="bookingStore.bookingDraft.roomImage" alt="房源圖片" />
@@ -104,7 +104,7 @@ const dateGuestEditor = ref(null);
       </div>
     </div>
 
-    <div v-else class="summary-card placeholder-card">
+    <div class="summary-card placeholder-card" v-else>
       <div class="placeholder-content">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">載入中...</span>

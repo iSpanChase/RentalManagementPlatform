@@ -99,16 +99,8 @@ const placeOptions = computed(() => placesData.value ?? []);
 const showPlaceDropdown = computed(() => debouncedSearchKeyword.value.length > 0);
 
 // Nearby rooms based on selected place
-const nearbyKey = computed(() => [
-  'nearbyRooms',
-  selectedPlace.value?.placeId ?? selectedPlace.value?.name ?? 'none',
-  selectedPlace.value?.lat ?? 0,
-  selectedPlace.value?.lng ?? 0,
-  radiusKm.value,
-  debouncedSearchKeyword.value,
-]);
-const { data: nearbyRooms, isLoading: isNearbyLoading, isError: isNearbyError } = useQuery({
-  queryKey: nearbyKey,
+const { data: nearbyRooms, isLoading: isNearbyLoading, isError: isNearbyError, refetch: refetchNearby } = useQuery({
+  queryKey: ['nearbyRooms', selectedPlace, radiusKm],
   queryFn: () => {
     if (!selectedPlace.value) return Promise.resolve([] as RoomCard[]);
     return searchRoomsNearby(selectedPlace.value.lat, selectedPlace.value.lng, radiusKm.value, debouncedSearchKeyword.value);

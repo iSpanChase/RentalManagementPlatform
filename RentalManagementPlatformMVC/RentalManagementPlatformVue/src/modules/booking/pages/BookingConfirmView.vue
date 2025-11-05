@@ -15,7 +15,7 @@ const router = useRouter();
 const toast = useToast();
 const auth = useAuthStore();
 
-const isLoading = ref(true);
+const isLoading = ref(false);
 const isError = ref(false);
 
 // 價格摘要元件引用
@@ -41,7 +41,10 @@ onMounted(async () => {
         // 再次確認使用者已登入且有profile資料
         if (!auth.state.profile?.userId) {
           toast.error('無法取得使用者資訊，請重新登入');
-          router.push({ name: 'LoginView', query: { redirect: route.fullPath } });
+          router.push({
+            name: 'LoginView',
+            query: { redirect: route.fullPath },
+          });
           return;
         }
 
@@ -53,7 +56,7 @@ onMounted(async () => {
         checkOutDate.setDate(checkOutDate.getDate() + 1);
         const bookingData = {
           roomId: roomDetail.roomId,
-          guestId: authStore.state.profile?.userId, // 暫時使用硬編碼的 userId = 1，直到會員模組完成
+          guestId: authStore.state.profile?.userId,
           guestCount: 1,
           roomTitle: roomDetail.title,
           roomImage:
@@ -91,7 +94,7 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
     <h1>確認預定</h1>
 
     <!-- Loading -->
-    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+    <div class="loading-overlay" v-if="isLoading || bookingStore.isLoading">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <p>{{ bookingStore.isLoading ? '正在處理您的訂單...' : '正在載入房源資訊...' }}</p>
@@ -99,16 +102,16 @@ const finalPrice = computed(() => priceSummary.value?.finalPrice || bookingStore
     </div>
 
     <!-- Error -->
-    <div v-else-if="isError" class="error-message-container">
+    <div class="error-message-container" v-else-if="isError">
       <div class="error-card">
         <h2>無法載入頁面</h2>
         <p>抱歉，載入房源資訊時發生錯誤，或該房源不存在。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+        <button class="btn-back-home" @click="router.push({ name: 'home' })">返回首頁</button>
       </div>
     </div>
 
     <!-- Content -->
-    <div v-else-if="bookingStore.hasBookingDraft" class="container">
+    <div class="container" v-else-if="bookingStore.hasBookingDraft">
       <!-- 左側:付款步驟 -->
       <BookingPaymentsStepsCard :total-price="finalPrice" />
 

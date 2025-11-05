@@ -70,6 +70,7 @@
                 format="YYYY-MM-DD"
                 :editable="false"
                 class="custom-datepicker"
+                :disabled-date="disabledDate"
               />
              <div class="guest-input">
                 <label for="guests">GUESTS</label>
@@ -125,6 +126,13 @@ const roomId = Number(route.params.id);
 // State for booking form
 const dateRange = ref([]);
 const guestCount = ref(1);
+
+// 禁用今天之前的日期
+const disabledDate = (date: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // 設定為今天的開始時間
+  return date < today;
+};
 
 const queryClient = useQueryClient();
 const reviewForm = ref<{ resetForm: () => void } | null>(null);

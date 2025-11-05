@@ -14,24 +14,6 @@ export default [
           requiredPerms: ['Booking.Create']
         },
       },
-      {
-        path: 'mybookings',
-        name: 'MyBookings',
-        component: () => import('./pages/MyBookingsView.vue'),
-        meta: {
-          requiresAuth: true,
-          requiredPerms: ['Booking.View']
-        },
-      },
-      {
-        path: 'myorders',
-        name: 'MyOrders',
-        component: () => import('./pages/MyOrdersView.vue'),
-        meta: {
-          requiresAuth: true,
-          requiredPerms: ['Booking.ManageAll']
-        },
-      },
     ],
   },
 ];
