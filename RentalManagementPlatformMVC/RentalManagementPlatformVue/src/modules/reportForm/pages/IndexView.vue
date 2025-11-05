@@ -1,9 +1,12 @@
 
 <template>
-  <div class="container-fluid">
+  <div class="container-fluid p-5">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">動態報表（可自定義卡片）</h3>
+    <h3 class="mb-4 mt-0">動態報表（可自定義卡片）</h3>
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <div class="">
+            <button class="btn btn-primary" @click="onAdd">新增卡片</button>
+        </div>
       
       <!-- Favorites Section -->
       <div class="d-flex align-items-center gap-2">
@@ -18,10 +21,7 @@
       </div>
     </div>
 
-    <!-- Add Card Button -->
-    <div class="mb-3">
-        <button class="btn btn-primary" @click="onAdd">新增卡片</button>
-    </div>
+    
 
     <!-- Cards Grid -->
     <div class="row">
