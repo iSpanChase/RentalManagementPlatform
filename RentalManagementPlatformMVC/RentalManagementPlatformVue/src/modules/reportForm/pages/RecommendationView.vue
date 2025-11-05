@@ -1,6 +1,6 @@
 <template>
   <div class="recommendation-view">
-    <h1 class="page-title">推薦房間</h1>
+    <h1 class="page-title m-5">推薦房源</h1>
 
     <div v-if="isLoading" class="loading-message">載入中...</div>
     <div v-else-if="isError" class="error-message">載入推薦時發生錯誤。</div>      
@@ -11,7 +11,7 @@
       </router-link>
     </div>
     <div v-else>
-      <p class="no-results">沒有找到推薦房間。</p>
+      <p class="no-results">沒有找到推薦房源</p>
     </div>
   </div>
 </template>
@@ -33,8 +33,8 @@ const { data: recommendedRooms, isLoading, isError } = useQuery<RoomCard[]> ({
   queryFn: async () => {
     const request: RecommendationRequest = {
       guestId: currentGuestId.value,
-      topN: 20,
-      displayM: 10,
+      topN: 15,
+      displayM: 6,
     };
     const result = await getGuestRecommendations(request);
     return result;
@@ -98,9 +98,16 @@ const displayedRooms = computed(() => {
 }
 
 .page-title {
-  margin-bottom: 1.5rem;
-  color: #333;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+  padding: 0;
+  background: none;
+  color: #212529;
   text-align: center;
+  font-size: 45px;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .loading-message,
