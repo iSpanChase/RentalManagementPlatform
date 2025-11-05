@@ -71,22 +71,34 @@ export const useBookingStore = defineStore('booking', () => {
   // ==================== Actions ====================
 
   /**
-   * 格式化入住/退房時間為業界標準時間
+   * 格式化入住/退房時間為業界標準時間（UTC）
    * @param {string|Date} checkInDate - 入住日期
    * @param {string|Date} checkOutDate - 退房日期
    * @returns {Object} 格式化後的時間物件
    */
   const formatBookingDates = (checkInDate, checkOutDate) => {
-    // 創建 UTC 日期並直接設定為目標時間
-    // 這樣可以避免瀏覽器自動時區轉換
+    // 安全地取得日期字串，避免時區轉換問題
+    const getDateString = (dateInput) => {
+      const date = new Date(dateInput);
+      // 使用本地時間的年月日，避免 UTC 自動轉換造成日期偏移
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
 
-    // 入住日期 + 下午3點 (15:00)
-    const checkInDateOnly = new Date(checkInDate).toISOString().split('T')[0];
-    const checkInUTC = new Date(`${checkInDateOnly}T15:00:00.000Z`);
+    const checkInDateStr = getDateString(checkInDate);
+    const checkOutDateStr = getDateString(checkOutDate);
 
-    // 退房日期 + 上午11點 (11:00)
-    const checkOutDateOnly = new Date(checkOutDate).toISOString().split('T')[0];
-    const checkOutUTC = new Date(`${checkOutDateOnly}T11:00:00.000Z`);
+    // 建立精確的 UTC 時間：入住日期 + 下午3點，退房日期 + 上午11點
+    const checkInUTC = new Date(`${checkInDateStr}T15:00:00.000Z`);
+    const checkOutUTC = new Date(`${checkOutDateStr}T11:00:00.000Z`);
+
+    console.log('Debug 前端時間格式化:');
+    console.log('原始入住日期:', checkInDate);
+    console.log('格式化後入住日期 UTC:', checkInUTC.toISOString());
+    console.log('原始退房日期:', checkOutDate);
+    console.log('格式化後退房日期 UTC:', checkOutUTC.toISOString());
 
     return {
       checkIn: checkInUTC.toISOString(),

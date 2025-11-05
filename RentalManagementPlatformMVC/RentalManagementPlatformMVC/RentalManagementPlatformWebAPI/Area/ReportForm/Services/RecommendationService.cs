@@ -145,9 +145,9 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
 
             // 1a. 獲取使用者基本資料 (性別)
             var guest = await _context.Users.FindAsync(guestId);
-            //判斷使用者是否具有房客權限，若無，回傳空結果
+            //判斷使用者是否存在，若無，回傳空結果
             bool isGuest = await _context.UserRoles
-                .AnyAsync(ur => ur.UserId == guestId && ur.Role.RoleCode == "TENANT");
+                .AnyAsync(ur => ur.UserId == guestId);
             if (!isGuest ) return new List<RecommendedRoomDto>();
 
             // 1b. 獲取使用者的歷史訂單，並從中分析出偏好
@@ -155,6 +155,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .Where(b => b.GuestId == guestId && (b.Status == "Completed" || b.Status == "Confirmed"))
                 .Include(b => b.Room)
                 .ThenInclude(r => r.Address)
+                .ThenInclude(a => a.District)
                 .ToListAsync();
 
             var pastRoomIds = pastBookings.Select(b => b.RoomId).OfType<int>().ToHashSet();
@@ -179,6 +180,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Services
                 .Where(r => !r.IsDeleted && r.Status == "上架中")
                 .Include(r => r.Address)
                 .ThenInclude(a => a.District)
+                .ThenInclude(d => d.City)
                 .ToListAsync();
 
 

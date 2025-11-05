@@ -79,7 +79,7 @@ const decreaseGuests = () => {
 // 暴露方法給父元件使用
 defineExpose({
   initDatePickers,
-  initGuestsPicker
+  initGuestsPicker,
 });
 </script>
 
@@ -99,10 +99,15 @@ defineExpose({
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="dateChangeModalLabel">變更日期</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="關閉"
+            ></button>
           </div>
           <div class="modal-body">
-            <div v-if="dateError" class="alert alert-danger" role="alert">{{ dateError }}</div>
+            <div class="alert alert-danger" role="alert" v-if="dateError">{{ dateError }}</div>
             <div class="mb-3">
               <label class="form-label">入住 - 退房日期</label>
               <VueDatePicker
@@ -126,7 +131,7 @@ defineExpose({
               ref="dateModalCloser"
               type="button"
               data-bs-dismiss="modal"
-              style="display: none;"
+              style="display: none"
             ></button>
             <div class="date-clear" @click="handleClearDates">清除日期</div>
             <button type="button" class="btn date-save" @click="handleChangeDates">儲存</button>
@@ -149,7 +154,12 @@ defineExpose({
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="guestsChangeModalLabel">變更入住人數</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="關閉"
+            ></button>
           </div>
           <div class="modal-body">
             <div class="mb-3 d-flex align-items-center justify-content-between">
@@ -163,13 +173,17 @@ defineExpose({
                   class="btn btn-outline-secondary rounded-circle guest-btn"
                   @click="decreaseGuests"
                   :disabled="newGuests <= 1"
-                >-</button>
+                >
+                  -
+                </button>
                 <span class="fw-bold guest-count">{{ newGuests }}</span>
                 <button
                   type="button"
                   class="btn btn-outline-secondary rounded-circle guest-btn"
                   @click="increaseGuests"
-                >+</button>
+                >
+                  +
+                </button>
               </div>
             </div>
             <div class="guest-limit-text">
@@ -181,10 +195,12 @@ defineExpose({
               ref="guestsModalCloser"
               type="button"
               data-bs-dismiss="modal"
-              style="display: none;"
+              style="display: none"
             ></button>
             <div class="customer-clear" @click="initGuestsPicker">清除</div>
-            <button type="button" class="btn customer-save" @click="handleChangeGuests">儲存</button>
+            <button type="button" class="btn customer-save" @click="handleChangeGuests">
+              儲存
+            </button>
           </div>
         </div>
       </div>
@@ -218,7 +234,8 @@ $divider-color: #ebebeb;
   }
 }
 
-.date-save, .customer-save {
+.date-save,
+.customer-save {
   background-color: $text-dark;
   color: white;
   border: none;
@@ -231,7 +248,8 @@ $divider-color: #ebebeb;
   }
 }
 
-.date-clear, .customer-clear {
+.date-clear,
+.customer-clear {
   color: $text-dark;
   cursor: pointer;
   border-radius: 8px;

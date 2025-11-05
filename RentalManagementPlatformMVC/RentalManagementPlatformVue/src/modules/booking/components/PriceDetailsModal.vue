@@ -5,16 +5,16 @@ import { formatPrice } from '@/composables/useBookingFormatters';
 const props = defineProps({
   discountAmount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   finalPrice: {
     type: Number,
-    required: true
+    required: true,
   },
   modalId: {
     type: String,
-    default: 'priceDetailsModal'
-  }
+    default: 'priceDetailsModal',
+  },
 });
 
 const bookingStore = useBookingStore();
@@ -35,12 +35,20 @@ const bookingStore = useBookingStore();
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" :id="`${modalId}Label`">價格明細</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="關閉"
+            ></button>
           </div>
           <div class="modal-body" v-if="bookingStore.hasBookingDraft">
             <slot name="price-details-body">
               <div class="price-row">
-                <span>{{ bookingStore.nights }} 晚 x {{ formatPrice(bookingStore.bookingDraft.pricePerNight) }}</span>
+                <span
+                  >{{ bookingStore.nights }} 晚 x
+                  {{ formatPrice(bookingStore.bookingDraft.pricePerNight) }}</span
+                >
                 <span>{{ formatPrice(bookingStore.subtotal) }}</span>
               </div>
 
@@ -59,7 +67,7 @@ const bookingStore = useBookingStore();
                 <span class="green">-{{ formatPrice(discountAmount) }}</span>
               </div>
 
-              <hr>
+              <hr />
 
               <div class="price-row total">
                 <strong>總計 TWD</strong>
