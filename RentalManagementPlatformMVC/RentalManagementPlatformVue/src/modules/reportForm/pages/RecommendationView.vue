@@ -17,53 +17,77 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'; // 引入 computed
+import { computed } from 'vue';
 import { useQuery } from '@tanstack/vue-query';
 import RoomCardComponent from '@/modules/RoomManagement/components/RoomCard.vue';  
-import { getGuestRecommendations, type RecommendationRequest } from
-'../api/recommendation';
+import { getGuestRecommendations, type RecommendationRequest } from '@/modules/ReportForm/api/recommendation';
 import type { RoomCard } from '@/api/roomSearchApi';
+import { useAuthStore } from '@/stores/auth';
 
-// --- 獲取當前使用者 ID 的部分 (待補齊) ---
-// 這裡需要根據您的專案實際的狀態管理 (例如 Pinia 或 Vuex) 來獲取登入使用者的 ID。
-// 假設您有一個 Pinia store 叫做 useAuthStore，並且其中有 currentUser 包含 id。
-// 範例：
-// import { useAuthStore } from '@/stores/auth'; // 假設的 auth store 路徑
-// const authStore = useAuthStore();
-// const currentGuestId = computed(() => authStore.currentUser?.id || null);
-// 為了讓程式碼能跑，我們暫時將 guestId 設為 null，之後會引導您修改。
-const currentGuestId = ref<number | null>(98); // 暫時設為 null，之後會替換為實際的登入使用者 ID
+const authStore = useAuthStore();
+const currentGuestId = computed(() => authStore.state.profile?.userId || null);
 
 // 使用 useQuery 獲取推薦資料
-const { data: recommendedRooms, isLoading, isError } = useQuery<RoomCard[]>({
-  queryKey: ['guestRecommendations', currentGuestId], // 查詢鍵，包含 currentGuestId        
+const { data: recommendedRooms, isLoading, isError } = useQuery<RoomCard[]> ({
+  queryKey: ['guestRecommendations', currentGuestId],
   queryFn: async () => {
     const request: RecommendationRequest = {
-      guestId: currentGuestId.value, // 使用動態獲取的 guestId
+      guestId: currentGuestId.value,
       topN: 20,
       displayM: 10,
     };
-    return getGuestRecommendations(request);
+    const result = await getGuestRecommendations(request);
+    return result;
   },
-  enabled: true, // 頁面載入時自動啟用查詢
-  staleTime: 1000 * 60 * 5, // 5 分鐘內資料視為新鮮
+  enabled: true,
+  staleTime: 1000 * 60 * 5,
 });
-
 
 const displayedRooms = computed(() => {
   if (!recommendedRooms.value) {
     return [];
   }
-  return recommendedRooms.value.map(room => ({
-    roomId: room.roomId,
-    name: room.title,
-    price: room.pricePerNight,
-    rating: room.ratingAvg,
-    imageUrl: room.imageUrl,
-    location: room.address,
-  }));
-});
+  return recommendedRooms.value.map(room => {
+    const fullAddress = room.addressLine || '';
+    let cityName = null;
+    let districtName = null;
+    let streetAddress = null;
 
+    if (fullAddress) {
+      const cityRegex = /^(.+?[縣市])/;
+      const cityMatch = fullAddress.match(cityRegex);
+
+      if (cityMatch) {
+        cityName = cityMatch[0];
+        const remainingAddress = fullAddress.substring(cityName.length);
+        const districtRegex = /^(.+?[區鄉鎮市])/;
+        const districtMatch = remainingAddress.match(districtRegex);
+
+        if (districtMatch) {
+          districtName = districtMatch[0];
+          streetAddress = remainingAddress.substring(districtName.length);
+        } else {
+          streetAddress = remainingAddress;
+        }
+      } else {
+        streetAddress = fullAddress;
+      }
+    }
+
+    const mappedRoom = {
+      roomId: room.roomId,
+      name: room.title,
+      price: room.pricePerNight,
+      rating: room.ratingAvg,
+      imageUrl: room.mainImageUrl,
+      location: fullAddress,
+      cityName: cityName || room.cityName,
+      districtName: districtName || room.districtName,
+      addressLine: streetAddress,
+    };
+    return mappedRoom;
+  });
+});
 </script>
 
 <style scoped>
