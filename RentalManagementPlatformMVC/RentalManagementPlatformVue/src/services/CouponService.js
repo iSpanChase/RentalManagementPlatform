@@ -12,9 +12,9 @@ try{
 };
 
 // 取得指定使用者的優惠券清單
-export const getUserCoupons = async (userId) => {
+export const getUserCoupons = async () => {
   try{
-    const response = await api.get(`/CouponApi/user/${userId}`);
+    const response = await api.get(`/CouponApi/my-coupons`);
     return response.data;
   }catch(error){
     console.error('Error fetching public coupons:', error);

@@ -201,6 +201,15 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddAuthorization(options =>
 			{
 				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
+
+                options.AddPolicy("CanClaimCoupons", policy =>
+                {
+                    policy.RequireAssertion(context =>
+                        !context.User.IsInRole("ADMIN") &&
+                        !context.User.IsInRole("OPERATOR") &&
+                        !context.User.IsInRole("HOST")
+                    );
+                });
 			});
 
             // DI Message
