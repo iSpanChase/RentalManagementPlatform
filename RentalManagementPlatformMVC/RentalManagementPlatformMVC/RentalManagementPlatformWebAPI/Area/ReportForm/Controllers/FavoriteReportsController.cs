@@ -14,7 +14,6 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    [Authorize]
     public class FavoriteReportsController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
@@ -26,6 +25,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
         // GET: api/ReportForm/FavoriteReports
         [HttpGet]
+        [Authorize(Policy = "Favorites.View")]
         public async Task<IActionResult> GetFavoriteReports()
         {
             int userId = CurrentUserId;
@@ -41,6 +41,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
         // GET: api/ReportForm/FavoriteReports/5
         [HttpGet("{id}")]
+        [Authorize(Policy = "Favorites.View")]
         public async Task<IActionResult> GetFavoriteReport(int id)
         {
             int userId = CurrentUserId;
@@ -66,6 +67,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
         // POST: api/ReportForm/FavoriteReports
         [HttpPost]
+        [Authorize(Policy = "Favorites.Create")]
         public async Task<IActionResult> CreateFavoriteReport([FromBody] CreateFavoriteReportDto createDto)
         {
             if (createDto == null || string.IsNullOrWhiteSpace(createDto.Name) || string.IsNullOrWhiteSpace(createDto.Content))
@@ -101,6 +103,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         }
 
         // DELETE: api/ReportForm/FavoriteReports/5
+        [Authorize(Policy = "Favorites.Delete")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFavoriteReport(int id)
         {

@@ -9,8 +9,8 @@
         </div>
         <div class="d-flex align-items-center gap-2">
           <slot name="header-extra"></slot>
-          <button v-if="!loading" class="btn btn-sm btn-outline-primary" @click="$emit('edit')">修改</button>
-          <button v-if="!loading" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">刪除</button>
+          <button v-if="!loading && hasPerm('ReportCards.Edit')" class="btn btn-sm btn-outline-primary" @click="$emit('edit')">修改</button>
+          <button v-if="!loading && hasPerm('ReportCards.Delete')" class="btn btn-sm btn-outline-danger" @click="$emit('remove')">刪除</button>
         </div>
       </div>
 
@@ -26,6 +26,15 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+
+// 提供給 template 用
+function hasPerm(code: string): boolean {
+  return auth.can(code)   // ← 直接用 store 匯出的 can()
+}
+
 defineProps<{
   title: string
   subtitle?: string

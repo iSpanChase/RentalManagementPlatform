@@ -5,19 +5,19 @@
     <h3 class="mb-4 mt-0">動態報表（可自定義卡片）</h3>
     <div class="d-flex justify-content-between align-items-center mb-1">
         <div class="">
-            <button class="btn btn-primary" @click="onAdd">新增卡片</button>
+            <button class="btn btn-primary" v-if="hasPerm('ReportCards.Create')" @click="onAdd">新增卡片</button>
         </div>
       
       <!-- Favorites Section -->
       <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-success btn-sm" @click="onSaveToFavorites">加入我的最愛</button>
+        <button class="btn btn-success btn-sm" v-if="hasPerm('Favorites.Create')" @click="onSaveToFavorites">加入我的最愛</button>
         <span class="fw-bold">我的最愛:</span>
-        <select class="form-select form-select-sm w-auto" v-model="selectedFavoriteId">
+        <select class="form-select form-select-sm w-auto" v-if="hasPerm('Favorites.View')" v-model="selectedFavoriteId">
             <option v-if="favoriteReports.length === 0" :value="null" disabled>沒有已儲存的報表</option>
             <option v-for="fav in favoriteReports" :key="fav.id" :value="fav.id">{{ fav.name }}</option>
         </select>
-        <button class="btn btn-secondary btn-sm" @click="onLoadFavorite" :disabled="!selectedFavoriteId">載入</button>
-        <button class="btn btn-danger btn-sm" @click="onDeleteFavorite" :disabled="!selectedFavoriteId">刪除</button>
+        <button class="btn btn-secondary btn-sm" v-if="hasPerm('Favorites.View')" @click="onLoadFavorite" :disabled="!selectedFavoriteId">載入</button>
+        <button class="btn btn-danger btn-sm" v-if="hasPerm('Favorites.Delete')" @click="onDeleteFavorite" :disabled="!selectedFavoriteId">刪除</button>
       </div>
     </div>
 
@@ -66,6 +66,7 @@ import {
     getFavoriteReports, loadFavoriteReport, saveFavoriteReport, deleteFavoriteReport, type FavoriteReport
 } from '../api/reportForm'
 import { startConnection, registerWarningHandler } from '../api/notificationService';
+import { useAuthStore } from '@/stores/auth'
 
 // ---------- state ----------
 const cards = reactive<Card[]>([])
@@ -78,6 +79,8 @@ const updatedAt = new Date().toLocaleString()
 // ---------- favorite reports state ----------
 const favoriteReports = ref<FavoriteReport[]>([]);
 const selectedFavoriteId = ref<number | null>(null);
+
+const auth = useAuthStore()
 
 // ---------- component chooser and props generator ----------
 const cardBody = (c: Card) => {
@@ -258,6 +261,11 @@ async function onDeleteFavorite() {
     } else {
         alert('刪除失敗!');
     }
+}
+
+// 提供給 template 用
+function hasPerm(code: string): boolean {
+  return auth.can(code)   // ← 直接用 store 匯出的 can()
 }
 
 // ---------- Lifecycle ----------

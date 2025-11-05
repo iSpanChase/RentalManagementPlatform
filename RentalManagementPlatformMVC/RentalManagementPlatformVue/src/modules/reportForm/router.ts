@@ -12,7 +12,8 @@ const reportFormRoutes: RouteRecordRaw[] = [
                 component: () => import('@/modules/ReportForm/pages/IndexView.vue'),
                 meta: {
                     title: '報表分析',
-                    requiresAuth: false,
+                    requiresAuth: true,
+                    requiredPerms: ['ReportForm.View'],
                 },
             }
         ]
