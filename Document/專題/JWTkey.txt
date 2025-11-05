@@ -1,1 +1,5 @@
-8rAJzEkZ4YKTTcyeUrPPNssc/yHBqHotpit1nNxE/HynvgKHK/C074yuoBGT6KOVkZd80YYNQnibelgkvoUFTA==
+dotnet user-secrets set "Authentication:Jwt:Key" "8rAJzEkZ4YKTTcyeUrPPNssc/yHBqHotpit1nNxE/HynvgKHK/C074yuoBGT6KOVkZd80YYNQnibelgkvoUFTA=="
+
+dotnet user-secrets set "Authentication:Jwt:Issuer" "RentalManagementPlatform"
+
+dotnet user-secrets set "Authentication:Jwt:Audience" "RentalManagementPlatformClient"

@@ -152,6 +152,92 @@ namespace RentalManagementPlatformWebAPI.Services
 			return user?.UserId;
 		}
 
+		public async Task<UserProfileDto> FindOrCreateFromExternalAsync(ExternalProfileDto dto)
+		{
+			// 1) 有 email：先嘗試以 email 合併既有帳號
+			User? user = null;
+			if (!string.IsNullOrWhiteSpace(dto.Email))
+			{
+				user = await _users.GetByEmailAsync(dto.Email.Trim());
+			}
+
+			// 2) 沒找到 → 建立新帳號（第三方註冊）
+			if (user == null)
+			{
+				// 若沒 email（LINE 常見），合成一個 email 以通過 NOT NULL/UNIQUE 約束
+				var emailSafe = string.IsNullOrWhiteSpace(dto.Email)
+					? $"{(dto.Provider ?? "ext").ToLowerInvariant()}_{Guid.NewGuid():N}@externallogin.local"
+					: dto.Email!.Trim();
+
+				// 以 email local-part 做 base username，確保唯一
+				var baseUsername = (emailSafe.Split('@').FirstOrDefault() ?? "user").ToLowerInvariant();
+				var username = baseUsername;
+				int suffix = 0;
+				while (await _users.Query().AnyAsync(u => u.Username == username))
+					username = $"{baseUsername}{++suffix}";
+
+				user = new User
+				{
+					Email = emailSafe,
+					Name = string.IsNullOrWhiteSpace(dto.DisplayName) ? emailSafe : dto.DisplayName!,
+					Username = username,
+
+					// ★ 這些欄位若你的 DB 是 NOT NULL，就不要寫 null
+					Gender = "",                 // 或 "U"
+					BirthDate = default,          // 若資料表允許 NULL 可改成 null
+					Address = "",
+					Phone = "",
+					ProfileImageurl = dto.PictureUrl ?? "",
+
+					Provider = dto.Provider ?? "External",
+					Isverified = !string.IsNullOrWhiteSpace(dto.Email),
+					CreatedAt = DateTime.UtcNow,
+
+					// ★ 若 PasswordHash 欄位是 NOT NULL，請改成固定字串（例如 "EXTERNAL_ONLY"）
+					PasswordHash = "EXTERNAL_ONLY"
+				};
+
+				await _users.AddAsync(user);
+
+				// 可選：預設角色（存在才指派）
+				var role = await _roles.GetByCodeAsync("MEMBER");
+				if (role != null)
+					await _roles.AssignUserAsync(role.RoleId, user.UserId);
+
+				await _users.SaveChangesAsync();
+			}
+
+
+			return Map(user);
+		}
+
+		public async Task<UserProfileDto> CompleteExternalAsync(int userId, CompleteExternalDto dto)
+		{
+			var user = await _users.GetByIdAsync(userId) ?? throw new UnauthorizedAccessException();
+
+			// 僅當前帳號原本沒有 Email 時才允許補
+			if (string.IsNullOrWhiteSpace(user.Email))
+			{
+				// 檢查新 email 是否被使用
+				var exist = await _users.GetByEmailAsync(dto.Email.Trim());
+				if (exist != null && exist.UserId != userId)
+					throw new InvalidOperationException("Email 已被其他帳號使用");
+
+				user.Email = dto.Email.Trim();
+				user.Isverified = true;                      // 你也可以改為：寄驗證信 → 驗證成功再改 true
+			}
+
+			if (!string.IsNullOrWhiteSpace(dto.DisplayName) && string.IsNullOrWhiteSpace(user.Name))
+				user.Name = dto.DisplayName;
+
+			if (!string.IsNullOrWhiteSpace(dto.Phone) && string.IsNullOrWhiteSpace(user.Phone))
+				user.Phone = dto.Phone;
+
+			user.UpdatedAt = DateTime.UtcNow;
+			await _users.SaveChangesAsync();
+			return Map(user);
+		}
+
 		// === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
 		private static UserProfileDto Map(User u) => new()
 		{

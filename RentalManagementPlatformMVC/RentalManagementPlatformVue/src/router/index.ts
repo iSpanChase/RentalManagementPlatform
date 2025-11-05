@@ -72,18 +72,10 @@ const router = createRouter({
     // 2. 其他模組路由
     ...ReportFormRouter,
 
-
-    // 2. 其他模組路由
-    ...ReportFormRouter,
-
     // 3. 訂單路由（使用自己的 BookingLayout）
     ...AuthenticatorRouter,
     ...bookingRoutes,
     ...supportRoutes,
-    // 3. 訂單路由（使用自己的 BookingLayout）
-    ...bookingRoutes,
-    ...supportRoutes,
-
   ],
 });
 
@@ -107,10 +99,13 @@ const ensureProfileLoaded = async () => {
 }
 
 router.beforeEach(async (to) => {
+  // ★ callback 路由一律放行（不要做登入檢查/導轉）
+  if (to.path === '/auth/callback') return true
   const auth = useAuthStore()
   // ★ 先還原 token & headers，避免第一發 /Users/me 變 401
   auth.restoreSession()
-  const hasToken = !!localStorage.getItem('access_token')
+  // ★ 與 http.ts / AuthCallback.vue 對齊
+  const hasToken = !!localStorage.getItem('rmp.accessToken')
 
   // 需要登入的頁面才取個資；若沒有登入，等會一起導去登入或 Forbidden
   if (to.meta.requiresAuth || (Array.isArray(to.meta.requiredPerms) && to.meta.requiredPerms.length)) {
@@ -127,7 +122,7 @@ router.beforeEach(async (to) => {
     }
     const need = (to.meta.requiredPerms as string[]) || []
     if (need.length && !need.every(auth.can)) {
-      return { name: 'Forbidden' }
+      return { name: 'forbidden' }
     }
   }
 
@@ -160,8 +155,8 @@ router.beforeEach(async (to) => {
         // 失敗就當作未登入處理
       }
       // 清掉壞 token，避免下次又被當成 hasToken
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('rmp.accessToken')
+      localStorage.removeItem('rmp.refreshToken')
       return { name: 'login', query: { redirect: to.fullPath } }
     }
 
@@ -171,7 +166,7 @@ router.beforeEach(async (to) => {
 
   // 僅允許訪客的頁面（/login）
   if (to.meta.requiresGuest) {
-    const hasToken = !!localStorage.getItem('access_token')
+    const hasToken = !!localStorage.getItem('rmp.accessToken')
     if (auth.isAuthenticated.value || hasToken) {
       const target = getRedirectTarget(to)  // 你現有的輔助函式：從 query.redirect 取目標
       return target === '/' ? { name: 'dashboard' } : target

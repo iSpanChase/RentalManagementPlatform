@@ -83,6 +83,14 @@ export default [
         component: () => import('./components/VerifyEmailView.vue'),
         alias: ['/verify-email', '/verifyemail'],
       },
+      {
+        path: 'callback',
+        name: 'AuthCallback',
+        component: () => import('./components/AuthCallback.vue'),
+        alias: ['/auth/callback'], // 讓後端可直接導到 /auth/callback
+        meta: { requiresAuth: false }
+      },
+
     ],
   },
 ];

@@ -35,6 +35,8 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
 	public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
+	public virtual DbSet<ExternalLogin> ExternalLogins { get; set; }
+
 	public virtual DbSet<FaqArticle> FaqArticles { get; set; }
 
     public virtual DbSet<FaqCategory> FaqCategories { get; set; }
@@ -349,7 +351,7 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 
 		modelBuilder.Entity<EmailVerification>(e =>
 		{
-			e.ToTable("EmailVerifications");                         // 資料表名（照你的實際名稱，若不同請改）
+			e.ToTable("EmailVerifications");                         
 			e.HasKey(x => x.TokenId);
 
 			e.Property(x => x.TokenId)
@@ -383,7 +385,59 @@ public partial class RentalManagementPlatformSqlContext : DbContext
                 .HasForeignKey(e => e.UserId);
 		});
 
-        modelBuilder.Entity<FaqArticle>(entity =>
+		modelBuilder.Entity<ExternalLogin>(entity =>
+		{
+			entity.ToTable("ExternalLogins");
+
+			// 主鍵：bigint（對應 C# long）
+			entity.HasKey(e => e.ExternalLoginId).HasName("PK__ExternalLogins");
+
+			entity.Property(e => e.ExternalLoginId)
+				.HasColumnName("external_login_id");
+
+			entity.Property(e => e.UserId)
+				.HasColumnName("user_id");
+
+			entity.Property(e => e.Provider)
+				.HasMaxLength(20)
+				.IsRequired()
+				.HasColumnName("provider");
+
+			entity.Property(e => e.ProviderUserId)
+				.HasMaxLength(100)
+				.IsRequired()
+				.HasColumnName("provider_user_id");
+
+			entity.Property(e => e.Email)
+				.HasMaxLength(512)
+				.HasColumnName("email");
+
+			entity.Property(e => e.DisplayName)
+				.HasMaxLength(512)
+				.HasColumnName("display_name");
+
+			entity.Property(e => e.PictureUrl)
+				.HasMaxLength(512)
+				.HasColumnName("picture_url");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnName("created_at");
+
+			// 外鍵：EXTERNAL_LOGINS.user_id → USER.user_id
+			entity.HasOne(e => e.User)
+				.WithMany(u => u.ExternalLogins)              // 如果你的 User 有 ICollection<ExternalLogin> 就改成 .WithMany(u => u.ExternalLogins)
+				.HasForeignKey(e => e.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// 唯一索引：同一個 Provider 下的 ProviderUserId 只能綁一個帳號
+			entity.HasIndex(e => new { e.Provider, e.ProviderUserId }, "UX_ExternalLogins_Provider_UserId")
+				.IsUnique();
+
+			// （可選）查詢最佳化：user_id 索引
+			entity.HasIndex(e => e.UserId, "IX_ExternalLogins_User");
+		});
+
+		modelBuilder.Entity<FaqArticle>(entity =>
         {
             entity.HasKey(e => e.FaqArticlesId).HasName("PK__FAQ_ARTI__B0FC36A6F90A2542");
 

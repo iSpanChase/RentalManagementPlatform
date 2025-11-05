@@ -10,5 +10,7 @@ namespace RentalManagementPlatformWebAPI.Services
 		Task<UserProfileDto> UpdateProfileAsync(ClaimsPrincipal principal, UpdateProfileDto dto);
 		Task<string> UploadAvatarAsync(ClaimsPrincipal principal, IFormFile file);
 		Task<int?> GetUserIdByEmailAsync(string email);
+
+		Task<UserProfileDto> FindOrCreateFromExternalAsync(ExternalProfileDto dto);
 	}
 }
