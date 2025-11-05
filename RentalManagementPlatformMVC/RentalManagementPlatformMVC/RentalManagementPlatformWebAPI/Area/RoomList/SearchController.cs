@@ -30,5 +30,23 @@ namespace RentalManagementPlatformWebAPI.Controllers
             var hits = await _meilisearchService.SearchAsync(q, s);
             return Ok(hits);
         }
+
+        // GET: api/Search/nearby?lat=25.03&lng=121.56&radiusKm=30&query=xxx&status=Active
+        [HttpGet("nearby")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<RoomListSearchDto>>> SearchRoomsNearby(
+            [FromQuery] double lat,
+            [FromQuery] double lng,
+            [FromQuery] double radiusKm = 30,
+            [FromQuery] string? query = null,
+            [FromQuery] string? status = null,
+            [FromQuery] bool sortByDistance = true)
+        {
+            var q = (query ?? string.Empty).Trim();
+            var s = (status ?? string.Empty).Trim();
+
+            var hits = await _meilisearchService.SearchNearbyAsync(q, lat, lng, radiusKm, s, sortByDistance);
+            return Ok(hits);
+        }
     }
 }

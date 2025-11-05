@@ -118,6 +118,7 @@ export interface RoomCard {
   districtName?: string;
   addressLine?: string;
   mainImageUrl?: string;
+  geo?: GeoLocation;
 }
 
 export interface GeoLocation {
@@ -129,6 +130,13 @@ export interface RoomPhoto {
   photoId: number;
   url: string;
   sortOrder?: number;
+}
+
+export interface PlaceSuggestion {
+  placeId?: string;
+  name: string;
+  lat: number;
+  lng: number;
 }
 
 export interface RoomDetail {
@@ -253,6 +261,7 @@ const mapRoomSearchResult = (dto: RoomListSearchDtoResponse): RoomCard => {
   const rawPhotos = coalesceValue<string[]>(dto, 'photo_urls', 'photoUrls') ?? [];
   const photoUrls = normalizePhotoUrls(rawPhotos, mainImage);
   const imageUrl = photoUrls[0];
+  const geo = mapGeoLocation(coalesceValue<GeoLocationDto>(dto, 'geo'));
 
   return {
     roomId: coalesceValue<number>(dto, 'room_id', 'roomId') ?? 0,
@@ -263,6 +272,7 @@ const mapRoomSearchResult = (dto: RoomListSearchDtoResponse): RoomCard => {
     districtName: coalesceValue<string>(dto, 'district_name', 'districtName'),
     addressLine: coalesceValue<string>(dto, 'address_line', 'addressLine'),
     mainImageUrl: imageUrl,
+    geo,
   };
 };
 
@@ -355,6 +365,7 @@ export const mapRoomDetailToCard = (detail: RoomDetail): RoomCard => ({
   districtName: detail.districtName,
   addressLine: detail.addressLine,
   mainImageUrl: detail.mainImageUrl ?? detail.photoUrls[0],
+  geo: detail.geo,
 });
 
 export const mapRoomSummaryToCard = (dto: RoomSummaryResponseDtoResponse): RoomCard => {
@@ -384,6 +395,35 @@ export const searchRooms = async (query: string): Promise<RoomCard[]> => {
     params: { query },
   });
   return response.data.map(mapRoomSearchResult);
+};
+
+export const searchRoomsNearby = async (
+  lat: number,
+  lng: number,
+  radiusKm: number = 30,
+  query?: string,
+): Promise<RoomCard[]> => {
+  const params: Record<string, any> = { lat, lng, radiusKm };
+  if (query && query.trim().length > 0) params.query = query.trim();
+  const response = await apiClient.get<RoomListSearchDtoResponse[]>('/Search/nearby', {
+    params,
+  });
+  return response.data.map(mapRoomSearchResult);
+};
+
+export const searchPlaces = async (q: string): Promise<PlaceSuggestion[]> => {
+  if (!q || q.trim().length === 0) return [];
+  const { data } = await apiClient.get<Array<{ place_id?: string; name?: string; lat?: number; lng?: number }>>('/Places/search', {
+    params: { q },
+  });
+  return data
+    .map((p) => ({
+      placeId: p.place_id,
+      name: p.name ?? '',
+      lat: Number(p.lat ?? 0),
+      lng: Number(p.lng ?? 0),
+    }))
+    .filter((p) => p.name && p.lat && p.lng);
 };
 
 export const fetchRoomDetail = async (roomId: number): Promise<RoomDetail> => {

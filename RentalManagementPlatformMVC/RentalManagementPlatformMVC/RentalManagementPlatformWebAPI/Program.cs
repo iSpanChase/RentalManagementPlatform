@@ -44,8 +44,10 @@ namespace RentalManagementPlatformWebAPI
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			//SignalR()
+            //SignalR()
             builder.Services.AddSignalR();
+            // HttpClient for external calls (e.g., Google Places)
+            builder.Services.AddHttpClient();
             // In-Memory 暫存
             builder.Services.AddSingleton<InMemoryStore>();
 
