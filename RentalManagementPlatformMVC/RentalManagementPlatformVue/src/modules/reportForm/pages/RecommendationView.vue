@@ -20,7 +20,7 @@
 import { computed } from 'vue';
 import { useQuery } from '@tanstack/vue-query';
 import RoomCardComponent from '@/modules/RoomManagement/components/RoomCard.vue';  
-import { getGuestRecommendations, type RecommendationRequest } from '@/modules/ReportForm/api/recommendation';
+import { getGuestRecommendations, type RecommendationRequest } from '@/modules/reportForm/api/recommendation';
 import type { RoomCard } from '@/api/roomSearchApi';
 import { useAuthStore } from '@/stores/auth';
 
