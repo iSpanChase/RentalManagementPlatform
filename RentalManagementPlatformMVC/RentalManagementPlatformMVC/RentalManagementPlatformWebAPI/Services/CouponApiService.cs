@@ -6,7 +6,6 @@ using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +38,7 @@ namespace RentalManagementPlatformWebAPI.Services
         }
 
         //回傳優惠券的驗證結果(是否有效/折扣金額/最終價格/錯誤代碼)
-        public async Task<CouponValidationResponseDto> ValidateCouponAsync(CouponValidationRequestDto request, ClaimsPrincipal user)
+        public async Task<CouponValidationResponseDto> ValidateCouponAsync(CouponValidationRequestDto request)
         {
             var coupon = await _couponRepository.GetCouponByCodeAsync(request.DiscountCode);
 
@@ -98,23 +97,16 @@ namespace RentalManagementPlatformWebAPI.Services
             if (!districtResult.IsValid) return districtResult;
 
             // ☆ 6. 特殊用戶類型驗證 (硬編碼邏輯)
-            var currentUserIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            int? currentUserId = null;
-            if (!string.IsNullOrEmpty(currentUserIdString) && int.TryParse(currentUserIdString, out var parsedUserId))
-            {
-                currentUserId = parsedUserId;
-            }
-
-            if (currentUserId.HasValue)
+            if (request.UserId.HasValue)
             {
                 if (coupon.DiscountCode.StartsWith("WELCOME"))
                 {
-                    var newUserResult = await ValidateNewUserAsync(currentUserId.Value);
+                    var newUserResult = await ValidateNewUserAsync(request.UserId.Value);
                     if (!newUserResult.IsValid) return newUserResult;
                 }
                 if (coupon.DiscountCode.StartsWith("BDAY"))
                 {
-                    var birthdayResult = await ValidateBirthdayAsync(currentUserId.Value);
+                    var birthdayResult = await ValidateBirthdayAsync(request.UserId.Value);
                     if (!birthdayResult.IsValid) return birthdayResult;
                 }
             }
@@ -155,9 +147,7 @@ namespace RentalManagementPlatformWebAPI.Services
                 LeaseDays = leaseDays,
                 UserId = userId
             };
-            // 此處的 user 暫時傳遞 null，因為此方法主要由內部或測試呼叫，
-            // 若要使其完整，需考慮如何在此上下文中獲取 ClaimsPrincipal。
-            return await ValidateCouponAsync(validationRequest, null);
+            return await ValidateCouponAsync(validationRequest);
         }
 
         #region Private Validation Helpers

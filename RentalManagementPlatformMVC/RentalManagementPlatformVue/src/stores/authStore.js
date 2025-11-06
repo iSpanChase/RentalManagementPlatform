@@ -41,15 +41,6 @@ export const useAuthStore = defineStore('auth', () => {
     return null;
   });
 
-  /**
-   * 檢查使用者是否為管理員或房東，以決定是否隱藏優惠券功能
-   */
-  const shouldHideCouponFeature = computed(() => {
-    if (!user.value) return false; // 未登入則不隱藏
-    const roles = user.value.roles || [];
-    return roles.includes('Admin') || roles.includes('host');
-  });
-
   // 操作 (Actions)
 
   /**
@@ -78,7 +69,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     currentUser,
     currentHostId,
-    shouldHideCouponFeature,
     // Actions
     login,
     logout,

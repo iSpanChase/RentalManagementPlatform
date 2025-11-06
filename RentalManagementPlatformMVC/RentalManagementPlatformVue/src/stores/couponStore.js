@@ -37,10 +37,10 @@ export const useCouponStore = defineStore('coupon', () => {
   }
 
   // 取得使用者優惠券
-  const fetchUserCoupons = async () => {
+  const fetchUserCoupons = async (userId) => {
     loading.value = true
     try {
-      const data = await getUserCoupons()
+      const data = await getUserCoupons(userId)
       userCoupons.value = data
     } catch (err) {
       console.error('取得使用者優惠券失敗:', err)

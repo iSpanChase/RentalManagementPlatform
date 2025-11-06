@@ -1,6 +1,5 @@
 using RentalManagementPlatformWebAPI.DTOS;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace RentalManagementPlatformWebAPI.Services.Interfaces
@@ -10,7 +9,7 @@ namespace RentalManagementPlatformWebAPI.Services.Interfaces
         /// <summary>
         /// 驗證優惠券的有效性，並回傳包含折扣金額的詳細結果。
         /// </summary>
-        Task<CouponValidationResponseDto> ValidateCouponAsync(CouponValidationRequestDto request, ClaimsPrincipal user);
+        Task<CouponValidationResponseDto> ValidateCouponAsync(CouponValidationRequestDto request);
 
         /// <summary>
         /// 讓使用者領取一張公開的優惠券到個人帳戶。

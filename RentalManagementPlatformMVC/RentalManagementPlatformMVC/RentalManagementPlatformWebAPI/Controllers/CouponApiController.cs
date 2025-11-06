@@ -1,11 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOS;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {
@@ -24,12 +21,11 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         [HttpPost("validate")]
 		//檢查優惠券是否可用
-        [Authorize]
 		public async Task<IActionResult> Validate([FromBody] CouponValidationRequestDto request)
         {
             try
             {
-                var result = await _couponApiService.ValidateCouponAsync(request, this.User);
+                var result = await _couponApiService.ValidateCouponAsync(request);
                 // 不論成功或失敗，都回傳 200 OK，由前端根據 IsValid 和 ErrorCode 欄位來決定行為
                 return Ok(result);
             }
@@ -46,7 +42,6 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("redeem")]
-        [Authorize(Policy = "CanClaimCoupons")]
         public async Task<IActionResult> RedeemPromoCode([FromBody] RedeemPromoCodeRequestDto request)
         {
             // TODO: 加上 [Authorize] 標籤
@@ -56,7 +51,6 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("mark-used")]
-        [Authorize]
         public async Task<IActionResult> MarkUsed([FromBody] MarkUsedRequestDto request)
         {
             // TODO: 加上 [Authorize] 標籤，並確認此 API 的呼叫權限
@@ -79,19 +73,12 @@ namespace RentalManagementPlatformWebAPI.Controllers
             }
         }
 
-        [HttpGet("my-coupons")]
-        [Authorize]
-        public async Task<IActionResult> GetMyCoupons()
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetUserCoupons(int userId)
         {
             // TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
-                {
-                    return Unauthorized("無法識別使用者身份。");
-                }
-
                 var userCoupons = await _couponApiService.GetUserCouponsAsync(userId);
                 return Ok(userCoupons);
             }
