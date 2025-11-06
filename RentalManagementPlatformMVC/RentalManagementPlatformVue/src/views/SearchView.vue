@@ -111,7 +111,15 @@ const { data: nearbyRooms, isLoading: isNearbyLoading, isError: isNearbyError } 
   queryKey: nearbyKey,
   queryFn: () => {
     if (!selectedPlace.value) return Promise.resolve([] as RoomCard[]);
-    return searchRoomsNearby(selectedPlace.value.lat, selectedPlace.value.lng, radiusKm.value, debouncedSearchKeyword.value);
+    const raw = (debouncedSearchKeyword.value ?? '').toString().trim();
+    const placeName = (selectedPlace.value?.name ?? '').toString().trim();
+    const queryForNearby = raw && raw !== placeName ? raw : undefined;
+    return searchRoomsNearby(
+      selectedPlace.value.lat,
+      selectedPlace.value.lng,
+      radiusKm.value,
+      queryForNearby,
+    );
   },
   enabled: hasSelectedPlace,
 });

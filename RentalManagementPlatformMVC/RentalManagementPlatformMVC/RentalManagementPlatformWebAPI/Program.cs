@@ -56,6 +56,7 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddSignalR();
             // In-Memory 暫存
             builder.Services.AddSingleton<InMemoryStore>();
+            builder.Services.AddHttpClient();
 
 			builder.Services.AddHttpClient();
 
