@@ -401,6 +401,8 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 $primary-color: #222;
 $secondary-color: #f7a800;
 $chat-color: #008489;
@@ -622,7 +624,7 @@ $text-dark: #484848;
 .btn-details {
   background-color: $secondary-color;
   color: $primary-color;
-  border: 1px solid darken($secondary-color, 10%);
+  border: 1px solid color.adjust($secondary-color, $lightness: -10%);
   padding: 10px 18px;
   border-radius: 8px;
   font-weight: 600;
@@ -630,8 +632,8 @@ $text-dark: #484848;
   transition: all 0.2s;
 
   &:hover {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 15%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -15%);
   }
 }
 
@@ -778,8 +780,8 @@ hr {
     padding: 8px 20px;
     border-radius: 8px;
     &:hover {
-      background-color: darken($text-light, 10%);
-      border-color: darken($text-light, 10%);
+      background-color: color.adjust($text-light, $lightness: -10%);
+      border-color: color.adjust($text-light, $lightness: -10%);
     }
   }
 
@@ -795,8 +797,8 @@ hr {
       margin-right: 6px;
     }
     &:hover {
-      background-color: darken($chat-color, 10%);
-      border-color: darken($chat-color, 10%);
+      background-color: color.adjust($chat-color, $lightness: -10%);
+      border-color: color.adjust($chat-color, $lightness: -10%);
     }
   }
 }
