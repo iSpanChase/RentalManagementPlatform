@@ -79,15 +79,15 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig, RevenuePredictionConfig, OccupancyPredictionConfig } from '../api/reportForm'
-import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
-import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
-import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
-import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
-import RevenueSourceConfigPanelComponent from './panels/RevenueSourceConfigPanelComponent.vue'
-import OccupancySourceConfigPanelComponent from './panels/OccupancySourceConfigPanelComponent.vue'
-import RevenuePredictionConfigPanelComponent from './panels/RevenuePredictionConfigPanelComponent.vue'
-import OccupancyPredictionConfigPanelComponent from './panels/OccupancyPredictionConfigPanelComponent.vue'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig, RevenuePredictionConfig, OccupancyPredictionConfig } from '@/modules/ReportForm/api/reportForm'
+import RevenueConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueConfigPanelComponent.vue'
+import OccupancyConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyConfigPanelComponent.vue'
+import OccupancyKpiConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyKpiConfigPanelComponent.vue'
+import RevenueKpiConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueKpiConfigPanelComponent.vue'
+import RevenueSourceConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueSourceConfigPanelComponent.vue'
+import OccupancySourceConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancySourceConfigPanelComponent.vue'
+import RevenuePredictionConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenuePredictionConfigPanelComponent.vue'
+import OccupancyPredictionConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyPredictionConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
