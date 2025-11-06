@@ -55,6 +55,7 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddSignalR();
             // In-Memory 暫存
             builder.Services.AddSingleton<InMemoryStore>();
+            builder.Services.AddHttpClient();
 
             // 加入 CORS 服務
             builder.Services.AddCors(options =>
