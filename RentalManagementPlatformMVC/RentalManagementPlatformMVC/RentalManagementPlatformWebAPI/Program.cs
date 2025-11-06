@@ -131,42 +131,76 @@ namespace RentalManagementPlatformWebAPI
 					};
 				});
 
-			// 4) LINE（用 Generic OAuth）
+			// 4) LINE（改用 OIDC userinfo 以取得 email）
 			builder.Services.AddAuthentication()
 				.AddOAuth("LINE", opt =>
 				{
 					opt.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
 					opt.ClientId = cfg["Authentication:Line:ChannelId"]!;
 					opt.ClientSecret = cfg["Authentication:Line:ChannelSecret"]!;
-					opt.CallbackPath = cfg["Authentication:Line:CallbackPath"]; // /api/auth/oauth/line/callback
+					opt.CallbackPath = cfg["Authentication:Line:CallbackPath"]; // e.g. /api/auth/oauth/line/callback
+
 					opt.AuthorizationEndpoint = "https://access.line.me/oauth2/v2.1/authorize";
 					opt.TokenEndpoint = "https://api.line.me/oauth2/v2.1/token";
-					opt.UserInformationEndpoint = "https://api.line.me/v2/profile";
+					// ★ 這個 endpoint（OIDC userinfo）才會回傳 email（前提是 scope 有 email 且使用者已驗證 email）
+					opt.UserInformationEndpoint = "https://api.line.me/oauth2/v2.1/userinfo";
+
+					// ★ 必須包含 email，否則拿不到
+					opt.Scope.Clear();
+					opt.Scope.Add("openid");
 					opt.Scope.Add("profile");
-					// 想要 email 需申請權限並加上 "openid" "email"
-					// opt.Scope.Add("openid");
-					// opt.Scope.Add("email");
+					opt.Scope.Add("email");
 
 					opt.SaveTokens = true;
 
-					// 取用戶資料
-					opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "userId");
-					opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "displayName");
-					opt.ClaimActions.MapJsonKey("picture", "pictureUrl");
+					// 先清空，再手動映射 userinfo 的欄位
+					opt.ClaimActions.Clear();
+					opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");   // LINE 的唯一 ID
+					opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+					opt.ClaimActions.MapJsonKey("email_verified", "email_verified");
+					// 若 userinfo 有 name/picture 也會帶，否則等下用 profile API 補
+					opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+					opt.ClaimActions.MapJsonKey("picture", "picture");
 
 					opt.Events = new OAuthEvents
 					{
 						OnCreatingTicket = async ctx =>
 						{
-							var req = new HttpRequestMessage(HttpMethod.Get, ctx.Options.UserInformationEndpoint);
-							req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ctx.AccessToken);
-							var resp = await ctx.Backchannel.SendAsync(req);
-							resp.EnsureSuccessStatusCode();
-							using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
-							ctx.RunClaimActions(doc.RootElement);
+							// 1) 以 access_token 呼叫 OIDC userinfo，寫入 sub / email / name / picture（若有）
+							using (var req1 = new HttpRequestMessage(HttpMethod.Get, opt.UserInformationEndpoint))
+							{
+								req1.Headers.Authorization =
+									new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ctx.AccessToken);
+								using var resp1 = await ctx.Backchannel.SendAsync(req1);
+								resp1.EnsureSuccessStatusCode();
+
+								var json1 = System.Text.Json.JsonDocument.Parse(await resp1.Content.ReadAsStringAsync());
+								ctx.RunClaimActions(json1.RootElement);
+							}
+
+							// 2) 再打 profile API，補上 displayName / pictureUrl（userinfo 未必有）
+							using (var req2 = new HttpRequestMessage(HttpMethod.Get, "https://api.line.me/v2/profile"))
+							{
+								req2.Headers.Authorization =
+									new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ctx.AccessToken);
+								using var resp2 = await ctx.Backchannel.SendAsync(req2);
+								if (resp2.IsSuccessStatusCode)
+								{
+									using var doc2 = System.Text.Json.JsonDocument.Parse(await resp2.Content.ReadAsStringAsync());
+									var root = doc2.RootElement;
+
+									// 手動塞回到 claims（讓 callback 讀得到）
+									var name = root.TryGetProperty("displayName", out var n) ? n.GetString() : null;
+									var pic = root.TryGetProperty("pictureUrl", out var p) ? p.GetString() : null;
+									if (!string.IsNullOrEmpty(name)) ctx.Identity!.AddClaim(new Claim(ClaimTypes.Name, name));
+									if (!string.IsNullOrEmpty(pic)) ctx.Identity!.AddClaim(new Claim("picture", pic));
+								}
+							}
 						}
 					};
 				});
+
 
 
 			// Redis 註冊
