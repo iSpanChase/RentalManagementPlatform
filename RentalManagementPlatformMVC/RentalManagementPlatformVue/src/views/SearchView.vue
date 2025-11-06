@@ -31,6 +31,8 @@
       <button type="button" :class="['radius-btn', { active: radiusKm === 5 }]" @click="radiusKm = 5">5km</button>
       <button type="button" :class="['radius-btn', { active: radiusKm === 10 }]" @click="radiusKm = 10">10km</button>
       <button type="button" :class="['radius-btn', { active: radiusKm === 15 }]" @click="radiusKm = 15">15km</button>
+      <button type="button" :class="['radius-btn', { active: radiusKm === 30 }]" @click="radiusKm = 30">30km</button>
+      <button type="button" :class="['radius-btn', { active: radiusKm === 100 }]" @click="radiusKm = 100">100km</button>
     </div>
 
     <div v-if="isLoading">Loading...</div>
@@ -111,7 +113,15 @@ const { data: nearbyRooms, isLoading: isNearbyLoading, isError: isNearbyError } 
   queryKey: nearbyKey,
   queryFn: () => {
     if (!selectedPlace.value) return Promise.resolve([] as RoomCard[]);
-    return searchRoomsNearby(selectedPlace.value.lat, selectedPlace.value.lng, radiusKm.value, debouncedSearchKeyword.value);
+    const raw = (debouncedSearchKeyword.value ?? '').toString().trim();
+    const placeName = (selectedPlace.value?.name ?? '').toString().trim();
+    const queryForNearby = raw && raw !== placeName ? raw : undefined;
+    return searchRoomsNearby(
+      selectedPlace.value.lat,
+      selectedPlace.value.lng,
+      radiusKm.value,
+      queryForNearby,
+    );
   },
   enabled: hasSelectedPlace,
 });
