@@ -1,7 +1,7 @@
 // src/stores/bookingStore.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import api from '@/services/http'; // 使用統一的API客戶端，已集成auth處理
+import api from '@/services/http';
 
 // ==================== API 基礎設定 ====================
 const API_BASE = 'https://localhost:7230/api';
