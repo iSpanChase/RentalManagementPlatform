@@ -31,8 +31,6 @@
       <button type="button" :class="['radius-btn', { active: radiusKm === 5 }]" @click="radiusKm = 5">5km</button>
       <button type="button" :class="['radius-btn', { active: radiusKm === 10 }]" @click="radiusKm = 10">10km</button>
       <button type="button" :class="['radius-btn', { active: radiusKm === 15 }]" @click="radiusKm = 15">15km</button>
-      <button type="button" :class="['radius-btn', { active: radiusKm === 30 }]" @click="radiusKm = 30">30km</button>
-      <button type="button" :class="['radius-btn', { active: radiusKm === 100 }]" @click="radiusKm = 100">100km</button>
     </div>
 
     <div v-if="isLoading">Loading...</div>
