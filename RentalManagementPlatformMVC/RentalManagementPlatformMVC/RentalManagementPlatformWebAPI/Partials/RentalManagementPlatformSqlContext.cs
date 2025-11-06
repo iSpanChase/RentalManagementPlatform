@@ -88,7 +88,10 @@ public partial class RentalManagementPlatformSqlContext : DbContext
 				  .HasForeignKey(e => e.HostId)
 				  .HasConstraintName("FK_ROOMLIST_USER")
 				  .OnDelete(DeleteBehavior.Restrict);
-		});
+
+            // === 自動遞增設定 ===
+            entity.Property(e => e.RoomId).ValueGeneratedOnAdd();
+        });
 
 		modelBuilder.Entity<HostSubscription>(entity =>
 		{
