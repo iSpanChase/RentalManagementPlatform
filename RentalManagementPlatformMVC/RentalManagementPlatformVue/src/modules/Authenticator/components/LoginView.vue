@@ -106,6 +106,8 @@ function loginWith(provider: 'google' | 'line') {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 // 參考 Booking 模組的 SASS 變數
 $primary-color: #222;
 $secondary-color: #008489;
@@ -200,8 +202,8 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
   border-color: $secondary-color;
 
   &:hover:not(:disabled) {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -10%);
   }
 
   &:disabled {

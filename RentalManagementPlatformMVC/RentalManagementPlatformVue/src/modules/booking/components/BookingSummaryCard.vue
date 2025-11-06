@@ -178,6 +178,8 @@ const dateGuestEditor = ref(null);
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 $border-color: #ddd;
 $divider-color: #ebebeb;
 $bg-muted: #f7f7f7;
@@ -535,7 +537,7 @@ hr {
     display: block;
     text-align: start;
     &:hover {
-      color: darken($accent, 10%);
+      color: color.adjust($accent, $lightness: -10%);
     }
   }
 }

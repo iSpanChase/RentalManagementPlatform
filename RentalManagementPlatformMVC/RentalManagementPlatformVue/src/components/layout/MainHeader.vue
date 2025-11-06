@@ -218,6 +218,15 @@ const onLogout = async () => {
                   <div class="nav-section">
                     <h6 class="section-title">個人中心</h6>
                     <router-link
+                      v-if="auth.can && auth.can('RoomList.View')"
+                      to="/hosting/rooms"
+                      class="dropdown-item"
+                      @click="closeUserDropdown"
+                    >
+                      <i class="fas fa-home"></i>
+                      <span>我的房源</span>
+                    </router-link>
+                    <router-link
                       to="/my-bookings"
                       class="dropdown-item"
                       @click="closeUserDropdown"

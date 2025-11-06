@@ -614,6 +614,8 @@ const reloadData = async () => {
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 $primary-color: #222;
 $secondary-color: #008489;
 $danger-color: #d9534f;
@@ -872,8 +874,8 @@ $text-dark: #484848;
   border-color: $secondary-color;
 
   &:hover {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -10%);
   }
 }
 
@@ -884,8 +886,8 @@ $text-dark: #484848;
   box-shadow: 0 2px 8px rgba(0, 132, 137, 0.3);
 
   &:hover {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -10%);
     box-shadow: none;
   }
 
@@ -1047,8 +1049,8 @@ hr {
   border-radius: 8px;
 
   &:hover {
-    background-color: darken($text-light, 10%);
-    border-color: darken($text-light, 10%);
+    background-color: color.adjust($text-light, $lightness: -10%);
+    border-color: color.adjust($text-light, $lightness: -10%);
   }
 }
 
@@ -1108,8 +1110,8 @@ hr {
   color: white;
 
   &:hover {
-    background-color: darken($danger-color, 10%);
-    border-color: darken($danger-color, 10%);
+    background-color: color.adjust($danger-color, $lightness: -10%);
+    border-color: color.adjust($danger-color, $lightness: -10%);
   }
 }
 
