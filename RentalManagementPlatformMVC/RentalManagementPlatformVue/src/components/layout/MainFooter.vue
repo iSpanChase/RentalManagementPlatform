@@ -5,10 +5,9 @@ const currentYear = new Date().getFullYear()
 
 // 快速連結數據
 const quickLinks = ref([
-  { name: '關於我們', to: '#' },
-  { name: '房源搜尋', to: '#' },
-  { name: '服務介紹', to: '#' },
-  { name: '聯繫我們', to: '#' }
+  { name: '房源搜尋', to: '/index' },
+  { name: '房源推薦', to: '/recommendations' },
+  { name: 'FAQ', to: '#' }
 ])
 
 // 客戶支援數據
@@ -74,6 +73,7 @@ const socialLinks = ref([
           </div>
 
           <!-- Support -->
+           <!-- 
           <div class="footer-section">
             <h4 class="footer-title">客戶支援</h4>
             <ul class="footer-links">
@@ -82,7 +82,8 @@ const socialLinks = ref([
               </li>
             </ul>
           </div>
-
+            -->
+          
           <!-- Contact -->
           <div class="footer-section">
             <h4 class="footer-title">聯繫資訊</h4>
