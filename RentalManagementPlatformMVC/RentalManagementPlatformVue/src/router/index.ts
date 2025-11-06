@@ -45,16 +45,28 @@ const router = createRouter({
                     path: '/hosting/rooms/new',
                     name: 'create-room',
                     component: () => import('../views/hosting/CreateRoomView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.Create'],
+                    },
                 },
                 {
                     path: '/hosting/rooms/:id/edit',
                     name: 'edit-room',
                     component: () => import('../views/hosting/EditRoomView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.Edit'],
+                    },
                 },
                 {
                     path: '/hosting/rooms',
                     name: 'room-list',
                     component: () => import('../views/hosting/RoomListView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.View'],
+                    },
                 },
                 {
                     path: '/coupons',

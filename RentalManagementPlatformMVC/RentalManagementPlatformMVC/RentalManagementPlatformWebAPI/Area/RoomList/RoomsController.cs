@@ -31,7 +31,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("{id}/upload-image")]
-        [Authorize]
+        [Authorize(Policy = "RoomList.Edit")]
         public async Task<IActionResult> UploadImage(int id, [FromForm] UploadImageDto uploadDto)
         {
             if (uploadDto.ImageFile == null || uploadDto.ImageFile.Length == 0)
@@ -86,7 +86,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         // GET: api/Rooms/host/me
         [HttpGet("host/me")]
-        [Authorize]
+        [Authorize(Policy = "RoomList.View")]
         public async Task<ActionResult<IEnumerable<RoomSummaryResponseDto>>> GetMyRooms()
         {
             var rooms = await _queryService.GetRoomsByHostIdAsync(CurrentUserId);
@@ -108,7 +108,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         // POST: api/Rooms
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "RoomList.Create")]
         public async Task<ActionResult<RoomDetailsResponseDto>> CreateRoom([FromForm] CreateRoomRequestDto dto)
         {
             if (!ModelState.IsValid)
@@ -126,7 +126,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         // PUT: api/Rooms/5
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Policy = "RoomList.Edit")]
         public async Task<IActionResult> UpdateRoom(int id, [FromForm] UpdateRoomRequestDto dto)
         {
             if (id != dto.RoomId)
@@ -150,7 +150,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         // DELETE: api/Rooms/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Policy = "RoomList.Delete")]
         public async Task<IActionResult> DeleteRoom(int id)
         {
             if (!await _queryService.RoomListExistsAsync(id))
