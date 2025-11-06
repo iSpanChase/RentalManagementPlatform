@@ -275,7 +275,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			TryParsePasswordResetToken(string token)
 		{
 			var handler = new JwtSecurityTokenHandler();
-			var key = Encoding.UTF8.GetBytes(_cfg["Jwt:Key"]!);
+			var key = Encoding.UTF8.GetBytes(_cfg["Authentication:Jwt:Key"]!);
 
 			var parameters = new TokenValidationParameters
 			{
@@ -371,7 +371,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		{
 			var issuer = _cfg["Jwt:Issuer"];
 			var audience = _cfg["Jwt:Audience"];
-			var signingKey = _cfg["Jwt:Key"];
+			var signingKey = _cfg["Authentication:Jwt:Key"];
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey!));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -419,7 +419,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[AllowAnonymous]
 		public IActionResult DebugJwtConfig()
 		{
-			string key = _cfg["Jwt:Key"] ?? "";
+			string key = _cfg["Authentication:Jwt:Key"] ?? "";
 			return Ok(new
 			{
 				cfgIssuer = _cfg["Jwt:Issuer"],

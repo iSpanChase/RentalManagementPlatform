@@ -67,7 +67,7 @@ namespace RentalManagementPlatformWebAPI.Services
 
 			var pair = _jwt.Create(user.UserId, user.Email ?? "", user.Name ?? user.Username ?? user.Email ?? "",roleCodes, permCodes);
 
-			var days = int.TryParse(_cfg["Jwt:RefreshTokenDays"], out var d) ? d : 7;
+			var days = int.TryParse(_cfg["Authentication:Jwt:RefreshTokenDays"], out var d) ? d : 7;
 			await _refreshRepo.AddAsync(new RefreshToken
 			{
 				UserId = user.UserId,
@@ -135,7 +135,7 @@ namespace RentalManagementPlatformWebAPI.Services
 			var (roles, perms) = await GetRoleAndPermCodesAsync(user.UserId);
 			var pair = _jwt.Create(user.UserId, user.Email, user.Name ?? "", roles, perms);
 
-			var days = int.TryParse(_cfg["Jwt:RefreshTokenDays"], out var d) ? d : 7;
+			var days = int.TryParse(_cfg["Authentication:Jwt:RefreshTokenDays"], out var d) ? d : 7;
 			await _refreshRepo.AddAsync(new RefreshToken
 			{
 				UserId = user.UserId,
@@ -171,7 +171,7 @@ namespace RentalManagementPlatformWebAPI.Services
 			{
 				UserId = user.UserId,
 				Token = pair.RefreshToken,
-				ExpiresAt = DateTime.UtcNow.AddDays(int.TryParse(_cfg["Jwt:RefreshTokenDays"], out var d) ? d : 7),
+				ExpiresAt = DateTime.UtcNow.AddDays(int.TryParse(_cfg["Authentication:Jwt:RefreshTokenDays"], out var d) ? d : 7),
 				CreatedAt = DateTime.UtcNow,
 				Revoked = false
 			});
