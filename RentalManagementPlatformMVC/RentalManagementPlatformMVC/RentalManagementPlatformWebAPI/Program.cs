@@ -300,7 +300,6 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 			// DI：Email Sender（SmtpEmailSender）
-			builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
 			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 			//builder.Services.AddScoped<IEmailSender, EmailSender>();
 			builder.Services.Configure<EmailVerificationOptions>(
@@ -314,8 +313,6 @@ namespace RentalManagementPlatformWebAPI
 
 			// Swagger（補 Schema Id / JWT / DateOnly/TimeOnly 對應）
 			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
-			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
 			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
@@ -343,17 +340,10 @@ namespace RentalManagementPlatformWebAPI
 
 			builder.Services.AddScoped<IRoomListReadRepository, RoomListReadRepository>();
 			builder.Services.AddScoped<IRoomListWriteRepository, RoomListWriteRepository>();
-			builder.Services.AddScoped<IRoomListQueryService, RoomListQueryService>();
-			builder.Services.AddScoped<IRoomListCommandService, RoomListCommandService>();
-			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
 			// Meilisearch Client and Service registration
 			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
 			builder.Services.AddScoped<MeilisearchService>();
 
-			// MinIO Client and Service registration
-			builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
-			builder.Services.AddSingleton<IMinioService, MinioService>();
-			builder.Services.AddScoped<IFileUrlResolver, FileUrlResolver>();
 			//builder.Services.AddScoped<IImageUrlResolver, ImageUrlResolver>(); // Register the new ImageUrlResolver
 
 			// Swagger ]   Schema Id / JWT / DateOnly/TimeOnly      ^
@@ -412,27 +402,10 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 			builder.Services.AddScoped<IPropertyService, PropertyService>();
 
-			builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-			builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-			builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-			builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
-			builder.Services.AddScoped<IUserRepository, UserRepository>();
-			builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
-			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-			builder.Services.AddScoped<IBookingService, BookingService>();
-			builder.Services.AddScoped<IPaymentsService, PaymentsService>();
-
 			// DI：Domain Services
 			builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<User>,
 									   Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
-			builder.Services.AddScoped<IAuthService, AuthService>();
-			builder.Services.AddScoped<IUserService, UserService>();
-			builder.Services.AddScoped<IRoleService, RoleService>();
-			builder.Services.AddScoped<IPermissionService, PermissionService>();
-			builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 			builder.Services.AddScoped<ECPayService>();
-			builder.Services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
 
 			builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 			builder.Services.AddProblemDetails(); // 問題詳情中介軟體
