@@ -299,6 +299,8 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 			builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+			builder.Services.Configure<SmtpOptions>(
+			builder.Configuration.GetSection("Email:Smtp"));
 			// DI：Email Sender（SmtpEmailSender）
 			builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 			//builder.Services.AddScoped<IEmailSender, EmailSender>();

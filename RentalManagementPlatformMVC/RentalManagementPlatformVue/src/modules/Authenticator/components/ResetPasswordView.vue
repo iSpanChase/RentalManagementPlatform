@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
@@ -87,6 +87,27 @@ const showPwd  = ref<boolean>(false)
 const loading  = ref(false)
 const errorMsg = ref('')
 const okMsg    = ref('')
+
+const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const errors = reactive<{ password?: string }>({})
+
+function validatePassword(pw: string) {
+  if (!pw) return '請輸入新密碼';
+  if (!PASSWORD_RULE.test(pw)) return '密碼需至少 8 碼，且包含英文大小寫與數字';
+  return null;
+}
+
+async function onReset() {
+  const err = validatePassword(password.value);
+  if (err) { errors.password = err; return; }
+  if (password.value !== confirm.value) {
+    errors.password = '確認密碼與新密碼不一致';
+    return;
+  }
+  errors.password = undefined;
+
+  // 呼叫 POST /api/Auth/reset-password，帶 { token, newPassword, email }
+}
 
 /** 把整條 URL 或 "token=xxx&email=..." 等型態抽成純 JWT */
 function normalizeToken(input: string | null): string {

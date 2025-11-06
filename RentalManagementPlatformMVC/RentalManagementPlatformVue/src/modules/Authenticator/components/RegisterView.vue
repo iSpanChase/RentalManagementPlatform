@@ -42,7 +42,8 @@
 
           <div class="form-group">
             <label for="birthDate">生日</label>
-            <input id="birthDate" v-model="form.birthDate" type="date" required class="form-control" />
+            <input id="birthDate" v-model="form.birthDate" type="date" required :max="todayStr" class="form-control"/>
+            <p v-if="errors.birthDate" class="error-text">{{ errors.birthDate }}</p>
           </div>
 
           <div class="form-group form-group-full">
@@ -53,16 +54,18 @@
           <div class="form-group">
             <label for="password">密碼</label>
             <div class="input-group">
-              <input :type="showPwd ? 'text' : 'password'" v-model="form.passwordHash" required minlength="6" autocomplete="new-password" placeholder="至少 6 碼" class="form-control" />
+              <input :type="showPwd ? 'text' : 'password'" v-model="form.passwordHash" required minlength="8" autocomplete="new-password" placeholder="至少 8 碼，需含英文大寫與小寫" class="form-control" />
               <button type="button" class="btn-toggle-visibility" @click="showPwd = !showPwd">
                 {{ showPwd ? '隱藏' : '顯示' }}
               </button>
+              <p v-if="errors.password" class="error-text">{{ errors.password }}</p>
             </div>
           </div>
 
           <div class="form-group">
             <label for="confirmPassword">確認密碼</label>
-            <input id="confirmPassword" :type="showPwd ? 'text' : 'password'" v-model="form.confirmPassword" required minlength="6" autocomplete="new-password" placeholder="再次輸入密碼" class="form-control" />
+            <input id="confirmPassword" :type="showPwd ? 'text' : 'password'" v-model="form.confirmPassword" required minlength="8" autocomplete="new-password" placeholder="再次輸入密碼" class="form-control" />
+            <p v-if="errors.password" class="error-text">{{ errors.password }}</p>
           </div>
         </div>
 
@@ -109,6 +112,30 @@ const msg = ref('')
 const ok = ref(false)
 const showPwd = ref(false)
 
+const today = new Date();
+today.setHours(0,0,0,0);
+// 今天字串（給 <input type="date"> 的 max 用）
+const todayStr = new Date().toISOString().slice(0, 10)
+
+// 驗證錯誤訊息容器
+const errors = reactive<{ birthDate?: string; password?: string }>({})
+// 密碼規則：至少 8 碼，且包含英文大寫與小寫
+const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/
+
+function validateBirth(dateStr: string) {
+  if (!dateStr) return '請選擇生日';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return '生日格式不正確';
+  if (d.getTime() > today.getTime()) return '生日不可晚於今天';
+  return null;
+}
+
+function validatePassword(pw: string) {
+  if (!pw) return '請輸入密碼'
+  if (!PASSWORD_RULE.test(pw)) return '密碼需至少 8 碼，且包含英文大寫與小寫'
+  return null
+}
+
 function normalizeYmd(v: string | null | undefined): string | null {
   if (v == null) return null
   const s = String(v).trim()
@@ -125,6 +152,12 @@ function normalizeYmd(v: string | null | undefined): string | null {
 const handleSubmit = async () => {
   msg.value = ''
   ok.value = false
+
+  errors.birthDate = validateBirth(form.birthDate) || undefined
+  errors.password  = validatePassword(form.passwordHash) || undefined
+  if (errors.birthDate || errors.password) {
+    return // 終止送出，等使用者修正
+  }
 
   const missing: string[] = []
   if (!form.roleCode) missing.push('角色')
@@ -388,5 +421,6 @@ select.form-control {
   }
 }
 
+.error-text { color: #dc2626; font-size: 13px; margin-top: 6px; }
 </style>
 

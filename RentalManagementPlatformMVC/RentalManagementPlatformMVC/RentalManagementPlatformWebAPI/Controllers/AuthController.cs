@@ -133,6 +133,10 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[AllowAnonymous]
 		public async Task<ActionResult<UserProfileDto>> Register([FromBody] RegistrationRequestDto dto)
 		{
+			// ✅ 後端擋：生日不可晚於今天（用 UTC Date 比較，避免時區誤差）
+			if (dto.BirthDate.Date > DateTime.UtcNow.Date)
+				return BadRequest(new { message = "生日不可晚於今天" });
+
 			try
 			{
 				var result = await _userService.RegisterAsync(dto);
@@ -318,6 +322,10 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		{
 			if (string.IsNullOrWhiteSpace(req.Token) || string.IsNullOrWhiteSpace(req.NewPassword))
 				return BadRequest(new { message = "參數不完整" });
+
+			// ✅ 密碼強度檢查（重設密碼也必須符合）
+			if (!System.Text.RegularExpressions.Regex.IsMatch(req.NewPassword, "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$"))
+				return BadRequest(new { message = "密碼需至少 8 碼，且包含英文大小寫與數字" });
 
 			var raw = NormalizeToken(req.Token);
 
