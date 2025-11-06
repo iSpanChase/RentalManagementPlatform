@@ -1,17 +1,14 @@
 <template>
   <div class="search-view">
-    <h1 class="page-title">Explore Rooms</h1>
+    <h1 class="page-title">搜尋房源與熱門景點</h1>
 
-  <div class="search-bar">
-      <div class="search-controls">
-        <div class="input-with-dropdown" ref="containerRef">
-          <input
-            type="text"
-            v-model="searchKeyword"
+  <div class="search-bar mx-auto pt-4">
+      <div class="search-pill">
+        <div class="seg input-with-dropdown" ref="containerRef">
+          <input type="text" class="search-input" style="border: none; outline: none; font-size: 18px;" v-model="searchKeyword"
             placeholder="搜尋房源或景點..."
             @focus="dropdownOpen = true"
-            @keydown.esc="dropdownOpen = false"
-          />
+            @keydown.esc="dropdownOpen = false"/>
           <ul v-if="dropdownOpen && showPlaceDropdown" class="dropdown" ref="dropdownRef">
             <li v-for="p in placeOptions" :key="p.name + p.lat" @mousedown.prevent.stop="selectPlace(p)">
               {{ p.name }}
@@ -248,28 +245,54 @@ watch(searchKeyword, (val) => {
   padding: 0;
   background: none;
   color: #212529;
-  text-align: left;
+  text-align: center;
   font-size: 2rem;
+  letter-spacing: 0.1em;
   line-height: 1.2;
   font-weight: 600;
 }
 
 .search-bar {
+  width: 50%;
   margin-bottom: 2rem;
 }
 
-.search-controls {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.5rem;
+.seg {
   position: relative;
+  padding: 10px 16px;
+  min-width: 0; /* 讓 input 能縮放 */
+  flex: 1 1 auto;
+}
+
+.search-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid transparent;
+  outline: none;
+  border-radius: 40px;
+  padding: 4px;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.06),
+    0 4px 12px rgba(0,0,0,0.08);
+  transition: box-shadow .15s ease, transform .06s ease;
+}
+.search-pill:hover {
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.08),
+    0 12px 20px rgba(0,0,0,0.1);
+}
+
+.search-input::placeholder{
+  color: rgb(180, 180, 180);
 }
 
 .input-with-dropdown input {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 8px;
 }
 

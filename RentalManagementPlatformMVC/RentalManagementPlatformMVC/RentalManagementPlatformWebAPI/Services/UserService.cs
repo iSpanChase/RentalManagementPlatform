@@ -44,6 +44,10 @@ namespace RentalManagementPlatformWebAPI.Services
 			if (exist != null) throw new InvalidOperationException("Email 已被使用");
 			var existUsername = await _users.Query().AnyAsync(u => u.Username == dto.Username);
 			if (existUsername) throw new InvalidOperationException("此帳號已被使用");
+			var pw = dto.PasswordHash ?? "";
+			// ✅ 密碼強度檢查
+			if (!System.Text.RegularExpressions.Regex.IsMatch(pw, "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$"))
+				throw new InvalidOperationException("密碼需至少 8 碼，且包含英文大小寫與數字");
 
 			var user = new User
 			{
@@ -60,7 +64,7 @@ namespace RentalManagementPlatformWebAPI.Services
 				CreatedAt = DateTime.UtcNow
 			};
 
-			user.PasswordHash = _hasher.HashPassword(user, dto.PasswordHash);
+			user.PasswordHash = _hasher.HashPassword(user, pw);
 
 			await _users.AddAsync(user);
 

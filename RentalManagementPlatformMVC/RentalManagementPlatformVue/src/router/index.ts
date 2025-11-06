@@ -71,7 +71,11 @@ const router = createRouter({
                 {
                     path: '/coupons',
                     name: 'coupons',
-                    component: CouponCenterView
+                    component: CouponCenterView,
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['Coupon.View'],
+                    },
                 },
                 {
                     path: '/checkout',

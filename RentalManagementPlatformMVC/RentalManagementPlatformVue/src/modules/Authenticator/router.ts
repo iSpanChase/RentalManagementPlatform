@@ -2,7 +2,7 @@ export default [
   {
     path: '/auth',
     name: 'auth',
-    component: () => import('./layouts/AuthenticatorLayout.vue'),
+    component: () => import('@/layouts/MainLayout.vue'),
     children: [
       {
         path: 'reviewoperators',
