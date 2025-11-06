@@ -12,6 +12,21 @@ CREATE TABLE [PASSWORD_RESET_TOKENS] (
 CREATE INDEX IX_RESET_user ON PASSWORD_RESET_TOKENS(user_id);
 GO
 
+CREATE TABLE [EXTERNAL_LOGINS](
+    [external_login_id] BIGINT IDENTITY(1,1) PRIMARY KEY NOT NULL,
+    [user_id] INT NOT NULL,
+    [provider] NVARCHAR(50) NOT NULL,     -- 'Google' / 'LINE'
+    [provider_user_id] NVARCHAR(256) NOT NULL,    -- Google sub / LINE userId
+    [email] NVARCHAR(256) NULL,
+    [display_name] NVARCHAR(256) NULL,
+    [picture_url] NVARCHAR(1024) NULL,
+    [created_at] DATETIME2(0) NOT NULL DEFAULT SYSUTCDATETIME(),
+)
+GO
+
+CREATE UNIQUE INDEX UX_EXTERNAL_LOGINS_PROVIDER_PROVIDER_USER_ID ON dbo.[EXTERNAL_LOGINS]([provider], [provider_user_id]);
+GO
+
 CREATE TABLE [EMAIL_VERIFICATIONS] (
   [token_id] int IDENTITY(1,1) PRIMARY KEY NOT NULL,
   [user_id] int NOT NULL,

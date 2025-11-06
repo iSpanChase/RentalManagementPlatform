@@ -27,6 +27,12 @@
           <span v-else>登入</span>
         </button>
       </form>
+        <button class="btn btn-outline-dark w-100 mb-2" @click="loginWith('google')">
+            使用 Google 登入
+        </button>
+        <button class="btn btn-success w-100" @click="loginWith('line')">
+            使用 LINE 登入
+        </button>
     </div>
   </div>
 </template>
@@ -82,9 +88,18 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+const API_BASE   = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7230/api'
+const RETURN_URL = '/auth/callback' // 或 import.meta.env.VITE_OAUTH_RETURN_URL
+
+function loginWith(provider: 'google' | 'line') {
+  const redirect = encodeURIComponent(RETURN_URL + (location.search || ''))
+  window.location.href = `${API_BASE}/auth/oauth/${provider}/challenge?returnUrl=${redirect}`
+}
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 // 參考 Booking 模組的 SASS 變數
 $primary-color: #222;
 $secondary-color: #008489;
@@ -179,8 +194,8 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
   border-color: $secondary-color;
 
   &:hover:not(:disabled) {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -10%);
   }
 
   &:disabled {

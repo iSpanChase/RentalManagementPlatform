@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import apiClient from '@/api/axiosInstance';
-import type { OccupancyConfig } from '../../api/reportForm';
+import type { OccupancyConfig } from '@/modules/ReportForm/api/reportForm';
 
 const props = defineProps<{ modelValue: OccupancyConfig }>();
 const emit = defineEmits(['update:modelValue']);

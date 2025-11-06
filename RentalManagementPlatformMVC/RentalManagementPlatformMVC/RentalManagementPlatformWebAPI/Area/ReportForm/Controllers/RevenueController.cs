@@ -15,7 +15,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ReportCards.View")]
     public class RevenueController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;

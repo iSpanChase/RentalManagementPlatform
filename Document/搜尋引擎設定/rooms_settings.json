@@ -19,14 +19,16 @@
     "amenities",
     "host_name",
     "is_deleted",
-    "status"
-  ],
+    "status",
+    "_geo"
+    ],
   "sortableAttributes": [
     "price_per_night",
     "rating_avg",
     "reviews_count",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "_geo"
   ],
   "rankingRules": [
     "words",

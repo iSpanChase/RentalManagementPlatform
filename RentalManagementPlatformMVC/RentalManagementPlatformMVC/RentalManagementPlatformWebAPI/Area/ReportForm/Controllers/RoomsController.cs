@@ -11,7 +11,6 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    [Authorize]
     public class RoomsController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
@@ -22,6 +21,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         }
 
         [HttpGet("ForHost")]
+        [Authorize(Policy = "ReportCards.View")]
         public async Task<IActionResult> GetRoomsForHost()
         {
             int hostId = CurrentUserId;

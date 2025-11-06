@@ -2,7 +2,7 @@
   <div class="search-view">
     <h1 class="page-title">My Rooms</h1>
     <div class="search-bar">
-      <button class="btn btn-primary" @click="goToCreateRoom">Add New Room</button>
+      <button v-if="canCreate" class="btn btn-primary" @click="goToCreateRoom">Add New Room</button>
     </div>
 
     <div v-if="isLoading">Loading...</div>
@@ -14,8 +14,8 @@
           <RoomCardComponent :room="room" />
         </router-link>
         <div class="card-actions">
-          <router-link :to="`/hosting/rooms/${room.roomId}/edit`" class="btn btn-sm btn-outline-primary">Edit</router-link>
-          <button @click="deleteRoom(room.roomId)" class="btn btn-sm btn-outline-danger">Delete</button>
+          <router-link v-if="canEdit" :to="`/hosting/rooms/${room.roomId}/edit`" class="btn btn-sm btn-outline-primary">Edit</router-link>
+          <button v-if="canDelete" @click="deleteRoom(room.roomId)" class="btn btn-sm btn-outline-danger">Delete</button>
         </div>
       </div>
     </div>
@@ -27,7 +27,8 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onActivated, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { getMyRooms, deleteRoom as deleteRoomApi } from '@/api/roomApi';
 import { fetchRoomDetail, mapRoomDetailToCard, type RoomCard, type RoomDetail } from '@/api/roomSearchApi';
@@ -45,6 +46,10 @@ interface RoomCardViewModel {
 }
 
 const router = useRouter();
+const auth = useAuthStore();
+const canCreate = computed(() => !!(auth?.can && auth.can('RoomList.Create')));
+const canEdit = computed(() => !!(auth?.can && auth.can('RoomList.Edit')));
+const canDelete = computed(() => !!(auth?.can && auth.can('RoomList.Delete')));
 const roomCards = ref<RoomCard[]>([]);
 const isLoading = ref(true);
 const isError = ref(false);
@@ -102,8 +107,12 @@ const fetchRooms = async () => {
       }
     });
 
-    const resolvedCards = await Promise.all(detailPromises);
-    roomCards.value = resolvedCards.filter((card): card is RoomCard => card !== null);
+    const settled = await Promise.allSettled(detailPromises);
+    const successful = settled
+      .filter((r): r is PromiseFulfilledResult<RoomCard | null> => r.status === 'fulfilled')
+      .map(r => r.value)
+      .filter((card): card is RoomCard => card !== null);
+    roomCards.value = successful;
   } catch (error) {
     console.error('Error fetching rooms:', error);
     isError.value = true;
@@ -135,6 +144,11 @@ const goToCreateRoom = () => {
 };
 
 onMounted(() => {
+  fetchRooms();
+});
+
+// 若頁面被 keep-alive 或從其他頁返回，再次進入時重新抓取資料
+onActivated(() => {
   fetchRooms();
 });
 </script>

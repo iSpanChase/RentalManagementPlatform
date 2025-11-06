@@ -1,0 +1,3 @@
+dotnet user-secrets set "Authentication:Google:ClientId" "782463037185-3b2ccvbidjf5fds7lp33rlqgn20a68p2.apps.googleusercontent.com"
+
+dotnet user-secrets set "Authentication:Google:ClientSecret" "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"

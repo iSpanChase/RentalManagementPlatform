@@ -72,11 +72,13 @@ const visiblePages = computed(() => {
 });
 
 const showStartEllipsis = computed(() => {
-    return visiblePages.value.length > 0 && visiblePages.value[0] > 1;
+    const firstVisible = visiblePages.value[0];
+    return firstVisible !== undefined && firstVisible > 1;
 });
 
 const showEndEllipsis = computed(() => {
-    return visiblePages.value.length > 0 && visiblePages.value[visiblePages.value.length - 1] < props.totalPages;
+    const lastVisible = visiblePages.value[visiblePages.value.length - 1];
+    return lastVisible !== undefined && lastVisible < props.totalPages;
 });
 
 </script>

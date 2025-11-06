@@ -14,17 +14,20 @@ namespace RentalManagementPlatformWebAPI.Services
 		private readonly IRoleRepository _roles;
 		private readonly Microsoft.AspNetCore.Identity.IPasswordHasher<User> _hasher;
 		private readonly IWebHostEnvironment _env;
+		private readonly RentalManagementPlatformSqlContext _db;
 
 		public UserService(
 			IUserRepository users,
 			IRoleRepository roles,
 			Microsoft.AspNetCore.Identity.IPasswordHasher<User> hasher,
-			IWebHostEnvironment env)
+			IWebHostEnvironment env,
+			RentalManagementPlatformSqlContext db)
 		{
 			_users = users;
 			_roles = roles;
 			_hasher = hasher;
 			_env = env;
+			_db = db;
 		}
 
 		private static int GetUserIdFromClaims(ClaimsPrincipal principal)
@@ -150,6 +153,150 @@ namespace RentalManagementPlatformWebAPI.Services
 			if (string.IsNullOrWhiteSpace(email)) return null;
 			var user = await _users.GetByEmailAsync(email.Trim());
 			return user?.UserId;
+		}
+
+		public async Task<UserProfileDto> FindOrCreateFromExternalAsync(ExternalProfileDto dto)
+		{
+			// 標準化 provider / subject（LINE 常見沒 email 的情況，靠這對鍵才能找到同一人）
+			var provider = (dto.Provider ?? "").Trim();
+			var subject = (dto.ProviderUserId ?? "").Trim();
+
+			// 0) 先用 ExternalLogins 查（最穩）
+			if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(subject))
+			{
+				var link = await _db.ExternalLogins
+					.Include(x => x.User)
+					.FirstOrDefaultAsync(x => x.Provider == provider && x.ProviderUserId == subject);
+				if (link?.User != null)
+					return Map(link.User); // 直接回既有帳號
+			}
+			// 1) 有 email：先嘗試以 email 合併既有帳號
+			User? user = null;
+			if (!string.IsNullOrWhiteSpace(dto.Email))
+			{
+				user = await _users.GetByEmailAsync(dto.Email.Trim());
+			}
+
+			// 2) 沒找到 → 建立新帳號（第三方註冊）
+			if (user == null)
+			{
+				// 若沒 email（LINE 常見），合成一個 email 以通過 NOT NULL/UNIQUE 約束
+				var emailSafe = string.IsNullOrWhiteSpace(dto.Email)
+					? $"{(dto.Provider ?? "ext").ToLowerInvariant()}_{Guid.NewGuid():N}@externallogin.local"
+					: dto.Email!.Trim();
+
+				// 以 email local-part 做 base username，確保唯一
+				var baseUsername = (emailSafe.Split('@').FirstOrDefault() ?? "user").ToLowerInvariant();
+				var username = baseUsername;
+				int suffix = 0;
+				while (await _users.Query().AnyAsync(u => u.Username == username))
+					username = $"{baseUsername}{++suffix}";
+
+				user = new User
+				{
+					Email = emailSafe,
+					Name = string.IsNullOrWhiteSpace(dto.DisplayName) ? emailSafe : dto.DisplayName!,
+					Username = username,
+
+					// ★ 這些欄位若你的 DB 是 NOT NULL，就不要寫 null
+					Gender = "",                 // 或 "U"
+					BirthDate = default,          // 若資料表允許 NULL 可改成 null
+					Address = "",
+					Phone = "",
+					ProfileImageurl = dto.PictureUrl ?? "",
+
+					Provider = dto.Provider ?? "External",
+					ProviderSubject = subject,
+					Isverified = !string.IsNullOrWhiteSpace(dto.Email),
+					CreatedAt = DateTime.UtcNow,
+
+					// ★ 若 PasswordHash 欄位是 NOT NULL，請改成固定字串（例如 "EXTERNAL_ONLY"）
+					PasswordHash = "EXTERNAL_ONLY"
+				};
+
+				await _users.AddAsync(user);
+
+				// === 決定要指派的角色代碼（全部轉大寫以配合 DB 的 RoleCode） ===
+				string targetRoleCode = "TENANT"; // 預設
+
+				if (!string.IsNullOrWhiteSpace(dto.Email) &&
+					dto.Email.EndsWith("@mycorp.com", StringComparison.OrdinalIgnoreCase))
+				{
+					targetRoleCode = "HOST";
+				}
+
+				// 若你有供應商白名單，可加上
+				// if (supplierEmails.Contains(dto.Email?.ToLowerInvariant())) targetRoleCode = "SUPPLIER";
+
+				// === 角色存在才指派 ===
+				var role = await _roles.GetByCodeAsync(targetRoleCode);
+				if (role != null)
+				{
+					await _roles.AssignUserAsync(role.RoleId, user.UserId);
+				}
+
+				await _users.SaveChangesAsync();
+			}
+			else
+			{
+				// 若合併既有帳號，順便補 Provider/Subject（若你的 User 有這兩欄）
+				if (!string.IsNullOrEmpty(subject))
+				{
+					user.Provider = provider;
+					user.ProviderSubject = subject;
+					await _users.SaveChangesAsync();
+				}
+			}
+
+			// 3) ★建立 ExternalLogins 關聯（關鍵：避免下次再重覆建）
+			if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(subject))
+			{
+				var exists = await _db.ExternalLogins
+					.AnyAsync(x => x.Provider == provider && x.ProviderUserId == subject);
+				if (!exists)
+				{
+					_db.ExternalLogins.Add(new ExternalLogin
+					{
+						UserId = user.UserId,
+						Provider = provider,
+						ProviderUserId = subject,
+						Email = dto.Email,
+						DisplayName = dto.DisplayName,
+						PictureUrl = dto.PictureUrl,
+						CreatedAt = DateTime.UtcNow,
+					});
+					await _db.SaveChangesAsync();
+				}
+			}
+
+			return Map(user!);
+		}
+
+		public async Task<UserProfileDto> CompleteExternalAsync(int userId, CompleteExternalDto dto)
+		{
+			var user = await _users.GetByIdAsync(userId) ?? throw new UnauthorizedAccessException();
+
+			// 僅當前帳號原本沒有 Email 時才允許補
+			if (string.IsNullOrWhiteSpace(user.Email))
+			{
+				// 檢查新 email 是否被使用
+				var exist = await _users.GetByEmailAsync(dto.Email.Trim());
+				if (exist != null && exist.UserId != userId)
+					throw new InvalidOperationException("Email 已被其他帳號使用");
+
+				user.Email = dto.Email.Trim();
+				user.Isverified = true;                      // 你也可以改為：寄驗證信 → 驗證成功再改 true
+			}
+
+			if (!string.IsNullOrWhiteSpace(dto.DisplayName) && string.IsNullOrWhiteSpace(user.Name))
+				user.Name = dto.DisplayName;
+
+			if (!string.IsNullOrWhiteSpace(dto.Phone) && string.IsNullOrWhiteSpace(user.Phone))
+				user.Phone = dto.Phone;
+
+			user.UpdatedAt = DateTime.UtcNow;
+			await _users.SaveChangesAsync();
+			return Map(user);
 		}
 
 		// === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
