@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!authStore.shouldHideCouponFeature">
+  <div>
        <!-- 這是一個臨時的 div，用來確保 Tailwind JIT
       編譯器能生成我們需要的樣式，之後可以移除 -->
       <div class="hidden">
@@ -68,9 +68,6 @@
       </template>
     </BaseModal>
   </div>
-  </div>
-  <div v-else class="text-center p-10">
-    <h1 class="text-xl text-gray-600">此功能不適用於目前帳戶。</h1>
   </div>
 </template>
 

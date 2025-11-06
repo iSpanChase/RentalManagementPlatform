@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using System.Collections.Generic;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {
@@ -46,7 +47,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("redeem")]
-        [Authorize(Policy = "CanClaimCoupons")]
+        [Authorize]
         public async Task<IActionResult> RedeemPromoCode([FromBody] RedeemPromoCodeRequestDto request)
         {
             // TODO: 加上 [Authorize] 標籤
@@ -78,7 +79,6 @@ namespace RentalManagementPlatformWebAPI.Controllers
                 return StatusCode(500, new { message = "讀取優惠券列表時發生錯誤。" });
             }
         }
-
         [HttpGet("my-coupons")]
         [Authorize]
         public async Task<IActionResult> GetMyCoupons()

@@ -59,7 +59,11 @@ const router = createRouter({
         {
           path: '/coupons',
           name: 'coupons',
-          component: CouponCenterView
+          component: CouponCenterView,
+          meta: {
+            requiresAuth: true,
+            requiresNotHost: true,
+          },
         },
         {
           path: '/checkout',
@@ -156,6 +160,13 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAuth) {
     if (auth.isAuthenticated.value) {
       await ensureProfileLoaded()
+      // 檢查是否需要排除房東
+      if (to.meta.requiresNotHost) {
+        const isHost = auth.state.roles?.includes('HOST') || false;
+        if (isHost) {
+          return { name: 'forbidden' };
+        }
+      }
       return true
     }
 
@@ -166,12 +177,28 @@ router.beforeEach(async (to) => {
           const ok = await auth.refreshSession()
           if (ok) {
             await ensureProfileLoaded()
+            // 檢查是否需要排除房東
+            if (to.meta.requiresNotHost) {
+              const isHost = auth.state.roles?.includes('HOST') || false;
+              if (isHost) {
+                return { name: 'forbidden' };
+              }
+            }
             return true
           }
         }
         // 即使不能 refresh，也試著拉一次 profile（若後端允許）
         await auth.fetchProfile()
-        if (auth.isAuthenticated.value) return true
+        if (auth.isAuthenticated.value) {
+          // 檢查是否需要排除房東
+          if (to.meta.requiresNotHost) {
+            const isHost = auth.state.roles?.includes('HOST') || false;
+            if (isHost) {
+              return { name: 'forbidden' };
+            }
+          }
+          return true
+        }
       } catch {
         // 失敗就當作未登入處理
       }

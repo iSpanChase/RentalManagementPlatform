@@ -181,11 +181,11 @@ const isAuthenticated = computed(() => !!state.accessToken && !isTokenExpired.va
 const canRefresh = computed(() => !!state.refreshToken)
 
 /**
- * 檢查使用者是否為管理員或房東，以決定是否隱藏優惠券功能
+ * 檢查使用者是否為房東，以決定是否隱藏優惠券功能
  */
 const shouldHideCouponFeature = computed(() => {
   if (!state.roles) return false;
-  return state.roles.includes('ADMIN') || state.roles.includes('OPERATOR') || state.roles.includes('HOST');
+  return state.roles.includes('HOST');
 });
 
 const login = async (request: LoginRequest) => {
