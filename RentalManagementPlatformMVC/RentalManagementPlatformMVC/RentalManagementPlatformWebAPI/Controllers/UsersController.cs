@@ -15,7 +15,14 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[HttpPost("register")]
 		[AllowAnonymous]
 		public async Task<ActionResult<UserProfileDto>> Register([FromBody] RegistrationRequestDto dto)
-			=> Ok(await _svc.RegisterAsync(dto));
+		{
+			// 用 UTC 的 Date 比較，避免時區誤差
+			if (dto.BirthDate.Date > DateTime.UtcNow.Date)
+				return BadRequest(new { message = "生日不可晚於今天" });
+
+			var created = await _svc.RegisterAsync(dto);
+			return Ok(created);
+		}
 
 		[HttpGet("me")]
 		[Authorize]
@@ -25,7 +32,13 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[HttpPut("me")]
 		[Authorize]
 		public async Task<ActionResult<UserProfileDto>> Update([FromBody] UpdateProfileDto dto)
-			=> Ok(await _svc.UpdateProfileAsync(User, dto));
+		{
+			if (dto.BirthDate.Date > DateTime.UtcNow.Date)
+				return BadRequest(new { message = "生日不可晚於今天" });
+
+			var updated = await _svc.UpdateProfileAsync(User, dto);
+			return Ok(updated); // 你服務目前回傳 UserProfileDto，就維持 200 OK
+		}
 
 		[HttpPost("me/avatar")]
 		[Authorize]

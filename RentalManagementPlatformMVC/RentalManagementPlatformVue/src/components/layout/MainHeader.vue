@@ -1,5 +1,5 @@
-<script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+<script setup lang="ts">
+import { computed, ref, onMounted, onUnmounted, watch, isRef } from 'vue'
 import { useWindowScroll } from '@vueuse/core'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -7,6 +7,8 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+
+const { state } = auth
 
 const { y } = useWindowScroll()
 const isSticky = computed(() => y.value > 100)
@@ -19,53 +21,84 @@ const isLoggedIn = computed(() =>
   !!auth.state?.accessToken
 )
 
+const profile = computed<any | null>(() => {
+  const anyAuth = auth as any
+  return anyAuth?.state?.profile ?? anyAuth?.profile ?? null
+})
+
+/** 從 profile 中取出第一個有值的頭像欄位（包含你提到的 ProfileImageurl） */
+const rawAvatarUrl = computed<string>(() => {
+  const p = profile.value || {}
+  return (
+    p.avatarUrl ??
+    p.profileImageUrl ??      // 常見駝峰
+    p.ProfileImageurl ??      // 你後端目前的命名（大小寫不一樣也支援）
+    p.profile_image_url ??    // 常見底線
+    ''
+  )
+})
+
 /** 目前頁面的完整路徑（登入後可導回） */
 const currentPath = computed(() => route.fullPath)
 
-/** 顯示名稱：優先顯示 profile.name，其次 email */
-const displayName = computed(() =>
-  auth.state?.profile?.name ||
-  auth.state?.profile?.email ||
-  '已登入'
-)
 
-/** 用戶頭像 URL */
+/** 加上版本參數避免快取（優先用 updatedAt，否則用 Date.now()） */
 const userAvatarUrl = computed(() => {
-  return auth.state?.profile?.avatarUrl || auth.state?.profile?.avatar || null
+  const url = rawAvatarUrl.value
+  if (!url) return ''
+  const ver = profile.value?.updatedAt
+    ? new Date(profile.value.updatedAt).getTime()
+    : Date.now()
+  return url.includes('?') ? `${url}&v=${ver}` : `${url}?v=${ver}`
 })
 
-/** 用戶姓名縮寫（當沒有頭像時使用） */
+
+/** 以 avatarUrl + updatedAt 生成 key，任何變動都會強制重掛 <img> */
+const avatarKey = computed(() => {
+  const u = rawAvatarUrl.value
+  const t = profile.value?.updatedAt ?? ''
+  return `${u}-${t}`
+})
+
+// 失敗旗標（小/大頭像各一）
+const imageFailedSmall = ref(false)
+const imageFailedLarge = ref(false)
+const onAvatarErrorSmall = () => { imageFailedSmall.value = true }
+const onAvatarErrorLarge = () => { imageFailedLarge.value = true }
+
+// 每次 URL 變動就清旗標，重新嘗試載入
+watch(() => userAvatarUrl.value, () => {
+  imageFailedSmall.value = false
+  imageFailedLarge.value = false
+})
+
+// 顯示名稱 & 縮寫（安全索引）
+const displayName = computed(() => {
+  const p = profile.value
+  return (p?.displayName ?? p?.name ?? '訪客') as string
+})
 const userInitials = computed(() => {
-  const name = auth.state?.profile?.name
-  if (name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
-  const email = auth.state?.profile?.email
-  if (email) {
-    return email[0].toUpperCase()
-  }
-  return 'U'
+  const n = (displayName.value ?? '').trim()
+  if (!n) return 'U'
+  const parts = n.split(/\s+/)
+  const first = parts[0]?.[0] ?? n[0] ?? ''
+  const last  = parts.length >= 2 ? (parts[parts.length - 1]?.[0] ?? '') : ''
+  const combo = (first + last).toUpperCase()
+  return combo || (n[0]?.toUpperCase() ?? 'U')
 })
-
-/** 儀表板路由名稱 */
-const dashboardRouteName = 'dashboard'
-
-/** 控制用戶下拉選單的顯示狀態 */
-const showUserDropdown = ref(false)
 
 /** 切換下拉選單 */
 const toggleUserDropdown = () => {
   showUserDropdown.value = !showUserDropdown.value
 }
 
-/** 關閉下拉選單 */
-const closeUserDropdown = () => {
-  showUserDropdown.value = false
-}
-
 /** 點擊外部關閉下拉選單 */
-const handleClickOutside = (event) => {
-  const container = event.target.closest('.user-dropdown-container')
+const showUserDropdown = ref(false)
+const closeUserDropdown = () => { showUserDropdown.value = false }
+
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+  const container = target?.closest?.('.user-dropdown-container')
   if (!container && showUserDropdown.value) {
     closeUserDropdown()
   }
@@ -103,10 +136,12 @@ const onLogout = async () => {
       }
 
       // 3) 若 isAuthenticated 是 ref，安全地設為 false
-      if (isRef(auth.isAuthenticated)) {
-        auth.isAuthenticated.value = false
-      }
-    }
+    const anyAuth = auth as any
+    if (typeof anyAuth.isAuthenticated === 'boolean') {
+      anyAuth.isAuthenticated = false
+    } else if (isRef(anyAuth.isAuthenticated)) {
+      anyAuth.isAuthenticated.value = false
+    }}
   } catch (err) {
     console.warn('登出時發生錯誤：', err)
   } finally {
@@ -143,11 +178,12 @@ const onLogout = async () => {
               >
                 <div class="user-avatar">
                   <img
-                    v-if="userAvatarUrl"
+                    v-if="userAvatarUrl && !imageFailedSmall"
+                    :key="avatarKey + '-sm1'"
                     :src="userAvatarUrl"
                     :alt="displayName"
                     class="avatar-image"
-                    @error="$event.target.style.display = 'none'"
+                    @error="onAvatarErrorSmall"
                   />
                   <span v-else class="avatar-initials">{{ userInitials }}</span>
                 </div>
@@ -161,13 +197,14 @@ const onLogout = async () => {
                   <div class="user-info">
                     <div class="avatar-large">
                       <img
-                        v-if="userAvatarUrl"
+                        v-if="userAvatarUrl && !imageFailedSmall"
+                        :key="avatarKey + '-sm2'"
                         :src="userAvatarUrl"
                         :alt="displayName"
-                        class="avatar-image-large"
-                        @error="$event.target.style.display = 'none'"
+                        class="avatar-image"
+                        @error="onAvatarErrorSmall"
                       />
-                      <span v-else class="avatar-initials-large">{{ userInitials }}</span>
+                      <span v-else class="avatar-initials">{{ userInitials }}</span>
                     </div>
                     <div class="user-details">
                       <div class="name">{{ displayName }}</div>
