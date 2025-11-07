@@ -1,35 +1,65 @@
-
+version: '3.8'
 
 networks:
-  backend: {}
+  backend:
+    driver: bridge
 
 services:
+  # 1. Backend API Service (.NET 8)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rental_api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # --- Connection Strings ---
+      # 請取消註解並填寫您的 SQL Server 連接字串
+      # - ConnectionStrings__RentalManagementPlatformSql=Server=【您的SQL Server位址】;Database=RentalManagementPlatformSQL;User Id=【您的使用者名稱】;Password=【您的密碼】;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
 
-  
+      # Docker 內部服務連接 (使用您提供的預設值)
+      - ConnectionStrings__Redis=redis:6379,password=${REDIS_PASSWORD:-iSpanChase998520}
+      - Meilisearch__Url=http://meilisearch:7700
+      - Meilisearch__ApiKey=${MEILI_MASTER_KEY:-iSpanChase998520}
+      - MinioSettings__Endpoint=minio:9000
+      - MinioSettings__AccessKey=${MINIO_ROOT_USER:-iSpanChase998520}
+      - MinioSettings__SecretKey=${MINIO_ROOT_PASSWORD:-iSpanChase998520}
+      - MinioSettings__UseSSL=false
+      - Authentication:Jwt:Key=8rAJzEkZ4YKTTcyeUrPPNssc/yHBqHotpit1nNxE/HynvgKHK/C074yuoBGT6KOVkZd80YYNQnibelgkvoUFTA==
+      - Authentication:Jwt:Issuer=RentalManagementPlatform
+      - Authentication:Jwt:Audience=RentalManagementPlatformClient
+    ports:
+      - "8080:8080" # Expose API port to host for direct access
+    networks:
+      - backend
+    depends_on:
+      - redis
+      - minio
+      - meilisearch
+
+  # 2. Nginx Reverse Proxy (根據您的提供進行調整)
   nginx:
-    image: nginx:1.29.1
-    container_name: nginx
+    image: nginx:1.27-alpine
+    container_name: rental_nginx_proxy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro   # 放你的站點設定檔
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro     # 如果要 TLS
-      - ./frontend/dist:/usr/share/nginx/html:ro  # 如果要部署前端靜態檔
+      - ./RentalManagementPlatformMVC/RentalManagementPlatformVue/dist:/usr/share/nginx/html:ro  # 修正為專案實際前端路徑
     depends_on:
-      - redis
-      - minio
-      - meilisearch
+      - api # Nginx 必須依賴 API 服務
     networks:
       - backend
-      
 
-
+  # 3. Redis Cache (根據您的提供進行調整)
   redis:
-    image: redis:8.2.0
-    container_name: redis
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    image: redis:8.2.0 # 使用您指定的版本
+    container_name: redis # 使用您指定的名稱
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-iSpanChase998520}"] # 使用您指定的環境變數
     ports:
       - 127.0.0.1:6379:6379
     volumes:
@@ -38,13 +68,14 @@ services:
     networks:
       - backend
 
+  # 4. Minio Object Storage (根據您的提供進行調整)
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
-    container_name: minio
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z # 使用您指定的版本
+    container_name: minio # 使用您指定的名稱
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-iSpanChase998520}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-iSpanChase998520}
     ports:
       - 127.0.0.1:9000:9000
       - 127.0.0.1:9001:9001
@@ -54,11 +85,12 @@ services:
     networks:
       - backend
 
+  # 5. Meilisearch Search Engine (根據您的提供進行調整)
   meilisearch:
-    image: getmeili/meilisearch:v1.16.0
-    container_name: meilisearch
+    image: getmeili/meilisearch:v1.16.0 # 使用您指定的版本
+    container_name: meilisearch # 使用您指定的名稱
     environment:
-      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-iSpanChase998520}
       # 可選：MEILI_ENV=production
     ports:
       - 127.0.0.1:7700:7700
@@ -69,7 +101,9 @@ services:
       - backend
 
 volumes:
-  meili_data: {}
-  minio_data: {}
+
   redis_data: {}
-  rabbitmq_data: {}
+
+  minio_data: {}
+
+  meili_data: {}

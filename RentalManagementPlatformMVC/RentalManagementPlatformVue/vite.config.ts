@@ -25,12 +25,12 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'https://localhost:7230',
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
       '/notificationHub': {
-        target: 'https://localhost:7230',
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         ws: true

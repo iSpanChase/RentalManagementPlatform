@@ -88,7 +88,7 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
-const API_BASE   = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7230/api'
+const API_BASE   = import.meta.env.VITE_API_BASE_URL || '/api'
 const RETURN_URL = '/auth/callback' // 或 import.meta.env.VITE_OAUTH_RETURN_URL
 
 function loginWith(provider: 'google' | 'line') {

@@ -4,7 +4,7 @@ import { ref, computed } from 'vue';
 import api from '@/services/http'; // 使用統一的API客戶端，已集成auth處理
 
 // ==================== API 基礎設定 ====================
-const API_BASE = 'https://localhost:7230/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // ==================== Store ====================
 export const useBookingStore = defineStore('booking', () => {

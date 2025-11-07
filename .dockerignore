@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+**/bin
+**/obj
+
+# Node.js dependencies and build outputs
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# Visual Studio and IDE files
+.vs/
+*.user
+*.suo
+*.bak
+*.log
+*.tmp
+*.cache
+*.opensdf
+*.sdf
+*.vssscc
+*.buildscc
+*.pidb
+*.vsp
+*.vspscc
+
+# Docker specific files
+Dockerfile
+docker-compose*.yaml
+.dockerignore
+
+# Nginx specific files
+nginx/certs/ # Certificates are usually mounted, not copied into the image
+
+# Documentation and temporary files
+*.md
+tmp/
+GEMINI.md
