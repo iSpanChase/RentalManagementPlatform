@@ -1,1 +1,3 @@
 Scaffold-DbContext "Data Source=(localdb)\ProjectModels;Initial Catalog=RentalManagementPlatformSQL;Integrated Security=true;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -f -NoOnConfiguring
+
+Scaffold-DbContext "Server=127.0.0.1,1433;Database=RentalManagementPlatformSQL;User Id=iSpanChase;Password=iSpanChase;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -f -NoOnConfiguring
