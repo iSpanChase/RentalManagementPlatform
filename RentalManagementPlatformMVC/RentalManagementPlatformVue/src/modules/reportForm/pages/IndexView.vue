@@ -1,27 +1,27 @@
 
 <template>
-  <div class="container-fluid">
+  <div class="container-fluid p-5">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">動態報表（可自定義卡片）</h3>
+    <h3 class="mb-4 mt-0">動態報表（可自定義卡片）</h3>
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <div class="">
+            <button class="btn btn-primary" v-if="hasPerm('ReportCards.Create')" @click="onAdd">新增卡片</button>
+        </div>
       
       <!-- Favorites Section -->
       <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-success btn-sm" @click="onSaveToFavorites">加入我的最愛</button>
+        <button class="btn btn-success btn-sm" v-if="hasPerm('Favorites.Create')" @click="onSaveToFavorites">加入我的最愛</button>
         <span class="fw-bold">我的最愛:</span>
-        <select class="form-select form-select-sm w-auto" v-model="selectedFavoriteId">
+        <select class="form-select form-select-sm w-auto" v-if="hasPerm('Favorites.View')" v-model="selectedFavoriteId">
             <option v-if="favoriteReports.length === 0" :value="null" disabled>沒有已儲存的報表</option>
             <option v-for="fav in favoriteReports" :key="fav.id" :value="fav.id">{{ fav.name }}</option>
         </select>
-        <button class="btn btn-secondary btn-sm" @click="onLoadFavorite" :disabled="!selectedFavoriteId">載入</button>
-        <button class="btn btn-danger btn-sm" @click="onDeleteFavorite" :disabled="!selectedFavoriteId">刪除</button>
+        <button class="btn btn-secondary btn-sm" v-if="hasPerm('Favorites.View')" @click="onLoadFavorite" :disabled="!selectedFavoriteId">載入</button>
+        <button class="btn btn-danger btn-sm" v-if="hasPerm('Favorites.Delete')" @click="onDeleteFavorite" :disabled="!selectedFavoriteId">刪除</button>
       </div>
     </div>
 
-    <!-- Add Card Button -->
-    <div class="mb-3">
-        <button class="btn btn-primary" @click="onAdd">新增卡片</button>
-    </div>
+    
 
     <!-- Cards Grid -->
     <div class="row">
@@ -55,17 +55,18 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted } from 'vue'
-import BaseCardComponent from '../components/BaseCardComponent.vue'
-import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
-import MapHeatmapCardComponent from '../components/cardInfos/MapHeatmapCardComponent.vue'
-import ChartCardComponent from '../components/ChartCardComponent.vue'
-import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
-import PieChartCardComponent from '../components/cardInfos/PieChartCardComponent.vue'
+import BaseCardComponent from '@/modules/ReportForm/components/BaseCardComponent.vue'
+import ConfigPanelComponent from '@/modules/ReportForm/components/ConfigPanelComponent.vue'
+
+import ChartCardComponent from '@/modules/ReportForm/components/ChartCardComponent.vue'
+import KpiCardComponent from '@/modules/ReportForm/components/cardInfos/KpiCardComponent.vue'
+import PieChartCardComponent from '@/modules/ReportForm/components/cardInfos/PieChartCardComponent.vue'
 import {
     createCard, updateCard, refetchCardData, type Card, type CardDraft,
     getFavoriteReports, loadFavoriteReport, saveFavoriteReport, deleteFavoriteReport, type FavoriteReport
-} from '../api/reportForm'
+} from '@/modules/ReportForm/api/reportForm'
 import { startConnection, registerWarningHandler } from '../api/notificationService';
+import { useAuthStore } from '@/stores/auth'
 
 // ---------- state ----------
 const cards = reactive<Card[]>([])
@@ -79,9 +80,11 @@ const updatedAt = new Date().toLocaleString()
 const favoriteReports = ref<FavoriteReport[]>([]);
 const selectedFavoriteId = ref<number | null>(null);
 
+const auth = useAuthStore()
+
 // ---------- component chooser and props generator ----------
 const cardBody = (c: Card) => {
-  if (c.type === 'heatmap') return MapHeatmapCardComponent
+  
   if (c.type === 'revenue' || c.type === 'occupancy' || c.type === 'revenue_prediction' || c.type === 'occupancy_prediction') return ChartCardComponent
   if (c.type === 'occupancy_kpi' || c.type === 'revenue_kpi') return KpiCardComponent
   if (c.type === 'revenue_source' || c.type === 'occupancy_source') return PieChartCardComponent
@@ -260,20 +263,16 @@ async function onDeleteFavorite() {
     }
 }
 
+// 提供給 template 用
+function hasPerm(code: string): boolean {
+  return auth.can(code)   // ← 直接用 store 匯出的 can()
+}
+
 // ---------- Lifecycle ----------
 onMounted(async () => {
     await fetchFavorites();
 
-    // (optional) example: add one default card for demo
-    if (cards.length === 0) {
-        const created = await createCard({
-            type: 'heatmap',
-            title: '地區收益熱力（示意）',
-            subtitle: '本月',
-            config: { propertyIds: [], center: { lat: 25.0330, lng: 121.5654 }, zoom: 10 } as any
-        });
-        cards.push(created);
-    }
+
 
     
 });

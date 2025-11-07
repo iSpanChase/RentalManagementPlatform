@@ -15,7 +15,7 @@
            rel="noreferrer">
           <img :src="photo.url" :alt="`Room photo ${photo.photoId}`" class="img-fluid rounded">
         </a>
-        <button @click="handleDelete(photo.photoId)" class="btn btn-danger btn-sm delete-btn" :disabled="isDeleting">
+        <button v-if="hasEditPerm" @click="handleDelete(photo.photoId)" class="btn btn-danger btn-sm delete-btn" :disabled="isDeleting">
           <span v-if="isDeleting === photo.photoId" class="spinner-border spinner-border-sm"></span>
           <span v-else>&times;</span>
         </button>
@@ -26,15 +26,17 @@
 
     <!-- Uppy Upload Section -->
     <h5 class="mb-3">上傳新照片</h5>
-    <div ref="uppyContainer"></div>
+    <div v-if="hasEditPerm" ref="uppyContainer"></div>
+    <div v-else class="alert alert-warning mt-3">沒有上傳權限</div>
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { deleteRoomPhoto } from '@/api/photoApi';
 import apiClient from '@/api/axiosInstance';
+import { useAuthStore } from '@/stores/auth';
 
 // Uppy imports
 import Uppy from '@uppy/core';
@@ -67,9 +69,30 @@ let uppy = null;
 let lightbox = null;
 const apiBaseUrl = apiClient.defaults.baseURL?.replace(/\/$/, '');
 
+// permission check for upload/delete
+const auth = useAuthStore();
+const hasEditPerm = computed(() => !!(auth?.can && auth.can('RoomList.Edit')));
+
+const getAccessToken = () => {
+  return (
+    localStorage.getItem('rmp.accessToken') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('jwt_token') ||
+    ''
+  );
+}
+
 // --- Uppy Logic ---
 const setupUppy = () => {
-  if (uppy) uppy.close();
+  if (uppy) {
+    try {
+      if (typeof uppy.close === 'function') {
+        uppy.close();
+      } else if (typeof uppy.destroy === 'function') {
+        uppy.destroy();
+      }
+    } catch {}
+  }
 
   uppy = new Uppy({
     autoProceed: false,
@@ -78,6 +101,8 @@ const setupUppy = () => {
       allowedFileTypes: ['image/*'],
     },
   })
+  // 預設照片類型，避免後端收到空字串
+  
   .use(Dashboard, {
     inline: true,
     target: uppyContainer.value,
@@ -89,6 +114,13 @@ const setupUppy = () => {
       ? `${apiBaseUrl}/Rooms/${props.roomId}/upload-image`
       : `/api/Rooms/${props.roomId}/upload-image`,
     fieldName: 'ImageFile',
+    allowedMetaFields: ['PhotoType'],
+    headers: () => {
+      const token = getAccessToken();
+      return token && token.trim().length > 0
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+    },
     // Note: Uppy sends the file and metadata separately. 
     // The backend `UploadImageDto` will need to handle this.
     // For simplicity, we are not adding extra metadata here for now.
@@ -144,8 +176,18 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (uppy) uppy.close();
-  if (lightbox) lightbox.destroy();
+  try {
+    if (uppy) {
+      if (typeof uppy.close === 'function') {
+        uppy.close();
+      } else if (typeof uppy.destroy === 'function') {
+        uppy.destroy();
+      }
+    }
+  } catch {}
+  try {
+    if (lightbox) lightbox.destroy();
+  } catch {}
 });
 
 // Watch for changes in photos prop to re-initialize photoswipe

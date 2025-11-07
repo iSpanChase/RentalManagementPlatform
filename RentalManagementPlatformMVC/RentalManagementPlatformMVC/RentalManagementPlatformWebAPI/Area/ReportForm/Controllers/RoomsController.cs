@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RentalManagementPlatformWebAPI.Models;
@@ -10,7 +11,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
     [Area("ReportForm")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    public class RoomsController : ControllerBase
+    public class RoomsController : ApiControllerBase
     {
         private readonly RentalManagementPlatformSqlContext _context;
 
@@ -20,10 +21,10 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
         }
 
         [HttpGet("ForHost")]
+        [Authorize(Policy = "ReportCards.View")]
         public async Task<IActionResult> GetRoomsForHost()
         {
-            // TODO: 之後需從登入資訊取得 HostId
-            int hostId = 47;
+            int hostId = CurrentUserId;
 
             var rooms = await _context.RoomLists
                 .Where(r => r.HostId == hostId && !r.IsDeleted)

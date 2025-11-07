@@ -1,7 +1,7 @@
 // src/stores/bookingStore.js
 import { defineStore } from 'pinia';
-import { ref, computed, readonly } from 'vue';
-import axios from 'axios';
+import { ref, computed } from 'vue';
+import api from '@/services/http'; // 使用統一的API客戶端，已集成auth處理
 
 // ==================== API 基礎設定 ====================
 const API_BASE = 'https://localhost:7230/api';
@@ -71,22 +71,34 @@ export const useBookingStore = defineStore('booking', () => {
   // ==================== Actions ====================
 
   /**
-   * 格式化入住/退房時間為業界標準時間
+   * 格式化入住/退房時間為業界標準時間（UTC）
    * @param {string|Date} checkInDate - 入住日期
    * @param {string|Date} checkOutDate - 退房日期
    * @returns {Object} 格式化後的時間物件
    */
   const formatBookingDates = (checkInDate, checkOutDate) => {
-    // 創建 UTC 日期並直接設定為目標時間
-    // 這樣可以避免瀏覽器自動時區轉換
+    // 安全地取得日期字串，避免時區轉換問題
+    const getDateString = (dateInput) => {
+      const date = new Date(dateInput);
+      // 使用本地時間的年月日，避免 UTC 自動轉換造成日期偏移
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
 
-    // 入住日期 + 下午3點 (15:00)
-    const checkInDateOnly = new Date(checkInDate).toISOString().split('T')[0];
-    const checkInUTC = new Date(`${checkInDateOnly}T15:00:00.000Z`);
+    const checkInDateStr = getDateString(checkInDate);
+    const checkOutDateStr = getDateString(checkOutDate);
 
-    // 退房日期 + 上午11點 (11:00)
-    const checkOutDateOnly = new Date(checkOutDate).toISOString().split('T')[0];
-    const checkOutUTC = new Date(`${checkOutDateOnly}T11:00:00.000Z`);
+    // 建立精確的 UTC 時間：入住日期 + 下午3點，退房日期 + 上午11點
+    const checkInUTC = new Date(`${checkInDateStr}T15:00:00.000Z`);
+    const checkOutUTC = new Date(`${checkOutDateStr}T11:00:00.000Z`);
+
+    console.log('Debug 前端時間格式化:');
+    console.log('原始入住日期:', checkInDate);
+    console.log('格式化後入住日期 UTC:', checkInUTC.toISOString());
+    console.log('原始退房日期:', checkOutDate);
+    console.log('格式化後退房日期 UTC:', checkOutUTC.toISOString());
 
     return {
       checkIn: checkInUTC.toISOString(),
@@ -139,11 +151,6 @@ export const useBookingStore = defineStore('booking', () => {
         CheckIn: formattedDates.checkIn,  // 下午3點入住
         CheckOut: formattedDates.checkOut, // 上午11點退房
         GuestCount: bookingDraft.value.guestCount,
-        /**後端自行計算相關欄位 */
-        // Nights: nights.value,
-        // PricePerNight: bookingDraft.value.pricePerNight,
-        // Subtotal: subtotal.value,
-        // DiscountAmount: Math.max(0, subtotal.value - paymentData.finalAmount),
         TotalPrice: paymentData.finalAmount, // 直接使用從前端傳入的、使用者看到的最終價格
         PaymentTiming: paymentData.paymentTiming,
         BillingInfo: {
@@ -163,24 +170,17 @@ export const useBookingStore = defineStore('booking', () => {
         PointsRedeemed: 0,
       };
 
-      // 添加調試日誌
-      console.log('Sending order data:', orderData);
-      console.log('入住時間 (應在資料庫顯示為 15:00:00):', formattedDates.checkIn);
-      console.log('退房時間 (應在資料庫顯示為 11:00:00):', formattedDates.checkOut);
-      console.log('原始入住日期:', bookingDraft.value.checkIn);
-      console.log('原始退房日期:', bookingDraft.value.checkOut);
-
-      const response = await axios.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
+      const response = await api.post(`${API_BASE}/bookings/create-and-pay`, orderData, {
         headers: { 'Content-Type': 'application/json' },
       });
 
       return {
         bookingId: response.data.bookingId,
         orderNumber: response.data.orderNumber,
-        ecpayFormHtml: response.data.ecpayFormHtml,
         paymentRequired: response.data.paymentRequired,
         paymentStatus: response.data.paymentStatus,
         paymentDeadline: response.data.paymentDeadline,
+        ecpayFormHtml: response.data.ecpayFormHtml,
       };
     } catch (error) {
       console.error('Create booking error:', error);
@@ -193,16 +193,14 @@ export const useBookingStore = defineStore('booking', () => {
     }
   };
 
-  // === 新的安全 API 方法 ===
-
   /**
-   * 房客查看自己的預訂（新方法）
+   * 房客查看自己的預訂
    */
   const fetchMyBookings = async (authenticatedGuestId) => {
     isLoading.value = true;
 
     try {
-      const response = await axios.get(`${API_BASE}/my-bookings/${authenticatedGuestId}`);
+      const response = await api.get(`${API_BASE}/bookings/my-bookings/${authenticatedGuestId}`);
       return response.data;
     } catch (error) {
       console.error('取得我的預訂失敗:', error);
@@ -213,57 +211,17 @@ export const useBookingStore = defineStore('booking', () => {
   };
 
   /**
-   * 房東查看自己的訂單（新方法）
+   * 房東查看自己的訂單
    */
   const fetchMyOrders = async (authenticatedHostId) => {
     isLoading.value = true;
 
     try {
-      const response = await axios.get(`${API_BASE}/my-orders/${authenticatedHostId}`);
+      const response = await api.get(`${API_BASE}/bookings/my-orders/${authenticatedHostId}`);
       return response.data;
     } catch (error) {
       console.error('取得我的訂單失敗:', error);
       throw new Error(error.response?.data?.message || '取得訂單資料失敗');
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  // === 舊方法（標記為過時但保留） ===
-
-  /**
-   * @deprecated 請使用 fetchMyBookings 或 fetchMyOrders
-   */
-  const fetchBookingsByUser = async (userId) => {
-    console.warn('fetchBookingsByUser 已過時，請使用 fetchMyBookings');
-
-    if (!userId) throw new Error('未提供使用者 ID');
-    isLoading.value = true;
-
-    try {
-      const { data } = await axios.get(`${API_BASE}/bookings/user/${userId}`);
-      return data;
-    } catch (error) {
-      throw new Error('載入訂單失敗');
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  /**
-   * @deprecated 請使用 fetchMyOrders
-   */
-  const fetchOrdersByHost = async (hostId) => {
-    console.warn('fetchOrdersByHost 已過時，請使用 fetchMyOrders');
-
-    if (!hostId) throw new Error('未提供房東 ID');
-    isLoading.value = true;
-
-    try {
-      const { data } = await axios.get(`${API_BASE}/bookings/host/${hostId}`);
-      return data;
-    } catch (error) {
-      throw new Error('載入房東訂單失敗');
     } finally {
       isLoading.value = false;
     }
@@ -276,7 +234,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const { data } = await axios.get(`${API_BASE}/bookings/ordernumber/${orderNumber}`);
+      const { data } = await api.get(`${API_BASE}/bookings/ordernumber/${orderNumber}`);
       return data;
     } catch (error) {
       throw new Error('找不到該訂單');
@@ -292,7 +250,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!orderNumber) throw new Error('未提供訂單編號');
     isLoading.value = true;
     try {
-      const { data } = await axios.get(`${API_BASE}/payments/deferred/${orderNumber}`);
+      const { data } = await api.get(`${API_BASE}/payments/deferred/${orderNumber}`);
       return data;
     } catch (error) {
       const msg = error.response?.data?.message || '無法取得付款表單';
@@ -309,7 +267,7 @@ export const useBookingStore = defineStore('booking', () => {
     if (!bookingId) throw new Error('未提供訂單 ID');
     isLoading.value = true;
     try {
-      const { data } = await axios.put(`${API_BASE}/bookings/cancel/${bookingId}`);
+      const { data } = await api.put(`${API_BASE}/bookings/cancel/${bookingId}`);
       return data;
     } catch (error) {
       const msg = error.response?.data?.message || '取消訂單失敗';
@@ -323,7 +281,7 @@ export const useBookingStore = defineStore('booking', () => {
   return {
     // State
     bookingDraft: bookingDraft,
-    isLoading: readonly(isLoading),
+    isLoading: isLoading,
 
     // Getters
     hasBookingDraft,
@@ -341,8 +299,6 @@ export const useBookingStore = defineStore('booking', () => {
     createBooking,
     fetchMyBookings,
     fetchMyOrders,
-    fetchBookingsByUser,
-    fetchOrdersByHost,
     fetchBookingByOrderNumber,
     getDeferredPaymentForm,
     cancelBooking,

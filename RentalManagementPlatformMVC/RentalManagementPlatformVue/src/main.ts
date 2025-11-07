@@ -16,12 +16,14 @@ import {
     faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser,
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock,
     faHouse, faAddressBook, faStar, faCalendarDays, faUserGroup, faHashtag, faComments,
-    faQuestionCircle, faPhone, faEnvelope, faSearch
+    faQuestionCircle, faPhone, faEnvelope, faSearch, faFilterCircleXmark, faCalendarCheck,
+    faClipboardList, faTicketAlt, faUserCog, faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import axios from 'axios';
 
 // 讓 Font Awesome 不自動插入 <style>，避免與 Vite 衝突
 config.autoAddCss = false
@@ -29,7 +31,8 @@ library.add(
     faChevronUp, faChevronDown, faCreditCard, faLock, faCheck, faUser,
     faLocationDot, faComment, faShieldHalved, faCircleInfo, faAlarmClock,
     faHouse, faAddressBook, faStar, faCalendarDays, faUserGroup, faHashtag, faComments,
-    faQuestionCircle, faPhone, faSearch, faEnvelope
+    faQuestionCircle, faPhone, faSearch, faEnvelope, faFilterCircleXmark,
+    faCalendarCheck, faClipboardList, faTicketAlt, faUserCog, faSignOutAlt
 );
 dom.watch()
 

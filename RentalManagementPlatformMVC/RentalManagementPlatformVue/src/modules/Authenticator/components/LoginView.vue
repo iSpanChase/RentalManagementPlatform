@@ -27,11 +27,25 @@
           <span v-else>登入</span>
         </button>
       </form>
+      <div>
+        <div class="oauth-btns">
+          <button class="oauth-btn oauth-btn--google mt-2" type="button" @click="loginWith('google')">
+            <img :src="googlePng" alt="Google Logo" width="18" height="18" />
+              <span class="oauth-btn__label">Google 登入</span>
+          </button>
+          <button class="oauth-btn oauth-btn--line" type="button" @click="loginWith('line')">
+            <img :src="linePng" alt="Line Logo" width="18" height="18" />
+              <span class="oauth-btn__label">LINE 登入</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import googlePng from '@/assets/images/GoogleIcon.png'
+import linePng from '@/assets/images/LINEIcon.png'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -82,9 +96,18 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+const API_BASE   = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7230/api'
+const RETURN_URL = '/auth/callback' // 或 import.meta.env.VITE_OAUTH_RETURN_URL
+
+function loginWith(provider: 'google' | 'line') {
+  const redirect = encodeURIComponent(RETURN_URL + (location.search || ''))
+  window.location.href = `${API_BASE}/auth/oauth/${provider}/challenge?returnUrl=${redirect}`
+}
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 // 參考 Booking 模組的 SASS 變數
 $primary-color: #222;
 $secondary-color: #008489;
@@ -163,7 +186,7 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
 }
 
 .btn {
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   border: 1px solid transparent;
   font-weight: 600;
@@ -179,8 +202,8 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
   border-color: $secondary-color;
 
   &:hover:not(:disabled) {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -10%);
   }
 
   &:disabled {
@@ -215,5 +238,64 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
       text-decoration: underline;
     }
   }
+}
+
+.oauth-btns {
+  display: grid;
+  gap: 10px;
+}
+
+/* 基礎按鈕樣式 */
+.oauth-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease, transform .02s ease-in-out;
+  user-select: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+/* Google 樣式（依常見規範：白底、灰邊、深灰字） */
+.oauth-btn--google {
+  background-color: #ffffff;
+  color: #3c4043;
+  border-color: #dadce0;
+}
+.oauth-btn--google:hover {
+  background-color: #f7f8f8;
+  border-color: #d0d1d3;
+}
+.oauth-btn--google:active {
+  transform: translateY(1px);
+}
+.oauth-btn--google:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66,133,244,.25);
+}
+
+/* LINE 樣式（官方綠 #06C755、白字） */
+.oauth-btn--line {
+  background-color: #06C755;
+  color: #ffffff;
+  border-color: #06C755;
+}
+.oauth-btn--line:hover {
+  background-color: #05b94f;
+  border-color: #05b94f;
+}
+.oauth-btn--line:active {
+  transform: translateY(1px);
+}
+.oauth-btn--line:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(6,199,85,.28);
 }
 </style>

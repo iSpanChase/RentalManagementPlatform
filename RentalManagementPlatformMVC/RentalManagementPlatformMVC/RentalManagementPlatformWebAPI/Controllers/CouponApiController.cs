@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOS;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
@@ -51,6 +52,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("mark-used")]
+        [Authorize]
         public async Task<IActionResult> MarkUsed([FromBody] MarkUsedRequestDto request)
         {
             // TODO: 加上 [Authorize] 標籤，並確認此 API 的呼叫權限
@@ -74,7 +76,8 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetUserCoupons(int userId)
+        [Authorize(Policy = "Coupon.View")]
+		public async Task<IActionResult> GetUserCoupons(int userId)
         {
             // TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
             try

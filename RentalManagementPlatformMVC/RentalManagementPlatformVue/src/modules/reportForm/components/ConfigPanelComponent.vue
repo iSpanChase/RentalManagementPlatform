@@ -19,7 +19,6 @@
             <option value="revenue_kpi">收益KPI</option>
             <option value="revenue_source">收益來源分析</option>
             <option value="occupancy_source">入住來源分析</option>
-            <option value="heatmap">收益熱力</option>
           </select>
         </div>
         <div class="col-4">
@@ -67,10 +66,6 @@
           v-else-if="localDraft.type === 'occupancy_source'"
           v-model="(localDraft.config as OccupancySourceConfig)"
         />
-        <HeatmapConfigPanelComponent
-          v-else
-          v-model="(localDraft.config as HeatmapConfig)"
-        />
       </div>
 
 
@@ -84,15 +79,15 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch, nextTick } from 'vue'
-import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, HeatmapConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig, RevenuePredictionConfig, OccupancyPredictionConfig } from '../api/reportForm'
-import RevenueConfigPanelComponent from './panels/RevenueConfigPanelComponent.vue'
-import OccupancyConfigPanelComponent from './panels/OccupancyConfigPanelComponent.vue'
-import OccupancyKpiConfigPanelComponent from './panels/OccupancyKpiConfigPanelComponent.vue'
-import RevenueKpiConfigPanelComponent from './panels/RevenueKpiConfigPanelComponent.vue'
-import RevenueSourceConfigPanelComponent from './panels/RevenueSourceConfigPanelComponent.vue'
-import OccupancySourceConfigPanelComponent from './panels/OccupancySourceConfigPanelComponent.vue'
-import RevenuePredictionConfigPanelComponent from './panels/RevenuePredictionConfigPanelComponent.vue'
-import OccupancyPredictionConfigPanelComponent from './panels/OccupancyPredictionConfigPanelComponent.vue'
+import type { CardDraft, CardType, RevenueConfig, OccupancyConfig, OccupancyKpiConfig, RevenueKpiConfig, RevenueSourceConfig, OccupancySourceConfig, RevenuePredictionConfig, OccupancyPredictionConfig } from '@/modules/ReportForm/api/reportForm'
+import RevenueConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueConfigPanelComponent.vue'
+import OccupancyConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyConfigPanelComponent.vue'
+import OccupancyKpiConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyKpiConfigPanelComponent.vue'
+import RevenueKpiConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueKpiConfigPanelComponent.vue'
+import RevenueSourceConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenueSourceConfigPanelComponent.vue'
+import OccupancySourceConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancySourceConfigPanelComponent.vue'
+import RevenuePredictionConfigPanelComponent from '@/modules/ReportForm/components/panels/RevenuePredictionConfigPanelComponent.vue'
+import OccupancyPredictionConfigPanelComponent from '@/modules/ReportForm/components/panels/OccupancyPredictionConfigPanelComponent.vue'
 
 const props = defineProps<{
   modelValue: CardDraft | null,
@@ -172,12 +167,7 @@ const defaultByType = (type: CardType): any => {
       }
       return cfg;
   }
-  const cfg: HeatmapConfig = {
-    propertyIds: [],
-    center: { lat: 25.0330, lng: 121.5654 },
-    zoom: 10
-  }
-  return cfg
+  return null;
 }
 
 const localDraft = reactive<CardDraft>({

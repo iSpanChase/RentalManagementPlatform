@@ -1,7 +1,7 @@
  <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
-import type { RevenuePredictionConfig } from '../../api/reportForm';
+import apiClient from '@/api/axiosInstance';
+import type { RevenuePredictionConfig } from '@/modules/ReportForm/api/reportForm';
 
 const props = defineProps<{ modelValue: RevenuePredictionConfig }>();
 const emit = defineEmits(['update:modelValue']);
@@ -10,8 +10,8 @@ const hostRooms = ref<{ roomId: number; title: string }[]>([]);
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/ReportForm/Rooms/ForHost');
-    hostRooms.value = response.data;
+    const { data } = await apiClient.get('/ReportForm/Rooms/ForHost');
+    hostRooms.value = data;
   } catch (error) {
     console.error('Failed to fetch host rooms:', error);
   }

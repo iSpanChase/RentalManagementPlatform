@@ -310,5 +310,117 @@ namespace RentalManagementPlatformWebAPI.Services
                 IsDeleted = r.room.IsDeleted
             }).ToList();
         }
+
+        public async Task<IEnumerable<RoomListSearchDto>> SearchNearbyAsync(
+            string query,
+            double lat,
+            double lng,
+            double radiusKm,
+            string? status = null,
+            bool sortByDistance = true)
+        {
+            var filters = new List<string>();
+            // Always exclude deleted
+            filters.Add("is_deleted = false");
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                filters.Add($"status = \"{status}\"");
+            }
+
+            var radiusMeters = radiusKm * 1000.0;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            var geoFilter = $"_geoRadius({lat.ToString(inv)}, {lng.ToString(inv)}, {radiusMeters.ToString(inv)})";
+            filters.Add(geoFilter);
+
+            try
+            {
+                _logger.LogInformation(
+                    "Searching nearby: q='{Query}', lat={Lat}, lng={Lng}, radiusKm={RadiusKm}, status='{Status}'",
+                    query, lat, lng, radiusKm, status);
+
+                var index = _meiliClient.Index(IndexName);
+                var searchQuery = new SearchQuery
+                {
+                    Q = query,
+                    Filter = filters.Count > 0 ? string.Join(" AND ", filters) : null,
+                    Limit = 200,
+                };
+
+                if (sortByDistance)
+                {
+                    searchQuery.Sort = new[] { $"_geoPoint({lat.ToString(inv)}, {lng.ToString(inv)}):asc" };
+                }
+
+                var searchResult = await index.SearchAsync<RoomListSearchDto>(query, searchQuery);
+                var hits = searchResult.Hits.ToList();
+
+                foreach (var hit in hits)
+                {
+                    if (!string.IsNullOrEmpty(hit.CoverObjectKey))
+                    {
+                        try
+                        {
+                            hit.CoverImageUrl = await _minioService.GetFileUrlAsync(hit.CoverObjectKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to get MinIO URL for object key '{ObjectKey}'.", hit.CoverObjectKey);
+                            hit.CoverImageUrl = null;
+                        }
+                    }
+                }
+
+                if (hits.Any())
+                {
+                    var roomIds = hits.Select(h => h.RoomId)
+                        .Where(id => id > 0)
+                        .Distinct()
+                        .ToList();
+
+                    if (roomIds.Any())
+                    {
+                        var ratingStats = await _dbContext.Reviews
+                            .Where(review => review.RoomId.HasValue && roomIds.Contains(review.RoomId.Value) && review.Rating.HasValue)
+                            .GroupBy(review => review.RoomId!.Value)
+                            .Select(group => new
+                            {
+                                RoomId = group.Key,
+                                AverageRating = group.Average(review => review.Rating!.Value),
+                                ReviewsCount = group.Count()
+                            })
+                            .ToDictionaryAsync(group => group.RoomId);
+
+                        foreach (var hit in hits)
+                        {
+                            if (ratingStats.TryGetValue(hit.RoomId, out var stats))
+                            {
+                                hit.RatingAvg = stats.AverageRating;
+                                hit.ReviewsCount = stats.ReviewsCount;
+                            }
+                            else
+                            {
+                                hit.RatingAvg = 0;
+                                hit.ReviewsCount = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var hit in hits)
+                        {
+                            hit.RatingAvg = 0;
+                            hit.ReviewsCount = 0;
+                        }
+                    }
+                }
+
+                return hits;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while searching nearby in Meilisearch.");
+                return Enumerable.Empty<RoomListSearchDto>();
+            }
+        }
     }
 }

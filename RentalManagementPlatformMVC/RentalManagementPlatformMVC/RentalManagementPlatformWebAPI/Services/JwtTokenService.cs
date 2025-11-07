@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using RentalManagementPlatformWebAPI.DTOs;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -9,7 +10,15 @@ namespace RentalManagementPlatformWebAPI.Services
 	public class JwtTokenService : IJwtTokenService
 	{
 		private readonly IConfiguration _cfg;
-		public JwtTokenService(IConfiguration cfg) { _cfg = cfg; }
+		private readonly IRoleService _roles;
+		private readonly IPermissionService _perms;
+
+		public JwtTokenService(IConfiguration cfg, IRoleService roles, IPermissionService perms)
+		{
+			_cfg = cfg;
+			_roles = roles;
+			_perms = perms;
+		}
 
 		public JwtPair Create(int userId, string email, string fullName, IEnumerable<string> roles, IEnumerable<string> permissions)
 		{
@@ -58,6 +67,18 @@ namespace RentalManagementPlatformWebAPI.Services
 			var refresh = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 			return new JwtPair(access, expires, refresh);
 		}
-
+		public Task<string> IssueTokenAsync(UserProfileDto user)
+		{
+			// 依你的 UserProfileDto 欄位對應：UserId / Email / Name / Username
+			// 目前沒有可查「使用者角色/權限」的服務介面方法 → 先帶空集合
+			var pair = Create(
+				user.UserId,
+				user.Email ?? string.Empty,
+				string.IsNullOrWhiteSpace(user.Name) ? user.Username : user.Name,
+				Enumerable.Empty<string>(),
+				Enumerable.Empty<string>()
+			);
+			return Task.FromResult(pair.AccessToken);
+		}
 	}
 }

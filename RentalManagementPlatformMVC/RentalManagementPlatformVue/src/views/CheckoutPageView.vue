@@ -66,25 +66,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import CouponSelector from '../components/coupons/CouponSelector.vue';
 import { useCouponCalculator } from '../composables/useCouponCalculator.js';
 import type { CartInfo } from '../types/coupon';
 import { markCouponUsed } from '../services/CouponService.js';
+import { useAuthStore } from '@/stores/auth';
 
 // ----------------------------------------------------------------------------
 // 模擬購物車與使用者脈絡
 // ----------------------------------------------------------------------------
 const isCheckingOut = ref(false); // 控制結帳按鈕的狀態
+const authStore = useAuthStore();
 
 // 模擬訂單資訊，傳遞給 Composable
 const cartInfo = ref<CartInfo>({
-  userId: 1, // 模擬登入的使用者 ID
+  userId: null, // 將通過 watch 動態設置
   cityId: 1, // 模擬地區 ID (1: 台北)
   useDate: new Date(), // 模擬預計使用日期
   totalAmount: 9000, // 模擬商品總金額
   leaseDays: 3, // 模擬租期
 });
+
+// 監聽 auth store 中的 profile，當它可用時更新 cartInfo 中的 userId
+watch(() => authStore.state.profile, (profile) => {
+  if (profile?.userId) {
+    cartInfo.value.userId = profile.userId;
+  }
+}, { immediate: true, deep: true });
+
 
 // ----------------------------------------------------------------------------
 // 使用 Composable 獲取優惠券相關狀態與方法
@@ -114,7 +124,7 @@ async function handleCheckout() {
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   // 如果有選擇優惠券，則標記為已使用
-  if (selectedCouponId.value !== null) {
+  if (selectedCouponId.value !== null && cartInfo.value.userId) {
     const markUsedRequest = {
       userId: cartInfo.value.userId,
       couponId: selectedCouponId.value,

@@ -12,6 +12,7 @@ import { startConnection, registerWarningHandler } from './modules/ReportForm/ap
 import NotificationBell from '@/modules/ReportForm/components/notification/NotificationBell.vue'
 import { useNotificationStore } from '@/stores/notificationStore';
 import ChatFloating from './components/ChatFloating.vue'
+import { useAuthStore } from '@/stores/auth';
 
 const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
 const notificationStore = useNotificationStore(); // 獲取 store 實例
@@ -21,20 +22,29 @@ onMounted(async () => {
     // 1. 應用程式啟動時，立即從 localStorage 載入通知
     notificationStore.loadFromLocalStorage();
 
-    // 2. 開始 SignalR 連線
-    try {
-        const userId = 47;
-        await startConnection(userId);
-        console.log("SignalR 連線成功，並開始監聽通知...");
+    // 2. 獲取登入者ID
+    const authStore = useAuthStore();
+    const currentUserId = authStore.state.profile?.userId;
 
-        // 3. 註冊 SignalR 處理器，收到訊息時呼叫 store 的 action
-        registerWarningHandler((message: string) => {
-            console.log(`收到新通知: ${message}`);
-            notificationStore.addNotification(message);
-        });
+    if (currentUserId) {
+        // 3. 開始 SignalR 連線
+        try {
+            const userId = 47;
+            await startConnection(userId);
+            console.log("SignalR 連線成功，並開始監聽通知...");
+
+            // 3. 註冊 SignalR 處理器，收到訊息時呼叫 store 的 action
+            registerWarningHandler((message: string) => {
+                console.log(`收到新通知: ${message}`);
+                notificationStore.addNotification(message);
+            });
+        }
+        catch (err) {
+            console.error("SignalR 連線失敗: ", err);
+        }
     }
-    catch (err) {
-        console.error("SignalR 連線失敗: ", err);
+    else{
+        console.log("使用者未登入，跳過 SignalR 連線。");
     }
 });
 </script>

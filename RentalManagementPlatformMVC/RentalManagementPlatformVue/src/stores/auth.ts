@@ -232,7 +232,7 @@ function normalizeAbilities(input: AbilitiesWire | null | undefined) {
   // permissions/perms: string[] 或 PermLike[]
   const rawPerms: PermLike[] =
     Array.isArray(obj.perms) ? obj.perms :
-    Array.isArray(obj.permissions) ? obj.permissions : []
+      Array.isArray(obj.permissions) ? obj.permissions : []
 
   rawPerms.forEach(p => {
     if (typeof p === 'string') perms.push(p)
@@ -288,7 +288,6 @@ const fetchAbilities = async () => {
 /** 前端授權判斷輔助 */
 const hasRole = (roleCode: string) => state.roles.includes(roleCode)
 const can = (permCode: string) => state.permissions.includes(permCode)
-
 
 const forgotPassword = async (email: string) => {
   state.error = null
@@ -465,6 +464,17 @@ const updateRolePermissions = async (
   }
 }
 
+const resendVerification = async (email: string) => {
+  state.error = null
+  try {
+    await api.post('/Auth/resend-verification', { email }) // ← 一定是 { email }
+    return true
+  } catch (error) {
+    state.error = resolveErrorMessage(error)
+    throw error
+  }
+}
+
 const resetPassword = async (email: string, token: string, newPassword: string) => {
   state.error = null
   try {
@@ -514,6 +524,7 @@ export const useAuthStore = () => ({
   hasRole,
   can,
   restoreSession,
+  resendVerification,
 })
 
 export type AuthStore = ReturnType<typeof useAuthStore>

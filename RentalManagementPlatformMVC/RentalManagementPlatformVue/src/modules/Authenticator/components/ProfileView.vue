@@ -38,7 +38,7 @@
 
           <label class="form-item">
             <span>生日</span>
-            <input v-model="form.birthDateInput" type="date" required />
+            <input v-model="form.birthDateInput" type="date" :max="todayStr" required />
           </label>
 
           <label class="form-item">
@@ -82,9 +82,13 @@
               </div>
               <div class="actions">
                 <router-link class="link" :to="{ name: 'VerifyEmailView', query: { email: auth.state.profile.email } }">前往驗證頁</router-link>
-                <button type="button" @click="resendVerification" :disabled="resendPending || !isValidEmail">
-                  {{ resendPending ? '寄送中…' : '重寄驗證信' }}
-                </button>
+              <button
+                type="button"
+                @click="onResendVerification"
+                :disabled="resendPending || !isValidEmail"
+              >
+                {{ resendPending ? '寄送中…' : '重寄驗證信' }}
+              </button>
               </div>
               <div v-if="resentOnce" class="hint">已送出（若帳號不存在或已驗證，系統不會顯示更多資訊）。</div>
             </div>
@@ -113,17 +117,19 @@ const resendPending = ref(false)
 const resentOnce = ref(false)
 const email = computed(() => auth.state.profile?.email ?? '')
 const isValidEmail = computed(() => !!email.value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value))
+const today = new Date(); today.setHours(0,0,0,0);
+const todayStr = new Date().toISOString().slice(0,10);
 
-const resendVerification = async () => {
-   if (!isValidEmail.value) return
-   resendPending.value = true
-   try {
-     await http.post('/Auth/resend-verification', { email: email.value })
-     resentOnce.value = true
-   } finally {
-     resendPending.value = false
-   }
- }
+const onResendVerification = async () => {
+  if (!isValidEmail.value) return
+  resendPending.value = true
+  try {
+    await auth.resendVerification(email.value) // ← 改用 store 方法
+    resentOnce.value = true
+  } finally {
+    resendPending.value = false
+  }
+}
 
 const previewUrl = computed(() => {
   const src = (form.profileImageUrl || '').trim()
@@ -246,6 +252,14 @@ function normalizeYmd(v: string | null | undefined): string | null {
   return `${String(y).padStart(4,'0')}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`
 }
 
+  // 檢查 yyyy-MM-dd 是否是未來日期（以本地時區的日界線比較）
+  function isFutureYmd(ymd: string): boolean {
+    const d = new Date(ymd + 'T00:00:00')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return d.getTime() > today.getTime()
+  }
+
 const statusClass = computed(() =>
   statusType.value === 'success' ? 'status--success' : 'status--error',
 )
@@ -263,11 +277,14 @@ const handleSubmit = async () => {
     const address = form.address?.trim()
     const birthYmd = normalizeYmd(form.birthDateInput)
 
+    // ✅ 先擋未來日期（有選生日才檢查）
+    if (birthYmd && isFutureYmd(birthYmd)) {
+      throw new Error('生日不可晚於今天')
+    }
     if (!name) missing.push('姓名')
     if (!gender) missing.push('性別')
     if (!birthYmd) missing.push('生日')
     if (!address) missing.push('地址')
-
     if (missing.length) {
       throw new Error(`請完整填寫：${missing.join(' / ')}`)
     }

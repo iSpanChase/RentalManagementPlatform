@@ -2,7 +2,7 @@ export default [
   {
     path: '/auth',
     name: 'auth',
-    component: () => import('./layouts/AuthenticatorLayout.vue'),
+    component: () => import('@/layouts/MainLayout.vue'),
     children: [
       {
         path: 'reviewoperators',
@@ -75,14 +75,22 @@ export default [
         path: 'VerifyEmailSuccess',
         name: 'VerifyEmailSuccess',
         component: () => import('./components/VerifyEmailSuccessView.vue'),
-        alias: ['/VerifyEmailSuccess', '/Verify-EmailSuccess'],
+        alias: ['/verify-email/success', '/Verify-EmailSuccess', '/VerifyEmailSuccess'],
       },
       {
         path: 'verifyemail',
         name: 'VerifyEmailView',
         component: () => import('./components/VerifyEmailView.vue'),
-        alias: ['/verifyemail', '/verify-email'],
+        alias: ['/verify-email', '/verifyemail'],
       },
+      {
+        path: 'callback',
+        name: 'AuthCallback',
+        component: () => import('./components/AuthCallback.vue'),
+        alias: ['/auth/callback'], // 讓後端可直接導到 /auth/callback
+        meta: { requiresAuth: false }
+      },
+
     ],
   },
 ];

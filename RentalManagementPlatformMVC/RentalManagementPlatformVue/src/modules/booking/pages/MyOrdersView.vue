@@ -1,52 +1,118 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
-import { useAuthStore } from '@/stores/authStore.js';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
-import { useOrderModal } from '@/composables/useOrderModal';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
-import EmptyState from '@/components/EmptyState.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const bookingStore = useBookingStore();
-const authStore = useAuthStore();
+const auth = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
 const allOrders = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
+const selectedOrder = ref(null);
 
-// 使用共用的分頁邏輯
-const { currentPage, totalPages, paginatedItems: paginatedOrders, onPageChange } = usePagination(allOrders, 5);
+// 篩選和排序狀態
+const statusFilter = ref('');
+const sortBy = ref('newest');
+const searchKeyword = ref('');
 
-// 使用共用的 Modal 邏輯
-const { selectedItem: selectedOrder, viewDetails } = useOrderModal('orderDetailModal');
+// 篩選和排序後的訂單
+const filteredAndSortedOrders = computed(() => {
+  let filtered = [...allOrders.value];
+
+  // 狀態篩選
+  if (statusFilter.value) {
+    filtered = filtered.filter((order) => order.paymentStatus === statusFilter.value);
+  }
+
+  // 關鍵字搜尋（房客名稱、房源名稱、訂單編號）
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase().trim();
+    filtered = filtered.filter(
+      (order) =>
+        order.guestName?.toLowerCase().includes(keyword) ||
+        order.room?.toLowerCase().includes(keyword) ||
+        order.orderNumber?.toLowerCase().includes(keyword) ||
+        order.contactEmail?.toLowerCase().includes(keyword)
+    );
+  }
+
+  // 排序
+  filtered.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'newest':
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case 'oldest':
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case 'checkin-asc':
+        return new Date(a.checkIn) - new Date(b.checkIn);
+      case 'checkin-desc':
+        return new Date(b.checkIn) - new Date(a.checkIn);
+      case 'amount-high':
+        return b.totalPrice - a.totalPrice;
+      case 'amount-low':
+        return a.totalPrice - b.totalPrice;
+      case 'guest-name':
+        return (a.guestName || '').localeCompare(b.guestName || '');
+      default:
+        return 0;
+    }
+  });
+
+  return filtered;
+});
+
+// 使用篩選後的資料進行分頁
+const {
+  currentPage,
+  totalPages,
+  paginatedItems: paginatedOrders,
+  onPageChange,
+} = usePagination(filteredAndSortedOrders, 5);
 
 /**
- * 開啟訂單詳情 Modal
+ * 查看訂單詳情
  */
-const handleViewDetails = (orderNumber) => {
-  viewDetails(orderNumber, allOrders.value);
+const viewOrderDetails = (orderNumber, orders) => {
+  const order = orders.find((o) => o.orderNumber === orderNumber);
+  if (order) {
+    selectedOrder.value = order;
+  }
 };
 
-onMounted(async () => {
+/**
+ * 清除所有篩選條件
+ */
+const clearFilters = () => {
+  statusFilter.value = '';
+  searchKeyword.value = '';
+  sortBy.value = 'newest';
+};
+
+/**
+ * 重新載入資料
+ */
+const reloadData = async () => {
   isLoading.value = true;
   isError.value = false;
 
   try {
-    const hostId = authStore.currentHostId;
+    const hostId = auth.state.profile?.userId;
     if (!hostId) {
       toast.error('無法獲取房東資訊，請確認您的帳號是否為房東');
       isError.value = true;
       return;
     }
 
-    const fetchedOrders = await bookingStore.fetchOrdersByHost(hostId);
+    const fetchedOrders = await bookingStore.fetchMyOrders(hostId);
     allOrders.value = fetchedOrders || [];
 
     if (allOrders.value.length === 0) {
@@ -59,6 +125,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+onMounted(async () => {
+  // 檢查使用者是否已登入
+  if (!auth.isAuthenticated.value) {
+    toast.error('請先登入查看訂單記錄');
+    router.push({ name: 'LoginView' });
+    return;
+  }
+
+  await reloadData();
 });
 </script>
 
@@ -79,7 +156,7 @@ onMounted(async () => {
       <div class="error-card">
         <h2>無法載入頁面</h2>
         <p>抱歉，載入房客預訂資料時發生錯誤，請確認您的房東權限。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">返回首頁</button>
+        <button @click="reloadData()" class="btn-back-home">重新載入</button>
       </div>
     </div>
 
@@ -94,49 +171,102 @@ onMounted(async () => {
 
     <!-- Content -->
     <div v-else class="container">
+      <!-- 篩選和排序控制 -->
+      <div class="filter-controls">
+        <div class="filter-section">
+          <div class="search-box">
+            <input
+              type="text"
+              v-model="searchKeyword"
+              placeholder="搜尋房客名稱、房源名稱、訂單編號或Email..."
+              class="search-input"
+            />
+            <i class="fa-solid fa-search search-icon"></i>
+            <button v-if="searchKeyword" @click="searchKeyword = ''" class="clear-btn">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+
+          <div class="filter-dropdowns">
+            <select v-model="statusFilter" class="filter-select">
+              <option value="">所有狀態</option>
+              <option value="pending">待付款</option>
+              <option value="deferred">延後付款</option>
+              <option value="completed">已付款</option>
+              <option value="cancelled">已取消</option>
+              <option value="refunded">已退款</option>
+            </select>
+
+            <select v-model="sortBy" class="sort-select">
+              <option value="newest">最新訂單</option>
+              <option value="oldest">最舊訂單</option>
+              <option value="checkin-asc">入住日期（近到遠）</option>
+              <option value="checkin-desc">入住日期（遠到近）</option>
+              <option value="amount-high">金額（高到低）</option>
+              <option value="amount-low">金額（低到高）</option>
+              <option value="guest-name">房客姓名（A-Z）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="results-info">
+          <span class="results-count">
+            找到 {{ filteredAndSortedOrders.length }} 筆房客訂單
+            <span v-if="allOrders.length !== filteredAndSortedOrders.length">
+              （共 {{ allOrders.length }} 筆）
+            </span>
+          </span>
+
+          <button v-if="statusFilter || searchKeyword" @click="clearFilters" class="clear-all-btn">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            清除篩選
+          </button>
+        </div>
+      </div>
+
       <div class="orders-list">
         <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
-            <div class="guest-avatar-wrapper">
-              <img
-                :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
-                alt="房客頭像"
-                class="guest-avatar"
-              />
+          <div class="guest-avatar-wrapper">
+            <img
+              :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
+              alt="房客頭像"
+              class="guest-avatar"
+            />
+          </div>
+
+          <div class="order-details-wrapper">
+            <div class="card-section top-section">
+              <div class="guest-info">
+                <h3>{{ order.guestName }} ({{ order.guestCount }}位)</h3>
+              </div>
+              <StatusBadge :status="order.paymentStatus" />
             </div>
 
-            <div class="order-details-wrapper">
-              <div class="card-section top-section">
-                <div class="guest-info">
-                  <h3>{{ order.guestName }} ({{ order.guestCount }}位)</h3>
-                </div>
-                <StatusBadge :status="order.paymentStatus" />
+            <div class="card-section mid-section">
+              <div class="info-item date-info">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>{{ formatDate(order.checkIn) }} - {{ formatDate(order.checkOut) }}</span>
               </div>
-
-              <div class="card-section mid-section">
-                <div class="info-item date-info">
-                  <i class="fa-solid fa-calendar-days"></i>
-                  <span>{{ formatDate(order.checkIn) }} - {{ formatDate(order.checkOut) }}</span>
-                </div>
-                <div class="info-item room-info">
-                  <i class="fa-solid fa-house"></i>
-                  <span>{{ order.room }}</span>
-                </div>
-              </div>
-
-              <div class="card-section bottom-section">
-                <div class="price-preview">
-                  <strong>TWD {{ order.totalPrice.toLocaleString() }}</strong>
-                </div>
-                <button
-                  class="btn-details"
-                  data-bs-toggle="modal"
-                  data-bs-target="#orderDetailModal"
-                  @click="handleViewDetails(order.orderNumber)"
-                >
-                  查看詳情 / 聯絡
-                </button>
+              <div class="info-item room-info">
+                <i class="fa-solid fa-house"></i>
+                <span>{{ order.room }}</span>
               </div>
             </div>
+
+            <div class="card-section bottom-section">
+              <div class="price-preview">
+                <strong>TWD {{ order.totalPrice.toLocaleString() }}</strong>
+              </div>
+              <button
+                class="btn-details"
+                data-bs-toggle="modal"
+                data-bs-target="#orderDetailModal"
+                @click="viewOrderDetails(order.orderNumber, allOrders)"
+              >
+                查看詳情 / 聯絡
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -162,7 +292,10 @@ onMounted(async () => {
           <div class="modal-header">
             <div class="modal-header-content">
               <img
-                :src="selectedOrder.guestAvatarUrl || 'https://placehold.co/60x60/EBEBEB/717171?text=Guest'"
+                :src="
+                  selectedOrder.guestAvatarUrl ||
+                  'https://placehold.co/60x60/EBEBEB/717171?text=Guest'
+                "
                 alt="房客頭像"
                 class="modal-avatar"
               />
@@ -173,7 +306,12 @@ onMounted(async () => {
                 <span class="modal-subtitle">訂單 #{{ selectedOrder.orderNumber }}</span>
               </div>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
 
           <div class="modal-body">
@@ -201,7 +339,9 @@ onMounted(async () => {
               </div>
               <div class="detail-row">
                 <p><strong>入住/退房:</strong></p>
-                <p>{{ formatDate(selectedOrder.checkIn) }} - {{ formatDate(selectedOrder.checkOut) }}</p>
+                <p>
+                  {{ formatDate(selectedOrder.checkIn) }} - {{ formatDate(selectedOrder.checkOut) }}
+                </p>
               </div>
               <div class="detail-row">
                 <p><strong>入住人數:</strong></p>
@@ -231,7 +371,9 @@ onMounted(async () => {
               <div class="detail-row">
                 <p><strong>您的淨收入:</strong></p>
                 <p class="net-income-value">
-                  <strong>TWD {{ Math.round(selectedOrder.totalPrice * 0.85).toLocaleString() }}</strong>
+                  <strong
+                    >TWD {{ Math.round(selectedOrder.totalPrice * 0.85).toLocaleString() }}</strong
+                  >
                   <span class="text-muted"> (15% 平台佣金)</span>
                 </p>
               </div>
@@ -259,6 +401,8 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 $primary-color: #222;
 $secondary-color: #f7a800;
 $chat-color: #008489;
@@ -289,7 +433,8 @@ $text-dark: #484848;
 }
 
 /* Loading & Error Styles */
-.loading-overlay, .error-message-container {
+.loading-overlay,
+.error-message-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -303,7 +448,8 @@ $text-dark: #484848;
   padding: 20px;
 }
 
-.loading-content, .error-card {
+.loading-content,
+.error-card {
   background: white;
   padding: 40px;
   border-radius: 16px;
@@ -426,8 +572,13 @@ $text-dark: #484848;
           text-align: center;
         }
 
-        &.date-info { font-weight: 500; }
-        &.room-info { font-size: 14px; color: $text-light; }
+        &.date-info {
+          font-weight: 500;
+        }
+        &.room-info {
+          font-size: 14px;
+          color: $text-light;
+        }
       }
     }
 
@@ -451,15 +602,29 @@ $text-dark: #484848;
   white-space: nowrap;
 }
 
-.status-deferred, .status-unpaid   { background-color: #fff3cd; color: #856404; }
-.status-completed, .status-paid    { background-color: #d4edda; color: #155724; }
-.status-cancelled                  { background-color: #f8d7da; color: #721c24; }
-.status-refunded                   { background-color: #e2e3e5; color: #383d41; }
+.status-deferred,
+.status-unpaid {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.status-completed,
+.status-paid {
+  background-color: #d4edda;
+  color: #155724;
+}
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+.status-refunded {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
 
 .btn-details {
   background-color: $secondary-color;
   color: $primary-color;
-  border: 1px solid darken($secondary-color, 10%);
+  border: 1px solid color.adjust($secondary-color, $lightness: -10%);
   padding: 10px 18px;
   border-radius: 8px;
   font-weight: 600;
@@ -467,8 +632,8 @@ $text-dark: #484848;
   transition: all 0.2s;
 
   &:hover {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 15%);
+    background-color: color.adjust($secondary-color, $lightness: -10%);
+    border-color: color.adjust($secondary-color, $lightness: -15%);
   }
 }
 
@@ -513,7 +678,9 @@ $text-dark: #484848;
   }
 }
 
-.modal-body { padding: 25px; }
+.modal-body {
+  padding: 25px;
+}
 
 .detail-section {
   margin-bottom: 20px;
@@ -522,7 +689,10 @@ $text-dark: #484848;
     font-weight: 700;
     margin-bottom: 15px;
     color: $primary-color;
-    i { margin-right: 8px; color: $text-light; }
+    i {
+      margin-right: 8px;
+      color: $text-light;
+    }
   }
 }
 
@@ -536,7 +706,9 @@ $text-dark: #484848;
   h6 {
     border-bottom: 1px solid #feedcd;
     padding-bottom: 10px;
-    i { color: $secondary-color; }
+    i {
+      color: $secondary-color;
+    }
   }
 }
 
@@ -547,8 +719,14 @@ $text-dark: #484848;
   font-size: 14px;
   align-items: start;
 
-  p { margin: 0; line-height: 1.6; }
-  strong { color: $text-light; font-weight: 500; }
+  p {
+    margin: 0;
+    line-height: 1.6;
+  }
+  strong {
+    color: $text-light;
+    font-weight: 500;
+  }
 
   .price-value {
     font-weight: 700;
@@ -559,8 +737,16 @@ $text-dark: #484848;
   .net-income-value {
     color: #155724;
     font-weight: 500;
-    strong { color: #155724; font-weight: 700; font-size: 15px; }
-    .text-muted { font-weight: normal; color: $text-light !important; font-size: 13px; }
+    strong {
+      color: #155724;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .text-muted {
+      font-weight: normal;
+      color: $text-light !important;
+      font-size: 13px;
+    }
   }
 
   .notes-text {
@@ -578,7 +764,10 @@ $text-dark: #484848;
   }
 }
 
-hr { border-color: $border-color; margin: 25px 0; }
+hr {
+  border-color: $border-color;
+  margin: 25px 0;
+}
 
 .modal-footer {
   border-top: 1px solid $border-color;
@@ -591,8 +780,8 @@ hr { border-color: $border-color; margin: 25px 0; }
     padding: 8px 20px;
     border-radius: 8px;
     &:hover {
-      background-color: darken($text-light, 10%);
-      border-color: darken($text-light, 10%);
+      background-color: color.adjust($text-light, $lightness: -10%);
+      border-color: color.adjust($text-light, $lightness: -10%);
     }
   }
 
@@ -604,18 +793,27 @@ hr { border-color: $border-color; margin: 25px 0; }
     border-radius: 8px;
     font-weight: 600;
     transition: all 0.2s;
-    i { margin-right: 6px; }
+    i {
+      margin-right: 6px;
+    }
     &:hover {
-      background-color: darken($chat-color, 10%);
-      border-color: darken($chat-color, 10%);
+      background-color: color.adjust($chat-color, $lightness: -10%);
+      border-color: color.adjust($chat-color, $lightness: -10%);
     }
   }
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 15px; }
-  .host-orders-page { padding: 20px 0; }
-  h1 { font-size: 24px; margin-bottom: 20px; }
+  .container {
+    padding: 0 15px;
+  }
+  .host-orders-page {
+    padding: 20px 0;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
 
   .orders-list .order-card {
     flex-direction: column;
@@ -623,7 +821,9 @@ hr { border-color: $border-color; margin: 25px 0; }
     padding: 16px;
     gap: 15px;
 
-    .order-details-wrapper { width: 100%; }
+    .order-details-wrapper {
+      width: 100%;
+    }
 
     .top-section {
       flex-direction: column;
@@ -635,19 +835,204 @@ hr { border-color: $border-color; margin: 25px 0; }
       flex-direction: column;
       align-items: stretch;
       gap: 10px;
-      .price-preview { text-align: center; }
-      .btn-details { width: 100%; }
+      .price-preview {
+        text-align: center;
+      }
+      .btn-details {
+        width: 100%;
+      }
     }
   }
 
-  .modal-body { padding: 15px; }
-  .detail-section.highlight { padding: 15px; }
-  .detail-row { grid-template-columns: 90px 1fr; }
+  .modal-body {
+    padding: 15px;
+  }
+  .detail-section.highlight {
+    padding: 15px;
+  }
+  .detail-row {
+    grid-template-columns: 90px 1fr;
+  }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// 篩選控制樣式
+.filter-controls {
+  background: white;
+  border: 1px solid $border-color;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    max-width: 500px; // 房東版搜尋框稍寬一些
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $text-light;
+      font-size: 14px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: $secondary-color;
+        box-shadow: 0 0 0 3px rgba(247, 168, 0, 0.1);
+      }
+
+      &::placeholder {
+        color: $text-light;
+      }
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: $text-light;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1;
+
+      &:hover {
+        background: #f0f0f0;
+        color: $text-dark;
+      }
+    }
+  }
+
+  .filter-dropdowns {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .filter-select,
+    .sort-select {
+      padding: 10px 12px;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: $text-dark;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      min-width: 140px;
+
+      &:focus {
+        outline: none;
+        border-color: $secondary-color;
+      }
+
+      &:hover {
+        border-color: #bbb;
+      }
+    }
+  }
+
+  .results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid $border-color;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .results-count {
+      font-size: 14px;
+      color: $text-light;
+
+      span {
+        color: $text-light;
+        font-weight: normal;
+      }
+    }
+
+    .clear-all-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      color: #856404;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #ffc107;
+        color: white;
+      }
+
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// 手機版響應式調整
+@media (max-width: 768px) {
+  .filter-controls {
+    padding: 16px;
+
+    .filter-dropdowns {
+      .filter-select,
+      .sort-select {
+        flex: 1;
+        min-width: auto;
+      }
+    }
+
+    .results-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
 }
 </style>
 
