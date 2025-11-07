@@ -255,7 +255,7 @@ namespace RentalManagementPlatformWebAPI.Services
             }
             else
             {
-                const int numberOfRoomsToFetch = 10;
+                const int numberOfRoomsToFetch = 12;
                 var randomRoomsWithHost = await _repository.GetRandomRoomsWithHostAsync(numberOfRoomsToFetch);
 
                 var roomSummaries = new List<RoomSummaryResponseDto>();

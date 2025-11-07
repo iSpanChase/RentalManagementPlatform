@@ -3,15 +3,14 @@
     <div class="card">
       <h1>電子郵件驗證成功 ✔</h1>
       <p>您的 Email 已完成驗證，部分功能已全面開放。</p>
-
-      <button class="primary" @click="goProfile">前往更新個人資料</button>
+      <button class="primary" @click="goNext">{{ isLogged ? '前往個人資料頁' : '返回登入頁' }}</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -22,8 +21,27 @@ onMounted(async () => {
   await auth.fetchProfile?.()
 })
 
-const goProfile = () => {
-  router.replace({ name: 'profile' }) // 你的路由名稱若不同，改成實際的
+/** 判斷是否已登入：
+ * 1) 首選看 auth.state.profile 是否存在
+ * 2) 備援再看本地 AccessToken（你若用 cookie 也能補上判斷）
+ */
+const hasLocalToken = () =>
+  !!localStorage.getItem('rmp.accessToken') ||
+  document.cookie.includes('rmp.accessToken=')
+
+const isLogged = computed(() => {
+  return !!auth?.state?.profile || hasLocalToken()
+})
+
+/** 依狀態導頁：未登入→登入頁；已登入→個人資料頁 */
+const goNext = () => {
+  if (isLogged.value) {
+    // 你若有命名路由可用 { name: 'Profile' }
+    router.replace({ name: 'profile' })
+  } else {
+    // 你專案曾把 Login 綁在 /AuthPage，這裡二擇一
+    router.replace({ name: 'login' }).catch(() => router.push({ path: '/AuthPage' }))
+  }
 }
 </script>
 

@@ -10,15 +10,11 @@ import defaultAvatar from '@/image/faq.png'
 type TicketDto = {
   id: string
   title: string
-  status?: string
+  userName: string
+  requesterId: number
+  status: string
   createdAt: string
-  userName:string
   updatedAt: string
-  requesterId: number | string
-  requesterName: string
-  requesterAvatarUrl?: string
-  requesterEmail?: string
-  requesterPhone?: string
 }
 
 const chat = useChatStore()
@@ -41,21 +37,22 @@ onMounted(async () => {
 async function fetchTickets() {
   loading.value = true
   const { data } = await http.get<TicketDto[]>('/api/supporttickets')
+  //console.log("data == ")
   tickets.value = data
   loading.value = false
 }
 
 function snapshotToProfile(t: TicketDto): UserProfile {
   return {
-    userId: (Number(t.requesterId) as any) ?? t.requesterId,
-    username: t.requesterName,
-    name: t.requesterName,
-    email: t.requesterEmail || '',
-    phone: t.requesterPhone || '',
+    userId: t.requesterId,
+    username: t.userName,
+    name: t.userName,
+    email: '',
+    phone: '',
     address: '',
     gender: '',
     point: null,
-    profileImageUrl: t.requesterAvatarUrl || null,
+    profileImageUrl: null,
     isVerified: false,
     birthDate: '',
   }
@@ -65,6 +62,7 @@ async function openTicket(ticket: TicketDto) {
   if (selectedTicket.value?.id === ticket.id) return
   if (selectedTicket.value) await chat.leave(selectedTicket.value.id).catch(() => {})
   selectedTicket.value = ticket
+
   await chat.join(ticket.id).catch(e => console.error('join room failed', e))
 
   loadingRight.value = true
@@ -72,14 +70,20 @@ async function openTicket(ticket: TicketDto) {
 
   try {
     let profile: UserProfile | null = null
-    if (ticket.requesterId != null && ticket.requesterId !== '') {
+
+    // ✅ number 檢查用 > 0
+    if (typeof ticket.requesterId === 'number' && ticket.requesterId > 0) {
       const { data } = await http.get<UserProfile>(`/api/Users/${ticket.requesterId}`)
       profile = data
-    } else if (ticket.userName) {
-      const uname = encodeURIComponent(ticket.userName)
-      const { data } = await http.get<UserProfile>(`/api/Users/by-username/${uname}`)
+    }
+    // 🔄 備援：舊資料沒 id 時用 username 查（注意是 query 參數）
+    else if (ticket.userName) {
+      const { data } = await http.get<UserProfile>(`/api/Users/by-username`, {
+        params: { username: ticket.userName }
+      })
       profile = data
     }
+
     if (profile) selectedUser.value = profile
   } catch (err) {
     console.warn('load requester profile failed:', err)
@@ -87,6 +91,7 @@ async function openTicket(ticket: TicketDto) {
     loadingRight.value = false
   }
 }
+
 
 /** 小工具：更友善的時間標示 */
 function formatTime(iso: string) {
@@ -114,22 +119,23 @@ function formatTime(iso: string) {
 
       <ul v-else class="ticket-list">
         <li
-          v-for="t in tickets"
-          :key="t.id"
-          :class="['ticket', { active: t.id === selectedTicket?.id }]"
-          @click="openTicket(t)"
-        >
-          <div class="ticket__top">
-            <div class="ticket__title ellipsis">{{ t.title }}</div>
-            <span class="badge" :data-variant="t.status || 'open'">
-              {{ (t.status || 'Open').toUpperCase() }}
-            </span>
-          </div>
-          <div class="ticket__meta">
-            <div class="ticket__name ellipsis">{{ t.requesterName }}</div>
-            <div class="ticket__time">{{ formatTime(t.updatedAt) }}</div>
-          </div>
-        </li>
+  v-for="t in tickets"
+  :key="t.id"
+  :class="['ticket', { active: t.id === selectedTicket?.id }]"
+  @click="openTicket(t)"
+>
+  <div class="ticket__row1">
+    <h4 class="ticket__title">{{ t.title }}</h4>
+    <span class="badge" :data-variant="t.status || 'open'">
+      {{ (t.status || 'Open').toUpperCase() }}
+    </span>
+  </div>
+
+  <div class="ticket__row2">
+    <div class="ticket__name">{{ t.userName }}</div>
+    <time class="ticket__time">{{ formatTime(t.updatedAt) }}</time>
+  </div>
+</li>
       </ul>
     </aside>
 
@@ -138,7 +144,7 @@ function formatTime(iso: string) {
       <header class="chat-header">
         <div class="chat-header__title">
           <h3 class="ellipsis">{{ selectedTicket.title }}</h3>
-          <span class="sub">與 {{ selectedTicket.requesterName }} 聊天中</span>
+          <span class="sub">與 {{ selectedTicket.userName }} 聊天中</span>
         </div>
         <div class="chat-header__right">
           <span class="status-dot online"></span> connected
@@ -282,41 +288,73 @@ function formatTime(iso: string) {
   font-weight: 600;
 }
 
-.ticket-list { overflow: auto; padding-right: 4px; margin: 0; list-style: none; }
 .ticket {
-  padding: 12px 12px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  transition: all .15s ease;
-  background: #fff;
-  margin-bottom: 8px;
+  padding: 14px 16px;
+  border: 1.5px solid #dce3f5;          /* 💡亮一點的淺藍邊 */
+  border-radius: 14px;
+  background: #ffffff;
+  transition: all .18s ease;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;                  /* 💡上下距離加大 */
 }
-.ticket:hover { border-color: var(--border); background: #fafbff; transform: translateY(-1px); }
+.ticket:last-child { margin-bottom: 0; }
+
+.ticket:hover {
+  border-color: #a5b4fc;                /* hover 時邊框更亮藍 */
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12); /* 淡淡陰影 */
+  transform: translateY(-2px);
+}
+
 .ticket.active {
-  background: #fff;
-  color: var(--text);
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+  border-color: #2563eb;                /* 主色藍邊 */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  background: #f9fbff;                  /* 略帶藍底 */
 }
-.ticket__top { display:flex; align-items:center; gap:8px; justify-content:space-between; margin-bottom:4px; }
-.ticket.active .ticket__title { color: var(--text); }
-.ticket.active .ticket__meta  { color: var(--muted); }
-.ticket__name { max-width: 66%; }
-.ticket__time { opacity: .9; }
-/* 選中狀態的 badge：改用主色淡底＋主色字 */
-.ticket.active .badge {
-  background: var(--primary-weak);
-  color: var(--primary);
-  border-color: transparent;}
+
+.ticket__row1 {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 8px;
+}
+.ticket__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;     /* 最多兩行，超出省略 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ticket__row2 {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  color: #475569;
+}
+.ticket__name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ticket__time {
+  font-size: 12px;
+  opacity: .85;
+  white-space: nowrap;
+}
 
 .badge {
-  font-size: 11px;
+  font-size: 10.5px;
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: #f8fafc;
   color: #334155;
-  white-space: nowrap;
+  height: fit-content;
 }
 .badge[data-variant="open"],
 .badge[data-variant="Open"] { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }

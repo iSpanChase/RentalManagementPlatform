@@ -118,7 +118,7 @@ export function useCouponCalculator(cartInfo) {
       return 0;
     };
     return userCoupons.value
-      .filter(c => c.status === '可使用') // Only show unused coupons
+      .filter(c => c.status === 'unused') // Only show unused coupons
       .map(c => { 
         let disabled = false;
         let disabledMessage = '';

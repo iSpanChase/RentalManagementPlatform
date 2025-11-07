@@ -8,14 +8,15 @@
 
       <form class="profile-form" @submit.prevent="handleSubmit" novalidate>
         <div class="form-grid">
-          <label class="form-item form-item--full">
+          <label class="form-item">
             <span>電子郵件</span>
             <input
-              v-model.trim="email"
+              v-model="email"
               type="email"
+              class="text-input"
+              placeholder="請輸入註冊的電子郵件"
               required
-              placeholder="name@example.com"
-              autocomplete="email"
+              aria-required="true"
             />
           </label>
         </div>
@@ -71,16 +72,36 @@ const handleSubmit = async () => {
 
 <style scoped>
 /* 沿用你現有版型 class：page-container / form-section / profile-form / form-grid / form-item / primary-button */
-.page-container { display: grid; place-items: center; padding: 40px 16px; background: #f8fafc; min-height: 100vh; }
+.page-container { display: grid; place-items: center; padding: 40px 16px; background: #f8fafc; min-height: 50vh; }
 .form-section { width: 100%; max-width: 560px; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08); }
 .profile-form { display: flex; flex-direction: column; gap: 16px; }
-.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.form-item { display: grid; gap: 8px; }
-.form-item--full { grid-column: 1 / -1; }
+.form-grid {   display: grid;  gap: 20px;  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.form-item {   display: flex; flex-direction: column; gap: 8px; color: #374151; font-weight: 600; }
+/* .form-item--full { grid-column: 1 / -1; } */
 .form-footer { display: flex; align-items: center; gap: 10px; }
 .primary-button { border: none; padding: 12px 20px; border-radius: 999px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; font-weight: 600; cursor: pointer; }
 .status--success { color: #059669; }
 .status--error { color: #dc2626; }
 .link { color: #2563eb; font-weight: 600; text-decoration: none; }
 .link:hover { text-decoration: underline; }
+
+.text-input{
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;    /* gray-300 */
+  border-radius: 8px;
+  background: #fff;
+  line-height: 1.5;
+  outline: none;
+}
+
+.text-input::placeholder{
+  color: rgb(180, 180, 180);                 /* gray-400 */
+}
+
+.text-input:focus{
+  border-color: #2563eb;         /* blue-600 */
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
 </style>
