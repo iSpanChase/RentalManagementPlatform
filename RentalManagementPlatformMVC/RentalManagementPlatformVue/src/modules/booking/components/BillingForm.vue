@@ -58,8 +58,7 @@ const updateAndValidate = () => {
   emit('update:modelValue', localData.value);
 
   // 發送驗證狀態
-  const isOverallValid = validationResults.value.billingInfo.isValid &&
-                        validationResults.value.billingAddress.isValid;
+  const isOverallValid = validationResults.value.billingInfo.isValid && validationResults.value.billingAddress.isValid;
 
   emit('validation-change', {
     isValid: isOverallValid,
@@ -73,8 +72,7 @@ const updateAndValidate = () => {
 // 暴露驗證方法
 const validate = () => {
   updateAndValidate();
-  return validationResults.value.billingInfo.isValid &&
-         validationResults.value.billingAddress.isValid;
+  return validationResults.value.billingInfo.isValid && validationResults.value.billingAddress.isValid;
 };
 
 defineExpose({
@@ -82,7 +80,6 @@ defineExpose({
 });
 
 onMounted(() => {
-  // 設定測試資料（實際使用時應移除）
   localData.value = {
     billingInfo: {
       name: '李文志',

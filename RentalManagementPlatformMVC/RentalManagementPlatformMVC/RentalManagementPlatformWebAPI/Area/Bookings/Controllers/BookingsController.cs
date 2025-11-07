@@ -28,7 +28,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據已驗證 HostId 獲取其所有訂單
 		[HttpGet("my-orders/{authenticatedHostId}")]
-		[Authorize(Policy = "Booking.ManageAll")]
+		[Authorize(Policy = "Booking.ManageBookings")]
 		public async Task<ActionResult<IEnumerable<BookingDto>>> GetMyOrders(int authenticatedHostId)
 		{
 			var bookings = await _bookingService.GetMyOrdersAsync(authenticatedHostId);
@@ -82,7 +82,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據 BookingId 取消訂單
 		[HttpPut("cancel/{bookingId}")]
-		[Authorize(Policy = "Booking.Cancel")]
+		[Authorize(Policy = "Booking.Delete")]
 		public async Task<IActionResult> CancelBookingAsync(int bookingId)
 		{
 			var result = await _bookingService.CancelBookingByIdAsync(bookingId);
