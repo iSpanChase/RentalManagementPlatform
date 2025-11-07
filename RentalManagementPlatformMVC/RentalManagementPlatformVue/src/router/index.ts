@@ -114,9 +114,6 @@ const router = createRouter({
   ],
 });
 
-  ],
-})
-
 
 
 /** 依路由參數取得 redirect 目的地 */
