@@ -1,4 +1,5 @@
 <template>
+  <div>
        <!-- 這是一個臨時的 div，用來確保 Tailwind JIT
       編譯器能生成我們需要的樣式，之後可以移除 -->
       <div class="hidden">
@@ -67,6 +68,7 @@
       </template>
     </BaseModal>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -109,7 +111,7 @@ const { data: userCoupons, isLoading: isLoadingUser } = useQuery<Coupon[]>({
   queryFn: async () => {
     console.log(`[CouponCenterView] Starting fetch for user coupons, userId: ${userId.value}`);
     try {
-      const rawCoupons = await getUserCoupons(userId.value as number);
+      const rawCoupons = await getUserCoupons(userId.value);
       console.log('[CouponCenterView] Raw user coupons from API:', rawCoupons);
       const now = new Date();
       return rawCoupons.map((c: any) => ({

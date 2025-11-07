@@ -5,8 +5,9 @@ import AuthenticatorRouter from '@/modules/Authenticator/router';
 import ReportFormRouter from '@/modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import CouponCenterView from '../views/CouponCenterView.vue';
-import supportRoutes from '@/modules/faq/router';
-import { useAuthStore } from '@/stores/auth';
+import supportRoutes from '@/modules/faq/router'
+import { useAuthStore } from '@/stores/auth'
+import { isManagerRole } from '@/utils/faqrole'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -113,6 +114,11 @@ const router = createRouter({
   ],
 });
 
+  ],
+})
+
+
+
 /** 依路由參數取得 redirect 目的地 */
 function getRedirectTarget(to: RouteLocationNormalized) {
   const q = to.query?.redirect;
@@ -131,6 +137,9 @@ const ensureProfileLoaded = async () => {
     }
   }
 };
+
+
+
 
 router.beforeEach(async (to) => {
   // ★ callback 路由一律放行（不要做登入檢查/導轉）

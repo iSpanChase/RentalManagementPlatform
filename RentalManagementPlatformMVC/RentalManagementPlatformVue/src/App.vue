@@ -11,6 +11,7 @@ import TempNavComponent from './components/TempNavComponent.vue';
 import { startConnection, registerWarningHandler } from './modules/ReportForm/api/notificationService.ts';
 import NotificationBell from '@/modules/ReportForm/components/notification/NotificationBell.vue'
 import { useNotificationStore } from '@/stores/notificationStore';
+import ChatFloating from './components/ChatFloating.vue'
 import { useAuthStore } from '@/stores/auth';
 
 const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
@@ -80,7 +81,7 @@ onMounted(async () => {
         <!-- <TheFooter /> -->
 
     </div>
-
+     <ChatFloating />
     <ScrollToTopButton />
 </template>
 

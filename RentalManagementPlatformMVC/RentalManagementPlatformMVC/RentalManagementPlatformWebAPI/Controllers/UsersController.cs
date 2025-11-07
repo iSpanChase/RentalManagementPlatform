@@ -29,7 +29,26 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		public async Task<ActionResult<UserProfileDto>> Me()
 			=> Ok(await _svc.GetProfileAsync(User));
 
-		[HttpPut("me")]
+        // ★ 新增：查任意使用者
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = "ADMIN,OPERATOR")] // 依你們實際客服/管理員角色調整
+        public async Task<ActionResult<UserProfileDto>> GetById([FromRoute] int id)
+        {
+            var dto = await _svc.GetProfileByIdAsync(id);
+            if (dto == null) return NotFound();
+            return Ok(dto);
+        }
+        // UsersController
+        [HttpGet("by-username/{username}")]
+        [Authorize(Roles = "ADMIN,OPERATOR")] // 或你的客服 Policy
+        public async Task<ActionResult<UserProfileDto>> GetByUsername(string username)
+        {
+            var dto = await _svc.FAQGetProfileByUsername(username);
+            if (dto == null) return NotFound();
+            return Ok(dto);
+        }
+
+        [HttpPut("me")]
 		[Authorize]
 		public async Task<ActionResult<UserProfileDto>> Update([FromBody] UpdateProfileDto dto)
 		{
