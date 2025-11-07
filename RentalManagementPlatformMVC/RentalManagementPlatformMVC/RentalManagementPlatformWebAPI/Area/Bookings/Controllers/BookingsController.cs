@@ -82,7 +82,7 @@ namespace RentalManagementPlatformWebAPI.Area.Bookings.Controllers
 
 		// 根據 BookingId 取消訂單
 		[HttpPut("cancel/{bookingId}")]
-		[Authorize(Policy = "Booking.Cancel")]
+		[Authorize(Policy = "Booking.Delete")]
 		public async Task<IActionResult> CancelBookingAsync(int bookingId)
 		{
 			var result = await _bookingService.CancelBookingByIdAsync(bookingId);

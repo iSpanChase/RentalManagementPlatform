@@ -15,7 +15,7 @@ const toast = useToast();
 const auth = useAuthStore();
 
 // 權限檢查方法
-const canCancelBooking = auth.can('Booking.Cancel');
+const canCancelBooking = auth.can('Booking.Delete');
 const canCreateBooking = auth.can('Booking.Create');
 
 const allBookings = ref([]);

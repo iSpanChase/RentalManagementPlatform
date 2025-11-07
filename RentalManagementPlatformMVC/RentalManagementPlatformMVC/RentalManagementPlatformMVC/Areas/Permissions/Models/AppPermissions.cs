@@ -36,7 +36,6 @@
 			public const string Create = "Booking.Create";
 			public const string Edit = "Booking.Edit";
 			public const string Delete = "Booking.Delete";
-			public const string Cancel = "Booking.Cancel";
 			public const string ManageBookings = "Booking.ManageBookings";
 		}
 
@@ -128,7 +127,6 @@
 			yield return Booking.Create;
 			yield return Booking.Edit;
 			yield return Booking.Delete;
-			yield return Booking.Cancel;
 			yield return Booking.ManageBookings;
 
 			yield return FAQ.View;
