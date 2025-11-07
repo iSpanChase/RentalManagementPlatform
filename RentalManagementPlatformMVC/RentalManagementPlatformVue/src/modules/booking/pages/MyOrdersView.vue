@@ -229,10 +229,10 @@ onMounted(async () => {
         <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
           <div class="guest-avatar-wrapper">
             <AvatarDisplay
-              :avatar-url="order.guestAvatarUrl"
-              :display-name="order.guestName"
+              :avatar-url="auth.state.profile?.profileImageUrl"
+              :display-name="auth.state.profile?.name"
               :size="80"
-              :updated-at="order.guestUpdatedAt"
+              :updated-at="auth.state.profile?.updatedAt"
             />
           </div>
 
@@ -294,10 +294,10 @@ onMounted(async () => {
           <div class="modal-header">
             <div class="modal-header-content">
               <AvatarDisplay
-                :avatar-url="selectedOrder.guestAvatarUrl"
-                :display-name="selectedOrder.guestName"
+                :avatar-url="auth.state.profile?.profileImageUrl"
+                :display-name="auth.state.profile?.name"
                 :size="60"
-                :updated-at="selectedOrder.guestUpdatedAt"
+                :updated-at="auth.state.profile?.updatedAt"
               />
               <div>
                 <h5 class="modal-title" id="orderDetailModalLabel">
