@@ -183,10 +183,7 @@ const canRefresh = computed(() => !!state.refreshToken)
 /**
  * 檢查使用者是否為房東，以決定是否隱藏優惠券功能
  */
-const shouldHideCouponFeature = computed(() => {
-  if (!state.roles) return false;
-  return state.roles.includes('HOST');
-});
+
 
 const login = async (request: LoginRequest) => {
   state.loading = true
@@ -512,7 +509,6 @@ registerAuthHandlers({
 export const useAuthStore = () => ({
   state,
   isAuthenticated,
-  shouldHideCouponFeature,
   canRefresh,
   login,
   logout,
