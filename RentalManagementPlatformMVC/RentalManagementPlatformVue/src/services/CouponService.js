@@ -12,12 +12,12 @@ try{
 };
 
 // 取得指定使用者的優惠券清單
-export const getUserCoupons = async () => {
+export const getUserCoupons = async (userId) => {
   try{
-    const response = await api.get(`/CouponApi/my-coupons`);
+    const response = await api.get(`/CouponApi/user/${userId}`);
     return response.data;
   }catch(error){
-    console.error('Error fetching public coupons:', error);
+    console.error('Error fetching user coupons:', error);
     return [];
   }
 };
@@ -25,10 +25,11 @@ export const getUserCoupons = async () => {
 // 領取優惠券
 export const redeemCoupon = async (userId, discountCode) => {
   try{
-      const response = await api.post('/CouponApi/redeem', { userId, discountCode });
+      const response = await api.post('/CouponApi/redeem', {UserId:
+         userId, DiscountCode: discountCode });
       return response.data;
   } catch (error) {
-      console.error('Error fetching user coupons::', error);
+      console.error('Error fetching coupons::', error);
       return { success: false, message: '領取優惠券時發生錯誤' };
   }
 };

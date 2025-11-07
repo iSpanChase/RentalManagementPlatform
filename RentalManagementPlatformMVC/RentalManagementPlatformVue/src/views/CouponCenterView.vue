@@ -111,7 +111,7 @@ const { data: userCoupons, isLoading: isLoadingUser } = useQuery<Coupon[]>({
   queryFn: async () => {
     console.log(`[CouponCenterView] Starting fetch for user coupons, userId: ${userId.value}`);
     try {
-      const rawCoupons = await getUserCoupons();
+      const rawCoupons = await getUserCoupons(userId.value);
       console.log('[CouponCenterView] Raw user coupons from API:', rawCoupons);
       const now = new Date();
       return rawCoupons.map((c: any) => ({
