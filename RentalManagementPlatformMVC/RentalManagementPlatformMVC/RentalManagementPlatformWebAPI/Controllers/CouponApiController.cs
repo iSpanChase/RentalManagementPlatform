@@ -4,6 +4,9 @@ using RentalManagementPlatformWebAPI.DTOS;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using System.Collections.Generic;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {
@@ -22,6 +25,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
         [HttpPost("validate")]
 		//檢查優惠券是否可用
+        [Authorize]
 		public async Task<IActionResult> Validate([FromBody] CouponValidationRequestDto request)
         {
             try
@@ -43,6 +47,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         }
 
         [HttpPost("redeem")]
+        [Authorize]
         public async Task<IActionResult> RedeemPromoCode([FromBody] RedeemPromoCodeRequestDto request)
         {
             // TODO: 加上 [Authorize] 標籤
@@ -74,22 +79,22 @@ namespace RentalManagementPlatformWebAPI.Controllers
                 return StatusCode(500, new { message = "讀取優惠券列表時發生錯誤。" });
             }
         }
-
         [HttpGet("user/{userId}")]
         [Authorize(Policy = "Coupon.View")]
 		public async Task<IActionResult> GetUserCoupons(int userId)
-        {
-            // TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
-            try
-            {
-                var userCoupons = await _couponApiService.GetUserCouponsAsync(userId);
-                return Ok(userCoupons);
-            }
-            catch (Exception ex)
-            {
-                // _logger.LogError(ex, "An error occurred while fetching coupons for user {UserId}.", userId);
-                return StatusCode(500, new { message = "讀取您的優惠券時發生錯誤。" });
-            }
-        }
-    }
+		{
+			// TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
+			try
+			{
+				var userCoupons = await _couponApiService.GetUserCouponsAsync(userId);
+				return Ok(userCoupons);
+			}
+			catch (Exception ex)
+			{
+				// _logger.LogError(ex, "An error occurred while fetching coupons for user {UserId}.", userId);
+				return StatusCode(500, new { message = "讀取您的優惠券時發生錯誤。" });
+			}
+		}
+
+	}
 }

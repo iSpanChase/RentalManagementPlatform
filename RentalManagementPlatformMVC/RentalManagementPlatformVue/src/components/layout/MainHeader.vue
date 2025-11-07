@@ -87,6 +87,25 @@ const userInitials = computed(() => {
   return combo || (n[0]?.toUpperCase() ?? 'U')
 })
 
+/** 響應式權限檢查 */
+const hasRoomListPermission = computed(() =>
+  auth.can && auth.can('RoomList.View')
+)
+const hasManageBookingsPermission = computed(() =>
+  auth.can && auth.can('Booking.ManageBookings')
+)
+
+/** 登入後載入權限 */
+onMounted(async () => {
+  if (auth.isAuthenticated.value && !auth.state.permissions?.length) {
+    try {
+      await auth.fetchAbilities()
+    } catch (e) {
+      console.warn('載入權限失敗:', e)
+    }
+  }
+})
+
 /** 切換下拉選單 */
 const toggleUserDropdown = () => {
   showUserDropdown.value = !showUserDropdown.value
@@ -218,7 +237,7 @@ const onLogout = async () => {
                   <div class="nav-section">
                     <h6 class="section-title">個人中心</h6>
                     <router-link
-                      v-if="auth.can && auth.can('RoomList.View')"
+                      v-if="hasRoomListPermission"
                       to="/hosting/rooms"
                       class="dropdown-item"
                       @click="closeUserDropdown"
@@ -238,7 +257,7 @@ const onLogout = async () => {
                       to="/my-orders"
                       class="dropdown-item"
                       @click="closeUserDropdown"
-                      v-if="auth.can && auth.can('Booking.ManageAll')"
+                      v-if="hasManageBookingsPermission"
                     >
                       <i class="fas fa-clipboard-list"></i>
                       <span>我的訂單</span>

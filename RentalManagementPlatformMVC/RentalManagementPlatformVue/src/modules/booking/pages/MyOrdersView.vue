@@ -8,6 +8,7 @@ import { formatDate } from '@/composables/useBookingFormatters';
 import { usePagination } from '@/composables/usePagination';
 import SimplePaginator from '@/components/SimplePaginator.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
+import AvatarDisplay from '@/components/AvatarDisplay.vue';
 
 const bookingStore = useBookingStore();
 const auth = useAuthStore();
@@ -227,10 +228,11 @@ onMounted(async () => {
       <div class="orders-list">
         <div v-for="order in paginatedOrders" :key="order.orderNumber" class="order-card">
           <div class="guest-avatar-wrapper">
-            <img
-              :src="order.guestAvatarUrl || 'https://placehold.co/80x80/EBEBEB/717171?text=Guest'"
-              alt="房客頭像"
-              class="guest-avatar"
+            <AvatarDisplay
+              :avatar-url="auth.state.profile?.profileImageUrl"
+              :display-name="auth.state.profile?.name"
+              :size="80"
+              :updated-at="auth.state.profile?.updatedAt"
             />
           </div>
 
@@ -291,13 +293,11 @@ onMounted(async () => {
         <div class="modal-content" v-if="selectedOrder">
           <div class="modal-header">
             <div class="modal-header-content">
-              <img
-                :src="
-                  selectedOrder.guestAvatarUrl ||
-                  'https://placehold.co/60x60/EBEBEB/717171?text=Guest'
-                "
-                alt="房客頭像"
-                class="modal-avatar"
+              <AvatarDisplay
+                :avatar-url="auth.state.profile?.profileImageUrl"
+                :display-name="auth.state.profile?.name"
+                :size="60"
+                :updated-at="auth.state.profile?.updatedAt"
               />
               <div>
                 <h5 class="modal-title" id="orderDetailModalLabel">
@@ -524,13 +524,6 @@ $text-dark: #484848;
 
     .guest-avatar-wrapper {
       flex-shrink: 0;
-      .guest-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid $border-color;
-      }
     }
 
     .order-details-wrapper {
@@ -654,13 +647,6 @@ $text-dark: #484848;
     flex-grow: 1;
   }
 
-  .modal-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid $border-color;
-  }
 
   .modal-title {
     font-weight: 600;

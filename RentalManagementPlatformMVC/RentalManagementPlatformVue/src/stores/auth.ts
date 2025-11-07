@@ -180,6 +180,11 @@ const isTokenExpired = computed(() => {
 const isAuthenticated = computed(() => !!state.accessToken && !isTokenExpired.value)
 const canRefresh = computed(() => !!state.refreshToken)
 
+/**
+ * 檢查使用者是否為房東，以決定是否隱藏優惠券功能
+ */
+
+
 const login = async (request: LoginRequest) => {
   state.loading = true
   state.error = null

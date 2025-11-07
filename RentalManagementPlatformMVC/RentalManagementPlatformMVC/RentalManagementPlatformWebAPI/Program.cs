@@ -270,12 +270,10 @@ namespace RentalManagementPlatformWebAPI
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			// Authorization ]     U 򥻵    GAdminOnly ^
 			//  ʺA v    ĳ אּ ۭq IAuthorizationPolicyProvider F     n b Ұʮɳs DB C
-			builder.Services.AddAuthorization(options =>
-			{
-				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
-			});
-
-            // DI Message
+			 builder.Services.AddAuthorization(options =>
+			 {
+				 options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
+			  });            // DI Message
             builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
 
@@ -400,8 +398,9 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IBookingReadRepository, BookingReadRepository>(); builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
 			builder.Services.AddScoped<ICouponApiRepository, CouponApiRepository>();
 			builder.Services.AddScoped<ICouponDbRepository, CouponDbRepository>();
+            builder.Services.AddHttpClient();
 
-			builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+            builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 			builder.Services.AddScoped<IPropertyService, PropertyService>();
 
 			// DI：Domain Services

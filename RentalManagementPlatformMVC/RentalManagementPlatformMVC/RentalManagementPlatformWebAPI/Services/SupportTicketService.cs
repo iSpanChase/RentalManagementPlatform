@@ -10,9 +10,17 @@ namespace RentalManagementPlatformWebAPI.Services
         private readonly InMemoryStore _store;
         public SupportTicketService(InMemoryStore store) => _store = store;
 
-        public TicketDto Create(string title, string userName)
+        public TicketDto Create(string title, string userName, int requesterId)
         {
-            var t = new SupportTicket { Title = title, UserName = userName };
+            var t = new SupportTicket
+            {
+                Title = title,
+                UserName = userName,
+                RequesterId = requesterId,
+                Status = "open",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             _store.Tickets[t.Id] = t;
             return Map(t);
         }
@@ -35,6 +43,16 @@ namespace RentalManagementPlatformWebAPI.Services
         public bool Exists(Guid id) => _store.Tickets.ContainsKey(id);
 
         private static TicketDto Map(SupportTicket t)
-            => new(t.Id, t.Title, t.UserName, t.Status, t.CreatedAt, t.UpdatedAt);
+            => new TicketDto(
+                Id: t.Id,
+                Title: t.Title,
+                UserName: t.UserName,
+                Status: t.Status,
+                CreatedAt: t.CreatedAt,
+                UpdatedAt: t.UpdatedAt,
+                RequesterId: t.RequesterId
+            );
+
+        
     }
 }

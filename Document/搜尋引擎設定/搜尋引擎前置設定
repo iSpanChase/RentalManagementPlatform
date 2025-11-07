@@ -4,25 +4,25 @@
 
 建立索引
 
-curl.exe -X POST "http://127.0.0.1:7700/indexes" -H "Authorization: Bearer TingYi1997" -H "Content-Type: application/json" --data "{\"uid\": \"rooms\", \"primaryKey\": \"room_id\"}"
+curl.exe -X POST "http://127.0.0.1:7700/indexes" -H "Authorization: Bearer avery0501avery0501" -H "Content-Type: application/json" --data "{\"uid\": \"rooms\", \"primaryKey\": \"room_id\"}"
 
 導入資料
 
-curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorization: Bearer TingYi1997" -H "Content-Type: application/json" --data-binary "@rooms_seed.json"
+curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorization: Bearer avery0501avery0501" -H "Content-Type: application/json" --data-binary "@rooms_seed.json"
 
 搜尋設定
 
-curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorization: Bearer TingYi1997" -H "Content-Type: application/json" --data-binary "@rooms_settings.json"
+curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorization: Bearer @Mmorpg176Mmorpg176" -H "Content-Type: application/json" --data-binary "@rooms_settings.json"
 
 同義字
 
-curl.exe -X PUT "http://127.0.0.1:7700/indexes/rooms/settings/synonyms" -H "Authorization: Bearer TingYi1997" -H "Content-Type: application/json" --data-binary "@synonyms.json"
+curl.exe -X PUT "http://127.0.0.1:7700/indexes/rooms/settings/synonyms" -H "Authorization: Bearer avery0501avery0501" -H "Content-Type: application/json" --data-binary "@synonyms.json"
 
 在appsettings加入連線字串
 
 "Meilisearch": {
     "Url": "http://127.0.0.1:7700",
-    "ApiKey": "TingYi1997"
+    "ApiKey": "avery0501avery0501"
   },
 
 
