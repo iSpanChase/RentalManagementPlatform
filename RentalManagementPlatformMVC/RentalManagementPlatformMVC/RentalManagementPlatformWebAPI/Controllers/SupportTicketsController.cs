@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RentalManagementPlatformWebAPI.DTOs;
 using RentalManagementPlatformWebAPI.Services.Interfaces;
+using System.Security.Claims;
 
 namespace RentalManagementPlatformWebAPI.Controllers
 {
@@ -13,8 +14,22 @@ namespace RentalManagementPlatformWebAPI.Controllers
         public SupportTicketsController(ISupportTicketService svc) => _svc = svc;
 
         [HttpPost]
-        public ActionResult<TicketDto> Create(CreateTicketReq req)
-            => Ok(_svc.Create(req.Title, req.UserName));
+        public ActionResult<TicketDto> Create([FromBody] CreateTicketReq req)
+        {
+            try
+            {
+                var uidStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(uidStr, out var uid)) return Unauthorized();
+                var dto = _svc.Create(req.Title, req.UserName, uid);
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                // 先暫時輸出詳細錯誤（只在開發環境）
+                Console.WriteLine(ex);
+                return Problem(ex.Message);
+            }
+        }
 
         [HttpGet]
         public ActionResult<IEnumerable<TicketDto>> List([FromQuery] string? status)

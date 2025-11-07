@@ -11,7 +11,7 @@ type TicketDto = {
   id: string
   title: string
   userName: string
-  userID: number
+  requesterId: number
   status: string
   createdAt: string
   updatedAt: string
@@ -85,7 +85,7 @@ async function createTicket() {
       id,
       title: title.value,
       userName: displayName.value,
-      userID : displayUserId.value,
+      requesterId : displayUserId.value,
       status: 'open',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

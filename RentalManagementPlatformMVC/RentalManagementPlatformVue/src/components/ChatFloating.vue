@@ -64,13 +64,7 @@ const profile = auth.state.profile
 async function createTicket(){
   const { data } = await http.post<TicketDto>('/api/supporttickets', {
     title: title.value,
-      userName: displayName.value,
-      // userID: displayUserId.value,
-      requesterName: profile?.name || displayName.value,
-      requesterEmail: profile?.email,
-      requesterPhone: profile?.phone,
-      requesterAddress: profile?.address,
-      requesterAvatarUrl: profile?.profileImageUrl
+    userName: displayName.value
   })
   ticket.value = data
   await chat.join(ticket.value.id)
