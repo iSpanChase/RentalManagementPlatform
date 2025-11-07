@@ -305,6 +305,54 @@ namespace RentalManagementPlatformWebAPI.Services
 
 		// === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
 		private static UserProfileDto Map(User u) => new()
+
+		//FAQ
+        public async Task<UserProfileDto?> GetProfileByIdAsync(int userId)
+        {
+            // 1. 使用 _users.Query() 來存取 IQueryable
+            return await _users.Query()
+                .Where(u => u.UserId == userId) // 注意：這裡使用 C# 實體屬性 (UserId)
+                .Select(u => new UserProfileDto
+                {
+                    // 這裡使用 C# 實體屬性 (PascalCase)
+                    UserId = u.UserId,
+                    Email = u.Email ?? "",
+                    Name = u.Name ?? "",
+                    Username = u.Username ?? "",
+                    Phone = u.Phone ?? "",
+                    Address = u.Address ?? "",
+                    Point = u.Point,
+                    ProfileImageUrl = u.ProfileImageurl,
+                    IsVerified = u.Isverified,
+                    Gender = u.Gender ?? "",   // 確保 DTO 欄位完整
+                    BirthDate = u.BirthDate // 確保 DTO 欄位完整
+                })
+                .FirstOrDefaultAsync();
+        }
+        public async Task<UserProfileDto?> FAQGetProfileByUsername(string username)
+        {
+            username = username.Trim();
+            if (string.IsNullOrEmpty(username)) return null;
+
+            return await _users.Query()
+                .Where(u => u.Username == username)
+                .Select(u => new UserProfileDto
+                {
+                    UserId = u.UserId,
+                    Email = u.Email,
+                    Name = u.Name,
+                    Username = u.Username,
+                    Phone = u.Phone,
+                    Address = u.Address,
+                    Point = u.Point,
+                    ProfileImageUrl = u.ProfileImageurl,
+                    IsVerified = u.Isverified
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        // === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
+        private static UserProfileDto Map(User u) => new()
 		{
 			UserId = u.UserId,
 			Username = u.Username ?? "",

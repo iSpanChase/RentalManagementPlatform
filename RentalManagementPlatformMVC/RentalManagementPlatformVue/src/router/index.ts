@@ -5,8 +5,9 @@ import AuthenticatorRouter from '@/modules/Authenticator/router';
 import ReportFormRouter from '@/modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import CouponCenterView from '../views/CouponCenterView.vue';
-import supportRoutes from '@/modules/faq/router';
-import { useAuthStore } from '@/stores/auth';
+import supportRoutes from '@/modules/faq/router'
+import { useAuthStore } from '@/stores/auth'
+import { isManagerRole } from '@/utils/faqrole'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -106,12 +107,15 @@ const router = createRouter({
         // 2. 其他模組路由
         ...ReportFormRouter,
 
-        // 3. 訂單路由（使用自己的 BookingLayout）
-        ...AuthenticatorRouter,
-        ...bookingRoutes,
-        ...supportRoutes,
-    ],
-});
+    // 3. 訂單路由（使用自己的 BookingLayout）
+    ...AuthenticatorRouter,
+    ...bookingRoutes,
+    ...supportRoutes,
+
+  ],
+})
+
+
 
 /** 依路由參數取得 redirect 目的地 */
 function getRedirectTarget(to: RouteLocationNormalized) {
@@ -131,6 +135,9 @@ const ensureProfileLoaded = async () => {
         }
     }
 };
+
+
+
 
 router.beforeEach(async (to) => {
     // ★ callback 路由一律放行（不要做登入檢查/導轉）
@@ -198,15 +205,29 @@ router.beforeEach(async (to) => {
         return { name: 'login', query: { redirect: to.fullPath } };
     }
 
-    // 僅允許訪客的頁面（/login）
-    if (to.meta.requiresGuest) {
-        const hasToken = !!localStorage.getItem('rmp.accessToken')
-        if (auth.isAuthenticated.value || hasToken) {
-            const target = getRedirectTarget(to)  // 你現有的輔助函式：從 query.redirect 取目標
-            return target === '/' ? { name: 'dashboard' } : target
-        }
+  // 僅允許訪客的頁面（/login）
+  if (to.meta.requiresGuest) {
+      const hasToken = !!localStorage.getItem('rmp.accessToken')
+    if (auth.isAuthenticated.value || hasToken) {
+      const target = getRedirectTarget(to)  // 你現有的輔助函式：從 query.redirect 取目標
+      return target === '/' ? { name: 'dashboard' } : target
     }
-    return true
+  }
+
+  // /support 根路徑：依角色導頁（公開頁，不強制登入）
+  if (to.path === '/support') {
+    // 若已登入但還沒拿 abilities，就補拉一次（沿用隊友寫好的 fetchAbilities）
+    if (auth.isAuthenticated.value && !auth.state.permissions?.length && auth.fetchAbilities) {
+      try { await auth.fetchAbilities() } catch { }
+    }
+
+    // 有 ADMIN/OPERATOR 就去後台客服；否則到使用者端客服
+    const roles = auth.state.roles || []
+    return isManagerRole(roles)
+      ? { name: 'support-agent' }      // 你的後台客服路由名稱
+      : { name: 'support-customer' }   // 你的使用者端客服(或浮窗容器)路由名稱
+  }
+  return true
 })
 
 export default router;

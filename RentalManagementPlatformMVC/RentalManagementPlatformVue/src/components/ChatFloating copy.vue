@@ -6,21 +6,8 @@ import http from '@/plugins/http'
 import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chat'
 import { isManagerRole, getDisplayName } from '@/utils/faqrole'
-// import { getDisplayUserId } from '@/utils/faqrole'
 
-type TicketDto = {
-  id: string
-  title: string
-  userName: string
-  userID: number
-  status: string
-  createdAt: string
-  updatedAt: string
-  RequesterEmail : string
-  RequesterPhone : string
-  RequesterAddress : string
-  RequesterAvatarUrl : string
-}
+type TicketDto = { id:string; title:string; userName:string; status:string; createdAt:string; updatedAt:string }
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -29,7 +16,6 @@ const chat = useChatStore()
 const isOpen = ref(false)          // 控制浮窗開合
 const title = ref('房租問題')
 const displayName = ref(getDisplayName(auth.state.profile))
-// const displayUserId = ref(getDisplayUserId(auth.state.profile))
 const ticket = ref<TicketDto | null>(null)
 
 function makeId(){
@@ -60,17 +46,10 @@ async function onLauncherClick() {
   isOpen.value = !isOpen.value
 }
 
-const profile = auth.state.profile
 async function createTicket(){
   const { data } = await http.post<TicketDto>('/api/supporttickets', {
     title: title.value,
-      userName: displayName.value,
-      // userID: displayUserId.value,
-      requesterName: profile?.name || displayName.value,
-      requesterEmail: profile?.email,
-      requesterPhone: profile?.phone,
-      requesterAddress: profile?.address,
-      requesterAvatarUrl: profile?.profileImageUrl
+    userName: displayName.value
   })
   ticket.value = data
   await chat.join(ticket.value.id)
