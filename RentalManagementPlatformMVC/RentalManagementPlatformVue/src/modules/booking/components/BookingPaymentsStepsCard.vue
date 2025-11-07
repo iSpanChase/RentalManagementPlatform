@@ -158,9 +158,9 @@ const handleConfirmPayment = async () => {
       <div class="step-header">
         <h3>1。選擇付款時間</h3>
         <button
-          v-if="stepCompleted.step1 && currentStep !== 1"
           type="button"
           class="btn-change"
+          v-if="currentStep !== 1 && stepCompleted.step1"
           @click="
             currentStep = 1;
             stepCompleted.step1 = false;
@@ -196,9 +196,9 @@ const handleConfirmPayment = async () => {
           />
           <label for="partial">
             <div>立即支付 $0 TWD</div>
-            <small v-if="bookingStore.isRefundable === false" class="text-muted"
-              >此訂單不符合延後付款資格</small
-            >
+            <small class="text-muted" v-if="bookingStore.isRefundable === false">
+              此訂單不符合延後付款資格
+            </small>
             <small v-else>
               將於 {{ bookingStore.refundableDate }} 收取
               {{ formatPrice(Math.round(props.totalPrice)) }}。無須支付額外費用。
@@ -210,7 +210,7 @@ const handleConfirmPayment = async () => {
         <button type="button" class="btn-continue" @click="handleContinue">繼續</button>
       </div>
 
-      <div v-else-if="stepCompleted.step1" class="step-summary">
+      <div class="step-summary" v-else-if="stepCompleted.step1">
         <p v-if="selectedPaymentTiming === 'full'">
           立即支付 {{ formatPrice(Math.round(props.totalPrice)) }}
         </p>
@@ -222,9 +222,7 @@ const handleConfirmPayment = async () => {
     </div>
 
     <!-- Step 2: 付款資訊 -->
-    <div
-      class="step-card"
-      :class="{
+    <div class="step-card" :class="{
         active: currentStep === 2,
         completed: stepCompleted.step2,
         disabled: currentStep < 2,
@@ -233,9 +231,9 @@ const handleConfirmPayment = async () => {
       <div class="step-header">
         <h3>2。付款資訊</h3>
         <button
-          v-if="stepCompleted.step2 && currentStep !== 2"
-          type="button"
           class="btn-change"
+          type="button"
+          v-if="stepCompleted.step2 && currentStep !== 2"
           @click="
             currentStep = 2;
             stepCompleted.step2 = false;
@@ -245,7 +243,7 @@ const handleConfirmPayment = async () => {
         </button>
       </div>
 
-      <div v-if="currentStep === 2" class="payment-form">
+      <div class="payment-form" v-if="currentStep === 2">
         <div class="payment-method-header">
           <div class="payment-icon"><i class="fa-solid fa-credit-card"></i></div>
           <div>

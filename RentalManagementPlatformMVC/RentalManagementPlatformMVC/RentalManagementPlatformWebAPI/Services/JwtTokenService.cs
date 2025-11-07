@@ -25,16 +25,16 @@ namespace RentalManagementPlatformWebAPI.Services
 			roles ??= Enumerable.Empty<string>();         // ★ null-safe
 			permissions ??= Enumerable.Empty<string>();   // ★ null-safe
 
-			var keyRaw = _cfg["Jwt:Key"];
+			var keyRaw = _cfg["Authentication:Jwt:Key"];
 			if (string.IsNullOrWhiteSpace(keyRaw))
-				throw new InvalidOperationException("JWT Key 未設定（Jwt:Key）。");
+				throw new InvalidOperationException("JWT Key 未設定（Authentication:Jwt:Key）。");
 			if (Encoding.UTF8.GetByteCount(keyRaw) < 32)
 				throw new InvalidOperationException("JWT Key 長度不足（HS256 建議至少 32 bytes）。");
 
-			var issuer = _cfg["Jwt:Issuer"];
-			var audience = _cfg["Jwt:Audience"];
+			var issuer = _cfg["Authentication:Jwt:Issuer"];
+			var audience = _cfg["Authentication:Jwt:Audience"];
 			if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
-				throw new InvalidOperationException("Jwt:Issuer 或 Jwt:Audience 未設定。");
+				throw new InvalidOperationException("Authentication:Jwt:Issuer 或 Authentication:Jwt:Audience 未設定。");
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyRaw));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -52,12 +52,12 @@ namespace RentalManagementPlatformWebAPI.Services
 			foreach (var p in permissions.Distinct())
 				claims.Add(new Claim("perm", p));
 
-			var minutes = int.TryParse(_cfg["Jwt:AccessTokenMinutes"], out var m) ? m : 30;
+			var minutes = int.TryParse(_cfg["Authentication:Jwt:AccessTokenMinutes"], out var m) ? m : 30;
 			var expires = DateTime.UtcNow.AddMinutes(minutes);
 
 			var token = new JwtSecurityToken(
-				issuer: _cfg["Jwt:Issuer"],
-				audience: _cfg["Jwt:Audience"],
+				issuer: _cfg["Authentication:Jwt:Issuer"],
+				audience: _cfg["Authentication:Jwt:Audience"],
 				claims: claims,
 				expires: expires,
 				signingCredentials: creds
