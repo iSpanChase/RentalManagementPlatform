@@ -270,12 +270,10 @@ namespace RentalManagementPlatformWebAPI
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			// Authorization ]     U 򥻵    GAdminOnly ^
 			//  ʺA v    ĳ אּ ۭq IAuthorizationPolicyProvider F     n b Ұʮɳs DB C
-			builder.Services.AddAuthorization(options =>
-			{
-				options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
-			});
-
-            // DI Message
+			 builder.Services.AddAuthorization(options =>
+			 {
+				 options.AddPolicy("AdminOnly", p => p.RequireRole("ADMIN"));
+			  });            // DI Message
             builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
 

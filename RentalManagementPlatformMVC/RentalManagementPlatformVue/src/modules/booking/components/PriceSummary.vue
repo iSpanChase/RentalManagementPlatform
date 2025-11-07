@@ -6,6 +6,8 @@ import CouponSelector from '@/components/coupons/CouponSelector.vue';
 import PriceDetailsModal from './PriceDetailsModal.vue';
 import { useCouponCalculator } from '@/composables/useCouponCalculator.js';
 
+import { useAuthStore } from '@/stores/auth';
+
 const props = defineProps({
   showCouponSelector: {
     type: Boolean,
@@ -22,6 +24,7 @@ const props = defineProps({
 });
 
 const bookingStore = useBookingStore();
+const authStore = useAuthStore();
 
 // 優惠券計算
 const cartInfo = computed(() => ({
@@ -69,7 +72,7 @@ defineExpose({
     </div>
 
     <!-- 優惠券選擇器 -->
-    <div class="coupon-section" v-if="showCouponSelector">
+    <div class="coupon-section" v-if="showCouponSelector && !authStore.shouldHideCouponFeature">
       <CouponSelector
         :coupons="couponOptions"
         v-model="selectedCouponId"

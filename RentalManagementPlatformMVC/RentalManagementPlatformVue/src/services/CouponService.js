@@ -17,7 +17,7 @@ export const getUserCoupons = async (userId) => {
     const response = await api.get(`/CouponApi/user/${userId}`);
     return response.data;
   }catch(error){
-    console.error('Error fetching public coupons:', error);
+    console.error('Error fetching user coupons:', error);
     return [];
   }
 };
@@ -25,10 +25,11 @@ export const getUserCoupons = async (userId) => {
 // 領取優惠券
 export const redeemCoupon = async (userId, discountCode) => {
   try{
-      const response = await api.post('/CouponApi/redeem', { userId, discountCode });
+      const response = await api.post('/CouponApi/redeem', {UserId:
+         userId, DiscountCode: discountCode });
       return response.data;
   } catch (error) {
-      console.error('Error fetching user coupons::', error);
+      console.error('Error fetching coupons::', error);
       return { success: false, message: '領取優惠券時發生錯誤' };
   }
 };
