@@ -400,8 +400,9 @@ namespace RentalManagementPlatformWebAPI
 			builder.Services.AddScoped<IBookingReadRepository, BookingReadRepository>(); builder.Services.AddScoped<IUserReadRepository, UserReadRepository>();
 			builder.Services.AddScoped<ICouponApiRepository, CouponApiRepository>();
 			builder.Services.AddScoped<ICouponDbRepository, CouponDbRepository>();
+            builder.Services.AddHttpClient();
 
-			builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+            builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 			builder.Services.AddScoped<IPropertyService, PropertyService>();
 
 			// DI：Domain Services

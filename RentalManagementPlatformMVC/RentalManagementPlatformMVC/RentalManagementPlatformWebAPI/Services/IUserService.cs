@@ -13,8 +13,6 @@ namespace RentalManagementPlatformWebAPI.Services
 		Task<UserProfileDto?> GetProfileByIdAsync(int userId);
         Task<UserProfileDto?> FAQGetProfileByUsername(string username);
 
-    }
-
 		Task<UserProfileDto> FindOrCreateFromExternalAsync(ExternalProfileDto dto);
 	}
 }

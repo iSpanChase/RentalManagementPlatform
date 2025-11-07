@@ -303,8 +303,6 @@ namespace RentalManagementPlatformWebAPI.Services
 			return Map(user);
 		}
 
-		// === 實體 → 前端用 DTO 的映射，欄位與前端完全對齊 ===
-		private static UserProfileDto Map(User u) => new()
 
 		//FAQ
         public async Task<UserProfileDto?> GetProfileByIdAsync(int userId)
