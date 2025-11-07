@@ -14,17 +14,20 @@ namespace RentalManagementPlatformWebAPI.Services
 		private readonly IRoleRepository _roles;
 		private readonly Microsoft.AspNetCore.Identity.IPasswordHasher<User> _hasher;
 		private readonly IWebHostEnvironment _env;
+		private readonly RentalManagementPlatformSqlContext _db;
 
 		public UserService(
 			IUserRepository users,
 			IRoleRepository roles,
 			Microsoft.AspNetCore.Identity.IPasswordHasher<User> hasher,
-			IWebHostEnvironment env)
+			IWebHostEnvironment env,
+			RentalManagementPlatformSqlContext db)
 		{
 			_users = users;
 			_roles = roles;
 			_hasher = hasher;
 			_env = env;
+			_db = db;
 		}
 
 		private static int GetUserIdFromClaims(ClaimsPrincipal principal)
@@ -154,6 +157,19 @@ namespace RentalManagementPlatformWebAPI.Services
 
 		public async Task<UserProfileDto> FindOrCreateFromExternalAsync(ExternalProfileDto dto)
 		{
+			// 標準化 provider / subject（LINE 常見沒 email 的情況，靠這對鍵才能找到同一人）
+			var provider = (dto.Provider ?? "").Trim();
+			var subject = (dto.ProviderUserId ?? "").Trim();
+
+			// 0) 先用 ExternalLogins 查（最穩）
+			if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(subject))
+			{
+				var link = await _db.ExternalLogins
+					.Include(x => x.User)
+					.FirstOrDefaultAsync(x => x.Provider == provider && x.ProviderUserId == subject);
+				if (link?.User != null)
+					return Map(link.User); // 直接回既有帳號
+			}
 			// 1) 有 email：先嘗試以 email 合併既有帳號
 			User? user = null;
 			if (!string.IsNullOrWhiteSpace(dto.Email))
@@ -190,6 +206,7 @@ namespace RentalManagementPlatformWebAPI.Services
 					ProfileImageurl = dto.PictureUrl ?? "",
 
 					Provider = dto.Provider ?? "External",
+					ProviderSubject = subject,
 					Isverified = !string.IsNullOrWhiteSpace(dto.Email),
 					CreatedAt = DateTime.UtcNow,
 
@@ -199,16 +216,60 @@ namespace RentalManagementPlatformWebAPI.Services
 
 				await _users.AddAsync(user);
 
-				// 可選：預設角色（存在才指派）
-				var role = await _roles.GetByCodeAsync("MEMBER");
+				// === 決定要指派的角色代碼（全部轉大寫以配合 DB 的 RoleCode） ===
+				string targetRoleCode = "TENANT"; // 預設
+
+				if (!string.IsNullOrWhiteSpace(dto.Email) &&
+					dto.Email.EndsWith("@mycorp.com", StringComparison.OrdinalIgnoreCase))
+				{
+					targetRoleCode = "HOST";
+				}
+
+				// 若你有供應商白名單，可加上
+				// if (supplierEmails.Contains(dto.Email?.ToLowerInvariant())) targetRoleCode = "SUPPLIER";
+
+				// === 角色存在才指派 ===
+				var role = await _roles.GetByCodeAsync(targetRoleCode);
 				if (role != null)
+				{
 					await _roles.AssignUserAsync(role.RoleId, user.UserId);
+				}
 
 				await _users.SaveChangesAsync();
 			}
+			else
+			{
+				// 若合併既有帳號，順便補 Provider/Subject（若你的 User 有這兩欄）
+				if (!string.IsNullOrEmpty(subject))
+				{
+					user.Provider = provider;
+					user.ProviderSubject = subject;
+					await _users.SaveChangesAsync();
+				}
+			}
 
+			// 3) ★建立 ExternalLogins 關聯（關鍵：避免下次再重覆建）
+			if (!string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(subject))
+			{
+				var exists = await _db.ExternalLogins
+					.AnyAsync(x => x.Provider == provider && x.ProviderUserId == subject);
+				if (!exists)
+				{
+					_db.ExternalLogins.Add(new ExternalLogin
+					{
+						UserId = user.UserId,
+						Provider = provider,
+						ProviderUserId = subject,
+						Email = dto.Email,
+						DisplayName = dto.DisplayName,
+						PictureUrl = dto.PictureUrl,
+						CreatedAt = DateTime.UtcNow,
+					});
+					await _db.SaveChangesAsync();
+				}
+			}
 
-			return Map(user);
+			return Map(user!);
 		}
 
 		public async Task<UserProfileDto> CompleteExternalAsync(int userId, CompleteExternalDto dto)

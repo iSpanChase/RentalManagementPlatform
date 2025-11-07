@@ -291,7 +291,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
             date.setDate(today.getDate() - 90 + i);
             return { date: date.toISOString().split('T')[0], revenue: Math.random() * 1000 + 500 };
         });
-        const lastHistoricalRevenue = historicalPoints[historicalPoints.length - 1].revenue;
+        const lastHistoricalRevenue = historicalPoints[historicalPoints.length - 1]?.revenue ?? 500;
         const predictedPoints = Array.from({ length: predConfig.forecastDays }, (_, i) => {
             const date = new Date(today);
             date.setDate(today.getDate() + i + 1);
@@ -320,7 +320,7 @@ export async function fetchCardData(type: CardType, config: CardConfig): Promise
             date.setDate(today.getDate() - 90 + i);
             return { date: date.toISOString().split('T')[0], occupancyRate: Math.random() * 20 + 70 };
         });
-        const lastHistoricalRate = historicalPoints[historicalPoints.length - 1].occupancyRate;
+        const lastHistoricalRate = historicalPoints[historicalPoints.length - 1]?.occupancyRate ?? 80;
         const predictedPoints = Array.from({ length: predConfig.forecastDays }, (_, i) => {
             const date = new Date(today);
             date.setDate(today.getDate() + i + 1);

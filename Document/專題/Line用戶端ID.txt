@@ -1,3 +1,3 @@
-dotnet user-secrets set "Authentication:Line:ChannelId" "2008422869"
+dotnet user-secrets set "Authentication:Line:ChannelId" "2008433023"
 
-dotnet user-secrets set "Authentication:Line:ChannelSecret" "fae28a05fbd1b8548578e38dd7887bbf"
+dotnet user-secrets set "Authentication:Line:ChannelSecret" "b3f918e1bf8aad150524502523881a1f"

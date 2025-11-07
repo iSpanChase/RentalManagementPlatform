@@ -9,7 +9,7 @@ const reportFormRoutes: RouteRecordRaw[] = [
             {
                 path: '',
                 name: 'ReportForm.IndexView',
-                component: () => import('@/modules/reportForm/pages/IndexView.vue'),
+                component: () => import('@/modules/ReportForm/pages/IndexView.vue'),
                 meta: {
                     title: '報表分析',
                     requiresAuth: true,
@@ -25,7 +25,7 @@ const reportFormRoutes: RouteRecordRaw[] = [
             {
                 path: '',
                 name: 'Recommendations',
-                component: () => import('@/modules/reportForm/pages/RecommendationView.vue'),
+                component: () => import('@/modules/ReportForm/pages/RecommendationView.vue'),
                 meta: {
                     title: '推薦房間',
                     requiresAuth: false,

@@ -55,16 +55,16 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted } from 'vue'
-import BaseCardComponent from '../components/BaseCardComponent.vue'
-import ConfigPanelComponent from '../components/ConfigPanelComponent.vue'
+import BaseCardComponent from '@/modules/ReportForm/components/BaseCardComponent.vue'
+import ConfigPanelComponent from '@/modules/ReportForm/components/ConfigPanelComponent.vue'
 
-import ChartCardComponent from '../components/ChartCardComponent.vue'
-import KpiCardComponent from '../components/cardInfos/KpiCardComponent.vue'
-import PieChartCardComponent from '../components/cardInfos/PieChartCardComponent.vue'
+import ChartCardComponent from '@/modules/ReportForm/components/ChartCardComponent.vue'
+import KpiCardComponent from '@/modules/ReportForm/components/cardInfos/KpiCardComponent.vue'
+import PieChartCardComponent from '@/modules/ReportForm/components/cardInfos/PieChartCardComponent.vue'
 import {
     createCard, updateCard, refetchCardData, type Card, type CardDraft,
     getFavoriteReports, loadFavoriteReport, saveFavoriteReport, deleteFavoriteReport, type FavoriteReport
-} from '../api/reportForm'
+} from '@/modules/ReportForm/api/reportForm'
 import { startConnection, registerWarningHandler } from '../api/notificationService';
 import { useAuthStore } from '@/stores/auth'
 

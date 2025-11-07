@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vu
 import MainLayout from '@/layouts/MainLayout.vue';
 import HomeView from '../views/HomeView.vue';
 import AuthenticatorRouter from '@/modules/Authenticator/router';
-import ReportFormRouter from '@/modules/reportForm/router';
+import ReportFormRouter from '@/modules/ReportForm/router';
 import bookingRoutes from '@/modules/booking/router';
 import CouponCenterView from '../views/CouponCenterView.vue';
 import supportRoutes from '@/modules/faq/router';
@@ -45,16 +45,28 @@ const router = createRouter({
                     path: '/hosting/rooms/new',
                     name: 'create-room',
                     component: () => import('../views/hosting/CreateRoomView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.Create'],
+                    },
                 },
                 {
                     path: '/hosting/rooms/:id/edit',
                     name: 'edit-room',
                     component: () => import('../views/hosting/EditRoomView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.Edit'],
+                    },
                 },
                 {
                     path: '/hosting/rooms',
                     name: 'room-list',
                     component: () => import('../views/hosting/RoomListView.vue'),
+                    meta: {
+                        requiresAuth: true,
+                        requiredPerms: ['RoomList.View'],
+                    },
                 },
                 {
                     path: '/coupons',
@@ -62,7 +74,7 @@ const router = createRouter({
                     component: CouponCenterView,
                     meta: {
                         requiresAuth: true,
-                        requiresNotHost: true,
+                        requiredPerms: ['Coupon.View'],
                     },
                 },
                 {
@@ -90,11 +102,7 @@ const router = createRouter({
                 },
             ],
         },
-        // 2. 其他模組路由
-        ...ReportFormRouter,
 
-
-        // 2. 其他模組路由
         ...ReportFormRouter,
 
         // 3. 訂單路由（使用自己的 BookingLayout）
@@ -153,59 +161,36 @@ router.beforeEach(async (to) => {
 
     // 已登入 -> 保險載入 profile
     if (auth.isAuthenticated.value && !auth.state.profile) {
-            await ensureProfileLoaded()
+        await ensureProfileLoaded()
     }
 
     // 需要登入的頁面
     if (to.meta.requiresAuth) {
         if (auth.isAuthenticated.value) {
             await ensureProfileLoaded()
-            // 檢查是否需要排除房東
-            if (to.meta.requiresNotHost) {
-                const isHost = auth.state.roles?.includes('HOST') || false;
-                if (isHost) {
-                    return { name: 'forbidden' };
-                }
-            }
             return true
         }
 
         // store 未登入，但有 token：嘗試續期/取資料；失敗就清 token 並去登入
         if (hasToken) {
-        try {
-            if (auth.canRefresh?.value) {
-                const ok = await auth.refreshSession()
-                if (ok) {
-                    await ensureProfileLoaded()
-                    // 檢查是否需要排除房東
-                    if (to.meta.requiresNotHost) {
-                        const isHost = auth.state.roles?.includes('HOST') || false;
-                        if (isHost) {
-                            return { name: 'forbidden' };
-                        }
-                    }
-                    return true
-                }
-            }
-            // 即使不能 refresh，也試著拉一次 profile（若後端允許）
-            await auth.fetchProfile()
-            if (auth.isAuthenticated.value) {
-                // 檢查是否需要排除房東
-                if (to.meta.requiresNotHost) {
-                    const isHost = auth.state.roles?.includes('HOST') || false;
-                    if (isHost) {
-                        return { name: 'forbidden' };
+            try {
+                if (auth.canRefresh?.value) {
+                    const ok = await auth.refreshSession()
+                    if (ok) {
+                        await ensureProfileLoaded()
+                        return true
                     }
                 }
-                return true
+                // 即使不能 refresh，也試著拉一次 profile（若後端允許）
+                await auth.fetchProfile()
+                if (auth.isAuthenticated.value) return true
+            } catch {
+                // 失敗就當作未登入處理
             }
-        } catch {
-            // 失敗就當作未登入處理
-        }
-        // 清掉壞 token，避免下次又被當成 hasToken
-        localStorage.removeItem('rmp.accessToken')
-        localStorage.removeItem('rmp.refreshToken')
-        return { name: 'login', query: { redirect: to.fullPath } }
+            // 清掉壞 token，避免下次又被當成 hasToken
+            localStorage.removeItem('rmp.accessToken')
+            localStorage.removeItem('rmp.refreshToken')
+            return { name: 'login', query: { redirect: to.fullPath } }
         }
 
         // 沒登入也沒 token

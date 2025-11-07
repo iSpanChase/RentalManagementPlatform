@@ -20,6 +20,4 @@ public partial class ExternalLogin
     public string? PictureUrl { get; set; }
 
     public DateTime CreatedAt { get; set; }
-
-    public virtual User User { get; set; } = null!;
 }

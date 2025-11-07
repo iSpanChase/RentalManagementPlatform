@@ -30,7 +30,7 @@ namespace RentalManagementPlatformWebAPI.Controllers
         {
             try
             {
-                var result = await _couponApiService.ValidateCouponAsync(request, this.User);
+                var result = await _couponApiService.ValidateCouponAsync(request);
                 // 不論成功或失敗，都回傳 200 OK，由前端根據 IsValid 和 ErrorCode 欄位來決定行為
                 return Ok(result);
             }
@@ -79,27 +79,22 @@ namespace RentalManagementPlatformWebAPI.Controllers
                 return StatusCode(500, new { message = "讀取優惠券列表時發生錯誤。" });
             }
         }
-        [HttpGet("my-coupons")]
-        [Authorize]
-        public async Task<IActionResult> GetMyCoupons()
-        {
-            // TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
-            try
-            {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
-                {
-                    return Unauthorized("無法識別使用者身份。");
-                }
+        [HttpGet("user/{userId}")]
+        [Authorize(Policy = "Coupon.View")]
+		public async Task<IActionResult> GetUserCoupons(int userId)
+		{
+			// TODO: 加上 [Authorize] 標籤，並驗證 userId 是否為當前登入使用者
+			try
+			{
+				var userCoupons = await _couponApiService.GetUserCouponsAsync(userId);
+				return Ok(userCoupons);
+			}
+			catch (Exception ex)
+			{
+				// _logger.LogError(ex, "An error occurred while fetching coupons for user {UserId}.", userId);
+				return StatusCode(500, new { message = "讀取您的優惠券時發生錯誤。" });
+			}
+		}
 
-                var userCoupons = await _couponApiService.GetUserCouponsAsync(userId);
-                return Ok(userCoupons);
-            }
-            catch (Exception ex)
-            {
-                // _logger.LogError(ex, "An error occurred while fetching coupons for user {UserId}.", userId);
-                return StatusCode(500, new { message = "讀取您的優惠券時發生錯誤。" });
-            }
-        }
-    }
+	}
 }

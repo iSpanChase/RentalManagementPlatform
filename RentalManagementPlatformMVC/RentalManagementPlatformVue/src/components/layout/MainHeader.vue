@@ -123,9 +123,16 @@ const onLogout = async () => {
         <router-link to="/" class="logo-link">
           <img src="../../assets/images/AirNest_Logo.png" alt="AirNest Logo" class="logo">
         </router-link>
+        
 
         <!-- Right Actions -->
         <div class="right-actions">
+            <router-link
+                class="btn btn-outline-light btn-sm"    
+                to="/recommendations"
+            >
+                <span>推薦房源</span>
+            </router-link>
           <!-- 已登入：顯示用戶下拉選單 -->
           <template v-if="isLoggedIn">
             <div class="user-dropdown-container" @click.stop>
@@ -174,6 +181,15 @@ const onLogout = async () => {
                   <div class="nav-section">
                     <h6 class="section-title">個人中心</h6>
                     <router-link
+                      v-if="auth.can && auth.can('RoomList.View')"
+                      to="/hosting/rooms"
+                      class="dropdown-item"
+                      @click="closeUserDropdown"
+                    >
+                      <i class="fas fa-home"></i>
+                      <span>我的房源</span>
+                    </router-link>
+                    <router-link
                       to="/my-bookings"
                       class="dropdown-item"
                       @click="closeUserDropdown"
@@ -197,6 +213,14 @@ const onLogout = async () => {
                     >
                       <i class="fas fa-ticket-alt"></i>
                       <span>優惠券</span>
+                    </router-link>
+                    <router-link
+                      to="/reportForm"
+                      class="dropdown-item"
+                      @click="closeUserDropdown"
+                    >
+                      <i class="fas fa-calendar-check"></i>
+                      <span>我的報表</span>
                     </router-link>
                   </div>
 

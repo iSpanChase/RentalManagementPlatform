@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import apiClient from '@/api/axiosInstance';
-import type { RevenueConfig } from '../../api/reportForm';
+import type { RevenueConfig } from '@/modules/ReportForm/api/reportForm';
 
 const props = defineProps<{ modelValue: RevenueConfig }>();
 const emit = defineEmits(['update:modelValue']);
