@@ -90,7 +90,7 @@ namespace RentalManagementPlatformWebAPI.Services
 
 		public async Task<LoginResponseDto> GoogleLoginAsync(string idToken)
 		{
-			var aud = _cfg["Jwt:Audience"]; // 可傳 null 使用自動驗證
+			var aud = _cfg["Authentication:Jwt:Audience"]; // 可傳 null 使用自動驗證
 			var gp = await _google.VerifyAsync(idToken, aud) ?? throw new UnauthorizedAccessException("Google token 驗證失敗");
 
 			var user = await _users.GetByProviderAsync("Google", gp.Sub);

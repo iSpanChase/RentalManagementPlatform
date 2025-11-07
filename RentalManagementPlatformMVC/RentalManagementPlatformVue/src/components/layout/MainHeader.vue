@@ -238,7 +238,7 @@ const onLogout = async () => {
                       to="/my-orders"
                       class="dropdown-item"
                       @click="closeUserDropdown"
-                      v-if="auth.can && auth.can('Booking.ManageAll')"
+                      v-if="auth.can && auth.can('Booking.ManageBookings')"
                     >
                       <i class="fas fa-clipboard-list"></i>
                       <span>我的訂單</span>

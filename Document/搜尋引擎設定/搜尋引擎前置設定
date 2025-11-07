@@ -12,7 +12,7 @@ curl.exe -X POST "http://127.0.0.1:7700/indexes/rooms/documents" -H "Authorizati
 
 搜尋設定
 
-curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorization: Bearer TingYi1997" -H "Content-Type: application/json" --data-binary "@rooms_settings.json"
+curl.exe -X PATCH "http://127.0.0.1:7700/indexes/rooms/settings" -H "Authorization: @Mmorpg176Mmorpg176" -H "Content-Type: application/json" --data-binary "@rooms_settings.json"
 
 同義字
 
