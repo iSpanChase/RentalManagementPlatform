@@ -275,14 +275,14 @@ namespace RentalManagementPlatformWebAPI.Controllers
 			TryParsePasswordResetToken(string token)
 		{
 			var handler = new JwtSecurityTokenHandler();
-			var key = Encoding.UTF8.GetBytes(_cfg["Jwt:Key"]!);
+			var key = Encoding.UTF8.GetBytes(_cfg["Authentication:Jwt:Key"]!);
 
 			var parameters = new TokenValidationParameters
 			{
 				ValidateIssuer = true,
-				ValidIssuer = _cfg["Jwt:Issuer"],
+				ValidIssuer = _cfg["Authentication:Jwt:Issuer"],
 				ValidateAudience = true,
-				ValidAudience = _cfg["Jwt:Audience"],
+				ValidAudience = _cfg["Authentication:Jwt:Audience"],
 				ValidateIssuerSigningKey = true,
 				IssuerSigningKey = new SymmetricSecurityKey(key),
 				ValidateLifetime = true,
@@ -369,9 +369,9 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
 		private string CreatePasswordResetToken(User user)
 		{
-			var issuer = _cfg["Jwt:Issuer"];
-			var audience = _cfg["Jwt:Audience"];
-			var signingKey = _cfg["Jwt:Key"];
+			var issuer = _cfg["Authentication:Jwt:Issuer"];
+			var audience = _cfg["Authentication:Jwt:Audience"];
+			var signingKey = _cfg["Authentication:Jwt:Key"];
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey!));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -419,11 +419,11 @@ namespace RentalManagementPlatformWebAPI.Controllers
 		[AllowAnonymous]
 		public IActionResult DebugJwtConfig()
 		{
-			string key = _cfg["Jwt:Key"] ?? "";
+			string key = _cfg["Authentication:Jwt:Key"] ?? "";
 			return Ok(new
 			{
-				cfgIssuer = _cfg["Jwt:Issuer"],
-				cfgAudience = _cfg["Jwt:Audience"],
+				cfgIssuer = _cfg["Authentication:Jwt:Issuer"],
+				cfgAudience = _cfg["Authentication:Jwt:Audience"],
 				keyLen = key.Length,
 				keyHead = key.Length >= 4 ? key[..4] : key,
 				keyTail = key.Length >= 4 ? key[^4..] : key
@@ -445,8 +445,8 @@ namespace RentalManagementPlatformWebAPI.Controllers
 
 			var payloadIssuer = jwt.Issuer;
 			var payloadAudience = jwt.Audiences?.FirstOrDefault();
-			var cfgIssuer = _cfg["Jwt:Issuer"];
-			var cfgAudience = _cfg["Jwt:Audience"];
+			var cfgIssuer = _cfg["Authentication:Jwt:Issuer"];
+			var cfgAudience = _cfg["Authentication:Jwt:Audience"];
 
 			return Ok(new
 			{
