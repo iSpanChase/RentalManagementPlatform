@@ -296,11 +296,14 @@ const clearFilters = () => {
           <div class="filter-dropdowns">
             <select v-model="statusFilter" class="filter-select">
               <option value="">所有狀態</option>
-              <option value="pending">待付款</option>
-              <option value="deferred">延後付款</option>
-              <option value="completed">已付款</option>
+              <option value="pending">處理中</option>
+              <option value="deferred">待付款</option>
+              <option value="completed">已完成</option>
               <option value="cancelled">已取消</option>
               <option value="refunded">已退款</option>
+              <option value="failed">付款失敗</option>
+              <option value="pending_review">等待審核</option>
+              <option value="confirmed">已確認</option>
             </select>
 
             <select v-model="sortBy" class="sort-select">

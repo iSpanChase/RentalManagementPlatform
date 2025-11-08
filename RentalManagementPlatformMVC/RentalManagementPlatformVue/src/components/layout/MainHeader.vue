@@ -94,6 +94,21 @@ const hasRoomListPermission = computed(() =>
 const hasManageBookingsPermission = computed(() =>
   auth.can && auth.can('Booking.ManageBookings')
 )
+const hasViewBookingsPermission = computed(() =>
+  auth.can && auth.can('Booking.View')
+)
+
+/** 判斷是否為房客（有查看預訂權限但沒有房源管理權限） */
+const isGuest = computed(() => {
+  const hasRoomManagement = auth.can && auth.can('RoomList.View')
+  const hasBookingView = auth.can && auth.can('Booking.View')
+  return !hasRoomManagement && hasBookingView
+})
+
+/** 判斷是否為房東（有房源管理和訂單管理權限） */
+const isLandlord = computed(() => {
+  return auth.can && auth.can('RoomList.View') && auth.can('Booking.ManageBookings')
+})
 
 /** 登入後載入權限 */
 onMounted(async () => {
@@ -237,7 +252,7 @@ const onLogout = async () => {
                   <div class="nav-section">
                     <h6 class="section-title">個人中心</h6>
                     <router-link
-                      v-if="hasRoomListPermission"
+                      v-if="isLandlord"
                       to="/hosting/rooms"
                       class="dropdown-item"
                       @click="closeUserDropdown"
@@ -246,6 +261,7 @@ const onLogout = async () => {
                       <span>我的房源</span>
                     </router-link>
                     <router-link
+                      v-if="isGuest"
                       to="/my-bookings"
                       class="dropdown-item"
                       @click="closeUserDropdown"
@@ -254,10 +270,10 @@ const onLogout = async () => {
                       <span>我的預訂</span>
                     </router-link>
                     <router-link
+                      v-if="isLandlord"
                       to="/my-orders"
                       class="dropdown-item"
                       @click="closeUserDropdown"
-                      v-if="hasManageBookingsPermission"
                     >
                       <i class="fas fa-clipboard-list"></i>
                       <span>我的訂單</span>
