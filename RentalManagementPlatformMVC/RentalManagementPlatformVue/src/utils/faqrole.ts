@@ -12,3 +12,9 @@ export function getDisplayName(profile: UserProfile | null | undefined): string 
     if (!profile) return '訪客'
     return profile.name || profile.username || '訪客'
 }
+
+export function getDisplayUserId(profile: UserProfile | null | undefined):
+    number {
+    if (!profile) return 0
+    return profile.userId
+}
