@@ -12,14 +12,10 @@ type TicketDto = {
   id: string
   title: string
   userName: string
-  userID: number
+  requesterId: number
   status: string
   createdAt: string
   updatedAt: string
-  RequesterEmail : string
-  RequesterPhone : string
-  RequesterAddress : string
-  RequesterAvatarUrl : string
 }
 
 const router = useRouter()
@@ -132,12 +128,12 @@ async function createTicket(){
 /* 浮動按鈕 */
 .chat-launcher{
   position: fixed;
-  right: 24px;
+  left: 30px;
   bottom: 24px;
   width: 56px; height: 56px;
   border-radius: 50%;
   border: none;
-  background: #2563eb;
+  background: #313234;
   color: #fff;
   box-shadow: 0 8px 28px rgba(37, 99, 235, .45);
   cursor: pointer;
@@ -154,10 +150,11 @@ async function createTicket(){
 /* 浮動聊天視窗（Messenger 風格） */
 .chat-widget{
   position: fixed;
-  right: 24px;
+  left: 24px;
   bottom: 92px;
   width: 360px;
   max-height: 70vh;
+
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,.25);

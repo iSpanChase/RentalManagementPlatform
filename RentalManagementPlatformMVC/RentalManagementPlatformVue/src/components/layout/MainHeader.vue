@@ -310,6 +310,14 @@ const onLogout = async () => {
                       <i class="fas fa-user-cog"></i>
                       <span>個人設定</span>
                     </router-link>
+                    <router-link
+                      to="/support/faq"
+                      class="dropdown-item"
+                      @click="closeUserDropdown"
+                    >
+                      <i class="fas fa-user-cog"></i>
+                      <span>FAQ</span>
+                    </router-link>
                   </div>
 
                   <div class="dropdown-divider"></div>
