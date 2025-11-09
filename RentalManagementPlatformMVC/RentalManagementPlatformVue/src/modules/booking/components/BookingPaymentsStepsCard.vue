@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useBookingStore } from '@/stores/bookingStore';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { formatPrice } from '@/composables/useBookingFormatters';
@@ -18,6 +19,10 @@ const props = defineProps({
 const bookingStore = useBookingStore();
 const router = useRouter();
 const toast = useToast();
+const auth = useAuthStore();
+
+// 權限檢查
+const canCreateBooking = auth.can('Booking.Create');
 
 // 當前步驟
 const currentStep = ref(1);
@@ -107,6 +112,12 @@ const handleBack = () => {
  * 確認並付款
  */
 const handleConfirmPayment = async () => {
+  // 檢查建立訂單權限
+  if (!canCreateBooking) {
+    toast.error('您沒有建立訂單的權限，請聯繫管理員');
+    return;
+  }
+
   if (!bookingStore.hasBookingDraft) {
     toast.info('訂房資料不完整，請重新選擇房源');
     return;
@@ -345,10 +356,11 @@ const handleConfirmPayment = async () => {
             type="button"
             class="btn-continue"
             @click="handleConfirmPayment"
-            :disabled="bookingStore.isLoading"
+            :disabled="bookingStore.isLoading || !canCreateBooking"
           >
             <span v-if="bookingStore.isLoading" class="loading-spinner-btn"></span>
             <span v-if="bookingStore.isLoading">處理中...</span>
+            <span v-else-if="!canCreateBooking">無權限建立訂單</span>
             <span v-else>確認並付款</span>
           </button>
         </div>
