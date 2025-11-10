@@ -184,7 +184,7 @@ const defaultByType = (type: CardType): any => {
 
 const localDraft = reactive<CardDraft>({
   type: 'revenue',
-  title: '新卡片',
+  title: '',
   subtitle: '',
   config: defaultByType('revenue')
 })
@@ -197,7 +197,7 @@ watch([() => props.visible, () => props.modelValue], ([v, mv]) => {
       } else {
         Object.assign(localDraft, {
           type: 'revenue',
-          title: '新卡片',
+          title: '',
           subtitle: '',
           config: defaultByType('revenue')
         })
