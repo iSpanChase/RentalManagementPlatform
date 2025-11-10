@@ -299,7 +299,7 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
             if (historicalPoints.Count > 7) // Need enough data to predict
             {
                 // Use last 30 days for a more stable trend calculation
-                var trendData = historicalPoints.TakeLast(30).ToList();
+                var trendData = historicalPoints.TakeLast(90).ToList();
                 var n = trendData.Count;
                 var sumX = Enumerable.Range(1, n).Sum(i => (long)i); // Use long to avoid overflow
                 var sumY = trendData.Sum(p => (double)p.Revenue);

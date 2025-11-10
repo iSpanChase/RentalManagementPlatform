@@ -347,9 +347,9 @@ namespace RentalManagementPlatformWebAPI.Area.ReportForm.Controllers
 
             // 2. Simple Linear Regression for the entire period
             var regressionPoints = new List<OccupancyPoint>();
-            if (historicalPoints.Count >= 30)
+            if (historicalPoints.Count >= 90)
             {
-                var trendData = historicalPoints.TakeLast(30).ToList();
+                var trendData = historicalPoints.TakeLast(90).ToList();
                 var n = trendData.Count;
                 var sumX = Enumerable.Range(1, n).Sum(i => (long)i);
                 var sumY = trendData.Sum(p => p.OccupancyRate);

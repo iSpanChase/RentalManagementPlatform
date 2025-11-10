@@ -82,6 +82,10 @@ const router = createRouter({
           path: '/checkout',
           name: 'Checkout',
           component: () => import('../views/CheckoutPageView.vue'),
+          meta: {
+            requiresAuth: true,
+            requiredPerms: ['Booking.Create'],
+          },
         },
         {
           path: '/my-bookings',

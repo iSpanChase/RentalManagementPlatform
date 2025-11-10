@@ -104,11 +104,23 @@ const emit = defineEmits<{
 const isEdit = computed(() => !!props.modelValue)
 
 const defaultByType = (type: CardType): any => {
+    let date = new Date();
+    const nowYear = date.getFullYear() ;
+    const nowMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const nowDate = String(date.getDate()).padStart(2, '0');
+    const today = `${nowYear}-${nowMonth}-${nowDate}`;
+
+    date.setMonth(new Date().getMonth()-1);
+    const beforeMonthYear = date.getFullYear() ;
+    const beforeMonthMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const beforeMonthDate = String(date.getDate()).padStart(2, '0');
+    const beforeMonth = `${beforeMonthYear}-${beforeMonthMonth}-${beforeMonthDate}`;
+
   if (type === 'revenue') {
     const cfg: RevenueConfig = {
       propertyIds: [],
-      startDate: '2025-09-01',
-      endDate: '2025-10-23',
+      startDate: beforeMonth,
+      endDate: today,
       groupBy: 'month',
     }
     return cfg
@@ -116,8 +128,8 @@ const defaultByType = (type: CardType): any => {
   if (type === 'occupancy') {
     const cfg: OccupancyConfig = {
       propertyIds: [],
-      startDate: '2025-09-01',
-      endDate: '2025-10-23',
+      startDate: beforeMonth,
+      endDate: today,
       groupBy: 'month',
       chartType: 'line',
     }
@@ -172,7 +184,7 @@ const defaultByType = (type: CardType): any => {
 
 const localDraft = reactive<CardDraft>({
   type: 'revenue',
-  title: '新卡片',
+  title: '',
   subtitle: '',
   config: defaultByType('revenue')
 })
@@ -185,7 +197,7 @@ watch([() => props.visible, () => props.modelValue], ([v, mv]) => {
       } else {
         Object.assign(localDraft, {
           type: 'revenue',
-          title: '新卡片',
+          title: '',
           subtitle: '',
           config: defaultByType('revenue')
         })

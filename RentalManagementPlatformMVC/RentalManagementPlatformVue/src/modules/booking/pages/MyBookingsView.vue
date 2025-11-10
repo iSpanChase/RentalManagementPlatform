@@ -220,7 +220,6 @@ onMounted(async () => {
       return;
     }
 
-    // 使用新的fetchMyBookings方法
     const fetchedBookings = await bookingStore.fetchMyBookings(userId);
     allBookings.value = fetchedBookings || [];
 
@@ -243,36 +242,6 @@ const clearFilters = () => {
   statusFilter.value = '';
   searchKeyword.value = '';
   sortBy.value = 'newest';
-};
-
-/**
- * 重新載入資料
- */
-const reloadData = async () => {
-  isLoading.value = true;
-  isError.value = false;
-
-  try {
-    const userId = auth.state.profile?.userId;
-    if (!userId) {
-      toast.error('無法獲取使用者資訊，請重新登入');
-      router.push({ name: 'LoginView' });
-      return;
-    }
-
-    const fetchedBookings = await bookingStore.fetchMyBookings(userId);
-    allBookings.value = fetchedBookings || [];
-
-    if (allBookings.value.length === 0) {
-      toast.info('目前沒有任何預訂記錄');
-    }
-  } catch (error) {
-    console.error('載入預訂失敗:', error);
-    toast.error(error.message || '載入預訂資料失敗');
-    isError.value = true;
-  } finally {
-    isLoading.value = false;
-  }
 };
 </script>
 
@@ -327,11 +296,14 @@ const reloadData = async () => {
           <div class="filter-dropdowns">
             <select v-model="statusFilter" class="filter-select">
               <option value="">所有狀態</option>
-              <option value="pending">待付款</option>
-              <option value="deferred">延後付款</option>
-              <option value="completed">已付款</option>
+              <option value="pending">處理中</option>
+              <option value="deferred">待付款</option>
+              <option value="completed">已完成</option>
               <option value="cancelled">已取消</option>
               <option value="refunded">已退款</option>
+              <option value="failed">付款失敗</option>
+              <option value="pending_review">等待審核</option>
+              <option value="confirmed">已確認</option>
             </select>
 
             <select v-model="sortBy" class="sort-select">

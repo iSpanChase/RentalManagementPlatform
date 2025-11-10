@@ -29,6 +29,13 @@ if (!auth.isAuthenticated.value) {
   });
 }
 
+// 檢查建立訂單權限
+const canCreateBooking = auth.can('Booking.Create');
+if (!canCreateBooking) {
+  toast.error('您沒有建立訂單的權限，請聯繫管理員');
+  router.push({ name: 'home' });
+}
+
 onMounted(async () => {
   isLoading.value = true;
   const roomId = Number(route.query.roomId);

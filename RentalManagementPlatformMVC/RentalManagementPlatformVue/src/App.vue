@@ -55,6 +55,7 @@ onMounted(async () => {
         <!-- 通知小鈴鐺 -->
         <div class="global-notification-bell">
             <NotificationBell />
+            <ChatFloating />
         </div>
 
 
@@ -81,7 +82,7 @@ onMounted(async () => {
         <!-- <TheFooter /> -->
 
     </div>
-     <ChatFloating />
+     
     <ScrollToTopButton />
 </template>
 
@@ -89,7 +90,7 @@ onMounted(async () => {
 /* 通知鈴鐺固定在右下角 */
 .global-notification-bell {
   position: fixed;
-  bottom: 30px;
+  bottom: 90px;
   left: 30px;
   z-index: 1000;
   transition: all 0.3s ease;

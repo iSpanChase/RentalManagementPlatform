@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { getStatusText, getStatusClass } from '@/composables/useOrderStatus';
+import { getStatusText, getStatusClass, logUnknownStatus } from '@/composables/useOrderStatus';
 
 const props = defineProps({
   status: {
@@ -9,7 +9,14 @@ const props = defineProps({
   }
 });
 
-const statusText = computed(() => getStatusText(props.status));
+const statusText = computed(() => {
+  // 在開發環境中記錄未知狀態
+  if (import.meta.env.DEV) {
+    logUnknownStatus(props.status);
+  }
+  return getStatusText(props.status);
+});
+
 const statusClass = computed(() => getStatusClass(props.status));
 </script>
 
@@ -58,6 +65,12 @@ const statusClass = computed(() => getStatusClass(props.status));
   &.status-refunded {
     background-color: #e2e3e5;
     color: #383d41;
+  }
+
+  &.status-unknown {
+    background-color: #ffeaa7;
+    color: #2d3436;
+    border: 1px solid #fdcb6e;
   }
 }
 </style>

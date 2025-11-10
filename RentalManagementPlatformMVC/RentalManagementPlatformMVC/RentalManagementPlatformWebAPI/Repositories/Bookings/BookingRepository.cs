@@ -48,6 +48,7 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 		{
 			return await _context.Bookings
 				.AsNoTracking()
+				.AsSplitQuery()
 				.Include(b => b.Guest)
 				.Include(b => b.Coupon)
 				.Include(b => b.Payments)
@@ -68,6 +69,7 @@ namespace RentalManagementPlatformWebAPI.Repositories.Bookings
 		{
 			return await _context.Bookings
 				.AsNoTracking()
+				.AsSplitQuery()
 				.Include(b => b.Room)
 					.ThenInclude(r => r.RoomPhotos)
 				.FirstOrDefaultAsync(b => b.OrderNumber == orderNumber);

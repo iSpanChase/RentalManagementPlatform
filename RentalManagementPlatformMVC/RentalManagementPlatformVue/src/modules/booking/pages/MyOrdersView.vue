@@ -15,10 +15,15 @@ const auth = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
+// 權限檢查方法
+const canCancelBooking = auth.can('Booking.Delete');
+
 const allOrders = ref([]);
 const isLoading = ref(true);
 const isError = ref(false);
 const selectedOrder = ref(null);
+const orderToCancel = ref(null);
+const isCancelling = ref(false);
 
 // 篩選和排序狀態
 const statusFilter = ref('');
@@ -99,6 +104,57 @@ const clearFilters = () => {
 };
 
 /**
+ * 開啟取消確認 Modal
+ */
+const openCancelConfirmModal = (order) => {
+  orderToCancel.value = order;
+};
+
+const handleContactUser = () => {
+  toast.info('聯繫房客功能開發中...');
+};
+
+/**
+ * 確認取消預訂
+ */
+const confirmCancellation = async () => {
+  if (!orderToCancel.value) return;
+
+  // 嘗試多種可能的預訂 ID 欄位名稱
+  const bookingId =
+    orderToCancel.value.bookingId || orderToCancel.value.BookingId || orderToCancel.value.id;
+
+  if (!bookingId) {
+    toast.error('無法找到預訂資訊');
+    return;
+  }
+
+  isCancelling.value = true;
+  try {
+    const result = await bookingStore.cancelBooking(bookingId);
+
+    // 更新本地資料
+    const targetBookingId =
+      orderToCancel.value.bookingId ||
+      orderToCancel.value.BookingId ||
+      orderToCancel.value.id;
+    const index = allOrders.value.findIndex(
+      (o) => (o.bookingId || o.BookingId || o.id) === targetBookingId
+    );
+    if (index !== -1) {
+      allOrders.value[index].paymentStatus = 'cancelled';
+    }
+
+    toast.success('訂單已成功取消');
+    orderToCancel.value = null;
+  } catch (error) {
+    toast.error(error.message || '取消訂單失敗');
+  } finally {
+    isCancelling.value = false;
+  }
+};
+
+/**
  * 重新載入資料
  */
 const reloadData = async () => {
@@ -145,7 +201,7 @@ onMounted(async () => {
     <h1>房客預訂清單</h1>
 
     <!-- Loading -->
-    <div v-if="isLoading || bookingStore.isLoading" class="loading-overlay">
+    <div v-if="(isLoading || bookingStore.isLoading) && !isCancelling" class="loading-overlay">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <p>{{ bookingStore.isLoading ? '正在處理訂單...' : '正在載入房客預訂資料...' }}</p>
@@ -166,7 +222,7 @@ onMounted(async () => {
       <div class="error-card">
         <h2>尚無房客預訂</h2>
         <p>目前沒有任何房客預訂您的房源。</p>
-        <button @click="router.push({ name: 'home' })" class="btn-back-home">前往房源管理</button>
+        <button @click="router.push({ name: 'create-room' })" class="btn-back-home">前往房源管理</button>
       </div>
     </div>
 
@@ -191,11 +247,14 @@ onMounted(async () => {
           <div class="filter-dropdowns">
             <select v-model="statusFilter" class="filter-select">
               <option value="">所有狀態</option>
-              <option value="pending">待付款</option>
-              <option value="deferred">延後付款</option>
-              <option value="completed">已付款</option>
+              <option value="pending">處理中</option>
+              <option value="deferred">待付款</option>
+              <option value="completed">已完成</option>
               <option value="cancelled">已取消</option>
               <option value="refunded">已退款</option>
+              <option value="failed">付款失敗</option>
+              <option value="pending_review">等待審核</option>
+              <option value="confirmed">已確認</option>
             </select>
 
             <select v-model="sortBy" class="sort-select">
@@ -259,14 +318,30 @@ onMounted(async () => {
               <div class="price-preview">
                 <strong>TWD {{ order.totalPrice.toLocaleString() }}</strong>
               </div>
-              <button
-                class="btn-details"
-                data-bs-toggle="modal"
-                data-bs-target="#orderDetailModal"
-                @click="viewOrderDetails(order.orderNumber, allOrders)"
-              >
-                查看詳情 / 聯絡
-              </button>
+              <div class="card-actions">
+                <button
+                  class="btn-cancel"
+                  data-bs-toggle="modal"
+                  data-bs-target="#cancelConfirmModal"
+                  @click="openCancelConfirmModal(order)"
+                  v-if="
+                    canCancelBooking &&
+                    order.paymentStatus !== 'cancelled' &&
+                    order.paymentStatus !== 'refunded'
+                  "
+                  :disabled="isCancelling || isLoading"
+                >
+                  取消預訂
+                </button>
+                <button
+                  class="btn-details"
+                  data-bs-toggle="modal"
+                  data-bs-target="#orderDetailModal"
+                  @click="viewOrderDetails(order.orderNumber, allOrders)"
+                >
+                  查看詳情 / 聯絡
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -390,8 +465,60 @@ onMounted(async () => {
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-            <button type="button" class="btn btn-chat">
+            <button type="button" class="btn btn-chat" @click="handleContactUser">
               <i class="fa-solid fa-comments"></i> 聯絡房客
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 取消確認 Modal -->
+    <div
+      class="modal fade"
+      id="cancelConfirmModal"
+      tabindex="-1"
+      aria-labelledby="cancelConfirmModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cancelConfirmModalLabel">確認取消預訂</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            您確定要取消這筆訂單 (編號: {{ orderToCancel?.orderNumber }}) 嗎？
+            <br />
+            <small class="text-muted">請注意，取消政策可能適用。</small>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              :disabled="isCancelling"
+            >
+              關閉
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="confirmCancellation"
+              :disabled="isCancelling"
+              data-bs-dismiss="modal"
+            >
+              <span
+                v-if="isCancelling"
+                class="spinner-border spinner-border-sm"
+                role="status"
+              ></span>
+              <span v-else>確認取消</span>
             </button>
           </div>
         </div>
@@ -582,6 +709,13 @@ $text-dark: #484848;
         font-weight: 600;
         color: $primary-color;
       }
+
+      .card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
     }
   }
 }
@@ -614,19 +748,47 @@ $text-dark: #484848;
   color: #383d41;
 }
 
+%btn-base {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
 .btn-details {
+  @extend %btn-base;
   background-color: $secondary-color;
   color: $primary-color;
   border: 1px solid color.adjust($secondary-color, $lightness: -10%);
   padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 600;
   font-size: 14px;
-  transition: all 0.2s;
 
   &:hover {
     background-color: color.adjust($secondary-color, $lightness: -10%);
     border-color: color.adjust($secondary-color, $lightness: -15%);
+  }
+}
+
+.btn-cancel {
+  @extend %btn-base;
+  background-color: white;
+  color: #d9534f;
+  border-color: #d9534f;
+
+  &:hover {
+    background-color: #d9534f;
+    color: white;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    color: #717171;
+    cursor: not-allowed;
   }
 }
 
@@ -787,6 +949,28 @@ hr {
       border-color: color.adjust($chat-color, $lightness: -10%);
     }
   }
+
+  .btn-danger {
+    background-color: #d9534f;
+    border-color: #d9534f;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: color.adjust(#d9534f, $lightness: -10%);
+      border-color: color.adjust(#d9534f, $lightness: -10%);
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      border-color: #ccc;
+      color: #717171;
+      cursor: not-allowed;
+    }
+  }
 }
 
 @media (max-width: 768px) {
@@ -824,8 +1008,14 @@ hr {
       .price-preview {
         text-align: center;
       }
-      .btn-details {
+      .card-actions {
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        .btn-details {
+          grid-column: 1 / -1;
+        }
       }
     }
   }
