@@ -12,7 +12,10 @@
 
         <div class="form-group">
           <label for="password">密碼</label>
-          <input id="password" v-model="password" type="password" required placeholder="請輸入密碼" class="form-control" />
+          <div class="input-group">
+          <input id="password":type="showPassword ? 'text' : 'password'" v-model="password" required placeholder="請輸入密碼" class="form-control" />
+          <button type="button" class="btn-toggle-visibility" @click="togglePassword">{{ showPassword ? '隱藏密碼' : '顯示密碼' }}</button>
+          </div>
         </div>
 
         <div class="form-links">
@@ -59,6 +62,12 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
+const showPassword = ref(false)
+
+
+function togglePassword() {
+showPassword.value = !showPassword.value
+}
 
 const handleSubmit = async () => {
   if (loading.value) return
@@ -210,6 +219,33 @@ $primary-brand-color: #007bff; // 假設一個品牌主色
     background-color: #ccc;
     border-color: #ccc;
     cursor: not-allowed;
+  }
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+
+  .form-control {
+    padding-right: 60px;
+  }
+
+  .btn-toggle-visibility {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+    border: none;
+    background: #f8f9fa;
+    color: $text-dark;
+    padding: 0 12px;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    font-size: 13px;
+
+    &:hover {
+      background: #e9ecef;
+    }
   }
 }
 
