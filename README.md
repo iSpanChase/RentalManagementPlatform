@@ -60,7 +60,7 @@ RentalManagementPlatform/
 
 ### 快速開始
 
-1. **克隆專案**
+1. **Clone專案**
    ```bash
    git clone https://github.com/iSpanChase/RentalManagementPlatform.git
    cd RentalManagementPlatform
@@ -179,9 +179,8 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ## 👥 開發團隊
 
-- **iSpan FUCN43班 第一組**
-- 指導老師: [老師姓名]
-- 專案負責人: [負責人姓名]
+- **iSpan FUEN43班 第一組**
+- 專案團隊成員: 鄭育全、朱廷翊、湯兆權、陳昆鴻、李文志、曾偉翰
 
 ## 📞 聯絡我們
 
