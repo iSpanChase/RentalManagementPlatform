@@ -12,6 +12,7 @@ import { startConnection, registerWarningHandler } from './modules/ReportForm/ap
 import NotificationBell from '@/modules/ReportForm/components/notification/NotificationBell.vue'
 import { useNotificationStore } from '@/stores/notificationStore';
 import ChatFloating from './components/ChatFloating.vue'
+import AssistantChat from './components/AssistantChat.vue'
 import { useAuthStore } from '@/stores/auth';
 
 const { isSearchPopupOpen, isSidebarOpen, isMobileMenuOpen, handleToggleSearch, handleToggleSidebar, handleToggleMobileMenu } = useAppToggle();
@@ -82,8 +83,9 @@ onMounted(async () => {
         <!-- <TheFooter /> -->
 
     </div>
-     
+    
     <ScrollToTopButton />
+    <AssistantChat />
 </template>
 
 <style scoped>

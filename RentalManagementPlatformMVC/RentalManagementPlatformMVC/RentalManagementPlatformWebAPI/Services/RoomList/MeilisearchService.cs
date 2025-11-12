@@ -319,18 +319,40 @@ namespace RentalManagementPlatformWebAPI.Services
             string? status = null,
             bool sortByDistance = true)
         {
+            _logger.LogInformation("=== MeilisearchService.SearchNearbyAsync 開始 ===");
+            
+            // 記錄 AI 搜尋狀態過濾變更
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                _logger.LogWarning("【AI搜尋模式】已移除狀態過濾，將返回所有未刪除的房源（各種狀態）");
+            }
+            
+            _logger.LogInformation("輸入參數 - 查詢: '{Query}', 緯度: {Lat}, 經度: {Lng}, 半徑: {RadiusKm}km, 狀態: '{Status}', 距離排序: {SortByDistance}", 
+                query, lat, lng, radiusKm, status, sortByDistance);
+            
             var filters = new List<string>();
-            // Always exclude deleted
+            // Always exclude deleted - 這是唯一的基本過濾條件
             filters.Add("is_deleted = false");
+            
+            // 狀態過濾：只有當明確提供狀態值時才添加過濾條件
+            // 這允許 AI 搜尋顯示所有未刪除的房源，無論其狀態為何
             if (!string.IsNullOrWhiteSpace(status))
             {
                 filters.Add($"status = \"{status}\"");
+                _logger.LogInformation("添加狀態過濾條件: status = '{Status}'", status);
+            }
+            else
+            {
+                _logger.LogInformation("未提供狀態過濾，顯示所有未刪除房源 (is_deleted = false)");
             }
 
             var radiusMeters = radiusKm * 1000.0;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             var geoFilter = $"_geoRadius({lat.ToString(inv)}, {lng.ToString(inv)}, {radiusMeters.ToString(inv)})";
             filters.Add(geoFilter);
+
+            _logger.LogInformation("地理過濾器: {GeoFilter}", geoFilter);
+            _logger.LogInformation("完整過濾條件: {Filters}", string.Join(" AND ", filters));
 
             try
             {
@@ -346,13 +368,37 @@ namespace RentalManagementPlatformWebAPI.Services
                     Limit = 200,
                 };
 
+                _logger.LogInformation("Meilisearch 查詢對象: {QueryObject}", System.Text.Json.JsonSerializer.Serialize(searchQuery));
+
                 if (sortByDistance)
                 {
                     searchQuery.Sort = new[] { $"_geoPoint({lat.ToString(inv)}, {lng.ToString(inv)}):asc" };
+                    _logger.LogInformation("添加距離排序: {Sort}", searchQuery.Sort.First());
                 }
 
                 var searchResult = await index.SearchAsync<RoomListSearchDto>(query, searchQuery);
                 var hits = searchResult.Hits.ToList();
+
+                _logger.LogInformation("Meilisearch 返回 {Count} 個結果", hits.Count);
+
+                // 添加更詳細的結果檢查
+                if (hits.Any())
+                {
+                    _logger.LogInformation("找到房源，開始處理詳細信息");
+                    var firstHit = hits.First();
+                    _logger.LogInformation("第一個房源 - ID: {RoomId}, 標題: {Title}, 座標: ({Lat}, {Lng}), 狀態: {Status}, 是否刪除: {IsDeleted}", 
+                        firstHit.RoomId, firstHit.Title, firstHit.Geo?.Lat, firstHit.Geo?.Lng, firstHit.Status, firstHit.IsDeleted);
+                }
+                else
+                {
+                    _logger.LogWarning("Meilisearch 沒有返回任何房源結果");
+                    // 檢查是否有索引或地理數據問題
+                    _logger.LogInformation("檢查可能的原因:");
+                    _logger.LogInformation("1. 半徑設置: {RadiusKm}km ({RadiusMeters}m)", radiusKm, radiusMeters);
+                    _logger.LogInformation("2. 中心點座標: ({Lat}, {Lng})", lat, lng);
+                    _logger.LogInformation("3. 過濾條件: {Filters}", string.Join(" AND ", filters));
+                    _logger.LogInformation("4. 查詢詞語: '{Query}'", query);
+                }
 
                 foreach (var hit in hits)
                 {
@@ -414,6 +460,7 @@ namespace RentalManagementPlatformWebAPI.Services
                     }
                 }
 
+                _logger.LogInformation("=== MeilisearchService.SearchNearbyAsync 完成，返回 {Count} 個房源 ===", hits.Count);
                 return hits;
             }
             catch (Exception ex)

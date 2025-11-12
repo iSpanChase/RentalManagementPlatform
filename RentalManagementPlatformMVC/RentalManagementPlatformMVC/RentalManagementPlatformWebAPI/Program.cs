@@ -36,6 +36,9 @@ using RentalManagementPlatformWebAPI.Services.Interfaces;
 using RentalManagementPlatformWebAPI.Services.Payments;
 using RentalManagementPlatformWebAPI.Services.Property;
 using RentalManagementPlatformWebAPI.Services.Property.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Interfaces;
+using RentalManagementPlatformWebAPI.Services.Places;
+using RentalManagementPlatformWebAPI.Services.Assistant;
 using StackExchange.Redis;
 using System.Net;
 using System.Reflection;
@@ -332,6 +335,10 @@ namespace RentalManagementPlatformWebAPI
 			// External integrations
 			builder.Services.AddSingleton(new MeilisearchClient(builder.Configuration["Meilisearch:Url"], builder.Configuration["Meilisearch:ApiKey"]));
 			builder.Services.AddScoped<MeilisearchService>();
+			builder.Services.AddScoped<IPlacesService, PlacesService>();
+			builder.Services.AddScoped<AssistantOrchestrator>();
+			builder.Services.AddScoped<IQwenClient, QwenClient>();
+			builder.Services.Configure<QwenOptions>(builder.Configuration.GetSection("Qwen"));
 
 			// 配置 MinioSettings：將 appsettings.json 中的 "MinioSettings" 區塊綁定到 MinioSettings DTO。
 			builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("MinioSettings"));
